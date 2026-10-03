@@ -106,6 +106,11 @@ export interface ProjectFilters {
     search?: string;
 }
 
+export interface TerrainPoint {
+    x_m: number;
+    y_m: number;
+}
+
 export interface Terrain {
     id: number;
     project_id: number;
@@ -113,6 +118,7 @@ export interface Terrain {
     area_m2: number;
     width_m: number | null;
     length_m: number | null;
+    points: TerrainPoint[];
     slope_percent: number | null;
     soil_type: string | null;
     latitude: number | null;
@@ -125,6 +131,7 @@ export interface TerrainCreate {
     area_m2: number;
     width_m?: number | null;
     length_m?: number | null;
+    points?: TerrainPoint[] | null;
     slope_percent?: number | null;
     soil_type?: string | null;
     latitude?: number | null;

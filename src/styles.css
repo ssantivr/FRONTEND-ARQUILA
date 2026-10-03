@@ -526,3 +526,65 @@ textarea {
         padding: 8px 16px 0;
     }
 }
+
+.form-row .field-full {
+    flex: 1 1 100%;
+}
+
+.diagram-base {
+    fill: rgba(143, 163, 181, 0.08);
+    stroke: var(--text-secondary);
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+}
+
+.diagram-terrain {
+    fill: rgba(57, 217, 138, 0.22);
+}
+
+.diagram-outline {
+    fill: none;
+    stroke: var(--success);
+    stroke-width: 1.5;
+}
+
+.diagram-edge {
+    stroke: var(--text-secondary);
+    stroke-width: 1;
+}
+
+.diagram-controls {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.diagram-controls fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.diagram-controls legend {
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.diagram-controls input[type="range"] {
+    padding: 0;
+}
+
+.checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+}
+
+.checkbox input {
+    padding: 0;
+}

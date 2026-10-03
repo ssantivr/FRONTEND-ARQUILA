@@ -5,6 +5,7 @@ import { terrainsApi } from "../services/api";
 import type { Terrain } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatNumber, optionalNumber, optionalText } from "../utils/format";
+import { formatPoints, parsePoints, polygonArea } from "../utils/geometry";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
@@ -20,13 +21,18 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
     const [area, setArea] = useState("");
     const [slope, setSlope] = useState("");
     const [soilType, setSoilType] = useState("");
+    const [pointsText, setPointsText] = useState("");
 
     const widthValue = optionalNumber(width);
     const lengthValue = optionalNumber(length);
-    const rectangleArea =
-        widthValue !== undefined && lengthValue !== undefined
-            ? widthValue * lengthValue
-            : undefined;
+    const parsed = parsePoints(pointsText);
+    const polygon = "points" in parsed && parsed.points.length >= 3 ? parsed.points : null;
+    const suggestedArea =
+        polygon !== null
+            ? polygonArea(polygon)
+            : widthValue !== undefined && lengthValue !== undefined
+              ? widthValue * lengthValue
+              : undefined;
 
     function resetForm() {
         setEditingId(null);
@@ -36,6 +42,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
         setArea("");
         setSlope("");
         setSoilType("");
+        setPointsText("");
     }
 
     function startEdit(terrain: Terrain) {
@@ -47,18 +54,29 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
         setArea(String(terrain.area_m2));
         setSlope(String(terrain.slope_percent ?? ""));
         setSoilType(terrain.soil_type ?? "");
+        setPointsText(
+            formatPoints(terrain.points.map((point) => ({ x: point.x_m, y: point.y_m }))),
+        );
     }
 
     function handleSubmit(event: FormEvent) {
         event.preventDefault();
 
+        if ("error" in parsed) {
+            return;
+        }
+
         const data = {
             name: name.trim(),
-            area_m2: optionalNumber(area) ?? rectangleArea ?? 0,
+            area_m2: optionalNumber(area) ?? suggestedArea ?? 0,
             width_m: widthValue ?? null,
             length_m: lengthValue ?? null,
             slope_percent: optionalNumber(slope) ?? null,
             soil_type: optionalText(soilType) ?? null,
+            points:
+                polygon === null
+                    ? null
+                    : polygon.map((point) => ({ x_m: point.x, y_m: point.y })),
         };
 
         run(
@@ -100,7 +118,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th className="numeric">Ancho × largo (m)</th>
+                            <th>Forma</th>
                             <th className="numeric">Área (m²)</th>
                             <th className="numeric">Pendiente (%)</th>
                             <th>Suelo</th>
@@ -114,9 +132,10 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                                 className={terrain.id === editingId ? "row-editing" : undefined}
                             >
                                 <td>{terrain.name}</td>
-                                <td className="numeric">
-                                    {formatNumber(terrain.width_m)} ×{" "}
-                                    {formatNumber(terrain.length_m)}
+                                <td>
+                                    {terrain.points.length >= 3
+                                        ? `Polígono de ${terrain.points.length} vértices`
+                                        : `${formatNumber(terrain.width_m)} × ${formatNumber(terrain.length_m)} m`}
                                 </td>
                                 <td className="numeric">{formatNumber(terrain.area_m2)}</td>
                                 <td className="numeric">
@@ -177,9 +196,9 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                         value={area}
                         onChange={(event) => setArea(event.target.value)}
                         placeholder={
-                            rectangleArea === undefined ? undefined : formatNumber(rectangleArea)
+                            suggestedArea === undefined ? undefined : formatNumber(suggestedArea)
                         }
-                        required={rectangleArea === undefined}
+                        required={suggestedArea === undefined}
                     />
                 </label>
                 <label>
@@ -200,9 +219,25 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                         maxLength={80}
                     />
                 </label>
+                <label className="field-full">
+                    Vértices del lote, si no es rectangular: un punto «x y» en metros por línea
+                    <textarea
+                        value={pointsText}
+                        onChange={(event) => setPointsText(event.target.value)}
+                        rows={4}
+                        placeholder={"0 0\n20 0\n20 10\n10 10\n10 30\n0 30"}
+                        aria-invalid={"error" in parsed}
+                    />
+                </label>
+                {"error" in parsed && (
+                    <p className="message message-error field-full" role="alert">
+                        {parsed.error}
+                    </p>
+                )}
                 <FormActions
                     editing={editingId !== null}
                     addLabel="Agregar terreno"
+                    disabled={"error" in parsed}
                     onCancel={resetForm}
                 />
             </form>

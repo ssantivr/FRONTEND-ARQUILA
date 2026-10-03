@@ -1,5 +1,7 @@
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
+import { bounds, footprint } from "../utils/geometry";
+import { Terrain3D } from "./Terrain3D";
 
 const VIEW_WIDTH = 260;
 const VIEW_HEIGHT = 190;
@@ -8,6 +10,17 @@ const DRAW_HEIGHT = 120;
 const LEFT = 50;
 const TOP = 30;
 
+export function profileLength(terrain: Terrain): number | null {
+    const shape = footprint(terrain);
+
+    if (terrain.points.length >= 3 && shape !== null) {
+        const box = bounds(shape);
+        return box.maxY - box.minY;
+    }
+
+    return terrain.length_m;
+}
+
 export function TerrainDiagrams({ terrain }: { terrain: Terrain }) {
     return (
         <figure className="terrain-diagrams">
@@ -15,25 +28,36 @@ export function TerrainDiagrams({ terrain }: { terrain: Terrain }) {
             <div className="diagram-row">
                 <TopView terrain={terrain} />
                 <Profile terrain={terrain} />
+                <Terrain3D terrain={terrain} />
             </div>
         </figure>
     );
 }
 
 function TopView({ terrain }: { terrain: Terrain }) {
-    const { width_m: width, length_m: length } = terrain;
+    const shape = footprint(terrain);
 
-    if (width === null || length === null) {
+    if (shape === null) {
         return (
-            <Missing title="Vista superior" text="Falta el ancho o el largo del terreno." />
+            <Missing
+                title="Vista superior"
+                text="Faltan el ancho y el largo, o los vértices del lote."
+            />
         );
     }
 
-    const scale = Math.min(DRAW_WIDTH / width, DRAW_HEIGHT / length);
-    const drawnWidth = width * scale;
-    const drawnHeight = length * scale;
-    const x = LEFT + (DRAW_WIDTH - drawnWidth) / 2;
-    const y = TOP + (DRAW_HEIGHT - drawnHeight) / 2;
+    const box = bounds(shape);
+    const width = box.maxX - box.minX;
+    const height = box.maxY - box.minY;
+    const scale = Math.min(DRAW_WIDTH / width, DRAW_HEIGHT / height);
+    const x = LEFT + (DRAW_WIDTH - width * scale) / 2;
+    const y = TOP + (DRAW_HEIGHT - height * scale) / 2;
+    const outline = shape
+        .map(
+            (point) =>
+                `${x + (point.x - box.minX) * scale},${y + (box.maxY - point.y) * scale}`,
+        )
+        .join(" ");
 
     return (
         <div className="diagram">
@@ -41,26 +65,25 @@ function TopView({ terrain }: { terrain: Terrain }) {
             <svg
                 viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
                 role="img"
-                aria-label={`Vista superior de ${terrain.name}: ${formatNumber(width)} metros de ancho por ${formatNumber(length)} metros de largo`}
+                aria-label={`Vista superior de ${terrain.name}: ${formatNumber(width)} metros de ancho por ${formatNumber(height)} metros de largo`}
             >
-                <rect
-                    className="diagram-lot"
-                    x={x}
-                    y={y}
-                    width={drawnWidth}
-                    height={drawnHeight}
-                />
-                <text className="diagram-label" x={x + drawnWidth / 2} y={y - 8} textAnchor="middle">
+                <polygon className="diagram-lot" points={outline} />
+                <text
+                    className="diagram-label"
+                    x={x + (width * scale) / 2}
+                    y={y - 8}
+                    textAnchor="middle"
+                >
                     {formatNumber(width)} m
                 </text>
                 <text
                     className="diagram-label"
                     x={x - 8}
-                    y={y + drawnHeight / 2}
+                    y={y + (height * scale) / 2}
                     textAnchor="end"
                     dominantBaseline="middle"
                 >
-                    {formatNumber(length)} m
+                    {formatNumber(height)} m
                 </text>
                 <text
                     className="diagram-note"
@@ -76,7 +99,8 @@ function TopView({ terrain }: { terrain: Terrain }) {
 }
 
 function Profile({ terrain }: { terrain: Terrain }) {
-    const { length_m: length, slope_percent: slope } = terrain;
+    const length = profileLength(terrain);
+    const slope = terrain.slope_percent;
 
     if (length === null || slope === null) {
         return <Missing title="Perfil" text="Falta el largo o la pendiente del terreno." />;
