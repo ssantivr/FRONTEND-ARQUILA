@@ -353,3 +353,29 @@ textarea {
     color: var(--text-secondary);
     font-size: 0.8rem;
 }
+
+.tabs {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+}
+
+.tab:hover {
+    color: var(--text);
+}
+
+.tab[aria-current="page"] {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+}

@@ -93,7 +93,7 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
         } catch (reason) {
             setError(
                 reason instanceof ApiError && reason.status === 503
-                    ? `El asistente no está disponible: ${reason.message}`
+                    ? "El asistente de IA no está disponible en este momento."
                     : errorMessage(reason),
             );
         } finally {

@@ -25,6 +25,7 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
     const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
     const [panelsVersion, setPanelsVersion] = useState(0);
+    const [section, setSection] = useState<SectionId>("terrain");
     const projectFiles = files.data ?? [];
 
     function handleFilesChanged() {
@@ -118,25 +119,65 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                 )}
             </Panel>
 
-            <FilesPanel
-                projectId={projectId}
-                run={run}
-                files={projectFiles}
-                onChanged={handleFilesChanged}
-            />
+            <nav className="tabs" aria-label="Secciones del proyecto">
+                {SECTIONS.map((item) => (
+                    <button
+                        key={item.id}
+                        type="button"
+                        className="tab"
+                        aria-current={item.id === section ? "page" : undefined}
+                        onClick={() => setSection(item.id)}
+                    >
+                        {item.label}
+                    </button>
+                ))}
+            </nav>
 
             <Fragment key={panelsVersion}>
-                <TerrainsPanel projectId={projectId} run={run} />
-                <PlansPanel projectId={projectId} run={run} files={projectFiles} />
-                <ElevationsPanel projectId={projectId} run={run} files={projectFiles} />
-                <MaterialsPanel projectId={projectId} run={run} />
-                <RecommendationsPanel projectId={projectId} run={run} />
+                {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}
+                {section === "plans" && (
+                    <PlansPanel projectId={projectId} run={run} files={projectFiles} />
+                )}
+                {section === "elevations" && (
+                    <ElevationsPanel projectId={projectId} run={run} files={projectFiles} />
+                )}
+                {section === "materials" && <MaterialsPanel projectId={projectId} run={run} />}
+                {section === "analysis" && (
+                    <RecommendationsPanel projectId={projectId} run={run} />
+                )}
             </Fragment>
 
-            <AssistantPanel projectId={projectId} />
+            {section === "files" && (
+                <FilesPanel
+                    projectId={projectId}
+                    run={run}
+                    files={projectFiles}
+                    onChanged={handleFilesChanged}
+                />
+            )}
+            {section === "assistant" && <AssistantPanel projectId={projectId} />}
         </>
     );
 }
+
+type SectionId =
+    | "terrain"
+    | "plans"
+    | "elevations"
+    | "materials"
+    | "analysis"
+    | "files"
+    | "assistant";
+
+const SECTIONS: { id: SectionId; label: string }[] = [
+    { id: "terrain", label: "Terreno" },
+    { id: "plans", label: "Planos" },
+    { id: "elevations", label: "Elevaciones" },
+    { id: "materials", label: "Materiales" },
+    { id: "analysis", label: "Análisis" },
+    { id: "files", label: "Archivos" },
+    { id: "assistant", label: "Asistente IA" },
+];
 
 const KIND_LABELS: Record<DeletedItemKind, string> = {
     terrain: "terreno",
