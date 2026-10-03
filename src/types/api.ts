@@ -73,9 +73,15 @@ export interface User {
     created_at: string;
 }
 
-export interface UserCreate {
+export interface RegisterRequest {
     name: string;
     email: string;
+    password: string;
+}
+
+export interface LoginRequest {
+    email: string;
+    password: string;
 }
 
 export interface Project {
@@ -90,17 +96,15 @@ export interface Project {
 }
 
 export interface ProjectCreate {
-    owner_id: number;
     name: string;
     description?: string | null;
     location?: string | null;
     status?: ProjectStatus;
 }
 
-export type ProjectUpdate = Partial<Omit<ProjectCreate, "owner_id">>;
+export type ProjectUpdate = Partial<ProjectCreate>;
 
 export interface ProjectFilters {
-    owner_id?: number;
     status?: ProjectStatus;
     search?: string;
 }

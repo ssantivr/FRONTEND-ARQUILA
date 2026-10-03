@@ -5,15 +5,14 @@ import { StatusBadge } from "../components/Badge";
 import { Panel } from "../components/Panel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi } from "../services/api";
-import type { ProjectStatus, User } from "../types/api";
+import type { ProjectStatus } from "../types/api";
 import { optionalText } from "../utils/format";
 
 interface ProjectsPageProps {
-    user: User;
     onOpenProject: (projectId: number) => void;
 }
 
-export function ProjectsPage({ user, onOpenProject }: ProjectsPageProps) {
+export function ProjectsPage({ onOpenProject }: ProjectsPageProps) {
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState<ProjectStatus | "">("");
     const [name, setName] = useState("");
@@ -24,11 +23,10 @@ export function ProjectsPage({ user, onOpenProject }: ProjectsPageProps) {
     const projects = useAsync(
         () =>
             projectsApi.list({
-                owner_id: user.id,
                 search: optionalText(search),
                 status: status || undefined,
             }),
-        [user.id, search, status],
+        [search, status],
     );
 
     async function handleCreate(event: FormEvent) {
@@ -38,7 +36,6 @@ export function ProjectsPage({ user, onOpenProject }: ProjectsPageProps) {
 
         try {
             await projectsApi.create({
-                owner_id: user.id,
                 name: name.trim(),
                 location: optionalText(location),
             });

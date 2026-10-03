@@ -1,127 +1,103 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 
-import { AsyncStatus } from "./components/AsyncStatus";
 import { Panel } from "./components/Panel";
-import { errorMessage, useAsync } from "./hooks/useAsync";
+import { errorMessage } from "./hooks/useAsync";
+import { LoginPage } from "./pages/LoginPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
-import { usersApi } from "./services/api";
+import { authApi } from "./services/api";
+import { ApiError } from "./services/http";
+import type { User } from "./types/api";
+
+type Session =
+    | { state: "loading" }
+    | { state: "anonymous" }
+    | { state: "error"; message: string }
+    | { state: "authenticated"; user: User };
 
 export function App() {
-    const users = useAsync(() => usersApi.list(), []);
-    const [userId, setUserId] = useState<number | null>(null);
+    const [session, setSession] = useState<Session>({ state: "loading" });
     const [projectId, setProjectId] = useState<number | null>(null);
 
-    const userList = users.data ?? [];
-    const currentUser = userList.find((user) => user.id === userId) ?? null;
-
-    // There is no authentication yet: default to the first registered user.
+    // Ask the backend who we are: the session cookie is not readable from here.
     useEffect(() => {
-        if (currentUser === null && userList.length > 0) {
-            setUserId(userList[0].id);
+        let cancelled = false;
+
+        authApi
+            .me()
+            .then((user) => {
+                if (!cancelled) {
+                    setSession({ state: "authenticated", user });
+                }
+            })
+            .catch((reason: unknown) => {
+                if (cancelled) {
+                    return;
+                }
+
+                if (reason instanceof ApiError && reason.status === 401) {
+                    setSession({ state: "anonymous" });
+                } else {
+                    setSession({ state: "error", message: errorMessage(reason) });
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    async function handleLogout() {
+        try {
+            await authApi.logout();
+        } finally {
+            setProjectId(null);
+            setSession({ state: "anonymous" });
         }
-    }, [currentUser, userList]);
+    }
 
     return (
         <div className="layout">
             <header className="header">
                 <span className="brand">ARQUILA</span>
-                {userList.length > 0 && (
-                    <label className="user-picker">
-                        Usuario
-                        <select
-                            value={userId ?? ""}
-                            onChange={(event) => {
-                                setUserId(Number(event.target.value));
-                                setProjectId(null);
-                            }}
-                        >
-                            {userList.map((user) => (
-                                <option key={user.id} value={user.id}>
-                                    {user.name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                {session.state === "authenticated" && (
+                    <div className="user-menu">
+                        <span>{session.user.name}</span>
+                        <button type="button" className="button-secondary" onClick={handleLogout}>
+                            Cerrar sesión
+                        </button>
+                    </div>
                 )}
             </header>
 
             <main className="content">
-                {users.data === null ? (
-                    <Panel title="Conexión con la API">
-                        <AsyncStatus
-                            loading={users.loading}
-                            error={users.error}
-                            isEmpty
-                            emptyText=""
-                        />
+                {session.state === "loading" && (
+                    <Panel title="ARQUILA">
+                        <p className="message">Cargando…</p>
                     </Panel>
-                ) : currentUser === null ? (
-                    <CreateUserPanel
-                        onCreated={(id) => {
-                            setUserId(id);
-                            users.reload();
-                        }}
-                    />
-                ) : projectId === null ? (
-                    <ProjectsPage user={currentUser} onOpenProject={setProjectId} />
-                ) : (
-                    <ProjectDetailPage
-                        projectId={projectId}
-                        onBack={() => setProjectId(null)}
+                )}
+                {session.state === "error" && (
+                    <Panel title="Conexión con la API">
+                        <p className="message message-error" role="alert">
+                            {session.message}
+                        </p>
+                    </Panel>
+                )}
+                {session.state === "anonymous" && (
+                    <LoginPage
+                        onAuthenticated={(user) => setSession({ state: "authenticated", user })}
                     />
                 )}
+                {session.state === "authenticated" &&
+                    (projectId === null ? (
+                        <ProjectsPage onOpenProject={setProjectId} />
+                    ) : (
+                        <ProjectDetailPage
+                            projectId={projectId}
+                            onBack={() => setProjectId(null)}
+                        />
+                    ))}
             </main>
         </div>
-    );
-}
-
-function CreateUserPanel({ onCreated }: { onCreated: (userId: number) => void }) {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [error, setError] = useState<string | null>(null);
-
-    async function handleSubmit(event: FormEvent) {
-        event.preventDefault();
-        setError(null);
-
-        try {
-            const user = await usersApi.create({ name: name.trim(), email: email.trim() });
-            onCreated(user.id);
-        } catch (reason) {
-            setError(errorMessage(reason));
-        }
-    }
-
-    return (
-        <Panel title="Crear el primer usuario">
-            <form className="form-row" onSubmit={handleSubmit}>
-                <label>
-                    Nombre
-                    <input
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        maxLength={120}
-                        required
-                    />
-                </label>
-                <label>
-                    Correo
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        maxLength={255}
-                        required
-                    />
-                </label>
-                <button type="submit">Crear usuario</button>
-            </form>
-            {error && (
-                <p className="message message-error" role="alert">
-                    {error}
-                </p>
-            )}
-        </Panel>
     );
 }

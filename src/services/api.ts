@@ -3,6 +3,7 @@ import type {
     Elevation,
     ElevationCreate,
     ElevationUpdate,
+    LoginRequest,
     Material,
     MaterialCreate,
     MaterialUpdate,
@@ -15,6 +16,7 @@ import type {
     ProjectFile,
     ProjectFilters,
     ProjectUpdate,
+    RegisterRequest,
     Recommendation,
     RecommendationCreate,
     RecommendationFilters,
@@ -22,7 +24,6 @@ import type {
     TerrainCreate,
     TerrainUpdate,
     User,
-    UserCreate,
 } from "../types/api";
 import { apiUrl, request, upload } from "./http";
 
@@ -30,10 +31,15 @@ export const healthApi = {
     check: () => request<{ status: string }>("/health"),
 };
 
-export const usersApi = {
-    list: () => request<User[]>("/users"),
-    get: (id: number) => request<User>(`/users/${id}`),
-    create: (data: UserCreate) => request<User>("/users", { method: "POST", body: data }),
+// The session lives in an HttpOnly cookie set by the backend, so there is no
+// token to store or attach here.
+export const authApi = {
+    me: () => request<User>("/auth/me"),
+    register: (data: RegisterRequest) =>
+        request<User>("/auth/register", { method: "POST", body: data }),
+    login: (data: LoginRequest) =>
+        request<User>("/auth/login", { method: "POST", body: data }),
+    logout: () => request<void>("/auth/logout", { method: "POST" }),
 };
 
 export const projectsApi = {

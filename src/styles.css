@@ -44,11 +44,6 @@ body {
     color: var(--cyan);
 }
 
-.user-picker {
-    flex-direction: row;
-    align-items: center;
-}
-
 .content {
     display: grid;
     gap: 16px;
@@ -273,7 +268,6 @@ th {
 .badge-source-system {
     color: var(--cyan);
 }
-
 .badge-source-user {
     color: var(--text-secondary);
 }
@@ -289,7 +283,6 @@ th {
 a {
     color: var(--cyan);
 }
-
 .file-attachment {
     display: flex;
     align-items: center;
@@ -298,4 +291,22 @@ a {
 
 .file-attachment select {
     max-width: 220px;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+}
+
+.login {
+    max-width: 380px;
+    margin: 48px auto 0;
+    width: 100%;
+}
+
+.form-column {
+    display: grid;
+    gap: 12px;
 }
