@@ -2,6 +2,26 @@
 
 export type ProjectStatus = "draft" | "active" | "archived";
 export type Orientation = "north" | "south" | "east" | "west";
+export type RecommendationSource = "ai" | "user" | "system";
+
+export interface Recommendation {
+    id: number;
+    project_id: number;
+    category: string;
+    content: string;
+    source: RecommendationSource;
+    created_at: string;
+}
+
+export interface RecommendationCreate {
+    category: string;
+    content: string;
+}
+
+export interface RecommendationFilters {
+    category?: string;
+    source?: RecommendationSource;
+}
 
 export interface Plan {
     id: number;

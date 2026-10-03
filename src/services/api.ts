@@ -13,6 +13,9 @@ import type {
     ProjectCreate,
     ProjectFilters,
     ProjectUpdate,
+    Recommendation,
+    RecommendationCreate,
+    RecommendationFilters,
     Terrain,
     TerrainCreate,
     TerrainUpdate,
@@ -62,6 +65,24 @@ export const materialsApi = {
     update: (id: number, data: MaterialUpdate) =>
         request<Material>(`/materials/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/materials/${id}`, { method: "DELETE" }),
+};
+
+export const recommendationsApi = {
+    listByProject: (projectId: number, filters: RecommendationFilters = {}) =>
+        request<Recommendation[]>(`/projects/${projectId}/recommendations`, {
+            query: { ...filters },
+        }),
+    create: (projectId: number, data: RecommendationCreate) =>
+        request<Recommendation>(`/projects/${projectId}/recommendations`, {
+            method: "POST",
+            body: data,
+        }),
+    // Re-evaluates the backend rules and replaces the previous system recommendations.
+    generate: (projectId: number) =>
+        request<Recommendation[]>(`/projects/${projectId}/recommendations/generate`, {
+            method: "POST",
+        }),
+    remove: (id: number) => request<void>(`/recommendations/${id}`, { method: "DELETE" }),
 };
 
 export const plansApi = {

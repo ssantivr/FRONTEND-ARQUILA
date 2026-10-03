@@ -5,6 +5,7 @@ import { StatusBadge } from "../components/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
 import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
+import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { materialsApi, projectsApi, terrainsApi } from "../services/api";
 import type { ProjectStatus } from "../types/api";
@@ -92,6 +93,7 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
             <PlansPanel projectId={projectId} run={run} />
             <ElevationsPanel projectId={projectId} run={run} />
             <MaterialsPanel projectId={projectId} run={run} />
+            <RecommendationsPanel projectId={projectId} run={run} />
         </>
     );
 }
