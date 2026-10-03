@@ -2,12 +2,18 @@ import { useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { plansApi } from "../services/api";
+import type { ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
+import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./Panel";
 
-export function PlansPanel({ projectId, run }: SectionProps) {
+interface PlansPanelProps extends SectionProps {
+    files: ProjectFile[];
+}
+
+export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
     const plans = useAsync(() => plansApi.listByProject(projectId), [projectId]);
     const [title, setTitle] = useState("");
     const [level, setLevel] = useState("");
@@ -49,6 +55,7 @@ export function PlansPanel({ projectId, run }: SectionProps) {
                             <th>Título</th>
                             <th>Nivel</th>
                             <th>Escala</th>
+                            <th>Archivo</th>
                             <th />
                         </tr>
                     </thead>
@@ -58,6 +65,22 @@ export function PlansPanel({ projectId, run }: SectionProps) {
                                 <td>{plan.title}</td>
                                 <td>{plan.level ?? "—"}</td>
                                 <td>{plan.scale ?? "—"}</td>
+                                <td>
+                                    <FileAttachment
+                                        files={files}
+                                        fileId={plan.file_id}
+                                        label={`Archivo del plano ${plan.title}`}
+                                        onChange={(fileId) =>
+                                            run(
+                                                () =>
+                                                    plansApi.update(plan.id, {
+                                                        file_id: fileId,
+                                                    }),
+                                                plans.reload,
+                                            )
+                                        }
+                                    />
+                                </td>
                                 <td className="numeric">
                                     <button
                                         type="button"

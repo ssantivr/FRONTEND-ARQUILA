@@ -285,3 +285,17 @@ th {
 .form-row .field-wide {
     flex: 3 1 280px;
 }
+
+a {
+    color: var(--cyan);
+}
+
+.file-attachment {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-attachment select {
+    max-width: 220px;
+}

@@ -75,3 +75,22 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 
     return (await response.json()) as T;
 }
+
+// Multipart upload. The browser sets the Content-Type header with its boundary.
+export async function upload<T>(path: string, file: File): Promise<T> {
+    const body = new FormData();
+    body.append("file", file);
+
+    const response = await fetch(buildUrl(path), { method: "POST", body });
+
+    if (!response.ok) {
+        throw new ApiError(response.status, await readErrorMessage(response));
+    }
+
+    return (await response.json()) as T;
+}
+
+// Absolute API URL for links the browser opens directly (e.g. file downloads).
+export function apiUrl(path: string): string {
+    return buildUrl(path);
+}

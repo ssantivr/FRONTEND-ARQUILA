@@ -3,11 +3,12 @@ import { Fragment, useState, type FormEvent } from "react";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
+import { FilesPanel } from "../components/FilesPanel";
 import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
-import { materialsApi, projectsApi, terrainsApi, undoApi } from "../services/api";
+import { filesApi, materialsApi, projectsApi, terrainsApi, undoApi } from "../services/api";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatMoney, formatNumber, optionalNumber, optionalText } from "../utils/format";
@@ -20,9 +21,18 @@ interface ProjectDetailPageProps {
 export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps) {
     const project = useAsync(() => projectsApi.get(projectId), [projectId]);
     const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
+    const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
-    // Bumped after an undo so the data panels remount and reload their lists.
+    // Bumped after an undo or a file change so the data panels remount and
+    // reload their lists.
     const [panelsVersion, setPanelsVersion] = useState(0);
+    const projectFiles = files.data ?? [];
+
+    function handleFilesChanged() {
+        files.reload();
+        // Deleting a file detaches it from plans and elevations on the server.
+        setPanelsVersion((version) => version + 1);
+    }
 
     async function run(action: () => Promise<unknown>, onDone: () => void) {
         setActionError(null);
@@ -110,10 +120,17 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                 )}
             </Panel>
 
+            <FilesPanel
+                projectId={projectId}
+                run={run}
+                files={projectFiles}
+                onChanged={handleFilesChanged}
+            />
+
             <Fragment key={panelsVersion}>
                 <TerrainsPanel projectId={projectId} run={run} />
-                <PlansPanel projectId={projectId} run={run} />
-                <ElevationsPanel projectId={projectId} run={run} />
+                <PlansPanel projectId={projectId} run={run} files={projectFiles} />
+                <ElevationsPanel projectId={projectId} run={run} files={projectFiles} />
                 <MaterialsPanel projectId={projectId} run={run} />
                 <RecommendationsPanel projectId={projectId} run={run} />
             </Fragment>

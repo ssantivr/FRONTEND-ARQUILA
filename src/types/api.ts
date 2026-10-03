@@ -41,6 +41,7 @@ export interface Plan {
 }
 
 export interface PlanCreate {
+    file_id?: number | null;
     title: string;
     level?: string | null;
     scale?: string | null;
@@ -58,6 +59,7 @@ export interface Elevation {
 }
 
 export interface ElevationCreate {
+    file_id?: number | null;
     title: string;
     orientation: Orientation;
 }
@@ -146,3 +148,13 @@ export interface MaterialCreate {
 }
 
 export type MaterialUpdate = Partial<MaterialCreate>;
+
+// Named ProjectFile to avoid clashing with the DOM File type.
+export interface ProjectFile {
+    id: number;
+    project_id: number;
+    filename: string;
+    mime_type: string;
+    size_bytes: number;
+    created_at: string;
+}

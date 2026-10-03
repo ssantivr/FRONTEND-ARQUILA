@@ -2,9 +2,10 @@ import { useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { elevationsApi } from "../services/api";
-import type { Orientation } from "../types/api";
+import type { Orientation, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
+import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./Panel";
 
 const ORIENTATION_LABELS: Record<Orientation, string> = {
@@ -16,7 +17,11 @@ const ORIENTATION_LABELS: Record<Orientation, string> = {
 
 const ORIENTATIONS = Object.keys(ORIENTATION_LABELS) as Orientation[];
 
-export function ElevationsPanel({ projectId, run }: SectionProps) {
+interface ElevationsPanelProps extends SectionProps {
+    files: ProjectFile[];
+}
+
+export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps) {
     const [filter, setFilter] = useState<Orientation | "">("");
     const elevations = useAsync(
         () => elevationsApi.listByProject(projectId, filter || undefined),
@@ -73,6 +78,7 @@ export function ElevationsPanel({ projectId, run }: SectionProps) {
                         <tr>
                             <th>Título</th>
                             <th>Orientación</th>
+                            <th>Archivo</th>
                             <th />
                         </tr>
                     </thead>
@@ -81,6 +87,22 @@ export function ElevationsPanel({ projectId, run }: SectionProps) {
                             <tr key={elevation.id}>
                                 <td>{elevation.title}</td>
                                 <td>{ORIENTATION_LABELS[elevation.orientation]}</td>
+                                <td>
+                                    <FileAttachment
+                                        files={files}
+                                        fileId={elevation.file_id}
+                                        label={`Archivo de la elevación ${elevation.title}`}
+                                        onChange={(fileId) =>
+                                            run(
+                                                () =>
+                                                    elevationsApi.update(elevation.id, {
+                                                        file_id: fileId,
+                                                    }),
+                                                elevations.reload,
+                                            )
+                                        }
+                                    />
+                                </td>
                                 <td className="numeric">
                                     <button
                                         type="button"

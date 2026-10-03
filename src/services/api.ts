@@ -12,6 +12,7 @@ import type {
     PlanUpdate,
     Project,
     ProjectCreate,
+    ProjectFile,
     ProjectFilters,
     ProjectUpdate,
     Recommendation,
@@ -23,7 +24,7 @@ import type {
     User,
     UserCreate,
 } from "../types/api";
-import { request } from "./http";
+import { apiUrl, request, upload } from "./http";
 
 export const healthApi = {
     check: () => request<{ status: string }>("/health"),
@@ -112,4 +113,13 @@ export const elevationsApi = {
     update: (id: number, data: ElevationUpdate) =>
         request<Elevation>(`/elevations/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/elevations/${id}`, { method: "DELETE" }),
+};
+
+export const filesApi = {
+    listByProject: (projectId: number) =>
+        request<ProjectFile[]>(`/projects/${projectId}/files`),
+    upload: (projectId: number, file: File) =>
+        upload<ProjectFile>(`/projects/${projectId}/files`, file),
+    contentUrl: (id: number) => apiUrl(`/files/${id}/content`),
+    remove: (id: number) => request<void>(`/files/${id}`, { method: "DELETE" }),
 };
