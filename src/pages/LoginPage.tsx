@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Panel } from "../components/Panel";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
+import { ApiError } from "../services/http";
 import type { User } from "../types/api";
 
 interface LoginPageProps {
@@ -32,11 +33,13 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
                 : await authApi.login({ email: email.trim(), password });
             onAuthenticated(user);
         } catch (reason) {
-            setError(
-                !isRegister && errorMessage(reason) === "Invalid email or password"
-                    ? "Correo o contraseña incorrectos."
-                    : errorMessage(reason),
-            );
+            if (reason instanceof ApiError && reason.status === 429) {
+                setError("Demasiados intentos fallidos. Espera un minuto e inténtalo de nuevo.");
+            } else if (reason instanceof ApiError && reason.status === 401) {
+                setError("Correo o contraseña incorrectos.");
+            } else {
+                setError(errorMessage(reason));
+            }
         } finally {
             setSubmitting(false);
         }
