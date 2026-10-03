@@ -1,4 +1,5 @@
 import type {
+    DeletedItem,
     Elevation,
     ElevationCreate,
     ElevationUpdate,
@@ -65,6 +66,13 @@ export const materialsApi = {
     update: (id: number, data: MaterialUpdate) =>
         request<Material>(`/materials/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/materials/${id}`, { method: "DELETE" }),
+};
+
+export const undoApi = {
+    // Most recent deletion first.
+    list: (projectId: number) => request<DeletedItem[]>(`/projects/${projectId}/undo`),
+    undoLast: (projectId: number) =>
+        request<DeletedItem>(`/projects/${projectId}/undo`, { method: "POST" }),
 };
 
 export const recommendationsApi = {

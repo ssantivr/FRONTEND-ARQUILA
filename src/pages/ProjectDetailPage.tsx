@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { Fragment, useState, type FormEvent } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
@@ -7,8 +7,8 @@ import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
-import { materialsApi, projectsApi, terrainsApi } from "../services/api";
-import type { ProjectStatus } from "../types/api";
+import { materialsApi, projectsApi, terrainsApi, undoApi } from "../services/api";
+import type { DeletedItemKind, ProjectStatus } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatMoney, formatNumber, optionalNumber, optionalText } from "../utils/format";
 
@@ -19,7 +19,10 @@ interface ProjectDetailPageProps {
 
 export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps) {
     const project = useAsync(() => projectsApi.get(projectId), [projectId]);
+    const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
+    // Bumped after an undo so the data panels remount and reload their lists.
+    const [panelsVersion, setPanelsVersion] = useState(0);
 
     async function run(action: () => Promise<unknown>, onDone: () => void) {
         setActionError(null);
@@ -27,10 +30,13 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
         try {
             await action();
             onDone();
+            undoable.reload();
         } catch (reason) {
             setActionError(errorMessage(reason));
         }
     }
+
+    const lastDeleted = undoable.data?.[0];
 
     if (project.data === null) {
         return (
@@ -72,6 +78,21 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                     </select>
                     <button
                         type="button"
+                        className="button-secondary"
+                        disabled={lastDeleted === undefined}
+                        onClick={() =>
+                            run(
+                                () => undoApi.undoLast(projectId),
+                                () => setPanelsVersion((version) => version + 1),
+                            )
+                        }
+                    >
+                        {lastDeleted === undefined
+                            ? "Nada que deshacer"
+                            : `Deshacer: ${KIND_LABELS[lastDeleted.kind]} «${lastDeleted.label}»`}
+                    </button>
+                    <button
+                        type="button"
                         className="button-danger"
                         onClick={() => {
                             if (window.confirm(`¿Eliminar el proyecto "${current.name}"?`)) {
@@ -89,14 +110,23 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                 )}
             </Panel>
 
-            <TerrainsPanel projectId={projectId} run={run} />
-            <PlansPanel projectId={projectId} run={run} />
-            <ElevationsPanel projectId={projectId} run={run} />
-            <MaterialsPanel projectId={projectId} run={run} />
-            <RecommendationsPanel projectId={projectId} run={run} />
+            <Fragment key={panelsVersion}>
+                <TerrainsPanel projectId={projectId} run={run} />
+                <PlansPanel projectId={projectId} run={run} />
+                <ElevationsPanel projectId={projectId} run={run} />
+                <MaterialsPanel projectId={projectId} run={run} />
+                <RecommendationsPanel projectId={projectId} run={run} />
+            </Fragment>
         </>
     );
 }
+
+const KIND_LABELS: Record<DeletedItemKind, string> = {
+    terrain: "terreno",
+    material: "material",
+    plan: "plano",
+    elevation: "elevación",
+};
 
 function BackButton({ onBack }: { onBack: () => void }) {
     return (

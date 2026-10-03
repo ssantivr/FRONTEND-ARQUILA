@@ -3,6 +3,13 @@
 export type ProjectStatus = "draft" | "active" | "archived";
 export type Orientation = "north" | "south" | "east" | "west";
 export type RecommendationSource = "ai" | "user" | "system";
+export type DeletedItemKind = "terrain" | "material" | "plan" | "elevation";
+
+// A deletion that can still be undone. The backend keeps this history in memory.
+export interface DeletedItem {
+    kind: DeletedItemKind;
+    label: string;
+}
 
 export interface Recommendation {
     id: number;
