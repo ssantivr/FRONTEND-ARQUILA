@@ -310,3 +310,47 @@ a {
     display: grid;
     gap: 12px;
 }
+
+textarea {
+    font: inherit;
+    color: var(--text);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    resize: vertical;
+}
+
+.chat {
+    display: grid;
+    gap: 8px;
+    max-height: 420px;
+    margin: 0 0 12px;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.chat-message {
+    max-width: 85%;
+    padding: 10px 12px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.chat-message p {
+    margin: 4px 0 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.chat-user {
+    justify-self: end;
+    border-color: var(--blue);
+}
+
+.chat-author {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}

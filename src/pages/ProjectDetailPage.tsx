@@ -1,5 +1,6 @@
 import { Fragment, useState, type FormEvent } from "react";
 
+import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
@@ -134,6 +135,8 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                 <MaterialsPanel projectId={projectId} run={run} />
                 <RecommendationsPanel projectId={projectId} run={run} />
             </Fragment>
+
+            <AssistantPanel projectId={projectId} />
         </>
     );
 }

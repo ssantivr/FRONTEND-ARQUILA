@@ -1,4 +1,7 @@
 import type {
+    Conversation,
+    ConversationDetail,
+    ConversationMessage,
     DeletedItem,
     Elevation,
     ElevationCreate,
@@ -128,4 +131,23 @@ export const filesApi = {
         upload<ProjectFile>(`/projects/${projectId}/files`, file),
     contentUrl: (id: number) => apiUrl(`/files/${id}/content`),
     remove: (id: number) => request<void>(`/files/${id}`, { method: "DELETE" }),
+};
+
+export const conversationsApi = {
+    listByProject: (projectId: number) =>
+        request<Conversation[]>(`/projects/${projectId}/conversations`),
+    create: (projectId: number, title?: string) =>
+        request<Conversation>(`/projects/${projectId}/conversations`, {
+            method: "POST",
+            body: { title },
+        }),
+    get: (id: number) => request<ConversationDetail>(`/conversations/${id}`),
+    // Returns the stored question followed by the assistant's answer. The call
+    // can take a while: the backend waits for the model to finish.
+    sendMessage: (id: number, content: string) =>
+        request<ConversationMessage[]>(`/conversations/${id}/messages`, {
+            method: "POST",
+            body: { content },
+        }),
+    remove: (id: number) => request<void>(`/conversations/${id}`, { method: "DELETE" }),
 };

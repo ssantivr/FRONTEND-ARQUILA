@@ -162,3 +162,22 @@ export interface ProjectFile {
     size_bytes: number;
     created_at: string;
 }
+
+export interface Conversation {
+    id: number;
+    project_id: number;
+    title: string | null;
+    created_at: string;
+}
+
+export interface ConversationMessage {
+    id: number;
+    conversation_id: number;
+    role: "user" | "assistant" | "system";
+    content: string;
+    created_at: string;
+}
+
+export interface ConversationDetail extends Conversation {
+    messages: ConversationMessage[];
+}
