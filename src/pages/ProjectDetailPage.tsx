@@ -2,10 +2,13 @@ import { useState, type FormEvent } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
+import { ElevationsPanel } from "../components/ElevationsPanel";
 import { Panel } from "../components/Panel";
+import { PlansPanel } from "../components/PlansPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { materialsApi, projectsApi, terrainsApi } from "../services/api";
 import type { ProjectStatus } from "../types/api";
+import type { SectionProps } from "../types/ui";
 import { formatMoney, formatNumber, optionalNumber, optionalText } from "../utils/format";
 
 interface ProjectDetailPageProps {
@@ -86,6 +89,8 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
             </Panel>
 
             <TerrainsPanel projectId={projectId} run={run} />
+            <PlansPanel projectId={projectId} run={run} />
+            <ElevationsPanel projectId={projectId} run={run} />
             <MaterialsPanel projectId={projectId} run={run} />
         </>
     );
@@ -97,11 +102,6 @@ function BackButton({ onBack }: { onBack: () => void }) {
             ← Proyectos
         </button>
     );
-}
-
-interface SectionProps {
-    projectId: number;
-    run: (action: () => Promise<unknown>, onDone: () => void) => Promise<void>;
 }
 
 function TerrainsPanel({ projectId, run }: SectionProps) {
