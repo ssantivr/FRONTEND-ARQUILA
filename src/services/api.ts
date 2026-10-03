@@ -34,8 +34,6 @@ export const healthApi = {
     check: () => request<{ status: string }>("/health"),
 };
 
-// The session lives in an HttpOnly cookie set by the backend, so there is no
-// token to store or attach here.
 export const authApi = {
     me: () => request<User>("/auth/me"),
     register: (data: RegisterRequest) =>
@@ -79,7 +77,6 @@ export const materialsApi = {
 };
 
 export const undoApi = {
-    // Most recent deletion first.
     list: (projectId: number) => request<DeletedItem[]>(`/projects/${projectId}/undo`),
     undoLast: (projectId: number) =>
         request<DeletedItem>(`/projects/${projectId}/undo`, { method: "POST" }),
@@ -95,7 +92,6 @@ export const recommendationsApi = {
             method: "POST",
             body: data,
         }),
-    // Re-evaluates the backend rules and replaces the previous system recommendations.
     generate: (projectId: number) =>
         request<Recommendation[]>(`/projects/${projectId}/recommendations/generate`, {
             method: "POST",
@@ -142,8 +138,6 @@ export const conversationsApi = {
             body: { title },
         }),
     get: (id: number) => request<ConversationDetail>(`/conversations/${id}`),
-    // Returns the stored question followed by the assistant's answer. The call
-    // can take a while: the backend waits for the model to finish.
     sendMessage: (id: number, content: string) =>
         request<ConversationMessage[]>(`/conversations/${id}/messages`, {
             method: "POST",

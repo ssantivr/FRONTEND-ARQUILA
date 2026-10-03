@@ -28,8 +28,6 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
 
     const items = conversations.data ?? [];
 
-    // Open the most recent conversation once, when the list first loads. Later
-    // the user may deliberately pick "Nueva conversación" (no conversation).
     useEffect(() => {
         if (!didAutoOpen.current && items.length > 0) {
             didAutoOpen.current = true;

@@ -31,7 +31,6 @@ function buildUrl(path: string, query?: QueryParams): string {
     return `${BASE_URL}${path}${queryString ? `?${queryString}` : ""}`;
 }
 
-// FastAPI returns {"detail": "..."} for 404/409 and a list of issues for 422.
 async function readErrorMessage(response: Response): Promise<string> {
     try {
         const payload: unknown = await response.json();
@@ -50,7 +49,6 @@ async function readErrorMessage(response: Response): Promise<string> {
                 .join("; ");
         }
     } catch {
-        // Body was not JSON; fall through to the generic message.
     }
 
     return `Request failed with status ${response.status}`;
@@ -76,7 +74,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     return (await response.json()) as T;
 }
 
-// Multipart upload. The browser sets the Content-Type header with its boundary.
 export async function upload<T>(path: string, file: File): Promise<T> {
     const body = new FormData();
     body.append("file", file);
@@ -90,7 +87,6 @@ export async function upload<T>(path: string, file: File): Promise<T> {
     return (await response.json()) as T;
 }
 
-// Absolute API URL for links the browser opens directly (e.g. file downloads).
 export function apiUrl(path: string): string {
     return buildUrl(path);
 }

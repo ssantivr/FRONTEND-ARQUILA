@@ -5,7 +5,6 @@ interface AsyncStatusProps {
     emptyText: string;
 }
 
-// Shared loading / error / empty row for the data panels.
 export function AsyncStatus({ loading, error, isEmpty, emptyText }: AsyncStatusProps) {
     if (error) {
         return (

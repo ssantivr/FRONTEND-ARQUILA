@@ -24,14 +24,11 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
     const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
     const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
-    // Bumped after an undo or a file change so the data panels remount and
-    // reload their lists.
     const [panelsVersion, setPanelsVersion] = useState(0);
     const projectFiles = files.data ?? [];
 
     function handleFilesChanged() {
         files.reload();
-        // Deleting a file detaches it from plans and elevations on the server.
         setPanelsVersion((version) => version + 1);
     }
 

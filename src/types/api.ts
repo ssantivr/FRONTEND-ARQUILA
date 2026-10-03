@@ -1,11 +1,8 @@
-// Mirrors backend/app/schemas.py. Keep both files in sync.
-
 export type ProjectStatus = "draft" | "active" | "archived";
 export type Orientation = "north" | "south" | "east" | "west";
 export type RecommendationSource = "ai" | "user" | "system";
 export type DeletedItemKind = "terrain" | "material" | "plan" | "elevation";
 
-// A deletion that can still be undone. The backend keeps this history in memory.
 export interface DeletedItem {
     kind: DeletedItemKind;
     label: string;
@@ -153,7 +150,6 @@ export interface MaterialCreate {
 
 export type MaterialUpdate = Partial<MaterialCreate>;
 
-// Named ProjectFile to avoid clashing with the DOM File type.
 export interface ProjectFile {
     id: number;
     project_id: number;

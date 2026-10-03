@@ -19,7 +19,6 @@ export function App() {
     const [session, setSession] = useState<Session>({ state: "loading" });
     const [projectId, setProjectId] = useState<number | null>(null);
 
-    // Ask the backend who we are: the session cookie is not readable from here.
     useEffect(() => {
         let cancelled = false;
 

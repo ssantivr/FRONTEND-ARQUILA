@@ -8,7 +8,6 @@ interface FileAttachmentProps {
     onChange: (fileId: number | null) => void;
 }
 
-// Picks which uploaded project file is attached to a plan or elevation.
 export function FileAttachment({ files, fileId, label, onChange }: FileAttachmentProps) {
     return (
         <div className="file-attachment">

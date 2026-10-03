@@ -12,7 +12,6 @@ export function formatMoney(value: number): string {
     return moneyFormat.format(value);
 }
 
-// Empty form inputs become undefined so optional API fields are omitted.
 export function optionalText(value: string): string | undefined {
     const trimmed = value.trim();
     return trimmed === "" ? undefined : trimmed;

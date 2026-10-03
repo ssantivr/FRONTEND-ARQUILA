@@ -15,7 +15,6 @@ const TYPE_LABELS: Record<string, string> = {
 
 interface FilesPanelProps extends SectionProps {
     files: ProjectFile[];
-    // Called after an upload or deletion so the page reloads the file list.
     onChanged: () => void;
 }
 
