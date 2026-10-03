@@ -42,6 +42,13 @@ export const authApi = {
     login: (data: LoginRequest) =>
         request<User>("/auth/login", { method: "POST", body: data }),
     logout: () => request<void>("/auth/logout", { method: "POST" }),
+    requestPasswordReset: (email: string) =>
+        request<void>("/auth/password-reset", { method: "POST", body: { email } }),
+    confirmPasswordReset: (token: string, password: string) =>
+        request<void>("/auth/password-reset/confirm", {
+            method: "POST",
+            body: { token, password },
+        }),
 };
 
 export const projectsApi = {

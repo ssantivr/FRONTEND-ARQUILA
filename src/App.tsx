@@ -7,6 +7,7 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { authApi } from "./services/api";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
@@ -21,6 +22,10 @@ export function App() {
     const [session, setSession] = useState<Session>({ state: "loading" });
     const [view, setView] = useState<View>("home");
     const [projectId, setProjectId] = useState<number | null>(null);
+    const [resetToken, setResetToken] = useState(() =>
+        new URLSearchParams(window.location.search).get("reset_token"),
+    );
+    const [loginNotice, setLoginNotice] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         let cancelled = false;
@@ -71,6 +76,16 @@ export function App() {
         }
     }
 
+    function handleResetDone(changed: boolean) {
+        window.history.replaceState(null, "", window.location.pathname);
+        setResetToken(null);
+        setProjectId(null);
+        setLoginNotice(
+            changed ? "Contraseña cambiada. Ya puedes iniciar sesión con la nueva." : undefined,
+        );
+        setSession({ state: "anonymous" });
+    }
+
     function navigate(next: View) {
         setProjectId(null);
         setView(next);
@@ -95,7 +110,11 @@ export function App() {
                 )}
             </header>
 
-            {session.state === "authenticated" ? (
+            {resetToken !== null ? (
+                <main className="content">
+                    <ResetPasswordPage token={resetToken} onDone={handleResetDone} />
+                </main>
+            ) : session.state === "authenticated" ? (
                 <div className="shell">
                     <Sidebar current={view} onNavigate={navigate} />
                     <main className="content">
@@ -131,7 +150,9 @@ export function App() {
                     )}
                     {session.state === "anonymous" && (
                         <LoginPage
+                            notice={loginNotice}
                             onAuthenticated={(user) => {
+                                setLoginNotice(undefined);
                                 setView("home");
                                 setSession({ state: "authenticated", user });
                             }}

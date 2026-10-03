@@ -22,6 +22,8 @@ const MESSAGES: Record<string, string> = {
         "Solo se admiten archivos PDF, PNG, JPEG y WebP.",
     "Failed to fetch": "No se pudo conectar con el servidor.",
     "Unexpected error": "Error inesperado.",
+    "The reset link is invalid or has expired":
+        "El enlace no es válido o ya caducó. Pide uno nuevo desde «Olvidé mi contraseña».",
 };
 
 const RESTORE_CONFLICT = /^Cannot restore "(.*)": it conflicts with existing data$/;
