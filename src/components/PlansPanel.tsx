@@ -2,12 +2,13 @@ import { useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { plansApi } from "../services/api";
-import type { ProjectFile } from "../types/api";
+import type { Plan, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./Panel";
+import { FormActions, RowActions } from "./RowActions";
 
 interface PlansPanelProps extends SectionProps {
     files: ProjectFile[];
@@ -15,24 +16,53 @@ interface PlansPanelProps extends SectionProps {
 
 export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
     const plans = useAsync(() => plansApi.listByProject(projectId), [projectId]);
+    const [editingId, setEditingId] = useState<number | null>(null);
     const [title, setTitle] = useState("");
     const [level, setLevel] = useState("");
     const [scale, setScale] = useState("");
 
-    function handleCreate(event: FormEvent) {
+    function resetForm() {
+        setEditingId(null);
+        setTitle("");
+        setLevel("");
+        setScale("");
+    }
+
+    function startEdit(plan: Plan) {
+        setEditingId(plan.id);
+        setTitle(plan.title);
+        setLevel(plan.level ?? "");
+        setScale(plan.scale ?? "");
+    }
+
+    function handleSubmit(event: FormEvent) {
         event.preventDefault();
+
+        const data = {
+            title: title.trim(),
+            level: optionalText(level) ?? null,
+            scale: optionalText(scale) ?? null,
+        };
 
         run(
             () =>
-                plansApi.create(projectId, {
-                    title: title.trim(),
-                    level: optionalText(level),
-                    scale: optionalText(scale),
-                }),
+                editingId === null
+                    ? plansApi.create(projectId, data)
+                    : plansApi.update(editingId, data),
             () => {
-                setTitle("");
-                setLevel("");
-                setScale("");
+                resetForm();
+                plans.reload();
+            },
+        );
+    }
+
+    function handleDelete(plan: Plan) {
+        run(
+            () => plansApi.remove(plan.id),
+            () => {
+                if (editingId === plan.id) {
+                    resetForm();
+                }
                 plans.reload();
             },
         );
@@ -61,7 +91,10 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                     </thead>
                     <tbody>
                         {items.map((plan) => (
-                            <tr key={plan.id}>
+                            <tr
+                                key={plan.id}
+                                className={plan.id === editingId ? "row-editing" : undefined}
+                            >
                                 <td>{plan.title}</td>
                                 <td>{plan.level ?? "—"}</td>
                                 <td>{plan.scale ?? "—"}</td>
@@ -81,24 +114,19 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                                         }
                                     />
                                 </td>
-                                <td className="numeric">
-                                    <button
-                                        type="button"
-                                        className="button-danger"
-                                        aria-label={`Eliminar plano ${plan.title}`}
-                                        onClick={() =>
-                                            run(() => plansApi.remove(plan.id), plans.reload)
-                                        }
-                                    >
-                                        Eliminar
-                                    </button>
+                                <td>
+                                    <RowActions
+                                        label={`plano ${plan.title}`}
+                                        onEdit={() => startEdit(plan)}
+                                        onDelete={() => handleDelete(plan)}
+                                    />
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             )}
-            <form className="form-row" onSubmit={handleCreate}>
+            <form className="form-row" onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input
@@ -126,9 +154,12 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                         placeholder="1:100"
                     />
                 </label>
-                <button type="submit" disabled={title.trim() === ""}>
-                    Agregar plano
-                </button>
+                <FormActions
+                    editing={editingId !== null}
+                    addLabel="Agregar plano"
+                    disabled={title.trim() === ""}
+                    onCancel={resetForm}
+                />
             </form>
         </Panel>
     );

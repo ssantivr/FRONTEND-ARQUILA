@@ -437,3 +437,13 @@ textarea {
     fill: var(--text-secondary);
     font-size: 10px;
 }
+
+.row-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.row-editing td {
+    background: rgba(21, 151, 229, 0.12);
+}

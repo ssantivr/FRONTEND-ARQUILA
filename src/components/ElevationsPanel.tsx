@@ -2,11 +2,12 @@ import { useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { elevationsApi } from "../services/api";
-import type { Orientation, ProjectFile } from "../types/api";
+import type { Elevation, Orientation, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
 import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./Panel";
+import { FormActions, RowActions } from "./RowActions";
 
 const ORIENTATION_LABELS: Record<Orientation, string> = {
     north: "Norte",
@@ -27,16 +28,45 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
         () => elevationsApi.listByProject(projectId, filter || undefined),
         [projectId, filter],
     );
+    const [editingId, setEditingId] = useState<number | null>(null);
     const [title, setTitle] = useState("");
     const [orientation, setOrientation] = useState<Orientation>("north");
 
-    function handleCreate(event: FormEvent) {
+    function resetForm() {
+        setEditingId(null);
+        setTitle("");
+    }
+
+    function startEdit(elevation: Elevation) {
+        setEditingId(elevation.id);
+        setTitle(elevation.title);
+        setOrientation(elevation.orientation);
+    }
+
+    function handleSubmit(event: FormEvent) {
         event.preventDefault();
 
+        const data = { title: title.trim(), orientation };
+
         run(
-            () => elevationsApi.create(projectId, { title: title.trim(), orientation }),
+            () =>
+                editingId === null
+                    ? elevationsApi.create(projectId, data)
+                    : elevationsApi.update(editingId, data),
             () => {
-                setTitle("");
+                resetForm();
+                elevations.reload();
+            },
+        );
+    }
+
+    function handleDelete(elevation: Elevation) {
+        run(
+            () => elevationsApi.remove(elevation.id),
+            () => {
+                if (editingId === elevation.id) {
+                    resetForm();
+                }
                 elevations.reload();
             },
         );
@@ -84,7 +114,10 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                     </thead>
                     <tbody>
                         {items.map((elevation) => (
-                            <tr key={elevation.id}>
+                            <tr
+                                key={elevation.id}
+                                className={elevation.id === editingId ? "row-editing" : undefined}
+                            >
                                 <td>{elevation.title}</td>
                                 <td>{ORIENTATION_LABELS[elevation.orientation]}</td>
                                 <td>
@@ -103,27 +136,19 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                                         }
                                     />
                                 </td>
-                                <td className="numeric">
-                                    <button
-                                        type="button"
-                                        className="button-danger"
-                                        aria-label={`Eliminar elevación ${elevation.title}`}
-                                        onClick={() =>
-                                            run(
-                                                () => elevationsApi.remove(elevation.id),
-                                                elevations.reload,
-                                            )
-                                        }
-                                    >
-                                        Eliminar
-                                    </button>
+                                <td>
+                                    <RowActions
+                                        label={`elevación ${elevation.title}`}
+                                        onEdit={() => startEdit(elevation)}
+                                        onDelete={() => handleDelete(elevation)}
+                                    />
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             )}
-            <form className="form-row" onSubmit={handleCreate}>
+            <form className="form-row" onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input
@@ -146,9 +171,12 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                         ))}
                     </select>
                 </label>
-                <button type="submit" disabled={title.trim() === ""}>
-                    Agregar elevación
-                </button>
+                <FormActions
+                    editing={editingId !== null}
+                    addLabel="Agregar elevación"
+                    disabled={title.trim() === ""}
+                    onCancel={resetForm}
+                />
             </form>
         </Panel>
     );
