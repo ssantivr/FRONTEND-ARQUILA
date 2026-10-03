@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { plansApi } from "../services/api";
@@ -17,6 +17,7 @@ interface PlansPanelProps extends SectionProps {
 export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
     const plans = useAsync(() => plansApi.listByProject(projectId), [projectId]);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const form = useRef<HTMLFormElement>(null);
     const [title, setTitle] = useState("");
     const [level, setLevel] = useState("");
     const [scale, setScale] = useState("");
@@ -30,6 +31,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
 
     function startEdit(plan: Plan) {
         setEditingId(plan.id);
+        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTitle(plan.title);
         setLevel(plan.level ?? "");
         setScale(plan.scale ?? "");
@@ -126,7 +128,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                     </tbody>
                 </table>
             )}
-            <form className="form-row" onSubmit={handleSubmit}>
+            <form className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input

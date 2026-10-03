@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { elevationsApi } from "../services/api";
@@ -29,6 +29,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
         [projectId, filter],
     );
     const [editingId, setEditingId] = useState<number | null>(null);
+    const form = useRef<HTMLFormElement>(null);
     const [title, setTitle] = useState("");
     const [orientation, setOrientation] = useState<Orientation>("north");
 
@@ -39,6 +40,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
 
     function startEdit(elevation: Elevation) {
         setEditingId(elevation.id);
+        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setTitle(elevation.title);
         setOrientation(elevation.orientation);
     }
@@ -148,7 +150,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                     </tbody>
                 </table>
             )}
-            <form className="form-row" onSubmit={handleSubmit}>
+            <form className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input

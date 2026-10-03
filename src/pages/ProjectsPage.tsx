@@ -17,6 +17,7 @@ export function ProjectsPage({ onOpenProject }: ProjectsPageProps) {
     const [status, setStatus] = useState<ProjectStatus | "">("");
     const [name, setName] = useState("");
     const [location, setLocation] = useState("");
+    const [description, setDescription] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
@@ -38,9 +39,11 @@ export function ProjectsPage({ onOpenProject }: ProjectsPageProps) {
             await projectsApi.create({
                 name: name.trim(),
                 location: optionalText(location),
+                description: optionalText(description),
             });
             setName("");
             setLocation("");
+            setDescription("");
             projects.reload();
         } catch (reason) {
             setFormError(errorMessage(reason));
@@ -70,6 +73,13 @@ export function ProjectsPage({ onOpenProject }: ProjectsPageProps) {
                             value={location}
                             onChange={(event) => setLocation(event.target.value)}
                             maxLength={255}
+                        />
+                    </label>
+                    <label className="field-wide">
+                        Descripción
+                        <input
+                            value={description}
+                            onChange={(event) => setDescription(event.target.value)}
                         />
                     </label>
                     <button type="submit" disabled={saving || name.trim() === ""}>

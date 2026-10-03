@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { terrainsApi } from "../services/api";
@@ -13,6 +13,7 @@ import { TerrainDiagrams } from "./TerrainDiagrams";
 export function TerrainsPanel({ projectId, run }: SectionProps) {
     const terrains = useAsync(() => terrainsApi.listByProject(projectId), [projectId]);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const form = useRef<HTMLFormElement>(null);
     const [name, setName] = useState("");
     const [width, setWidth] = useState("");
     const [length, setLength] = useState("");
@@ -39,6 +40,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
 
     function startEdit(terrain: Terrain) {
         setEditingId(terrain.id);
+        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setName(terrain.name);
         setWidth(String(terrain.width_m ?? ""));
         setLength(String(terrain.length_m ?? ""));
@@ -136,7 +138,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
             {items.map((terrain) => (
                 <TerrainDiagrams key={terrain.id} terrain={terrain} />
             ))}
-            <form className="form-row" onSubmit={handleSubmit}>
+            <form className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Nombre
                     <input

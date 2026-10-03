@@ -8,6 +8,7 @@ import { FilesPanel } from "../components/FilesPanel";
 import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
+import { ProjectEditForm } from "../components/ProjectEditForm";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
@@ -26,6 +27,7 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
     const [actionError, setActionError] = useState<string | null>(null);
     const [panelsVersion, setPanelsVersion] = useState(0);
     const [section, setSection] = useState<SectionId>("terrain");
+    const [editingProject, setEditingProject] = useState(false);
     const projectFiles = files.data ?? [];
 
     function handleFilesChanged() {
@@ -102,6 +104,13 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                     </button>
                     <button
                         type="button"
+                        className="button-secondary"
+                        onClick={() => setEditingProject((editing) => !editing)}
+                    >
+                        Editar proyecto
+                    </button>
+                    <button
+                        type="button"
                         className="button-danger"
                         onClick={() => {
                             if (window.confirm(`¿Eliminar el proyecto "${current.name}"?`)) {
@@ -112,6 +121,24 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                         Eliminar proyecto
                     </button>
                 </div>
+                {current.description && !editingProject && (
+                    <p className="message">{current.description}</p>
+                )}
+                {editingProject && (
+                    <ProjectEditForm
+                        project={current}
+                        onCancel={() => setEditingProject(false)}
+                        onSave={(data) =>
+                            run(
+                                () => projectsApi.update(projectId, data),
+                                () => {
+                                    setEditingProject(false);
+                                    project.reload();
+                                },
+                            )
+                        }
+                    />
+                )}
                 {actionError && (
                     <p className="message message-error" role="alert">
                         {actionError}

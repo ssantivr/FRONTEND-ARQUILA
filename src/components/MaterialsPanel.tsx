@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { materialsApi } from "../services/api";
@@ -12,6 +12,7 @@ import { FormActions, RowActions } from "./RowActions";
 export function MaterialsPanel({ projectId, run }: SectionProps) {
     const materials = useAsync(() => materialsApi.listByProject(projectId), [projectId]);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const form = useRef<HTMLFormElement>(null);
     const [name, setName] = useState("");
     const [category, setCategory] = useState("");
     const [unit, setUnit] = useState("");
@@ -29,6 +30,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
 
     function startEdit(material: Material) {
         setEditingId(material.id);
+        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
         setName(material.name);
         setCategory(material.category ?? "");
         setUnit(material.unit);
@@ -131,7 +133,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                     </tfoot>
                 </table>
             )}
-            <form className="form-row" onSubmit={handleSubmit}>
+            <form className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Nombre
                     <input
