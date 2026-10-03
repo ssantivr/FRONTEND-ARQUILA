@@ -20,6 +20,7 @@ import type {
     ProjectFilters,
     ProjectUpdate,
     RegisterRequest,
+    Summary,
     Recommendation,
     RecommendationCreate,
     RecommendationFilters,
@@ -144,4 +145,8 @@ export const conversationsApi = {
             body: { content },
         }),
     remove: (id: number) => request<void>(`/conversations/${id}`, { method: "DELETE" }),
+};
+
+export const summaryApi = {
+    get: () => request<Summary>("/summary"),
 };

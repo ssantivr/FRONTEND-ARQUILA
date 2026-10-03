@@ -447,3 +447,82 @@ textarea {
 .row-editing td {
     background: rgba(21, 151, 229, 0.12);
 }
+
+.shell {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    align-items: start;
+}
+
+.shell .content {
+    width: 100%;
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    display: grid;
+    gap: 4px;
+    padding: 16px 8px;
+}
+
+.sidebar-item {
+    padding: 10px 12px;
+    color: var(--text-secondary);
+    text-align: left;
+    background: transparent;
+    border-color: transparent;
+}
+
+.sidebar-item:hover {
+    color: var(--text);
+}
+
+.sidebar-item[aria-current="page"] {
+    color: var(--cyan);
+    background: var(--panel);
+    border-color: var(--border);
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.metric {
+    display: grid;
+    gap: 4px;
+    padding: 14px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.metric-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.metric-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-detail {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+@media (max-width: 720px) {
+    .shell {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sidebar {
+        position: static;
+        display: flex;
+        padding: 8px 16px 0;
+    }
+}

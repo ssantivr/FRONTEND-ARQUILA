@@ -54,6 +54,14 @@ async function readErrorMessage(response: Response): Promise<string> {
     return `Request failed with status ${response.status}`;
 }
 
+export const SESSION_ENDED_EVENT = "arquila:session-ended";
+
+function notifyIfSessionEnded(path: string, status: number): void {
+    if (status === 401 && !path.startsWith("/auth/")) {
+        window.dispatchEvent(new Event(SESSION_ENDED_EVENT));
+    }
+}
+
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const { method = "GET", query, body } = options;
 
@@ -64,6 +72,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     });
 
     if (!response.ok) {
+        notifyIfSessionEnded(path, response.status);
         throw new ApiError(response.status, await readErrorMessage(response));
     }
 
@@ -81,6 +90,7 @@ export async function upload<T>(path: string, file: File): Promise<T> {
     const response = await fetch(buildUrl(path), { method: "POST", body });
 
     if (!response.ok) {
+        notifyIfSessionEnded(path, response.status);
         throw new ApiError(response.status, await readErrorMessage(response));
     }
 

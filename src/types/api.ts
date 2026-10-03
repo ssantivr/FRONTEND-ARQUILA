@@ -181,3 +181,13 @@ export interface ConversationMessage {
 export interface ConversationDetail extends Conversation {
     messages: ConversationMessage[];
 }
+
+export interface Summary {
+    projects: number;
+    draft_projects: number;
+    active_projects: number;
+    archived_projects: number;
+    terrains: number;
+    total_area_m2: number;
+    materials_total_cost: number;
+}
