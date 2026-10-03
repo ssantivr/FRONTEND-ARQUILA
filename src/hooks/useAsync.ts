@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState, type DependencyList } from "react";
 
+import { translateError } from "../utils/errors";
+
 interface AsyncState<T> {
     data: T | null;
     error: string | null;
@@ -47,5 +49,5 @@ export function useAsync<T>(loader: () => Promise<T>, deps: DependencyList): Asy
 }
 
 export function errorMessage(reason: unknown): string {
-    return reason instanceof Error ? reason.message : "Unexpected error";
+    return translateError(reason instanceof Error ? reason.message : "Unexpected error");
 }
