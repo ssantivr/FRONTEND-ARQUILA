@@ -1,0 +1,239 @@
+/* Palette from 06_EVOLUCION_POR_SEMANAS.md (Semana 2). */
+:root {
+    --bg: #07111a;
+    --bg-secondary: #0b1722;
+    --panel: #0f1d2a;
+    --panel-raised: #122536;
+    --border: #1e3549;
+    --text: #f4f7fa;
+    --text-secondary: #8fa3b5;
+    --blue: #1597e5;
+    --cyan: #20c7f5;
+    --success: #39d98a;
+    --warning: #f2c94c;
+    --error: #ff647c;
+
+    color-scheme: dark;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.brand {
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+}
+
+.user-picker {
+    flex-direction: row;
+    align-items: center;
+}
+
+.content {
+    display: grid;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.panel {
+    padding: 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+input,
+select,
+button {
+    font: inherit;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+input,
+select {
+    background: var(--bg-secondary);
+    min-width: 0;
+}
+
+button {
+    background: var(--blue);
+    border-color: var(--blue);
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+}
+
+.button-secondary {
+    background: transparent;
+    border-color: var(--border);
+}
+
+.button-danger {
+    background: transparent;
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.form-row label {
+    flex: 1 1 140px;
+}
+
+.filters,
+.project-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.project-summary {
+    color: var(--text-secondary);
+}
+
+.card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    text-align: left;
+    background: var(--panel-raised);
+    border-color: var(--border);
+}
+
+.card:hover {
+    border-color: var(--cyan);
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.card-subtitle {
+    color: var(--text-secondary);
+}
+
+.badge {
+    padding: 2px 8px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.75rem;
+}
+
+.badge-draft {
+    color: var(--warning);
+}
+
+.badge-active {
+    color: var(--success);
+}
+
+.badge-archived {
+    color: var(--text-secondary);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+th {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.message {
+    margin: 8px 0;
+    color: var(--text-secondary);
+}
+
+.message-error {
+    color: var(--error);
+}
