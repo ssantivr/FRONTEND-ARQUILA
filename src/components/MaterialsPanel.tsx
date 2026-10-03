@@ -105,13 +105,13 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                                 key={material.id}
                                 className={material.id === editingId ? "row-editing" : undefined}
                             >
-                                <td>{material.name}</td>
-                                <td>{material.category ?? "—"}</td>
-                                <td className="numeric">
+                                <td data-label="Nombre">{material.name}</td>
+                                <td data-label="Categoría">{material.category ?? "—"}</td>
+                                <td data-label="Cantidad" className="numeric">
                                     {formatNumber(material.quantity)} {material.unit}
                                 </td>
-                                <td className="numeric">{formatMoney(material.unit_cost)}</td>
-                                <td className="numeric">
+                                <td data-label="Costo unitario" className="numeric">{formatMoney(material.unit_cost)}</td>
+                                <td data-label="Subtotal" className="numeric">
                                     {formatMoney(material.quantity * material.unit_cost)}
                                 </td>
                                 <td>

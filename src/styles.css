@@ -588,3 +588,64 @@ textarea {
 .checkbox input {
     padding: 0;
 }
+
+@media (max-width: 720px) {
+    table,
+    tbody,
+    tfoot,
+    tr,
+    td,
+    th {
+        display: block;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody tr {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    td {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 4px 0;
+        text-align: right;
+        white-space: normal;
+        border: 0;
+    }
+
+    td[data-label]::before {
+        content: attr(data-label);
+        margin-right: auto;
+        color: var(--text-secondary);
+        text-align: left;
+    }
+
+    tfoot tr {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+    }
+
+    tfoot th {
+        padding: 0;
+        border: 0;
+    }
+
+    tfoot th:empty {
+        display: none;
+    }
+
+    .row-editing td {
+        background: transparent;
+    }
+
+    .row-editing {
+        background: rgba(21, 151, 229, 0.12);
+    }
+}

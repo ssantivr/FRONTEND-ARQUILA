@@ -97,10 +97,10 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                                 key={plan.id}
                                 className={plan.id === editingId ? "row-editing" : undefined}
                             >
-                                <td>{plan.title}</td>
-                                <td>{plan.level ?? "—"}</td>
-                                <td>{plan.scale ?? "—"}</td>
-                                <td>
+                                <td data-label="Título">{plan.title}</td>
+                                <td data-label="Nivel">{plan.level ?? "—"}</td>
+                                <td data-label="Escala">{plan.scale ?? "—"}</td>
+                                <td data-label="Archivo">
                                     <FileAttachment
                                         files={files}
                                         fileId={plan.file_id}

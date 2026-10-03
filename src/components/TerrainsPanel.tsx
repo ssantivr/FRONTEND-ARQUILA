@@ -131,17 +131,17 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                                 key={terrain.id}
                                 className={terrain.id === editingId ? "row-editing" : undefined}
                             >
-                                <td>{terrain.name}</td>
-                                <td>
+                                <td data-label="Nombre">{terrain.name}</td>
+                                <td data-label="Forma">
                                     {terrain.points.length >= 3
                                         ? `Polígono de ${terrain.points.length} vértices`
                                         : `${formatNumber(terrain.width_m)} × ${formatNumber(terrain.length_m)} m`}
                                 </td>
-                                <td className="numeric">{formatNumber(terrain.area_m2)}</td>
-                                <td className="numeric">
+                                <td data-label="Área (m²)" className="numeric">{formatNumber(terrain.area_m2)}</td>
+                                <td data-label="Pendiente (%)" className="numeric">
                                     {formatNumber(terrain.slope_percent)}
                                 </td>
-                                <td>{terrain.soil_type ?? "—"}</td>
+                                <td data-label="Suelo">{terrain.soil_type ?? "—"}</td>
                                 <td>
                                     <RowActions
                                         label={`terreno ${terrain.name}`}

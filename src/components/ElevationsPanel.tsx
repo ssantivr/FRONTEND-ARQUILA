@@ -120,9 +120,9 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                                 key={elevation.id}
                                 className={elevation.id === editingId ? "row-editing" : undefined}
                             >
-                                <td>{elevation.title}</td>
-                                <td>{ORIENTATION_LABELS[elevation.orientation]}</td>
-                                <td>
+                                <td data-label="Título">{elevation.title}</td>
+                                <td data-label="Orientación">{ORIENTATION_LABELS[elevation.orientation]}</td>
+                                <td data-label="Archivo">
                                     <FileAttachment
                                         files={files}
                                         fileId={elevation.file_id}
