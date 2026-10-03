@@ -379,3 +379,61 @@ textarea {
     color: var(--cyan);
     border-bottom-color: var(--cyan);
 }
+
+.terrain-diagrams {
+    margin: 16px 0 0;
+    padding: 12px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.terrain-diagrams figcaption {
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.diagram-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.diagram h3 {
+    margin: 0 0 4px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.diagram svg {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+}
+
+.diagram-lot {
+    fill: rgba(32, 199, 245, 0.12);
+    stroke: var(--cyan);
+    stroke-width: 1.5;
+}
+
+.diagram-ground {
+    fill: rgba(57, 217, 138, 0.12);
+}
+
+.diagram-surface {
+    stroke: var(--success);
+    stroke-width: 2;
+}
+
+.diagram-label {
+    fill: var(--text);
+    font-size: 11px;
+}
+
+.diagram-note {
+    fill: var(--text-secondary);
+    font-size: 10px;
+}

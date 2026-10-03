@@ -8,6 +8,7 @@ import { FilesPanel } from "../components/FilesPanel";
 import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
+import { TerrainDiagrams } from "../components/TerrainDiagrams";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { filesApi, materialsApi, projectsApi, terrainsApi, undoApi } from "../services/api";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
@@ -197,9 +198,18 @@ function BackButton({ onBack }: { onBack: () => void }) {
 function TerrainsPanel({ projectId, run }: SectionProps) {
     const terrains = useAsync(() => terrainsApi.listByProject(projectId), [projectId]);
     const [name, setName] = useState("");
+    const [width, setWidth] = useState("");
+    const [length, setLength] = useState("");
     const [area, setArea] = useState("");
     const [slope, setSlope] = useState("");
     const [soilType, setSoilType] = useState("");
+
+    const widthValue = optionalNumber(width);
+    const lengthValue = optionalNumber(length);
+    const rectangleArea =
+        widthValue !== undefined && lengthValue !== undefined
+            ? widthValue * lengthValue
+            : undefined;
 
     function handleCreate(event: FormEvent) {
         event.preventDefault();
@@ -208,12 +218,16 @@ function TerrainsPanel({ projectId, run }: SectionProps) {
             () =>
                 terrainsApi.create(projectId, {
                     name: name.trim(),
-                    area_m2: Number(area),
+                    area_m2: optionalNumber(area) ?? rectangleArea ?? 0,
+                    width_m: widthValue,
+                    length_m: lengthValue,
                     slope_percent: optionalNumber(slope),
                     soil_type: optionalText(soilType),
                 }),
             () => {
                 setName("");
+                setWidth("");
+                setLength("");
                 setArea("");
                 setSlope("");
                 setSoilType("");
@@ -237,6 +251,7 @@ function TerrainsPanel({ projectId, run }: SectionProps) {
                     <thead>
                         <tr>
                             <th>Nombre</th>
+                            <th className="numeric">Ancho × largo (m)</th>
                             <th className="numeric">Área (m²)</th>
                             <th className="numeric">Pendiente (%)</th>
                             <th>Suelo</th>
@@ -247,6 +262,10 @@ function TerrainsPanel({ projectId, run }: SectionProps) {
                         {items.map((terrain) => (
                             <tr key={terrain.id}>
                                 <td>{terrain.name}</td>
+                                <td className="numeric">
+                                    {formatNumber(terrain.width_m)} ×{" "}
+                                    {formatNumber(terrain.length_m)}
+                                </td>
                                 <td className="numeric">{formatNumber(terrain.area_m2)}</td>
                                 <td className="numeric">
                                     {formatNumber(terrain.slope_percent)}
@@ -272,6 +291,9 @@ function TerrainsPanel({ projectId, run }: SectionProps) {
                     </tbody>
                 </table>
             )}
+            {items.map((terrain) => (
+                <TerrainDiagrams key={terrain.id} terrain={terrain} />
+            ))}
             <form className="form-row" onSubmit={handleCreate}>
                 <label>
                     Nombre
@@ -283,6 +305,26 @@ function TerrainsPanel({ projectId, run }: SectionProps) {
                     />
                 </label>
                 <label>
+                    Ancho (m)
+                    <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={width}
+                        onChange={(event) => setWidth(event.target.value)}
+                    />
+                </label>
+                <label>
+                    Largo (m)
+                    <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={length}
+                        onChange={(event) => setLength(event.target.value)}
+                    />
+                </label>
+                <label>
                     Área (m²)
                     <input
                         type="number"
@@ -290,7 +332,10 @@ function TerrainsPanel({ projectId, run }: SectionProps) {
                         step="0.01"
                         value={area}
                         onChange={(event) => setArea(event.target.value)}
-                        required
+                        placeholder={
+                            rectangleArea === undefined ? undefined : formatNumber(rectangleArea)
+                        }
+                        required={rectangleArea === undefined}
                     />
                 </label>
                 <label>

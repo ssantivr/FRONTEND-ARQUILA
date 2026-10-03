@@ -111,6 +111,8 @@ export interface Terrain {
     project_id: number;
     name: string;
     area_m2: number;
+    width_m: number | null;
+    length_m: number | null;
     slope_percent: number | null;
     soil_type: string | null;
     latitude: number | null;
@@ -121,6 +123,8 @@ export interface Terrain {
 export interface TerrainCreate {
     name: string;
     area_m2: number;
+    width_m?: number | null;
+    length_m?: number | null;
     slope_percent?: number | null;
     soil_type?: string | null;
     latitude?: number | null;
