@@ -1,7 +1,14 @@
 import type {
+    Elevation,
+    ElevationCreate,
+    ElevationUpdate,
     Material,
     MaterialCreate,
     MaterialUpdate,
+    Orientation,
+    Plan,
+    PlanCreate,
+    PlanUpdate,
     Project,
     ProjectCreate,
     ProjectFilters,
@@ -55,4 +62,25 @@ export const materialsApi = {
     update: (id: number, data: MaterialUpdate) =>
         request<Material>(`/materials/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/materials/${id}`, { method: "DELETE" }),
+};
+
+export const plansApi = {
+    listByProject: (projectId: number) => request<Plan[]>(`/projects/${projectId}/plans`),
+    get: (id: number) => request<Plan>(`/plans/${id}`),
+    create: (projectId: number, data: PlanCreate) =>
+        request<Plan>(`/projects/${projectId}/plans`, { method: "POST", body: data }),
+    update: (id: number, data: PlanUpdate) =>
+        request<Plan>(`/plans/${id}`, { method: "PATCH", body: data }),
+    remove: (id: number) => request<void>(`/plans/${id}`, { method: "DELETE" }),
+};
+
+export const elevationsApi = {
+    listByProject: (projectId: number, orientation?: Orientation) =>
+        request<Elevation[]>(`/projects/${projectId}/elevations`, { query: { orientation } }),
+    get: (id: number) => request<Elevation>(`/elevations/${id}`),
+    create: (projectId: number, data: ElevationCreate) =>
+        request<Elevation>(`/projects/${projectId}/elevations`, { method: "POST", body: data }),
+    update: (id: number, data: ElevationUpdate) =>
+        request<Elevation>(`/elevations/${id}`, { method: "PATCH", body: data }),
+    remove: (id: number) => request<void>(`/elevations/${id}`, { method: "DELETE" }),
 };
