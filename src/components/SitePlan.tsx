@@ -50,8 +50,18 @@ function download(svg: SVGSVGElement, name: string) {
     URL.revokeObjectURL(url);
 }
 
+function initialSetback(terrain: Terrain): number {
+    if (terrain.width_m === null || terrain.length_m === null) {
+        return DEFAULT_SETBACK;
+    }
+
+    const quarter = Math.min(terrain.width_m, terrain.length_m) / 4;
+
+    return Math.min(DEFAULT_SETBACK, Math.floor(quarter * 2) / 2);
+}
+
 export function SitePlan({ terrain }: { terrain: Terrain }) {
-    const [setback, setSetback] = useState(DEFAULT_SETBACK);
+    const [setback, setSetback] = useState(() => initialSetback(terrain));
     const [north, setNorth] = useState(0);
     const svg = useRef<SVGSVGElement>(null);
     const shape = footprint(terrain);
