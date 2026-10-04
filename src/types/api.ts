@@ -92,10 +92,46 @@ export interface StructureRoom {
     height_m: number;
 }
 
+export type ComponentKind = "column" | "beam" | "wall";
+
+export interface StructuralComponent {
+    id: number;
+    project_id: number;
+    plan_id: number;
+    kind: ComponentKind;
+    name: string;
+    x_m: number;
+    y_m: number;
+    width_m: number;
+    depth_m: number;
+    height_m: number;
+    created_at: string;
+}
+
+export interface ComponentCreate {
+    plan_id: number;
+    kind: ComponentKind;
+    name: string;
+    x_m: number;
+    y_m: number;
+    width_m: number;
+    depth_m: number;
+    height_m: number;
+}
+
+export type ComponentUpdate = Partial<ComponentCreate>;
+
+export interface StructureComponent extends Omit<StructureRoom, "kind"> {
+    kind: ComponentKind;
+}
+
+export type StructureElement = StructureRoom | StructureComponent;
+
 export interface Structure {
     project_id: number;
     terrains: StructureTerrain[];
     rooms: StructureRoom[];
+    components: StructureComponent[];
 }
 
 export interface Elevation {

@@ -1,5 +1,8 @@
 import type {
     AssistantStatus,
+    ComponentCreate,
+    ComponentKind,
+    ComponentUpdate,
     Conversation,
     ConversationDetail,
     ConversationMessage,
@@ -28,6 +31,7 @@ import type {
     Room,
     RoomCreate,
     RoomUpdate,
+    StructuralComponent,
     Structure,
     Terrain,
     TerrainCreate,
@@ -140,6 +144,19 @@ export const roomsApi = {
     update: (id: number, data: RoomUpdate) =>
         request<Room>(`/rooms/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/rooms/${id}`, { method: "DELETE" }),
+};
+
+export const componentsApi = {
+    listByProject: (projectId: number, kind?: ComponentKind) =>
+        request<StructuralComponent[]>(`/projects/${projectId}/components`, { query: { kind } }),
+    create: (projectId: number, data: ComponentCreate) =>
+        request<StructuralComponent>(`/projects/${projectId}/components`, {
+            method: "POST",
+            body: data,
+        }),
+    update: (id: number, data: ComponentUpdate) =>
+        request<StructuralComponent>(`/components/${id}`, { method: "PATCH", body: data }),
+    remove: (id: number) => request<void>(`/components/${id}`, { method: "DELETE" }),
 };
 
 export const structureApi = {

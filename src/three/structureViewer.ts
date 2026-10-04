@@ -13,6 +13,7 @@ import {
     LineSegments,
     Material,
     Mesh,
+    MeshPhysicalMaterial,
     MeshStandardMaterial,
     Object3D,
     PCFShadowMap,
@@ -27,7 +28,7 @@ import {
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-import type { Structure, StructureRoom, StructureTerrain } from "../types/api";
+import type { Structure, StructureElement, StructureTerrain } from "../types/api";
 
 const BACKGROUND = 0x090a0f;
 const CYAN = 0x00f0ff;
@@ -35,6 +36,7 @@ const MAGENTA = 0xff007f;
 const TERRAIN_COLOR = 0x18222f;
 const ROOM_COLOR = 0x2a8fa8;
 const VOLUME_COLOR = 0x33455c;
+const CONCRETE_COLOR = 0xaab4bf;
 const GRID_COLOR = 0x12303a;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
@@ -47,12 +49,48 @@ const VIEW_DIRECTION = new Vector3(0.7, 0.6, 1).normalize();
 export interface StructureViewer {
     show: (structure: Structure) => void;
     select: (key: string | null) => void;
+    setRoomsVisible: (visible: boolean) => void;
     resetView: () => void;
     dispose: () => void;
 }
 
-export function roomKey(room: StructureRoom): string {
-    return `${room.kind}-${room.id}`;
+export function elementKey(element: StructureElement): string {
+    return `${element.kind}-${element.id}`;
+}
+
+export function isSpace(element: StructureElement): boolean {
+    return element.kind === "room" || element.kind === "volume";
+}
+
+function buildMaterial(element: StructureElement): MeshStandardMaterial {
+    const offset = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
+
+    if (element.kind === "room") {
+        return new MeshPhysicalMaterial({
+            ...offset,
+            color: ROOM_COLOR,
+            roughness: 0.4,
+            metalness: 0.1,
+            clearcoat: 0.5,
+            clearcoatRoughness: 0.25,
+        });
+    }
+
+    if (element.kind === "volume") {
+        return new MeshStandardMaterial({
+            ...offset,
+            color: VOLUME_COLOR,
+            roughness: 0.55,
+            metalness: 0.15,
+        });
+    }
+
+    return new MeshStandardMaterial({
+        ...offset,
+        color: CONCRETE_COLOR,
+        roughness: 0.85,
+        metalness: 0,
+    });
 }
 
 type RoomMesh = Mesh<BoxGeometry, MeshStandardMaterial>;
@@ -86,21 +124,14 @@ function buildTerrain(terrain: StructureTerrain): Mesh {
     return mesh;
 }
 
-function buildRoom(room: StructureRoom): RoomMesh {
-    const geometry = new BoxGeometry(room.width_m, room.height_m, room.depth_m);
-    const material = new MeshStandardMaterial({
-        color: room.kind === "room" ? ROOM_COLOR : VOLUME_COLOR,
-        roughness: 0.45,
-        metalness: 0.15,
-        polygonOffset: true,
-        polygonOffsetFactor: 1,
-        polygonOffsetUnits: 1,
-    });
-    const mesh = new Mesh(geometry, material);
-    mesh.position.set(room.x_m, room.base_m + room.height_m / 2, -room.y_m);
+function buildElement(element: StructureElement): RoomMesh {
+    const geometry = new BoxGeometry(element.width_m, element.height_m, element.depth_m);
+    const mesh = new Mesh(geometry, buildMaterial(element));
+    mesh.position.set(element.x_m, element.base_m + element.height_m / 2, -element.y_m);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    mesh.userData.key = roomKey(room);
+    mesh.userData.key = elementKey(element);
+    mesh.userData.space = isSpace(element);
 
     const edges = new LineSegments(
         new EdgesGeometry(geometry),
@@ -163,6 +194,7 @@ export function createStructureViewer(
     let selectedKey: string | null = null;
     let hoveredKey: string | null = null;
     let framed = false;
+    let roomsVisible = true;
     let pressX = 0;
     let pressY = 0;
 
@@ -231,6 +263,17 @@ export function createStructureViewer(
         }
     }
 
+    function applyVisibility(): void {
+        for (const mesh of rooms) {
+            mesh.visible = roomsVisible || mesh.userData.space !== true;
+        }
+    }
+
+    function setRoomsVisible(visible: boolean): void {
+        roomsVisible = visible;
+        applyVisibility();
+    }
+
     function clear(): void {
         if (model !== null) {
             scene.remove(model);
@@ -243,7 +286,8 @@ export function createStructureViewer(
     function show(structure: Structure): void {
         clear();
 
-        rooms = structure.rooms.map(buildRoom);
+        rooms = [...structure.rooms, ...structure.components].map(buildElement);
+        applyVisibility();
         model = new Group();
         model.add(...structure.terrains.map(buildTerrain), ...rooms);
         new Box3().setFromObject(model).getBoundingSphere(bounds);
@@ -279,7 +323,10 @@ export function createStructureViewer(
         );
         raycaster.setFromCamera(pointer, camera);
 
-        const [hit] = raycaster.intersectObjects(rooms, false);
+        const [hit] = raycaster.intersectObjects(
+            rooms.filter((mesh) => mesh.visible),
+            false,
+        );
 
         return hit === undefined ? null : (hit.object.userData.key as string);
     }
@@ -343,5 +390,5 @@ export function createStructureViewer(
         canvas.remove();
     }
 
-    return { show, select, resetView, dispose };
+    return { show, select, setRoomsVisible, resetView, dispose };
 }

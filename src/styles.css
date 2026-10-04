@@ -537,6 +537,12 @@ textarea {
     white-space: nowrap;
 }
 
+.hud-toolbar .checkbox {
+    display: flex;
+    white-space: nowrap;
+    accent-color: var(--neon-cyan);
+}
+
 .hud-item:hover {
     background: rgba(0, 240, 255, 0.16);
     border-color: var(--neon-cyan);

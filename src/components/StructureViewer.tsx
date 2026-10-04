@@ -2,32 +2,56 @@ import { useEffect, useRef, useState } from "react";
 
 import {
     createStructureViewer,
-    roomKey,
+    elementKey,
+    isSpace,
     type StructureViewer as Viewer,
 } from "../three/structureViewer";
-import type { Structure, StructureRoom } from "../types/api";
+import type { Structure, StructureElement } from "../types/api";
 import { formatNumber } from "../utils/format";
 
 interface Level {
     planId: number;
     title: string;
-    rooms: StructureRoom[];
+    base: number;
+    elements: StructureElement[];
 }
 
-function groupByLevel(rooms: StructureRoom[]): Level[] {
-    const levels: Level[] = [];
+const KIND_LABELS: Record<StructureElement["kind"], string> = {
+    room: "Cuarto",
+    volume: "Volumen sin cuartos",
+    column: "Columna",
+    beam: "Viga",
+    wall: "Muro",
+};
 
-    for (const room of rooms) {
-        const last = levels[levels.length - 1];
+function groupByLevel(elements: StructureElement[]): Level[] {
+    const levels = new Map<number, Level>();
 
-        if (last !== undefined && last.planId === room.plan_id) {
-            last.rooms.push(room);
+    for (const element of elements) {
+        const level = levels.get(element.plan_id);
+
+        if (level === undefined) {
+            levels.set(element.plan_id, {
+                planId: element.plan_id,
+                title: element.plan_title,
+                base: element.base_m,
+                elements: [element],
+            });
         } else {
-            levels.push({ planId: room.plan_id, title: room.plan_title, rooms: [room] });
+            level.base = Math.min(level.base, element.base_m);
+            level.elements.push(element);
         }
     }
 
-    return levels;
+    return [...levels.values()].sort((a, b) => a.base - b.base);
+}
+
+function itemLabel(element: StructureElement): string {
+    if (element.kind === "volume") {
+        return "Volumen del nivel";
+    }
+
+    return isSpace(element) ? element.name : `${KIND_LABELS[element.kind]} · ${element.name}`;
 }
 
 export function StructureViewer({ structure }: { structure: Structure }) {
@@ -35,7 +59,9 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const viewer = useRef<Viewer | null>(null);
     const [unsupported, setUnsupported] = useState(false);
     const [selectedKey, setSelectedKey] = useState<string | null>(null);
-    const selected = structure.rooms.find((room) => roomKey(room) === selectedKey) ?? null;
+    const [roomsVisible, setRoomsVisible] = useState(true);
+    const elements: StructureElement[] = [...structure.rooms, ...structure.components];
+    const selected = elements.find((element) => elementKey(element) === selectedKey) ?? null;
 
     useEffect(() => {
         if (container.current === null) {
@@ -63,6 +89,10 @@ export function StructureViewer({ structure }: { structure: Structure }) {
         viewer.current?.select(selectedKey);
     }, [selectedKey, structure]);
 
+    useEffect(() => {
+        viewer.current?.setRoomsVisible(roomsVisible);
+    }, [roomsVisible]);
+
     if (unsupported) {
         return (
             <p className="message message-error" role="alert">
@@ -77,16 +107,18 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                 ref={container}
                 className="structure-viewer"
                 role="img"
-                aria-label={`Modelo 3D con ${structure.terrains.length} terrenos y ${structure.rooms.length} espacios`}
+                aria-label={`Modelo 3D con ${structure.terrains.length} terrenos, ${structure.rooms.length} espacios y ${structure.components.length} componentes estructurales`}
             />
             <aside className="hud hud-levels" aria-label="Niveles del modelo">
                 <h3>Niveles</h3>
-                {structure.rooms.length === 0 && <p>Agrega cuartos a un plano, o ponle un nivel numérico, para verlo aquí.</p>}
-                {groupByLevel(structure.rooms).map((level) => (
+                {elements.length === 0 && (
+                    <p>Agrega cuartos a un plano, o ponle un nivel numérico, para verlo aquí.</p>
+                )}
+                {groupByLevel(elements).map((level) => (
                     <section key={level.planId}>
                         <h4>{level.title}</h4>
-                        {level.rooms.map((room) => {
-                            const key = roomKey(room);
+                        {level.elements.map((element) => {
+                            const key = elementKey(element);
 
                             return (
                                 <button
@@ -96,7 +128,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                                     aria-pressed={key === selectedKey}
                                     onClick={() => setSelectedKey(key === selectedKey ? null : key)}
                                 >
-                                    {room.kind === "room" ? room.name : "Volumen del nivel"}
+                                    {itemLabel(element)}
                                 </button>
                             );
                         })}
@@ -106,13 +138,13 @@ export function StructureViewer({ structure }: { structure: Structure }) {
             <aside className="hud hud-inspector" aria-live="polite" aria-label="Inspector">
                 <h3>Inspector</h3>
                 {selected === null ? (
-                    <p>Haz clic en un cuarto para inspeccionarlo.</p>
+                    <p>Haz clic en un cuarto o en un componente para inspeccionarlo.</p>
                 ) : (
                     <dl>
                         <dt>Nombre</dt>
                         <dd>{selected.name}</dd>
                         <dt>Tipo</dt>
-                        <dd>{selected.kind === "room" ? "Cuarto" : "Volumen sin cuartos"}</dd>
+                        <dd>{KIND_LABELS[selected.kind]}</dd>
                         <dt>Plano</dt>
                         <dd>{selected.plan_title}</dd>
                         <dt>Nivel</dt>
@@ -122,14 +154,18 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                             {formatNumber(selected.width_m)} × {formatNumber(selected.depth_m)} ×{" "}
                             {formatNumber(selected.height_m)} m
                         </dd>
-                        <dt>Área</dt>
-                        <dd>{formatNumber(selected.width_m * selected.depth_m)} m²</dd>
+                        {isSpace(selected) && (
+                            <>
+                                <dt>Área</dt>
+                                <dd>{formatNumber(selected.width_m * selected.depth_m)} m²</dd>
+                            </>
+                        )}
                         <dt>Volumen</dt>
                         <dd>
                             {formatNumber(selected.width_m * selected.depth_m * selected.height_m)}{" "}
                             m³
                         </dd>
-                        <dt>Altura del piso</dt>
+                        <dt>Altura de la base</dt>
                         <dd>+{formatNumber(selected.base_m)} m</dd>
                     </dl>
                 )}
@@ -138,6 +174,14 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                 <button type="button" className="hud-item" onClick={() => viewer.current?.resetView()}>
                     Restablecer vista
                 </button>
+                <label className="checkbox">
+                    <input
+                        type="checkbox"
+                        checked={roomsVisible}
+                        onChange={(event) => setRoomsVisible(event.target.checked)}
+                    />
+                    Mostrar cuartos
+                </label>
                 <span>Arrastra para girar · rueda para acercar · botón derecho para desplazar</span>
             </div>
         </div>
