@@ -4,6 +4,7 @@ import { filesApi } from "../services/api";
 import type { ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatFileSize } from "../utils/format";
+import { FileViewer } from "./FileViewer";
 import { Panel } from "./Panel";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -66,23 +67,26 @@ export function FilesPanel({ projectId, run, files, onChanged }: FilesPanelProps
                                 </td>
                                 <td data-label="Tipo">{TYPE_LABELS[file.mime_type] ?? file.mime_type}</td>
                                 <td data-label="Tamaño" className="numeric">{formatFileSize(file.size_bytes)}</td>
-                                <td className="numeric">
-                                    <button
-                                        type="button"
-                                        className="button-danger"
-                                        aria-label={`Eliminar archivo ${file.filename}`}
-                                        onClick={() => {
-                                            if (
-                                                window.confirm(
-                                                    `¿Eliminar "${file.filename}"? No se puede deshacer.`,
-                                                )
-                                            ) {
-                                                run(() => filesApi.remove(file.id), onChanged);
-                                            }
-                                        }}
-                                    >
-                                        Eliminar
-                                    </button>
+                                <td>
+                                    <div className="row-actions">
+                                        <FileViewer file={file} />
+                                        <button
+                                            type="button"
+                                            className="button-danger"
+                                            aria-label={`Eliminar archivo ${file.filename}`}
+                                            onClick={() => {
+                                                if (
+                                                    window.confirm(
+                                                        `¿Eliminar "${file.filename}"? No se puede deshacer.`,
+                                                    )
+                                                ) {
+                                                    run(() => filesApi.remove(file.id), onChanged);
+                                                }
+                                            }}
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

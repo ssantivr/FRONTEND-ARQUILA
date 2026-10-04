@@ -1,5 +1,5 @@
-import { filesApi } from "../services/api";
 import type { ProjectFile } from "../types/api";
+import { FileViewer } from "./FileViewer";
 
 interface FileAttachmentProps {
     files: ProjectFile[];
@@ -9,6 +9,8 @@ interface FileAttachmentProps {
 }
 
 export function FileAttachment({ files, fileId, label, onChange }: FileAttachmentProps) {
+    const attached = files.find((file) => file.id === fileId);
+
     return (
         <div className="file-attachment">
             <select
@@ -25,11 +27,7 @@ export function FileAttachment({ files, fileId, label, onChange }: FileAttachmen
                     </option>
                 ))}
             </select>
-            {fileId !== null && (
-                <a href={filesApi.contentUrl(fileId)} target="_blank" rel="noreferrer">
-                    Ver
-                </a>
-            )}
+            {attached && <FileViewer file={attached} />}
         </div>
     );
 }
