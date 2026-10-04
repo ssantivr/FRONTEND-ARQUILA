@@ -20,14 +20,14 @@ const NORTH_SIZE = 24;
 const DEFAULT_SETBACK = 3;
 
 const COLORS = {
-    background: "#0f1d2a",
-    text: "#f4f7fa",
-    muted: "#8fa3b5",
-    boundary: "#20c7f5",
-    free: "rgba(57, 217, 138, 0.16)",
-    buildable: "rgba(21, 151, 229, 0.35)",
-    buildableLine: "#1597e5",
-    access: "#f2c94c",
+    background: "#fbfaf7",
+    text: "#1c2430",
+    muted: "#5b6675",
+    boundary: "#1c2430",
+    free: "rgba(47, 125, 79, 0.16)",
+    buildable: "rgba(31, 78, 121, 0.2)",
+    buildableLine: "#1f4e79",
+    access: "#8a5d00",
 };
 
 const NORTH_OPTIONS = [

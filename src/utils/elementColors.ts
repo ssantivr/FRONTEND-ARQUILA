@@ -9,21 +9,21 @@ import { elementKey } from "./openings";
 export type ColorMode = "realistic" | "kind" | "cost" | "alerts";
 export type ElementColors = ReadonlyMap<string, number>;
 
-export const LOW_COLOR = 0x00f0ff;
-export const HIGH_COLOR = 0xff007f;
+export const LOW_COLOR = 0x6fa8d6;
+export const HIGH_COLOR = 0xb3261e;
 
 export const KIND_COLORS: Record<StructureElement["kind"], number> = {
-    room: 0x00f0ff,
-    volume: 0x5b7c99,
-    column: 0xff007f,
-    beam: 0xffb020,
-    wall: 0x9d7bff,
+    room: 0x6f9bc4,
+    volume: 0x8d99a8,
+    column: 0xb5533c,
+    beam: 0xc9962b,
+    wall: 0x7d6aa8,
 };
 
 export const PRIORITY_COLORS: Record<RecommendationPriority, number> = {
-    high: 0xff007f,
-    medium: 0xffb020,
-    low: 0x00f0ff,
+    high: 0xb3261e,
+    medium: 0xc9962b,
+    low: 0x6fa8d6,
 };
 
 const PRIORITY_ORDER: RecommendationPriority[] = ["high", "medium", "low"];

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { appState, useProjectState } from "../state/appState";
+import { useTheme } from "../state/theme";
 import {
+    SCENE_PALETTES,
     createStructureViewer,
     elementKey,
     isSpace,
@@ -130,6 +132,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
     const projectId = structure.project_id;
+    const theme = useTheme();
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
     const materials = useProjectState(projectId, (state) => state.materials);
     const recommendations = useProjectState(projectId, (state) => state.recommendations);
@@ -221,6 +224,10 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     useEffect(() => {
         viewer.current?.setLayers(layers);
     }, [layers]);
+
+    useEffect(() => {
+        viewer.current?.setPalette(SCENE_PALETTES[theme]);
+    }, [theme, structure]);
 
     function chooseView(next: ViewName) {
         setView(next);

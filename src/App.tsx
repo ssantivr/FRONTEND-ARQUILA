@@ -13,6 +13,7 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { TerrainsPage } from "./pages/TerrainsPage";
 import { authApi } from "./services/api";
+import { setTheme, useTheme } from "./state/theme";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
 
@@ -35,6 +36,7 @@ export function App() {
         new URLSearchParams(window.location.search).get("reset_token"),
     );
     const [loginNotice, setLoginNotice] = useState<string | undefined>(undefined);
+    const theme = useTheme();
 
     useEffect(() => {
         let cancelled = false;
@@ -156,14 +158,28 @@ export function App() {
         <div className="layout">
             <header className="header">
                 <span className="brand">ARQUILA</span>
-                {session.state === "authenticated" && (
-                    <div className="user-menu">
-                        <span>{session.user.name}</span>
-                        <button type="button" className="button-secondary" onClick={handleLogout}>
-                            Cerrar sesión
-                        </button>
-                    </div>
-                )}
+                <div className="user-menu">
+                    <button
+                        type="button"
+                        className="button-secondary"
+                        aria-pressed={theme === "dark"}
+                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    >
+                        {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+                    </button>
+                    {session.state === "authenticated" && (
+                        <>
+                            <span>{session.user.name}</span>
+                            <button
+                                type="button"
+                                className="button-secondary"
+                                onClick={handleLogout}
+                            >
+                                Cerrar sesión
+                            </button>
+                        </>
+                    )}
+                </div>
             </header>
 
             {resetToken !== null ? (

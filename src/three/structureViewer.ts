@@ -42,9 +42,8 @@ import {
     type Side,
 } from "../utils/openings";
 
-const BACKGROUND = 0x090a0f;
-const CYAN = 0x00f0ff;
-const MAGENTA = 0xff007f;
+const HOVER_COLOR = 0x4a90c2;
+const SELECTION_COLOR = 0xe08a1e;
 const TERRAIN_COLOR = 0x35634a;
 const WALL_COLOR = 0xa9583f;
 const VOLUME_COLOR = 0x8d6a5a;
@@ -55,7 +54,6 @@ const DOOR_COLOR = 0x4a3526;
 const TRUNK_COLOR = 0x5a4030;
 const CANOPY_COLOR = 0x3f7a4f;
 const EDGE_COLOR = 0x1b1410;
-const GRID_COLOR = 0x12303a;
 const MUTED_COLOR = 0x39414d;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
@@ -70,6 +68,16 @@ export type ViewName = "isometric" | "front" | "side" | "top";
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
 
+export interface ScenePalette {
+    background: number;
+    grid: number;
+}
+
+export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
+    light: { background: 0xe8ecf1, grid: 0xcfd5dd },
+    dark: { background: 0x171a20, grid: 0x2e343f },
+};
+
 const VIEW_DIRECTIONS: Record<ViewName, Vector3> = {
     isometric: new Vector3(0.7, 0.6, 1).normalize(),
     front: new Vector3(0, 0.22, 1).normalize(),
@@ -82,6 +90,7 @@ export interface StructureViewer {
     select: (key: string | null) => void;
     setColors: (colors: ElementColors | null) => void;
     setLayers: (layers: Layers) => void;
+    setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
     zoomBy: (factor: number) => void;
     dispose: () => void;
@@ -334,7 +343,8 @@ export function createStructureViewer(
 
     const canvas = renderer.domElement;
     const scene = new Scene();
-    scene.background = new Color(BACKGROUND);
+    let palette = SCENE_PALETTES.dark;
+    scene.background = new Color(palette.background);
 
     const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 0.1, 1000);
 
@@ -465,10 +475,10 @@ export function createStructureViewer(
                 mesh.material.emissive.copy(mesh.material.color);
                 mesh.material.emissiveIntensity = 0.6;
             } else if (key === selectedKey) {
-                mesh.material.emissive.setHex(MAGENTA);
+                mesh.material.emissive.setHex(SELECTION_COLOR);
                 mesh.material.emissiveIntensity = 0.5;
             } else {
-                mesh.material.emissive.setHex(key === hoveredKey ? CYAN : 0x000000);
+                mesh.material.emissive.setHex(key === hoveredKey ? HOVER_COLOR : 0x000000);
                 mesh.material.emissiveIntensity = 0.2;
             }
         }
@@ -490,6 +500,27 @@ export function createStructureViewer(
         if (grid !== null) {
             grid.visible = layers.grid;
         }
+    }
+
+    function setPalette(next: ScenePalette): void {
+        palette = next;
+        scene.background = new Color(palette.background);
+
+        if (model !== null) {
+            buildGrid(model);
+            applyLayers();
+        }
+    }
+
+    function buildGrid(parent: Group): void {
+        if (grid !== null) {
+            parent.remove(grid);
+            disposeObject(grid);
+        }
+
+        grid = new GridHelper(bounds.radius * 6, 60, palette.grid, palette.grid);
+        grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05, bounds.center.z);
+        parent.add(grid);
     }
 
     function setLayers(next: Layers): void {
@@ -537,9 +568,7 @@ export function createStructureViewer(
         new Box3().setFromObject(model).getBoundingSphere(bounds);
         bounds.radius = Math.max(bounds.radius, 1);
 
-        grid = new GridHelper(bounds.radius * 6, 60, GRID_COLOR, GRID_COLOR);
-        grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05, bounds.center.z);
-        model.add(grid);
+        buildGrid(model);
         scene.add(model);
 
         hoveredKey = null;
@@ -644,5 +673,5 @@ export function createStructureViewer(
         canvas.remove();
     }
 
-    return { show, select, setColors, setLayers, setView, zoomBy, dispose };
+    return { show, select, setColors, setLayers, setPalette, setView, zoomBy, dispose };
 }

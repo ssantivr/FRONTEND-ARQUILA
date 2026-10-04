@@ -31,14 +31,14 @@ const TREAD_M = 0.3;
 const SCALE_BARS_M = [1, 2, 5, 10, 20, 50];
 
 const COLORS = {
-    background: "#0b1722",
-    grid: "#16293a",
-    floor: "#0d1b28",
-    text: "#f4f7fa",
-    muted: "#8fa3b5",
-    wall: "#e6edf3",
-    accent: "#20c7f5",
-    beam: "#f2c94c",
+    background: "#fbfaf7",
+    grid: "#e7e4dd",
+    floor: "#f3f0e9",
+    text: "#1c2430",
+    muted: "#5b6675",
+    wall: "#1c2430",
+    accent: "#1f4e79",
+    beam: "#8a5d00",
 };
 
 const TEXT = { fontFamily: "system-ui, sans-serif", fontSize: 10, fill: COLORS.text };
@@ -465,7 +465,7 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                     {barLength} m
                 </text>
                 <text x={VIEW_WIDTH / 2} y={VIEW_HEIGHT - 10} {...NOTE} textAnchor="middle">
-                    Frente del lote abajo · ventanas en cian · columnas y muros en blanco · vigas
+                    Frente del lote abajo · ventanas en azul · columnas y muros en negro · vigas
                     en línea discontinua
                 </text>
             </svg>

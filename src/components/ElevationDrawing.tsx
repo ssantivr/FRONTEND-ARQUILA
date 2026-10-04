@@ -12,18 +12,18 @@ const DRAW_HEIGHT = 260;
 const MARK_X = 575;
 
 const COLORS = {
-    background: "#0b1722",
-    grid: "#16293a",
-    text: "#f4f7fa",
-    muted: "#8fa3b5",
-    wall: "#e6edf3",
-    facade: "#1b3248",
-    accent: "#20c7f5",
-    glass: "rgba(32, 199, 245, 0.28)",
-    door: "#f2c94c",
-    roof: "#c98a7d",
-    roofFill: "#3f2a2c",
-    ground: "#39d98a",
+    background: "#fbfaf7",
+    grid: "#e7e4dd",
+    text: "#1c2430",
+    muted: "#5b6675",
+    wall: "#1c2430",
+    facade: "#ece8e0",
+    accent: "#1f4e79",
+    glass: "rgba(31, 78, 121, 0.2)",
+    door: "#7a4f24",
+    roof: "#8c4a3c",
+    roofFill: "#dcbfb4",
+    ground: "#2f7d4f",
 };
 
 const TEXT = { fontFamily: "system-ui, sans-serif", fontSize: 10, fill: COLORS.text };
@@ -70,7 +70,7 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
                     y={ground}
                     width={DRAW_WIDTH + 60}
                     height={26}
-                    fill="rgba(57, 217, 138, 0.1)"
+                    fill="rgba(47, 125, 79, 0.12)"
                     stroke={COLORS.ground}
                     strokeWidth={1}
                 />
@@ -133,7 +133,7 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
                             y={y}
                             width={width}
                             height={height}
-                            fill="rgba(242, 201, 76, 0.18)"
+                            fill="rgba(122, 79, 36, 0.22)"
                             stroke={COLORS.door}
                             strokeWidth={1.4}
                         />
