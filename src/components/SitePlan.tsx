@@ -50,6 +50,44 @@ function download(svg: SVGSVGElement, name: string) {
     URL.revokeObjectURL(url);
 }
 
+export function printableDocument(svgSource: string, title: string): string {
+    const safeTitle = title.replace(/[&<>]/g, "");
+
+    return (
+        `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>${safeTitle}</title>` +
+        "<style>@page{size:A4 landscape;margin:12mm}html,body{height:100%;margin:0}" +
+        "body{display:flex;align-items:center;justify-content:center}" +
+        "svg{width:100%;height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+        `</style></head><body>${svgSource}</body></html>`
+    );
+}
+
+function print(svg: SVGSVGElement, name: string) {
+    const frame = document.createElement("iframe");
+
+    frame.style.position = "fixed";
+    frame.style.width = "0";
+    frame.style.height = "0";
+    frame.style.border = "0";
+    frame.srcdoc = printableDocument(
+        new XMLSerializer().serializeToString(svg),
+        `Plano de implantación — ${name}`,
+    );
+    frame.onload = () => {
+        const target = frame.contentWindow;
+
+        if (target === null) {
+            frame.remove();
+            return;
+        }
+
+        target.onafterprint = () => frame.remove();
+        target.focus();
+        target.print();
+    };
+    document.body.append(frame);
+}
+
 function initialSetback(terrain: Terrain): number {
     if (terrain.width_m === null || terrain.length_m === null) {
         return DEFAULT_SETBACK;
@@ -272,6 +310,13 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                         onClick={() => svg.current && download(svg.current, terrain.name)}
                     >
                         Descargar plano (SVG)
+                    </button>
+                    <button
+                        type="button"
+                        className="button-secondary"
+                        onClick={() => svg.current && print(svg.current, terrain.name)}
+                    >
+                        Imprimir o guardar como PDF
                     </button>
                 </div>
                 {!rectangular && (
