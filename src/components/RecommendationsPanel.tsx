@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { recommendationsApi } from "../services/api";
+import { appState } from "../state/appState";
 import type { RecommendationPriority, RecommendationSource } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
@@ -35,6 +36,12 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
     const [content, setContent] = useState("");
     const [priority, setPriority] = useState<RecommendationPriority>("medium");
     const [generating, setGenerating] = useState(false);
+
+    useEffect(() => {
+        if (recommendations.data !== null) {
+            appState.setRecommendations(projectId, recommendations.data);
+        }
+    }, [projectId, recommendations.data]);
 
     async function handleGenerate() {
         setGenerating(true);

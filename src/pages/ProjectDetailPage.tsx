@@ -6,6 +6,7 @@ import { StatusBadge } from "../components/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
 import { FilesPanel } from "../components/FilesPanel";
 import { FloorPlansPanel } from "../components/FloorPlansPanel";
+import { GeneratedElevationsPanel } from "../components/GeneratedElevationsPanel";
 import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
@@ -186,7 +187,13 @@ export function ProjectDetailPage({
                     </Suspense>
                 )}
                 {section === "elevations" && (
-                    <ElevationsPanel projectId={projectId} run={run} files={projectFiles} />
+                    <>
+                        <ElevationsPanel projectId={projectId} run={run} files={projectFiles} />
+                        <GeneratedElevationsPanel
+                            projectId={projectId}
+                            projectName={current.name}
+                        />
+                    </>
                 )}
                 {section === "materials" && <MaterialsPanel projectId={projectId} run={run} />}
                 {section === "analysis" && (

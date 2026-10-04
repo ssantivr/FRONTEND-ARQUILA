@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { appState, useProjectState } from "../state/appState";
 import {
     createStructureViewer,
     elementKey,
@@ -9,8 +10,22 @@ import {
     type StructureViewer as Viewer,
     type ViewName,
 } from "../three/structureViewer";
-import type { Structure, StructureElement } from "../types/api";
-import { formatNumber } from "../utils/format";
+import type { RecommendationPriority, Structure, StructureElement } from "../types/api";
+import {
+    HIGH_COLOR,
+    KIND_COLORS,
+    LOW_COLOR,
+    PRIORITY_COLORS,
+    alertColors,
+    costColors,
+    cssColor,
+    estimateCosts,
+    findAlerts,
+    kindColors,
+    type ColorMode,
+    type ElementColors,
+} from "../utils/elementColors";
+import { formatMoney, formatNumber } from "../utils/format";
 
 interface Level {
     planId: number;
@@ -40,6 +55,38 @@ const LAYERS: { id: LayerName; label: string }[] = [
     { id: "environment", label: "Árboles" },
     { id: "grid", label: "Cuadrícula" },
 ];
+
+const COLOR_MODES: { id: ColorMode; label: string }[] = [
+    { id: "realistic", label: "Realista" },
+    { id: "kind", label: "Tipo" },
+    { id: "cost", label: "Coste" },
+    { id: "alerts", label: "Alertas" },
+];
+
+const PRIORITY_LABELS: Record<RecommendationPriority, string> = {
+    high: "Prioridad alta",
+    medium: "Prioridad media",
+    low: "Prioridad baja",
+};
+
+const KIND_LEGEND = (Object.keys(KIND_LABELS) as StructureElement["kind"][]).map((kind) => ({
+    label: KIND_LABELS[kind],
+    swatch: cssColor(KIND_COLORS[kind]),
+}));
+
+const COST_LEGEND = [
+    {
+        label: "De menor a mayor coste estimado",
+        swatch: `linear-gradient(90deg, ${cssColor(LOW_COLOR)}, ${cssColor(HIGH_COLOR)})`,
+    },
+];
+
+const ALERT_LEGEND = (Object.keys(PRIORITY_LABELS) as RecommendationPriority[]).map(
+    (priority) => ({
+        label: PRIORITY_LABELS[priority],
+        swatch: cssColor(PRIORITY_COLORS[priority]),
+    }),
+);
 
 const ALL_LAYERS: Layers = { rooms: true, roof: true, environment: true, grid: true };
 const ZOOM_STEP = 1.25;
@@ -79,12 +126,60 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const container = useRef<HTMLDivElement>(null);
     const viewer = useRef<Viewer | null>(null);
     const [unsupported, setUnsupported] = useState(false);
-    const [selectedKey, setSelectedKey] = useState<string | null>(null);
     const [layers, setLayers] = useState(ALL_LAYERS);
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
-    const elements: StructureElement[] = [...structure.rooms, ...structure.components];
+    const projectId = structure.project_id;
+    const colorMode = useProjectState(projectId, (state) => state.colorMode);
+    const materials = useProjectState(projectId, (state) => state.materials);
+    const recommendations = useProjectState(projectId, (state) => state.recommendations);
+    const selection = useProjectState(projectId, (state) => state.selection);
+    const selectedKey = selection === null ? null : elementKey(selection);
+    const elements = useMemo<StructureElement[]>(
+        () => [...structure.rooms, ...structure.components],
+        [structure],
+    );
+    const costs = useMemo(
+        () => estimateCosts(elements, materials),
+        [elements, materials],
+    );
+    const alerts = useMemo(
+        () => findAlerts(elements, recommendations),
+        [elements, recommendations],
+    );
+    const colors = useMemo<ElementColors | null>(() => {
+        if (colorMode === "kind") {
+            return kindColors(elements);
+        }
+
+        if (colorMode === "cost") {
+            return costColors(costs);
+        }
+
+        return colorMode === "alerts" ? alertColors(alerts) : null;
+    }, [colorMode, elements, costs, alerts]);
     const selected = elements.find((element) => elementKey(element) === selectedKey) ?? null;
+
+    function setSelectedKey(key: string | null) {
+        appState.select(
+            projectId,
+            elements.find((element) => elementKey(element) === key) ?? null,
+        );
+    }
+
+    const selectByKey = useRef(setSelectedKey);
+    selectByKey.current = setSelectedKey;
+
+    const selectedCost = selected === null ? undefined : costs.get(elementKey(selected));
+    const selectedAlerts = selected === null ? [] : (alerts.get(elementKey(selected)) ?? []);
+    const legend =
+        colorMode === "kind" ? KIND_LEGEND : colorMode === "cost" ? COST_LEGEND : ALERT_LEGEND;
+    const colorNote =
+        colorMode === "cost" && costs.size === 0
+            ? "Registra materiales con cantidad y coste para ver el reparto."
+            : colorMode === "alerts" && alerts.size === 0
+              ? "Ninguna recomendación menciona un elemento por su nombre."
+              : null;
 
     useEffect(() => {
         if (container.current === null) {
@@ -93,7 +188,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
 
         try {
             viewer.current = createStructureViewer(container.current, {
-                onSelect: setSelectedKey,
+                onSelect: (key) => selectByKey.current(key),
                 onZoom: setZoom,
             });
         } catch {
@@ -108,12 +203,20 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     }, []);
 
     useEffect(() => {
+        void appState.refresh(projectId);
+    }, [projectId]);
+
+    useEffect(() => {
         viewer.current?.show(structure);
     }, [structure]);
 
     useEffect(() => {
         viewer.current?.select(selectedKey);
     }, [selectedKey, structure]);
+
+    useEffect(() => {
+        viewer.current?.setColors(colors);
+    }, [colors]);
 
     useEffect(() => {
         viewer.current?.setLayers(layers);
@@ -236,8 +339,57 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                         </dd>
                         <dt>Altura de la base</dt>
                         <dd>+{formatNumber(selected.base_m)} m</dd>
+                        {selectedCost !== undefined && (
+                            <>
+                                <dt>Coste estimado</dt>
+                                <dd>{formatMoney(selectedCost)}</dd>
+                            </>
+                        )}
                     </dl>
                 )}
+                {selectedAlerts.length > 0 && (
+                    <ul className="hud-alerts">
+                        {selectedAlerts.map((alert) => (
+                            <li key={alert.id}>
+                                <span
+                                    className="hud-swatch"
+                                    style={{ background: cssColor(PRIORITY_COLORS[alert.priority]) }}
+                                />
+                                {alert.content}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </aside>
+            <aside className="hud hud-colors" aria-label="Color del modelo">
+                <h3>Color</h3>
+                <div className="hud-modes" role="group" aria-label="Modo de color">
+                    {COLOR_MODES.map((mode) => (
+                        <button
+                            key={mode.id}
+                            type="button"
+                            className="hud-item"
+                            aria-pressed={mode.id === colorMode}
+                            onClick={() => appState.setColorMode(projectId, mode.id)}
+                        >
+                            {mode.label}
+                        </button>
+                    ))}
+                </div>
+                {colorMode !== "realistic" && (
+                    <ul className="hud-legend">
+                        {legend.map((item) => (
+                            <li key={item.label}>
+                                <span className="hud-swatch" style={{ background: item.swatch }} />
+                                {item.label}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                {colorMode === "cost" && costs.size > 0 && (
+                    <p>Reparto del presupuesto de materiales según el volumen de cada elemento.</p>
+                )}
+                {colorNote !== null && <p>{colorNote}</p>}
             </aside>
             <div className="hud hud-toolbar">
                 <button type="button" className="hud-item" onClick={() => chooseView(view)}>

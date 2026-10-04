@@ -4,6 +4,7 @@ import { useAsync } from "../hooks/useAsync";
 import { structureApi } from "../services/api";
 import { buildingIndicators, planLevels } from "../utils/building";
 import { formatNumber } from "../utils/format";
+import { placeOpenings } from "../utils/openings";
 import { AsyncStatus } from "./AsyncStatus";
 import { FloorPlan } from "./FloorPlan";
 import { MetricCard } from "./MetricCard";
@@ -37,6 +38,7 @@ export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps
     const [maxCus, setMaxCus] = useState(DEFAULT_MAX_CUS);
     const levels = structure.data === null ? [] : planLevels(structure.data);
     const indicators = structure.data === null ? null : buildingIndicators(structure.data);
+    const openings = placeOpenings(structure.data?.rooms ?? []);
 
     return (
         <>
@@ -108,8 +110,9 @@ export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps
             </Panel>
             <Panel title="Plantas generadas">
                 <p className="message">
-                    Una planta por cada nivel del modelo, dibujada con sus cuartos y componentes
-                    y con las cotas totales. Se actualizan solas al cambiar el modelo.
+                    Una planta por cada nivel del modelo, con ejes, cotas entre ejes, muros,
+                    ventanas y puerta. Los ejes pasan por los bordes de los cuartos. Se
+                    actualizan solas al cambiar el modelo.
                 </p>
                 <AsyncStatus
                     loading={structure.loading}
@@ -118,7 +121,12 @@ export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps
                     emptyText="Todavía no hay niveles con cuartos o componentes."
                 />
                 {levels.map((level) => (
-                    <FloorPlan key={level.planId} level={level} projectName={projectName} />
+                    <FloorPlan
+                        key={level.planId}
+                        level={level}
+                        projectName={projectName}
+                        openings={openings}
+                    />
                 ))}
             </Panel>
         </>

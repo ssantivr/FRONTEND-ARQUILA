@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { conversationsApi } from "../services/api";
-import type { AssistantStatus, ConversationMessage } from "../types/api";
+import { useProjectState } from "../state/appState";
+import type { AssistantStatus, ConversationMessage, StructureElement } from "../types/api";
+import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./Panel";
 
@@ -20,6 +22,20 @@ const SOURCE_STYLE: Record<AssistantStatus["provider"], string> = {
     ollama: "ai",
     rules: "system",
 };
+
+const ELEMENT_NAMES: Record<StructureElement["kind"], string> = {
+    room: "el cuarto",
+    volume: "el volumen",
+    column: "la columna",
+    beam: "la viga",
+    wall: "el muro",
+};
+
+export function elementQuestion(element: StructureElement): string {
+    const size = [element.width_m, element.depth_m, element.height_m].map(formatNumber).join(" × ");
+
+    return `¿Qué debo revisar en ${ELEMENT_NAMES[element.kind]} «${element.name}» (${size} m, ${element.plan_title})?`;
+}
 
 export function describeStatus(status: AssistantStatus): string {
     if (status.provider === "claude") {
@@ -50,6 +66,11 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
     const [error, setError] = useState<string | null>(null);
     const list = useRef<HTMLOListElement>(null);
     const didAutoOpen = useRef(false);
+    const selection = useProjectState(projectId, (state) => state.selection);
+    const questions =
+        selection === null
+            ? SUGGESTED_QUESTIONS
+            : [elementQuestion(selection), ...SUGGESTED_QUESTIONS];
 
     const items = conversations.data ?? [];
 
@@ -197,7 +218,7 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
                 </p>
             )}
             <div className="suggestions" role="group" aria-label="Preguntas sugeridas">
-                {SUGGESTED_QUESTIONS.map((question) => (
+                {questions.map((question) => (
                     <button
                         key={question}
                         type="button"

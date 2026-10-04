@@ -1,7 +1,8 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { materialsApi } from "../services/api";
+import { appState } from "../state/appState";
 import type { Material } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatMoney, formatNumber, optionalNumber, optionalText } from "../utils/format";
@@ -18,6 +19,12 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
     const [unit, setUnit] = useState("");
     const [quantity, setQuantity] = useState("");
     const [unitCost, setUnitCost] = useState("");
+
+    useEffect(() => {
+        if (materials.data !== null) {
+            appState.setMaterials(projectId, materials.data);
+        }
+    }, [projectId, materials.data]);
 
     function resetForm() {
         setEditingId(null);

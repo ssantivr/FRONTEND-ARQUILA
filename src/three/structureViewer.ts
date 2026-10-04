@@ -30,7 +30,17 @@ import {
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-import type { Structure, StructureElement, StructureTerrain } from "../types/api";
+import type { Structure, StructureElement, StructureRoom, StructureTerrain } from "../types/api";
+import type { ElementColors } from "../utils/elementColors";
+import {
+    elementKey,
+    placeOpenings,
+    rectOf,
+    roofShape,
+    unionOf,
+    type Opening,
+    type Side,
+} from "../utils/openings";
 
 const BACKGROUND = 0x090a0f;
 const CYAN = 0x00f0ff;
@@ -46,18 +56,13 @@ const TRUNK_COLOR = 0x5a4030;
 const CANOPY_COLOR = 0x3f7a4f;
 const EDGE_COLOR = 0x1b1410;
 const GRID_COLOR = 0x12303a;
+const MUTED_COLOR = 0x39414d;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
 const MAX_PIXEL_RATIO = 2;
 const SHADOW_MAP_SIZE = 2048;
 const CLICK_TOLERANCE_PX = 4;
 const SURFACE_GAP_M = 0.02;
-const WINDOW_SIZE_M = 1.1;
-const WINDOW_SILL_M = 0.9;
-const WINDOW_SPACING_M = 3;
-const DOOR_WIDTH_M = 0.95;
-const DOOR_HEIGHT_M = 2.1;
-const ROOF_OVERHANG_M = 0.4;
 const TREE_SPACING_M = 4.5;
 const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
 
@@ -75,6 +80,7 @@ const VIEW_DIRECTIONS: Record<ViewName, Vector3> = {
 export interface StructureViewer {
     show: (structure: Structure) => void;
     select: (key: string | null) => void;
+    setColors: (colors: ElementColors | null) => void;
     setLayers: (layers: Layers) => void;
     setView: (view: ViewName) => void;
     zoomBy: (factor: number) => void;
@@ -86,41 +92,10 @@ export interface ViewerEvents {
     onZoom: (percent: number) => void;
 }
 
-interface Rect {
-    minX: number;
-    maxX: number;
-    minY: number;
-    maxY: number;
-}
-
-export function elementKey(element: StructureElement): string {
-    return `${element.kind}-${element.id}`;
-}
+export { elementKey };
 
 export function isSpace(element: StructureElement): boolean {
     return element.kind === "room" || element.kind === "volume";
-}
-
-function rectOf(element: StructureElement): Rect {
-    return {
-        minX: element.x_m - element.width_m / 2,
-        maxX: element.x_m + element.width_m / 2,
-        minY: element.y_m - element.depth_m / 2,
-        maxY: element.y_m + element.depth_m / 2,
-    };
-}
-
-function unionOf(rects: Rect[]): Rect {
-    return {
-        minX: Math.min(...rects.map((rect) => rect.minX)),
-        maxX: Math.max(...rects.map((rect) => rect.maxX)),
-        minY: Math.min(...rects.map((rect) => rect.minY)),
-        maxY: Math.max(...rects.map((rect) => rect.maxY)),
-    };
-}
-
-function near(first: number, second: number): boolean {
-    return Math.abs(first - second) < 0.01;
 }
 
 function insidePolygon(x: number, y: number, outline: StructureTerrain["outline"]): boolean {
@@ -193,65 +168,34 @@ function buildTerrain(terrain: StructureTerrain): Mesh {
 
 type ElementMesh = Mesh<BoxGeometry, MeshStandardMaterial>;
 
-interface Face {
-    exterior: boolean;
-    length: number;
-    rotation: number;
-}
+const SIDE_ROTATION: Record<Side, number> = {
+    front: 0,
+    right: Math.PI / 2,
+    back: Math.PI,
+    left: -Math.PI / 2,
+};
 
-function addOpenings(mesh: ElementMesh, element: StructureElement, level: Rect, door: boolean): void {
-    const rect = rectOf(element);
-    const faces: Face[] = [
-        { exterior: near(rect.minY, level.minY), length: element.width_m, rotation: 0 },
-        { exterior: near(rect.maxX, level.maxX), length: element.depth_m, rotation: Math.PI / 2 },
-        { exterior: near(rect.maxY, level.maxY), length: element.width_m, rotation: Math.PI },
-        { exterior: near(rect.minX, level.minX), length: element.depth_m, rotation: -Math.PI / 2 },
-    ];
-    const fitsWindow = element.height_m >= WINDOW_SILL_M + WINDOW_SIZE_M + 0.3;
-    let doorPending = door && element.height_m >= DOOR_HEIGHT_M + 0.1;
+function addOpenings(mesh: ElementMesh, element: StructureElement, openings: Opening[]): void {
+    for (const opening of openings) {
+        const across = opening.side === "front" || opening.side === "back";
+        const mirrored = opening.side === "back" || opening.side === "left";
+        const along = opening.center - (across ? element.width_m : element.depth_m) / 2;
+        const plane = new Mesh(
+            new PlaneGeometry(opening.width, opening.height),
+            opening.kind === "door"
+                ? new MeshStandardMaterial({ color: DOOR_COLOR, roughness: 0.7 })
+                : new MeshStandardMaterial({ color: GLASS_COLOR, roughness: 0.15, metalness: 0.5 }),
+        );
+        const pivot = new Group();
 
-    for (const face of faces) {
-        if (!face.exterior || face.length < WINDOW_SIZE_M + 0.6) {
-            continue;
-        }
-
-        const slots = Math.max(1, Math.floor(face.length / WINDOW_SPACING_M));
-        const across = face.rotation === 0 || face.rotation === Math.PI;
-        const offset = (across ? element.depth_m : element.width_m) / 2 + SURFACE_GAP_M;
-
-        for (let slot = 0; slot < slots; slot += 1) {
-            const isDoor = doorPending && face.rotation === 0 && slot === 0;
-            const width = isDoor ? DOOR_WIDTH_M : WINDOW_SIZE_M;
-            const height = isDoor ? DOOR_HEIGHT_M : WINDOW_SIZE_M;
-
-            if (!isDoor && !fitsWindow) {
-                continue;
-            }
-
-            const opening = new Mesh(
-                new PlaneGeometry(width, height),
-                isDoor
-                    ? new MeshStandardMaterial({ color: DOOR_COLOR, roughness: 0.7 })
-                    : new MeshStandardMaterial({
-                          color: GLASS_COLOR,
-                          roughness: 0.15,
-                          metalness: 0.5,
-                      }),
-            );
-            const pivot = new Group();
-            opening.position.set(
-                -face.length / 2 + ((slot + 0.5) * face.length) / slots,
-                -element.height_m / 2 + (isDoor ? 0 : WINDOW_SILL_M) + height / 2,
-                offset,
-            );
-            pivot.rotation.y = face.rotation;
-            pivot.add(opening);
-            mesh.add(pivot);
-
-            if (isDoor) {
-                doorPending = false;
-            }
-        }
+        plane.position.set(
+            mirrored ? -along : along,
+            -element.height_m / 2 + opening.sill + opening.height / 2,
+            (across ? element.depth_m : element.width_m) / 2 + SURFACE_GAP_M,
+        );
+        pivot.rotation.y = SIDE_ROTATION[opening.side];
+        pivot.add(plane);
+        mesh.add(pivot);
     }
 }
 
@@ -263,50 +207,43 @@ function buildElement(element: StructureElement): ElementMesh {
     mesh.receiveShadow = true;
     mesh.userData.key = elementKey(element);
     mesh.userData.space = isSpace(element);
+    mesh.userData.baseColor = mesh.material.color.getHex();
 
     const edges = new LineSegments(
         new EdgesGeometry(geometry),
         new LineBasicMaterial({ color: EDGE_COLOR, transparent: true, opacity: 0.6 }),
     );
     mesh.add(edges);
+    mesh.userData.edges = edges.material;
 
     return mesh;
 }
 
-function buildRoof(spaces: StructureElement[]): Mesh | null {
-    if (spaces.length === 0) {
+function buildRoof(rooms: StructureRoom[]): Mesh | null {
+    const shape = roofShape(rooms);
+
+    if (shape === null) {
         return null;
     }
 
-    const topBase = Math.max(...spaces.map((space) => space.base_m));
-    const top = spaces.filter((space) => space.base_m === topBase);
-    const area = unionOf(top.map(rectOf));
-    const eaves = Math.max(...top.map((space) => space.base_m + space.height_m));
-    const width = area.maxX - area.minX;
-    const depth = area.maxY - area.minY;
-    const alongX = width >= depth;
-    const span = (alongX ? depth : width) + 2 * ROOF_OVERHANG_M;
-    const length = (alongX ? width : depth) + 2 * ROOF_OVERHANG_M;
-    const rise = Math.max(0.8, span * 0.28);
-
     const profile = new Shape();
-    profile.moveTo(-span / 2, 0);
-    profile.lineTo(span / 2, 0);
-    profile.lineTo(0, rise);
+    profile.moveTo(-shape.span / 2, 0);
+    profile.lineTo(shape.span / 2, 0);
+    profile.lineTo(0, shape.rise);
     profile.closePath();
 
-    const geometry = new ExtrudeGeometry(profile, { depth: length, bevelEnabled: false });
-    geometry.translate(0, 0, -length / 2);
+    const geometry = new ExtrudeGeometry(profile, { depth: shape.length, bevelEnabled: false });
+    geometry.translate(0, 0, -shape.length / 2);
 
-    if (alongX) {
+    if (shape.alongX) {
         geometry.rotateY(Math.PI / 2);
     }
 
     const mesh = new Mesh(geometry, standard(ROOF_COLOR, 0.8));
     mesh.position.set(
-        (area.minX + area.maxX) / 2,
-        eaves + SURFACE_GAP_M,
-        -(area.minY + area.maxY) / 2,
+        (shape.area.minX + shape.area.maxX) / 2,
+        shape.eaves + SURFACE_GAP_M,
+        -(shape.area.minY + shape.area.maxY) / 2,
     );
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -429,6 +366,7 @@ export function createStructureViewer(
     let grid: GridHelper | null = null;
     let layers: Layers = { rooms: true, roof: true, environment: true, grid: true };
     let selectedKey: string | null = null;
+    let colors: ElementColors | null = null;
     let hoveredKey: string | null = null;
     let framed = false;
     let pressX = 0;
@@ -511,7 +449,22 @@ export function createStructureViewer(
         for (const mesh of elements) {
             const key = mesh.userData.key as string;
 
-            if (key === selectedKey) {
+            mesh.material.color.setHex(
+                colors === null
+                    ? (mesh.userData.baseColor as number)
+                    : (colors.get(key) ?? MUTED_COLOR),
+            );
+
+            const edges = mesh.userData.edges as LineBasicMaterial;
+            const outlined = key === selectedKey && colors !== null;
+
+            edges.color.setHex(outlined ? 0xffffff : EDGE_COLOR);
+            edges.opacity = outlined ? 1 : 0.6;
+
+            if (outlined) {
+                mesh.material.emissive.copy(mesh.material.color);
+                mesh.material.emissiveIntensity = 0.6;
+            } else if (key === selectedKey) {
                 mesh.material.emissive.setHex(MAGENTA);
                 mesh.material.emissiveIntensity = 0.5;
             } else {
@@ -557,26 +510,12 @@ export function createStructureViewer(
     }
 
     function buildElements(structure: Structure): ElementMesh[] {
-        const levels = new Map<number, Rect>();
-        const ground = Math.min(...structure.rooms.map((room) => room.base_m));
-        let doorPlaced = false;
-
-        for (const room of structure.rooms) {
-            const level = levels.get(room.plan_id);
-            levels.set(room.plan_id, level ? unionOf([level, rectOf(room)]) : rectOf(room));
-        }
+        const openings = placeOpenings(structure.rooms);
 
         return [...structure.rooms, ...structure.components].map((element) => {
             const mesh = buildElement(element);
-            const level = levels.get(element.plan_id);
 
-            if (isSpace(element) && level !== undefined) {
-                const atFront = near(rectOf(element).minY, level.minY);
-                const door = !doorPlaced && element.base_m === ground && atFront;
-
-                addOpenings(mesh, element, level, door);
-                doorPlaced = doorPlaced || door;
-            }
+            addOpenings(mesh, element, openings.get(elementKey(element)) ?? []);
 
             return mesh;
         });
@@ -619,6 +558,11 @@ export function createStructureViewer(
 
     function select(key: string | null): void {
         selectedKey = key;
+        paint();
+    }
+
+    function setColors(next: ElementColors | null): void {
+        colors = next;
         paint();
     }
 
@@ -700,5 +644,5 @@ export function createStructureViewer(
         canvas.remove();
     }
 
-    return { show, select, setLayers, setView, zoomBy, dispose };
+    return { show, select, setColors, setLayers, setView, zoomBy, dispose };
 }
