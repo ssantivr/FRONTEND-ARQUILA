@@ -2,11 +2,29 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { conversationsApi } from "../services/api";
-import type { ConversationMessage } from "../types/api";
+import type { AssistantStatus, ConversationMessage } from "../types/api";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./Panel";
 
 const MAX_MESSAGE_LENGTH = 4000;
+
+const SOURCE_STYLE: Record<AssistantStatus["provider"], string> = {
+    claude: "ai",
+    ollama: "ai",
+    rules: "system",
+};
+
+export function describeStatus(status: AssistantStatus): string {
+    if (status.provider === "claude") {
+        return `Claude (${status.model})`;
+    }
+
+    if (status.provider === "ollama") {
+        return `Modelo local ${status.model} (Ollama)`;
+    }
+
+    return "Reglas fijas, sin IA disponible";
+}
 
 interface AssistantPanelProps {
     projectId: number;
@@ -17,6 +35,7 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
         () => conversationsApi.listByProject(projectId),
         [projectId],
     );
+    const status = useAsync(() => conversationsApi.status(), []);
     const [conversationId, setConversationId] = useState<number | null>(null);
     const [messages, setMessages] = useState<ConversationMessage[]>([]);
     const [draft, setDraft] = useState("");
@@ -127,6 +146,14 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
                 lo normativo debe confirmarlo un profesional. Si la IA no está disponible,
                 contesta con reglas fijas sobre esos mismos datos y lo indica en la respuesta.
             </p>
+            {status.data && (
+                <p className="message assistant-status">
+                    Ahora responde:{" "}
+                    <span className={`badge badge-source-${SOURCE_STYLE[status.data.provider]}`}>
+                        {describeStatus(status.data)}
+                    </span>
+                </p>
+            )}
             <AsyncStatus
                 loading={conversations.loading}
                 error={conversations.error}

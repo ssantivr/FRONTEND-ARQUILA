@@ -1,4 +1,5 @@
 import type {
+    AssistantStatus,
     Conversation,
     ConversationDetail,
     ConversationMessage,
@@ -138,6 +139,7 @@ export const filesApi = {
 };
 
 export const conversationsApi = {
+    status: () => request<AssistantStatus>("/assistant/status"),
     listByProject: (projectId: number) =>
         request<Conversation[]>(`/projects/${projectId}/conversations`),
     create: (projectId: number, title?: string) =>

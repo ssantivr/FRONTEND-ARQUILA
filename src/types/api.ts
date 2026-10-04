@@ -177,6 +177,11 @@ export interface Conversation {
     created_at: string;
 }
 
+export interface AssistantStatus {
+    provider: "claude" | "ollama" | "rules";
+    model: string | null;
+}
+
 export interface ConversationMessage {
     id: number;
     conversation_id: number;
