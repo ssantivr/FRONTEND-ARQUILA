@@ -427,6 +427,12 @@ textarea {
     fill: rgba(57, 217, 138, 0.12);
 }
 
+.diagram-front {
+    fill: rgba(57, 217, 138, 0.12);
+    stroke: var(--success);
+    stroke-width: 1.5;
+}
+
 .diagram-surface {
     stroke: var(--success);
     stroke-width: 2;

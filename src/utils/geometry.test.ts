@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { Terrain } from "../types/api";
-import { bounds, footprint, formatPoints, parsePoints, polygonArea } from "./geometry";
+import {
+    bounds,
+    footprint,
+    formatPoints,
+    frontElevation,
+    parsePoints,
+    polygonArea,
+} from "./geometry";
 
 const L_SHAPE = [
     { x: 0, y: 0 },
@@ -50,6 +57,38 @@ describe("polygonArea", () => {
 describe("bounds", () => {
     it("returns the extremes of the outline", () => {
         expect(bounds(L_SHAPE)).toEqual({ minX: 0, maxX: 20, minY: 0, maxY: 30 });
+    });
+});
+
+describe("frontElevation", () => {
+    it("keeps the width and turns the depth into height along the slope", () => {
+        const rectangle = [
+            { x: 0, y: 0 },
+            { x: 15, y: 0 },
+            { x: 15, y: 30 },
+            { x: 0, y: 30 },
+        ];
+
+        expect(frontElevation(rectangle, 10)).toEqual([
+            { x: 0, y: 0 },
+            { x: 15, y: 0 },
+            { x: 15, y: 3 },
+            { x: 0, y: 3 },
+        ]);
+    });
+
+    it("measures the height from the lowest vertex of the lot", () => {
+        const lot = [
+            { x: 0, y: 10 },
+            { x: 20, y: 10 },
+            { x: 10, y: 30 },
+        ];
+
+        expect(frontElevation(lot, 20).map((point) => point.y)).toEqual([0, 0, 4]);
+    });
+
+    it("is flat when there is no slope", () => {
+        expect(bounds(frontElevation(L_SHAPE, 0)).maxY).toBe(0);
     });
 });
 

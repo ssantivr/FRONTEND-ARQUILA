@@ -52,6 +52,15 @@ export function bounds(points: Point[]): Bounds {
     };
 }
 
+export function frontElevation(points: Point[], slopePercent: number): Point[] {
+    const { minY } = bounds(points);
+
+    return points.map((point) => ({
+        x: point.x,
+        y: ((point.y - minY) * slopePercent) / 100,
+    }));
+}
+
 export type ParsedPoints = { points: Point[] } | { error: string };
 
 export function parsePoints(text: string): ParsedPoints {
