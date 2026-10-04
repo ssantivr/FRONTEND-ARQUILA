@@ -48,7 +48,9 @@ describe("AsyncStatus", () => {
     });
 
     it("blocks the retry button while the retry is running", () => {
-        render(<AsyncStatus loading error="Falló." isEmpty emptyText="" onRetry={() => undefined} />);
+        render(
+            <AsyncStatus loading error="Falló." isEmpty emptyText="" onRetry={() => undefined} />,
+        );
 
         expect(screen.getByRole("button", { name: "Reintentando…" })).toBeDisabled();
     });

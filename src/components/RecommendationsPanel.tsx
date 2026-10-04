@@ -85,9 +85,9 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
         >
             <p className="message">
                 «Analizar proyecto» revisa los terrenos y materiales con reglas generales y
-                reemplaza las recomendaciones automáticas anteriores. Se ordenan por
-                prioridad. Son preliminares: sirven para planificar y no sustituyen la revisión
-                de un arquitecto o un ingeniero.
+                reemplaza las recomendaciones automáticas anteriores. Se ordenan por prioridad. Son
+                preliminares: sirven para planificar y no sustituyen la revisión de un arquitecto o
+                un ingeniero.
             </p>
             <AsyncStatus
                 loading={recommendations.loading}
@@ -163,10 +163,7 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                         ))}
                     </select>
                 </label>
-                <button
-                    type="submit"
-                    disabled={category.trim() === "" || content.trim() === ""}
-                >
+                <button type="submit" disabled={category.trim() === "" || content.trim() === ""}>
                     Agregar
                 </button>
             </form>

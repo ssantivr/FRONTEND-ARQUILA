@@ -62,7 +62,7 @@ import {
     surfaceOf,
     type ElementSurfaces,
 } from "../utils/surfaceMaterials";
-import { buildFlatRoof, buildRoomShell, useMetricUVs } from "./roomGeometry";
+import { buildFlatRoof, buildRoomShell, applyMetricUVs } from "./roomGeometry";
 
 const HOVER_COLOR = 0x4a90c2;
 const SELECTION_COLOR = 0x00f0ff;
@@ -147,7 +147,9 @@ function insidePolygon(x: number, y: number, outline: StructureTerrain["outline"
         const previous = outline[(index + outline.length - 1) % outline.length];
         const crosses =
             point.y_m > y !== previous.y_m > y &&
-            x < ((previous.x_m - point.x_m) * (y - point.y_m)) / (previous.y_m - point.y_m) + point.x_m;
+            x <
+                ((previous.x_m - point.x_m) * (y - point.y_m)) / (previous.y_m - point.y_m) +
+                    point.x_m;
 
         if (crosses) {
             inside = !inside;
@@ -286,7 +288,7 @@ function frameMaterial(): MeshPhysicalMaterial {
 function buildElement(element: StructureElement, openings: Opening[]): ElementMesh {
     const solid = new BoxGeometry(element.width_m, element.height_m, element.depth_m);
     const shell = element.kind === "room" ? buildRoomShell(element, openings) : null;
-    const geometry = useMetricUVs(shell === null ? solid : shell.walls);
+    const geometry = applyMetricUVs(shell === null ? solid : shell.walls);
     const lines = shell === null ? new EdgesGeometry(solid) : shell.lines;
     const mesh: ElementMesh = new Mesh(geometry, buildMaterial(element));
 
@@ -578,9 +580,7 @@ export function createStructureViewer(
     }
 
     function setView(view: ViewName): void {
-        camera.position
-            .copy(bounds.center)
-            .addScaledVector(VIEW_DIRECTIONS[view], viewDistance());
+        camera.position.copy(bounds.center).addScaledVector(VIEW_DIRECTIONS[view], viewDistance());
         controls.target.copy(bounds.center);
         controls.update();
         reportZoom();
@@ -635,9 +635,7 @@ export function createStructureViewer(
 
             edges.color.setHex(selected ? SELECTION_COLOR : EDGE_COLOR);
             edges.opacity = selected ? 1 : 0.6;
-            mesh.material.emissive.setHex(
-                !selected && key === hoveredKey ? HOVER_COLOR : 0x000000,
-            );
+            mesh.material.emissive.setHex(!selected && key === hoveredKey ? HOVER_COLOR : 0x000000);
             mesh.material.emissiveIntensity = 0.2;
         }
     }

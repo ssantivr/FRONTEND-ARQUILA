@@ -1,13 +1,7 @@
 import { Icon, type IconName } from "./Icon";
 
 export type View =
-    | "home"
-    | "projects"
-    | "terrains"
-    | "materials"
-    | "viewer"
-    | "assistant"
-    | "settings";
+    "home" | "projects" | "terrains" | "materials" | "viewer" | "assistant" | "settings";
 
 export interface Module {
     id: View;

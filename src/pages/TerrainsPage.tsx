@@ -36,8 +36,8 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
         <>
             <Panel title="Terrenos">
                 <p className="message">
-                    Los terrenos de todos tus proyectos. Para agregar o editar uno, ábrelo desde
-                    su proyecto.
+                    Los terrenos de todos tus proyectos. Para agregar o editar uno, ábrelo desde su
+                    proyecto.
                 </p>
                 <div className="metrics">
                     <MetricCard label="Terrenos" value={formatNumber(terrains.length)} />

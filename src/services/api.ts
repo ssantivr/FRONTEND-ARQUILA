@@ -52,8 +52,7 @@ export const authApi = {
     me: () => request<User>("/auth/me"),
     register: (data: RegisterRequest) =>
         request<User>("/auth/register", { method: "POST", body: data }),
-    login: (data: LoginRequest) =>
-        request<User>("/auth/login", { method: "POST", body: data }),
+    login: (data: LoginRequest) => request<User>("/auth/login", { method: "POST", body: data }),
     logout: () => request<void>("/auth/logout", { method: "POST" }),
     requestPasswordReset: (email: string) =>
         request<void>("/auth/password-reset", { method: "POST", body: { email } }),
@@ -68,8 +67,7 @@ export const projectsApi = {
     list: (filters: ProjectFilters = {}) =>
         request<Project[]>("/projects", { query: { ...filters } }),
     get: (id: number) => request<Project>(`/projects/${id}`),
-    create: (data: ProjectCreate) =>
-        request<Project>("/projects", { method: "POST", body: data }),
+    create: (data: ProjectCreate) => request<Project>("/projects", { method: "POST", body: data }),
     update: (id: number, data: ProjectUpdate) =>
         request<Project>(`/projects/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
@@ -91,8 +89,7 @@ export async function loadAcrossProjects<T>(
 }
 
 export const terrainsApi = {
-    listByProject: (projectId: number) =>
-        request<Terrain[]>(`/projects/${projectId}/terrains`),
+    listByProject: (projectId: number) => request<Terrain[]>(`/projects/${projectId}/terrains`),
     get: (id: number) => request<Terrain>(`/terrains/${id}`),
     create: (projectId: number, data: TerrainCreate) =>
         request<Terrain>(`/projects/${projectId}/terrains`, { method: "POST", body: data }),
@@ -183,15 +180,14 @@ export const structureApi = {
     setRoof: (projectId: number, roof: RoofKind) =>
         request<void>(`/projects/${projectId}/structure/roof`, { method: "PATCH", body: { roof } }),
     setSurface: (projectId: number, element: StructureElement, surface: SurfaceMaterialId) =>
-        request<void>(
-            `/projects/${projectId}/structure/${element.kind}/${element.id}/surface`,
-            { method: "PATCH", body: { surface } },
-        ),
+        request<void>(`/projects/${projectId}/structure/${element.kind}/${element.id}/surface`, {
+            method: "PATCH",
+            body: { surface },
+        }),
 };
 
 export const filesApi = {
-    listByProject: (projectId: number) =>
-        request<ProjectFile[]>(`/projects/${projectId}/files`),
+    listByProject: (projectId: number) => request<ProjectFile[]>(`/projects/${projectId}/files`),
     upload: (projectId: number, file: File) =>
         upload<ProjectFile>(`/projects/${projectId}/files`, file),
     contentUrl: (id: number) => apiUrl(`/files/${id}/content`),

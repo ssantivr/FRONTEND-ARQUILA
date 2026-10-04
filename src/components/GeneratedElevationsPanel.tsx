@@ -23,7 +23,10 @@ const VIEWS: { id: ViewId; label: string; title: string }[] = [
     { id: "section", label: "Corte", title: "Corte esquemático A-A" },
 ];
 
-export function GeneratedElevationsPanel({ projectId, projectName }: GeneratedElevationsPanelProps) {
+export function GeneratedElevationsPanel({
+    projectId,
+    projectName,
+}: GeneratedElevationsPanelProps) {
     const structure = useAsync(() => structureApi.get(projectId), [projectId]);
     const [viewId, setViewId] = useState<ViewId>("front");
     const view = VIEWS.find((item) => item.id === viewId) ?? VIEWS[0];
@@ -55,8 +58,8 @@ export function GeneratedElevationsPanel({ projectId, projectName }: GeneratedEl
         >
             <p className="message">
                 Se dibujan con los cuartos del modelo: cada nivel con su altura, las mismas
-                ventanas, puerta y techo decorativos del modelo 3D, y las cotas de nivel. El
-                corte pasa por la mitad del ancho de la edificación.
+                ventanas, puerta y techo decorativos del modelo 3D, y las cotas de nivel. El corte
+                pasa por la mitad del ancho de la edificación.
             </p>
             <AsyncStatus
                 loading={structure.loading}

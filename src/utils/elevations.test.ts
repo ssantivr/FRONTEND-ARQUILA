@@ -26,7 +26,15 @@ function room(overrides: Partial<StructureRoom>): StructureRoom {
 const HOUSE: StructureRoom[] = [
     room({ id: 1, name: "Living" }),
     room({ id: 2, name: "Kitchen", x_m: 8, width_m: 4 }),
-    room({ id: 3, name: "Bedroom", plan_id: 2, plan_title: "Upper", base_m: 3, x_m: 5, width_m: 10 }),
+    room({
+        id: 3,
+        name: "Bedroom",
+        plan_id: 2,
+        plan_title: "Upper",
+        base_m: 3,
+        x_m: 5,
+        width_m: 10,
+    }),
 ];
 
 function structure(rooms: StructureRoom[], roof: Structure["roof"] = "gable"): Structure {
@@ -122,7 +130,12 @@ describe("flat roof", () => {
     it("is drawn as a band on every side and in the section", () => {
         const flat = structure(HOUSE, "flat");
 
-        expect(facade(flat, "front")?.roof).toMatchObject({ from: -0.12, base: 6, rise: 0.5, gable: false });
+        expect(facade(flat, "front")?.roof).toMatchObject({
+            from: -0.12,
+            base: 6,
+            rise: 0.5,
+            gable: false,
+        });
         expect(facade(flat, "right")?.roof.gable).toBe(false);
         expect(section(flat)?.roof.gable).toBe(false);
         expect(facade(flat, "front")?.height).toBe(6.5);

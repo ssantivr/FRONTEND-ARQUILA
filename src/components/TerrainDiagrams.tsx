@@ -1,12 +1,6 @@
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
-import {
-    bounds,
-    contourLevels,
-    contourStep,
-    footprint,
-    frontElevation,
-} from "../utils/geometry";
+import { bounds, contourLevels, contourStep, footprint, frontElevation } from "../utils/geometry";
 import { Terrain3D } from "./Terrain3D";
 
 const VIEW_WIDTH = 260;
@@ -61,10 +55,7 @@ function TopView({ terrain }: { terrain: Terrain }) {
     const x = LEFT + (DRAW_WIDTH - width * scale) / 2;
     const y = TOP + (DRAW_HEIGHT - height * scale) / 2;
     const outline = shape
-        .map(
-            (point) =>
-                `${x + (point.x - box.minX) * scale},${y + (box.maxY - point.y) * scale}`,
-        )
+        .map((point) => `${x + (point.x - box.minX) * scale},${y + (box.maxY - point.y) * scale}`)
         .join(" ");
 
     return (
@@ -266,9 +257,7 @@ function Profile({ terrain }: { terrain: Terrain }) {
     const slope = terrain.slope_percent;
 
     if (length === null || slope === null) {
-        return (
-            <Missing title="Vista lateral" text="Falta el largo o la pendiente del terreno." />
-        );
+        return <Missing title="Vista lateral" text="Falta el largo o la pendiente del terreno." />;
     }
 
     const rise = (length * slope) / 100;

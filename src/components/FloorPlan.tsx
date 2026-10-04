@@ -130,16 +130,26 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
             const offset = ((index + 1) / count) * (alongX ? rect.width : rect.height);
 
             return alongX
-                ? { x1: rect.x + offset, y1: rect.y + 4, x2: rect.x + offset, y2: rect.y + rect.height - 4 }
-                : { x1: rect.x + 4, y1: rect.y + offset, x2: rect.x + rect.width - 4, y2: rect.y + offset };
+                ? {
+                      x1: rect.x + offset,
+                      y1: rect.y + 4,
+                      x2: rect.x + offset,
+                      y2: rect.y + rect.height - 4,
+                  }
+                : {
+                      x1: rect.x + 4,
+                      y1: rect.y + offset,
+                      x2: rect.x + rect.width - 4,
+                      y2: rect.y + offset,
+                  };
         });
     }
 
     return (
         <figure className="terrain-diagrams site-plan floor-plan">
             <figcaption>
-                {level.title} · {formatNumber(level.area)} m² · {level.rooms.length} espacios ·
-                N+{level.base.toFixed(2)}
+                {level.title} · {formatNumber(level.area)} m² · {level.rooms.length} espacios · N+
+                {level.base.toFixed(2)}
             </figcaption>
             <svg
                 ref={svg}
@@ -396,7 +406,11 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                                     <g key={index} strokeLinecap="butt">
                                         <line {...line} stroke={COLORS.floor} strokeWidth={6} />
                                         {opening.kind === "window" ? (
-                                            <line {...line} stroke={COLORS.accent} strokeWidth={3} />
+                                            <line
+                                                {...line}
+                                                stroke={COLORS.accent}
+                                                strokeWidth={3}
+                                            />
                                         ) : (
                                             <>
                                                 <line
@@ -458,15 +472,20 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                     />
                     <line x1={right} y1={bottom + 45} x2={right} y2={bottom + 55} />
                 </g>
-                <text x={right - barLength * scale} y={bottom + 67} {...DIMENSION} textAnchor="middle">
+                <text
+                    x={right - barLength * scale}
+                    y={bottom + 67}
+                    {...DIMENSION}
+                    textAnchor="middle"
+                >
                     0
                 </text>
                 <text x={right} y={bottom + 67} {...DIMENSION} textAnchor="middle">
                     {barLength} m
                 </text>
                 <text x={VIEW_WIDTH / 2} y={VIEW_HEIGHT - 10} {...NOTE} textAnchor="middle">
-                    Frente del lote abajo · ventanas en azul · columnas y muros en negro · vigas
-                    en línea discontinua
+                    Frente del lote abajo · ventanas en azul · columnas y muros en negro · vigas en
+                    línea discontinua
                 </text>
             </svg>
             <div className="filters">

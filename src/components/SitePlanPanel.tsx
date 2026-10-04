@@ -11,8 +11,8 @@ export function SitePlanPanel({ projectId }: { projectId: number }) {
     return (
         <Panel title="Plano de implantación">
             <p className="message">
-                Se dibuja con las medidas del terreno. El retiro y el norte se eligen aquí y no
-                se guardan; el acceso se asume por el frente del lote.
+                Se dibuja con las medidas del terreno. El retiro y el norte se eligen aquí y no se
+                guardan; el acceso se asume por el frente del lote.
             </p>
             <AsyncStatus
                 loading={terrains.loading}

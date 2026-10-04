@@ -54,7 +54,9 @@ describe("ProjectsPage", () => {
 
         finish([project(1, "Casa Andina"), project(2, "Oficina")]);
 
-        expect(await screen.findByRole("button", { name: /Casa Andina/ })).toHaveTextContent("Quito");
+        expect(await screen.findByRole("button", { name: /Casa Andina/ })).toHaveTextContent(
+            "Quito",
+        );
         expect(screen.getByRole("button", { name: /Oficina/ })).toHaveTextContent("Sin ubicación");
     });
 

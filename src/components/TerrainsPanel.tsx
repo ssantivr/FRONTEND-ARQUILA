@@ -74,9 +74,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
             slope_percent: optionalNumber(slope) ?? null,
             soil_type: optionalText(soilType) ?? null,
             points:
-                polygon === null
-                    ? null
-                    : polygon.map((point) => ({ x_m: point.x, y_m: point.y })),
+                polygon === null ? null : polygon.map((point) => ({ x_m: point.x, y_m: point.y })),
         };
 
         run(
@@ -138,7 +136,9 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                                         ? `Polígono de ${terrain.points.length} vértices`
                                         : `${formatNumber(terrain.width_m)} × ${formatNumber(terrain.length_m)} m`}
                                 </td>
-                                <td data-label="Área (m²)" className="numeric">{formatNumber(terrain.area_m2)}</td>
+                                <td data-label="Área (m²)" className="numeric">
+                                    {formatNumber(terrain.area_m2)}
+                                </td>
                                 <td data-label="Pendiente (%)" className="numeric">
                                     {formatNumber(terrain.slope_percent)}
                                 </td>

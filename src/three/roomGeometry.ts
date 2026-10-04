@@ -1,4 +1,12 @@
-import { BoxGeometry, BufferGeometry, EdgesGeometry, ExtrudeGeometry, Float32BufferAttribute, Path, Shape } from "three";
+import {
+    BoxGeometry,
+    BufferGeometry,
+    EdgesGeometry,
+    ExtrudeGeometry,
+    Float32BufferAttribute,
+    Path,
+    Shape,
+} from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 import type { StructureElement } from "../types/api";
@@ -43,7 +51,13 @@ interface Hole {
 }
 
 /** Moves a geometry built facing +Z onto the given side of the room. */
-function onSide(geometry: BufferGeometry, side: Side, x: number, y: number, z: number): BufferGeometry {
+function onSide(
+    geometry: BufferGeometry,
+    side: Side,
+    x: number,
+    y: number,
+    z: number,
+): BufferGeometry {
     geometry.translate(x, y, z);
     geometry.rotateY(SIDE_ROTATION[side]);
 
@@ -73,15 +87,35 @@ function rectangle(x: number, bottom: number, top: number, width: number): numbe
     const right = x + width / 2;
 
     return [
-        left, bottom, 0, right, bottom, 0,
-        right, bottom, 0, right, top, 0,
-        right, top, 0, left, top, 0,
-        left, top, 0, left, bottom, 0,
+        left,
+        bottom,
+        0,
+        right,
+        bottom,
+        0,
+        right,
+        bottom,
+        0,
+        right,
+        top,
+        0,
+        right,
+        top,
+        0,
+        left,
+        top,
+        0,
+        left,
+        top,
+        0,
+        left,
+        bottom,
+        0,
     ];
 }
 
 /** Rewrites the UVs in metres, so a texture keeps its scale on faces of any size. */
-export function useMetricUVs(geometry: BufferGeometry): BufferGeometry {
+export function applyMetricUVs(geometry: BufferGeometry): BufferGeometry {
     const position = geometry.getAttribute("position");
     const normal = geometry.getAttribute("normal");
     const uv: number[] = [];
@@ -183,7 +217,13 @@ export function buildRoomShell(element: StructureElement, openings: Opening[]): 
                 );
             } else {
                 frames.push(
-                    onSide(box(opening.width, FRAME_M, frameDepth), side, x, bottom + FRAME_M / 2, middle),
+                    onSide(
+                        box(opening.width, FRAME_M, frameDepth),
+                        side,
+                        x,
+                        bottom + FRAME_M / 2,
+                        middle,
+                    ),
                 );
                 glass.push(
                     onSide(

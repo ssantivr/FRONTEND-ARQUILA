@@ -20,9 +20,9 @@ export function StructurePanel({ projectId, run }: SectionProps) {
             <Panel title="Modelo 3D">
                 <p className="message">
                     Cada terreno es una losa y cada plano con cuartos o componentes es un nivel.
-                    Mientras el proyecto no tenga ninguno, los planos con nivel numérico se
-                    dibujan como volúmenes de 3 m dentro del retiro del primer terreno
-                    rectangular. Las ventanas, la puerta, el techo y los árboles son decorativos.
+                    Mientras el proyecto no tenga ninguno, los planos con nivel numérico se dibujan
+                    como volúmenes de 3 m dentro del retiro del primer terreno rectangular. Las
+                    ventanas, la puerta, el techo y los árboles son decorativos.
                 </p>
                 <AsyncStatus
                     loading={structure.loading}

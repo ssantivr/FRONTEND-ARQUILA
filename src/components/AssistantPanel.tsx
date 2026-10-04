@@ -54,10 +54,7 @@ interface AssistantPanelProps {
 }
 
 export function AssistantPanel({ projectId }: AssistantPanelProps) {
-    const conversations = useAsync(
-        () => conversationsApi.listByProject(projectId),
-        [projectId],
-    );
+    const conversations = useAsync(() => conversationsApi.listByProject(projectId), [projectId]);
     const status = useAsync(() => conversationsApi.status(), []);
     const [conversationId, setConversationId] = useState<number | null>(null);
     const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -173,9 +170,9 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
             }
         >
             <p className="message">
-                Responde con los datos de este proyecto. Es una guía general: lo estructural y
-                lo normativo debe confirmarlo un profesional. Si la IA no está disponible,
-                contesta con reglas fijas sobre esos mismos datos y lo indica en la respuesta.
+                Responde con los datos de este proyecto. Es una guía general: lo estructural y lo
+                normativo debe confirmarlo un profesional. Si la IA no está disponible, contesta con
+                reglas fijas sobre esos mismos datos y lo indica en la respuesta.
             </p>
             {status.data && (
                 <p className="message assistant-status">

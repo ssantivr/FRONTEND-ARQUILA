@@ -65,8 +65,12 @@ export function FilesPanel({ projectId, run, files, onChanged }: FilesPanelProps
                                         {file.filename}
                                     </a>
                                 </td>
-                                <td data-label="Tipo">{TYPE_LABELS[file.mime_type] ?? file.mime_type}</td>
-                                <td data-label="Tamaño" className="numeric">{formatFileSize(file.size_bytes)}</td>
+                                <td data-label="Tipo">
+                                    {TYPE_LABELS[file.mime_type] ?? file.mime_type}
+                                </td>
+                                <td data-label="Tamaño" className="numeric">
+                                    {formatFileSize(file.size_bytes)}
+                                </td>
                                 <td>
                                     <div className="row-actions">
                                         <FileViewer file={file} />

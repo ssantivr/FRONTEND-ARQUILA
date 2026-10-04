@@ -1,11 +1,5 @@
 export type IconName =
-    | "home"
-    | "projects"
-    | "terrains"
-    | "materials"
-    | "viewer"
-    | "assistant"
-    | "settings";
+    "home" | "projects" | "terrains" | "materials" | "viewer" | "assistant" | "settings";
 
 const PATHS: Record<IconName, string> = {
     home: "M3 11l9-8 9 8M5 10v10h14V10",

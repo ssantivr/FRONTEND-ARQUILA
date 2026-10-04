@@ -16,7 +16,11 @@
     --viewport: #e8ecf1;
 
     color-scheme: light;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family:
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
     font-size: 14px;
 }
 
@@ -82,7 +86,9 @@ body {
     border: 2px solid var(--accent);
     border-radius: 3px;
     transform: rotate(45deg);
-    box-shadow: inset 0 0 0 3px var(--bg-secondary), inset 0 0 0 7px var(--accent);
+    box-shadow:
+        inset 0 0 0 3px var(--bg-secondary),
+        inset 0 0 0 7px var(--accent);
 }
 
 .content {

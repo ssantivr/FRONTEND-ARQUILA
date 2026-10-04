@@ -118,7 +118,9 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                                 <td data-label="Cantidad" className="numeric">
                                     {formatNumber(material.quantity)} {material.unit}
                                 </td>
-                                <td data-label="Costo unitario" className="numeric">{formatMoney(material.unit_cost)}</td>
+                                <td data-label="Costo unitario" className="numeric">
+                                    {formatMoney(material.unit_cost)}
+                                </td>
                                 <td data-label="Subtotal" className="numeric">
                                     {formatMoney(material.quantity * material.unit_cost)}
                                 </td>

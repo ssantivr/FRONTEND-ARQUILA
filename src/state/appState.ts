@@ -58,8 +58,7 @@ export const appState = {
         update(projectId, { selection }),
     setColorMode: (projectId: number, colorMode: ColorMode) => update(projectId, { colorMode }),
     setRoof: (projectId: number, roof: RoofKind) => update(projectId, { roof }),
-    setSurfaces: (projectId: number, surfaces: ElementSurfaces) =>
-        update(projectId, { surfaces }),
+    setSurfaces: (projectId: number, surfaces: ElementSurfaces) => update(projectId, { surfaces }),
     setSurface: (projectId: number, key: string, surface: SurfaceMaterialId) =>
         update(projectId, {
             surfaces: {
@@ -97,9 +96,6 @@ export function useAppState<T>(selector: (current: AppState) => T): T {
 }
 
 /** Reads a field only while the store holds the given project. */
-export function useProjectState<T>(
-    projectId: number,
-    selector: (current: AppState) => T,
-): T {
+export function useProjectState<T>(projectId: number, selector: (current: AppState) => T): T {
     return useAppState((current) => selector(current.projectId === projectId ? current : EMPTY));
 }

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { StructureRoom } from "../types/api";
 import type { Opening } from "../utils/openings";
-import { buildRoomShell, useMetricUVs } from "./roomGeometry";
+import { buildRoomShell, applyMetricUVs } from "./roomGeometry";
 
 const ROOM: StructureRoom = {
     kind: "room",
@@ -21,8 +21,22 @@ const ROOM: StructureRoom = {
     surface: null,
 };
 
-const WINDOW: Opening = { kind: "window", side: "right", center: 2, width: 1.1, height: 1.1, sill: 0.9 };
-const DOOR: Opening = { kind: "door", side: "front", center: 2.5, width: 0.95, height: 2.1, sill: 0 };
+const WINDOW: Opening = {
+    kind: "window",
+    side: "right",
+    center: 2,
+    width: 1.1,
+    height: 1.1,
+    sill: 0.9,
+};
+const DOOR: Opening = {
+    kind: "door",
+    side: "front",
+    center: 2.5,
+    width: 0.95,
+    height: 2.1,
+    sill: 0,
+};
 
 function segments(shell: ReturnType<typeof buildRoomShell>): number {
     return shell.lines.getAttribute("position").count / 2;
@@ -69,9 +83,9 @@ describe("buildRoomShell", () => {
     });
 });
 
-describe("useMetricUVs", () => {
+describe("applyMetricUVs", () => {
     it("measures the texture in metres on every face", () => {
-        const uv = useMetricUVs(new BoxGeometry(4, 2, 6)).getAttribute("uv");
+        const uv = applyMetricUVs(new BoxGeometry(4, 2, 6)).getAttribute("uv");
         const spans = [0, 1].map((axis) => {
             const values = Array.from({ length: uv.count }, (_, index) =>
                 axis === 0 ? uv.getX(index) : uv.getY(index),

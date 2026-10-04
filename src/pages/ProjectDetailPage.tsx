@@ -215,9 +215,7 @@ export function ProjectDetailPage({
                     </>
                 )}
                 {section === "materials" && <MaterialsPanel projectId={projectId} run={run} />}
-                {section === "analysis" && (
-                    <RecommendationsPanel projectId={projectId} run={run} />
-                )}
+                {section === "analysis" && <RecommendationsPanel projectId={projectId} run={run} />}
             </Fragment>
 
             {section === "files" && (
@@ -234,14 +232,7 @@ export function ProjectDetailPage({
 }
 
 export type SectionId =
-    | "terrain"
-    | "plans"
-    | "model"
-    | "elevations"
-    | "materials"
-    | "analysis"
-    | "files"
-    | "assistant";
+    "terrain" | "plans" | "model" | "elevations" | "materials" | "analysis" | "files" | "assistant";
 
 const SECTIONS: { id: SectionId; label: string }[] = [
     { id: "terrain", label: "Terreno" },

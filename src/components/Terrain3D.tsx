@@ -127,8 +127,9 @@ export function Terrain3D({ terrain }: { terrain: Terrain }) {
                             y={VIEW_HEIGHT - 8}
                             textAnchor="middle"
                         >
-                            {formatNumber(box.maxX - box.minX)} × {formatNumber(box.maxY - box.minY)}{" "}
-                            m · {formatNumber(terrain.area_m2)} m²
+                            {formatNumber(box.maxX - box.minX)} ×{" "}
+                            {formatNumber(box.maxY - box.minY)} m · {formatNumber(terrain.area_m2)}{" "}
+                            m²
                         </text>
                     </>
                 )}

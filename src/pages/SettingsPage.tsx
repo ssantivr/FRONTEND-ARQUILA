@@ -51,8 +51,8 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
             </Panel>
             <Panel title="Contraseña">
                 <p className="message">
-                    Se envía a tu correo un enlace para elegir una contraseña nueva. Si el
-                    servidor no tiene correo configurado, el enlace se escribe en su consola.
+                    Se envía a tu correo un enlace para elegir una contraseña nueva. Si el servidor
+                    no tiene correo configurado, el enlace se escribe en su consola.
                 </p>
                 <button type="button" disabled={resetState === "sending"} onClick={requestReset}>
                     Enviarme el enlace
@@ -88,8 +88,8 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                     <dd>{import.meta.env.VITE_API_URL ?? "/api"}</dd>
                 </dl>
                 <p className="message">
-                    El proveedor de IA y el correo se configuran en el archivo <code>backend/.env</code> del
-                    servidor, no desde aquí.
+                    El proveedor de IA y el correo se configuran en el archivo{" "}
+                    <code>backend/.env</code> del servidor, no desde aquí.
                 </p>
             </Panel>
         </>

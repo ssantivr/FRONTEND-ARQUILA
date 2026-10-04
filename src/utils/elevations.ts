@@ -86,9 +86,7 @@ export function facade(structure: Structure, side: Side): Drawing | null {
                 continue;
             }
 
-            const middle = across(side)
-                ? rect.minX + opening.center
-                : rect.minY + opening.center;
+            const middle = across(side) ? rect.minX + opening.center : rect.minY + opening.center;
             const point: Rect = across(side)
                 ? { ...rect, minX: middle - opening.width / 2, maxX: middle + opening.width / 2 }
                 : { ...rect, minY: middle - opening.width / 2, maxY: middle + opening.width / 2 };

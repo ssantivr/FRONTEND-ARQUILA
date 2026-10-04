@@ -81,13 +81,7 @@ export interface RoomCreate {
 export type RoomUpdate = Partial<RoomCreate>;
 
 export type SurfaceMaterialId =
-    | "concrete"
-    | "brick"
-    | "plaster"
-    | "glass"
-    | "steel"
-    | "wood"
-    | "stone";
+    "concrete" | "brick" | "plaster" | "glass" | "steel" | "wood" | "stone";
 
 export interface StructureRoom {
     kind: "room" | "volume";

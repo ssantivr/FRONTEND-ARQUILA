@@ -14,7 +14,12 @@ vi.mock("../services/api", () => ({
     },
 }));
 
-const USER: User = { id: 1, name: "Ana", email: "ana@example.com", created_at: "2026-10-01T00:00:00" };
+const USER: User = {
+    id: 1,
+    name: "Ana",
+    email: "ana@example.com",
+    created_at: "2026-10-01T00:00:00",
+};
 
 const api = vi.mocked(authApi);
 
@@ -41,7 +46,10 @@ describe("LoginPage", () => {
         await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
         await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
-        expect(api.login).toHaveBeenCalledWith({ email: "ana@example.com", password: "correct-horse" });
+        expect(api.login).toHaveBeenCalledWith({
+            email: "ana@example.com",
+            password: "correct-horse",
+        });
         expect(onAuthenticated).toHaveBeenCalledWith(USER);
     });
 
@@ -83,7 +91,9 @@ describe("LoginPage", () => {
         await userEvent.type(screen.getByLabelText("Contraseña"), "wrong-password");
         await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
-        expect(await screen.findByRole("alert")).toHaveTextContent("Correo o contraseña incorrectos.");
+        expect(await screen.findByRole("alert")).toHaveTextContent(
+            "Correo o contraseña incorrectos.",
+        );
         expect(screen.getByRole("button", { name: "Entrar" })).toBeEnabled();
         expect(onAuthenticated).not.toHaveBeenCalled();
     });

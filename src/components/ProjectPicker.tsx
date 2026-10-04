@@ -10,10 +10,7 @@ export function ProjectPicker({ projects, value, onChange }: ProjectPickerProps)
     return (
         <label className="project-picker">
             Proyecto
-            <select
-                value={value ?? ""}
-                onChange={(event) => onChange(Number(event.target.value))}
-            >
+            <select value={value ?? ""} onChange={(event) => onChange(Number(event.target.value))}>
                 {projects.map((project) => (
                     <option key={project.id} value={project.id}>
                         {project.name}

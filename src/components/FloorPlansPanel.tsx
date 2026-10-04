@@ -44,10 +44,10 @@ export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps
         <>
             <Panel title="Ocupación del lote">
                 <p className="message">
-                    Se calcula con los cuartos del modelo y el contorno del primer terreno. El
-                    COS es la huella de la planta baja entre el área del lote; el CUS, el área
-                    construida de todos los niveles entre el área del lote. Los máximos se
-                    escriben aquí según la norma del municipio y no se guardan.
+                    Se calcula con los cuartos del modelo y el contorno del primer terreno. El COS
+                    es la huella de la planta baja entre el área del lote; el CUS, el área
+                    construida de todos los niveles entre el área del lote. Los máximos se escriben
+                    aquí según la norma del municipio y no se guardan.
                 </p>
                 <AsyncStatus
                     loading={structure.loading}
@@ -112,8 +112,8 @@ export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps
             <Panel title="Plantas generadas">
                 <p className="message">
                     Una planta por cada nivel del modelo, con ejes, cotas entre ejes, muros,
-                    ventanas y puerta. Los ejes pasan por los bordes de los cuartos. Se
-                    actualizan solas al cambiar el modelo.
+                    ventanas y puerta. Los ejes pasan por los bordes de los cuartos. Se actualizan
+                    solas al cambiar el modelo.
                 </p>
                 <AsyncStatus
                     loading={structure.loading}

@@ -27,7 +27,12 @@ const COLORS = {
 };
 
 const TEXT = { fontFamily: "system-ui, sans-serif", fontSize: 10, fill: COLORS.text };
-const MARK = { ...TEXT, fontSize: 9, fill: COLORS.accent, fontFamily: "ui-monospace, Consolas, monospace" };
+const MARK = {
+    ...TEXT,
+    fontSize: 9,
+    fill: COLORS.accent,
+    fontFamily: "ui-monospace, Consolas, monospace",
+};
 
 interface ElevationDrawingProps {
     drawing: Drawing;
@@ -167,7 +172,13 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
                     </g>
                 ))}
 
-                <text x={DRAW_LEFT - 30} y={VIEW_HEIGHT - 40} {...TEXT} fontSize={15} fontWeight={700}>
+                <text
+                    x={DRAW_LEFT - 30}
+                    y={VIEW_HEIGHT - 40}
+                    {...TEXT}
+                    fontSize={15}
+                    fontWeight={700}
+                >
                     {title.toUpperCase()}
                 </text>
                 <text x={DRAW_LEFT - 30} y={VIEW_HEIGHT - 22} {...MARK} fill={COLORS.muted}>

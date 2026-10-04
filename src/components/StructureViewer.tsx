@@ -14,12 +14,7 @@ import {
     type StructureViewer as Viewer,
     type ViewName,
 } from "../three/structureViewer";
-import type {
-    RecommendationPriority,
-    RoofKind,
-    Structure,
-    StructureElement,
-} from "../types/api";
+import type { RecommendationPriority, RoofKind, Structure, StructureElement } from "../types/api";
 import {
     HIGH_COLOR,
     KIND_COLORS,
@@ -102,12 +97,10 @@ const COST_LEGEND = [
     },
 ];
 
-const ALERT_LEGEND = (Object.keys(PRIORITY_LABELS) as RecommendationPriority[]).map(
-    (priority) => ({
-        label: PRIORITY_LABELS[priority],
-        swatch: cssColor(PRIORITY_COLORS[priority]),
-    }),
-);
+const ALERT_LEGEND = (Object.keys(PRIORITY_LABELS) as RecommendationPriority[]).map((priority) => ({
+    label: PRIORITY_LABELS[priority],
+    swatch: cssColor(PRIORITY_COLORS[priority]),
+}));
 
 const ALL_LAYERS: Layers = { rooms: true, roof: true, environment: true, grid: true };
 const ZOOM_STEP = 1.25;
@@ -164,10 +157,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
         () => [...structure.rooms, ...structure.components],
         [structure],
     );
-    const costs = useMemo(
-        () => estimateCosts(elements, materials),
-        [elements, materials],
-    );
+    const costs = useMemo(() => estimateCosts(elements, materials), [elements, materials]);
     const alerts = useMemo(
         () => findAlerts(elements, recommendations),
         [elements, recommendations],
@@ -186,10 +176,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const selected = elements.find((element) => elementKey(element) === selectedKey) ?? null;
 
     function setSelectedKey(key: string | null) {
-        appState.select(
-            projectId,
-            elements.find((element) => elementKey(element) === key) ?? null,
-        );
+        appState.select(projectId, elements.find((element) => elementKey(element) === key) ?? null);
     }
 
     /** Shows the new material at once and puts the old one back if it cannot be saved. */
@@ -445,7 +432,9 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                             <li key={alert.id}>
                                 <span
                                     className="hud-swatch"
-                                    style={{ background: cssColor(PRIORITY_COLORS[alert.priority]) }}
+                                    style={{
+                                        background: cssColor(PRIORITY_COLORS[alert.priority]),
+                                    }}
                                 />
                                 {alert.content}
                             </li>

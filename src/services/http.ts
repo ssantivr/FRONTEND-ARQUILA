@@ -48,8 +48,7 @@ async function readErrorMessage(response: Response): Promise<string> {
                 })
                 .join("; ");
         }
-    } catch {
-    }
+    } catch {}
 
     return `Request failed with status ${response.status}`;
 }

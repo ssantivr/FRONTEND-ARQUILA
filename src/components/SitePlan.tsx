@@ -180,7 +180,11 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                             x={toX(edge.middle.x) + edge.outward.x * LABEL_OFFSET}
                             y={toY(edge.middle.y) - edge.outward.y * LABEL_OFFSET}
                             textAnchor={
-                                edge.outward.x > 0.5 ? "start" : edge.outward.x < -0.5 ? "end" : "middle"
+                                edge.outward.x > 0.5
+                                    ? "start"
+                                    : edge.outward.x < -0.5
+                                      ? "end"
+                                      : "middle"
                             }
                             dominantBaseline="middle"
                             {...TEXT}

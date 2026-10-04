@@ -112,8 +112,8 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
 
             <Panel title="Ejemplos">
                 <p className="message">
-                    Crea un proyecto ya armado, con su terreno, planos, cuartos y columnas, y
-                    ábrelo en el modelo 3D. Después se puede editar como cualquier otro.
+                    Crea un proyecto ya armado, con su terreno, planos, cuartos y columnas, y ábrelo
+                    en el modelo 3D. Después se puede editar como cualquier otro.
                 </p>
                 <AsyncStatus
                     loading={templates.loading}

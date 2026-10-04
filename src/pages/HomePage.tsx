@@ -30,9 +30,8 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
             <section className="hero">
                 <h1>Hola, {user.name}</h1>
                 <p>
-                    ARQUILA reúne en un solo lugar los proyectos de arquitectura con sus
-                    terrenos, planos, materiales, modelo 3D y un asistente que conoce cada
-                    proyecto.
+                    ARQUILA reúne en un solo lugar los proyectos de arquitectura con sus terrenos,
+                    planos, materiales, modelo 3D y un asistente que conoce cada proyecto.
                 </p>
             </section>
 

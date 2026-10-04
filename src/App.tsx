@@ -199,7 +199,9 @@ export function App() {
             ) : session.state === "authenticated" ? (
                 <div className="shell">
                     <Sidebar current={view} onNavigate={navigate} />
-                    <main id="content" className="content" tabIndex={-1}>{renderView(session.user)}</main>
+                    <main id="content" className="content" tabIndex={-1}>
+                        {renderView(session.user)}
+                    </main>
                 </div>
             ) : (
                 <main id="content" className="content" tabIndex={-1}>
