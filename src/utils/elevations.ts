@@ -1,7 +1,6 @@
 import type { Structure } from "../types/api";
 import { planLevels } from "./building";
 import {
-    ROOF_OVERHANG_M,
     elementKey,
     placeOpenings,
     rectOf,
@@ -68,7 +67,7 @@ function levelMarks(heights: number[]): number[] {
 }
 
 export function facade(structure: Structure, side: Side): Drawing | null {
-    const shape = roofShape(structure.rooms);
+    const shape = roofShape(structure.rooms, structure.roof);
 
     if (shape === null) {
         return null;
@@ -117,11 +116,11 @@ export function facade(structure: Structure, side: Side): Drawing | null {
         }),
         openings: drawn,
         roof: {
-            from: roofFrom - ROOF_OVERHANG_M,
-            to: roofTo + ROOF_OVERHANG_M,
+            from: roofFrom - shape.overhang,
+            to: roofTo + shape.overhang,
             base: shape.eaves,
             rise: shape.rise,
-            gable: across(side) !== shape.alongX,
+            gable: !shape.flat && across(side) !== shape.alongX,
         },
         marks: levelMarks([
             ...levels.map((level) => level.base),
@@ -132,7 +131,7 @@ export function facade(structure: Structure, side: Side): Drawing | null {
 }
 
 export function section(structure: Structure): Drawing | null {
-    const shape = roofShape(structure.rooms);
+    const shape = roofShape(structure.rooms, structure.roof);
 
     if (shape === null) {
         return null;
@@ -157,11 +156,11 @@ export function section(structure: Structure): Drawing | null {
         }),
         openings: [],
         roof: {
-            from: roofFrom - ROOF_OVERHANG_M,
-            to: roofTo + ROOF_OVERHANG_M,
+            from: roofFrom - shape.overhang,
+            to: roofTo + shape.overhang,
             base: shape.eaves,
             rise: shape.rise,
-            gable: shape.alongX,
+            gable: !shape.flat && shape.alongX,
         },
         marks: levelMarks([
             ...crossed.map((room) => room.base_m),

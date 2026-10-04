@@ -2,7 +2,7 @@ import { BoxGeometry, BufferGeometry, EdgesGeometry, ExtrudeGeometry, Float32Buf
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 import type { StructureElement } from "../types/api";
-import type { Opening, Side } from "../utils/openings";
+import { SLAB_OVERHANG_M, type Opening, type RoofShape, type Side } from "../utils/openings";
 
 const MAX_WALL_M = 0.2;
 const SLAB_M = 0.15;
@@ -11,6 +11,8 @@ const FRAME_REVEAL_M = 0.04;
 const PANE_M = 0.02;
 const DOOR_LEAF_M = 0.05;
 const THRESHOLD_M = 0.02;
+const BAND_M = 0.1;
+const PARAPET_M = 0.15;
 
 const SIDE_ROTATION: Record<Side, number> = {
     front: 0,
@@ -29,6 +31,8 @@ export interface RoomShell {
     glass: BufferGeometry | null;
     frames: BufferGeometry | null;
     door: BufferGeometry | null;
+    /** The edge of the slab above the room, which sticks out of the walls. */
+    band: BufferGeometry;
 }
 
 interface Hole {
@@ -230,5 +234,27 @@ export function buildRoomShell(element: StructureElement, openings: Opening[]): 
         glass: merged(glass),
         frames: merged(frames),
         door: merged(doors),
+        band: new BoxGeometry(
+            width + 2 * SLAB_OVERHANG_M,
+            BAND_M,
+            depth + 2 * SLAB_OVERHANG_M,
+        ).translate(0, -floor - BAND_M / 2, 0),
     };
+}
+
+/** A flat roof: a slab over the top level with a parapet around it, resting on y = 0. */
+export function buildFlatRoof(shape: RoofShape): BufferGeometry {
+    const width = shape.alongX ? shape.length : shape.span;
+    const depth = shape.alongX ? shape.span : shape.length;
+    const wall = shape.rise - SLAB_M;
+    const middle = SLAB_M + wall / 2;
+    const side = depth - 2 * PARAPET_M;
+
+    return merged([
+        box(width, SLAB_M, depth).translate(0, SLAB_M / 2, 0),
+        box(width, wall, PARAPET_M).translate(0, middle, depth / 2 - PARAPET_M / 2),
+        box(width, wall, PARAPET_M).translate(0, middle, -depth / 2 + PARAPET_M / 2),
+        box(PARAPET_M, wall, side).translate(width / 2 - PARAPET_M / 2, middle, 0),
+        box(PARAPET_M, wall, side).translate(-width / 2 + PARAPET_M / 2, middle, 0),
+    ]) as BufferGeometry;
 }

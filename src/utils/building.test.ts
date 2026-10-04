@@ -38,7 +38,14 @@ const LOT = {
 };
 
 function structure(overrides: Partial<Structure>): Structure {
-    return { project_id: 1, terrains: [LOT], rooms: [], components: [], ...overrides };
+    return {
+        project_id: 1,
+        roof: "gable",
+        terrains: [LOT],
+        rooms: [],
+        components: [],
+        ...overrides,
+    };
 }
 
 describe("planLevels", () => {

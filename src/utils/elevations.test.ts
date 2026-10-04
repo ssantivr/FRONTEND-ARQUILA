@@ -29,8 +29,8 @@ const HOUSE: StructureRoom[] = [
     room({ id: 3, name: "Bedroom", plan_id: 2, plan_title: "Upper", base_m: 3, x_m: 5, width_m: 10 }),
 ];
 
-function structure(rooms: StructureRoom[]): Structure {
-    return { project_id: 1, terrains: [], rooms, components: [] };
+function structure(rooms: StructureRoom[], roof: Structure["roof"] = "gable"): Structure {
+    return { project_id: 1, roof, terrains: [], rooms, components: [] };
 }
 
 describe("placeOpenings", () => {
@@ -60,6 +60,16 @@ describe("roofShape", () => {
     it("runs the ridge along the longer side of the top level", () => {
         expect(roofShape(HOUSE)).toMatchObject({ alongX: true, eaves: 6, span: 4.8, length: 10.8 });
         expect(roofShape([])).toBeNull();
+    });
+
+    it("turns into a slab with a parapet when the roof is flat", () => {
+        expect(roofShape(HOUSE, "flat")).toMatchObject({
+            flat: true,
+            eaves: 6,
+            span: 4.24,
+            length: 10.24,
+            rise: 0.5,
+        });
     });
 });
 
@@ -105,5 +115,16 @@ describe("section", () => {
         expect(drawing?.boxes[1]).toEqual({ label: "Bedroom", from: 0, to: 4, base: 3, height: 3 });
         expect(drawing?.roof.gable).toBe(true);
         expect(drawing?.openings).toEqual([]);
+    });
+});
+
+describe("flat roof", () => {
+    it("is drawn as a band on every side and in the section", () => {
+        const flat = structure(HOUSE, "flat");
+
+        expect(facade(flat, "front")?.roof).toMatchObject({ from: -0.12, base: 6, rise: 0.5, gable: false });
+        expect(facade(flat, "right")?.roof.gable).toBe(false);
+        expect(section(flat)?.roof.gable).toBe(false);
+        expect(facade(flat, "front")?.height).toBe(6.5);
     });
 });

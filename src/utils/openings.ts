@@ -1,4 +1,4 @@
-import type { StructureElement, StructureRoom } from "../types/api";
+import type { RoofKind, StructureElement, StructureRoom } from "../types/api";
 
 export const WINDOW_SIZE_M = 1.1;
 export const WINDOW_SILL_M = 0.9;
@@ -6,6 +6,8 @@ export const WINDOW_SPACING_M = 3;
 export const DOOR_WIDTH_M = 0.95;
 export const DOOR_HEIGHT_M = 2.1;
 export const ROOF_OVERHANG_M = 0.4;
+export const SLAB_OVERHANG_M = 0.12;
+export const PARAPET_HEIGHT_M = 0.5;
 
 export type Side = "front" | "right" | "back" | "left";
 
@@ -34,6 +36,8 @@ export interface RoofShape {
     span: number;
     length: number;
     rise: number;
+    flat: boolean;
+    overhang: number;
 }
 
 export function elementKey(element: StructureElement): string {
@@ -148,7 +152,8 @@ export function placeOpenings(rooms: StructureRoom[]): Map<string, Opening[]> {
     return placed;
 }
 
-export function roofShape(rooms: StructureRoom[]): RoofShape | null {
+/** A gable roof overhangs and rises to a ridge; a flat one is a slab with a parapet. */
+export function roofShape(rooms: StructureRoom[], kind: RoofKind = "gable"): RoofShape | null {
     if (rooms.length === 0) {
         return null;
     }
@@ -159,14 +164,18 @@ export function roofShape(rooms: StructureRoom[]): RoofShape | null {
     const width = area.maxX - area.minX;
     const depth = area.maxY - area.minY;
     const alongX = width >= depth;
-    const span = (alongX ? depth : width) + 2 * ROOF_OVERHANG_M;
+    const flat = kind === "flat";
+    const overhang = flat ? SLAB_OVERHANG_M : ROOF_OVERHANG_M;
+    const span = (alongX ? depth : width) + 2 * overhang;
 
     return {
         area,
         eaves: Math.max(...top.map((room) => room.base_m + room.height_m)),
         alongX,
         span,
-        length: (alongX ? width : depth) + 2 * ROOF_OVERHANG_M,
-        rise: Math.max(0.8, span * 0.28),
+        length: (alongX ? width : depth) + 2 * overhang,
+        rise: flat ? PARAPET_HEIGHT_M : Math.max(0.8, span * 0.28),
+        flat,
+        overhang,
     };
 }

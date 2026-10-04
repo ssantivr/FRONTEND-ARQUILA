@@ -79,6 +79,7 @@ describe("appState", () => {
             selection: null,
             colorMode: "cost",
             surfaces: {},
+            roof: "gable",
         });
     });
 
@@ -92,6 +93,16 @@ describe("appState", () => {
 
         expect(appState.get().surfaces).toEqual({ "column-1": "wood", "room-1": "glass" });
         expect(listener).toHaveBeenCalledTimes(3);
+    });
+
+    it("keeps the roof kind of the project and drops it with the project", () => {
+        appState.setRoof(1, "flat");
+
+        expect(appState.get().roof).toBe("flat");
+
+        appState.open(2);
+
+        expect(appState.get().roof).toBe("gable");
     });
 
     it("replaces the surface materials with the saved ones", () => {

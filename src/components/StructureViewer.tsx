@@ -14,7 +14,12 @@ import {
     type StructureViewer as Viewer,
     type ViewName,
 } from "../three/structureViewer";
-import type { RecommendationPriority, Structure, StructureElement } from "../types/api";
+import type {
+    RecommendationPriority,
+    RoofKind,
+    Structure,
+    StructureElement,
+} from "../types/api";
 import {
     HIGH_COLOR,
     KIND_COLORS,
@@ -65,6 +70,11 @@ const LAYERS: { id: LayerName; label: string }[] = [
     { id: "roof", label: "Techo" },
     { id: "environment", label: "Árboles" },
     { id: "grid", label: "Cuadrícula" },
+];
+
+const ROOFS: { id: RoofKind; label: string }[] = [
+    { id: "gable", label: "A dos aguas" },
+    { id: "flat", label: "Plana" },
 ];
 
 const COLOR_MODES: { id: ColorMode; label: string }[] = [
@@ -140,7 +150,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const [layers, setLayers] = useState(ALL_LAYERS);
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
-    const [surfaceError, setSurfaceError] = useState<string | null>(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const projectId = structure.project_id;
     const theme = useTheme();
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
@@ -148,6 +158,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const recommendations = useProjectState(projectId, (state) => state.recommendations);
     const selection = useProjectState(projectId, (state) => state.selection);
     const surfaces = useProjectState(projectId, (state) => state.surfaces);
+    const roof = useProjectState(projectId, (state) => state.roof);
     const selectedKey = selection === null ? null : elementKey(selection);
     const elements = useMemo<StructureElement[]>(
         () => [...structure.rooms, ...structure.components],
@@ -185,11 +196,22 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
         const previous = surfaces;
 
-        setSurfaceError(null);
+        setSaveError(null);
         appState.setSurface(projectId, elementKey(element), surface);
         structureApi.setSurface(projectId, element, surface).catch((reason: unknown) => {
             appState.setSurfaces(projectId, previous);
-            setSurfaceError(errorMessage(reason));
+            setSaveError(`No se guardó el material: ${errorMessage(reason)}`);
+        });
+    }
+
+    function changeRoof(next: RoofKind) {
+        const previous = roof;
+
+        setSaveError(null);
+        appState.setRoof(projectId, next);
+        structureApi.setRoof(projectId, next).catch((reason: unknown) => {
+            appState.setRoof(projectId, previous);
+            setSaveError(`No se guardó la cubierta: ${errorMessage(reason)}`);
         });
     }
 
@@ -238,10 +260,15 @@ export function StructureViewer({ structure }: { structure: Structure }) {
 
     useEffect(() => {
         appState.setSurfaces(projectId, savedSurfaces(elements));
-    }, [projectId, elements]);
+        appState.setRoof(projectId, structure.roof);
+    }, [projectId, elements, structure.roof]);
 
     useEffect(() => {
-        setSurfaceError(null);
+        viewer.current?.setRoof(roof);
+    }, [roof, structure]);
+
+    useEffect(() => {
+        setSaveError(null);
     }, [selectedKey]);
 
     useEffect(() => {
@@ -407,9 +434,9 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                         )}
                     </dl>
                 )}
-                {surfaceError !== null && (
+                {saveError !== null && (
                     <p className="message message-error" role="alert">
-                        No se guardó el material: {surfaceError}
+                        {saveError}
                     </p>
                 )}
                 {selectedAlerts.length > 0 && (
@@ -475,6 +502,19 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                         {layer.label}
                     </label>
                 ))}
+                <label className="hud-field">
+                    Cubierta
+                    <select
+                        value={roof}
+                        onChange={(event) => changeRoof(event.target.value as RoofKind)}
+                    >
+                        {ROOFS.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
             </div>
         </div>
     );

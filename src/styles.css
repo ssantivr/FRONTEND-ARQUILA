@@ -685,6 +685,20 @@ textarea {
     white-space: nowrap;
 }
 
+.hud-toolbar .hud-field {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    font-size: inherit;
+    white-space: nowrap;
+}
+
+.hud-toolbar .hud-field select {
+    padding: 3px 6px;
+    font-size: inherit;
+}
+
 .hud-toolbar .checkbox {
     display: flex;
     white-space: nowrap;

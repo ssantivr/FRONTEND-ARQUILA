@@ -40,7 +40,13 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 
-import type { Structure, StructureElement, StructureRoom, StructureTerrain } from "../types/api";
+import type {
+    RoofKind,
+    Structure,
+    StructureElement,
+    StructureRoom,
+    StructureTerrain,
+} from "../types/api";
 import type { ElementColors } from "../utils/elementColors";
 import {
     elementKey,
@@ -56,13 +62,14 @@ import {
     surfaceOf,
     type ElementSurfaces,
 } from "../utils/surfaceMaterials";
-import { buildRoomShell, useMetricUVs } from "./roomGeometry";
+import { buildFlatRoof, buildRoomShell, useMetricUVs } from "./roomGeometry";
 
 const HOVER_COLOR = 0x4a90c2;
 const SELECTION_COLOR = 0x00f0ff;
 const OUTLINE_WIDTH_PX = 3;
 const TERRAIN_COLOR = 0x35634a;
 const ROOF_COLOR = 0xb0655a;
+const SLAB_COLOR = 0xb9c0c8;
 const GLASS_COLOR = 0x9fc4dc;
 const FRAME_COLOR = 0x1c1f24;
 const DOOR_COLOR = 0x4a3526;
@@ -114,6 +121,7 @@ export interface StructureViewer {
     select: (key: string | null) => void;
     setColors: (colors: ElementColors | null) => void;
     setSurfaces: (surfaces: ElementSurfaces) => void;
+    setRoof: (roof: RoofKind) => void;
     setLayers: (layers: Layers) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
@@ -237,6 +245,22 @@ function buildTerrain(terrain: StructureTerrain): Mesh {
 
 type ElementMesh = Mesh<BufferGeometry, MeshStandardMaterial>;
 
+/** A concrete slab with its corner lines drawn. */
+function buildSlab(geometry: BufferGeometry): Mesh {
+    const slab = new Mesh(geometry, standard(SLAB_COLOR, 0.85));
+
+    slab.castShadow = true;
+    slab.receiveShadow = true;
+    slab.add(
+        new LineSegments(
+            new EdgesGeometry(geometry),
+            new LineBasicMaterial({ color: EDGE_COLOR, transparent: true, opacity: 0.6 }),
+        ),
+    );
+
+    return slab;
+}
+
 function glassMaterial(): MeshPhysicalMaterial {
     return new MeshPhysicalMaterial({
         color: GLASS_COLOR,
@@ -268,6 +292,8 @@ function buildElement(element: StructureElement, openings: Opening[]): ElementMe
 
     if (shell !== null) {
         solid.dispose();
+
+        mesh.add(buildSlab(shell.band));
 
         if (shell.frames !== null) {
             const frames = new Mesh(shell.frames, frameMaterial());
@@ -304,11 +330,25 @@ function buildElement(element: StructureElement, openings: Opening[]): ElementMe
     return mesh;
 }
 
-function buildRoof(rooms: StructureRoom[]): Mesh | null {
-    const shape = roofShape(rooms);
+function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
+    const shape = roofShape(rooms, kind);
 
     if (shape === null) {
         return null;
+    }
+
+    const center = [
+        (shape.area.minX + shape.area.maxX) / 2,
+        shape.eaves + SURFACE_GAP_M,
+        -(shape.area.minY + shape.area.maxY) / 2,
+    ] as const;
+
+    if (shape.flat) {
+        const slab = buildSlab(buildFlatRoof(shape));
+
+        slab.position.set(...center);
+
+        return slab;
     }
 
     const profile = new Shape();
@@ -325,11 +365,7 @@ function buildRoof(rooms: StructureRoom[]): Mesh | null {
     }
 
     const mesh = new Mesh(geometry, standard(ROOF_COLOR, 0.8));
-    mesh.position.set(
-        (shape.area.minX + shape.area.maxX) / 2,
-        shape.eaves + SURFACE_GAP_M,
-        -(shape.area.minY + shape.area.maxY) / 2,
-    );
+    mesh.position.set(...center);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 
@@ -473,6 +509,8 @@ export function createStructureViewer(
     let selectedKey: string | null = null;
     let colors: ElementColors | null = null;
     let surfaces: ElementSurfaces = {};
+    let roofKind: RoofKind = "gable";
+    let roofRooms: StructureRoom[] = [];
     let outline: LineSegments2 | null = null;
     let hoveredKey: string | null = null;
     let framed = false;
@@ -700,7 +738,8 @@ export function createStructureViewer(
         clear();
 
         elements = buildElements(structure);
-        roof = buildRoof(structure.rooms);
+        roofRooms = structure.rooms;
+        roof = buildRoof(roofRooms, roofKind);
         environment = buildEnvironment(structure);
         model = new Group();
         model.add(...structure.terrains.map(buildTerrain), ...elements, environment);
@@ -739,6 +778,31 @@ export function createStructureViewer(
     function setColors(next: ElementColors | null): void {
         colors = next;
         paint();
+    }
+
+    function setRoof(next: RoofKind): void {
+        if (next === roofKind) {
+            return;
+        }
+
+        roofKind = next;
+
+        if (model === null) {
+            return;
+        }
+
+        if (roof !== null) {
+            model.remove(roof);
+            disposeObject(roof);
+        }
+
+        roof = buildRoof(roofRooms, roofKind);
+
+        if (roof !== null) {
+            model.add(roof);
+        }
+
+        applyLayers();
     }
 
     function setSurfaces(next: ElementSurfaces): void {
@@ -832,6 +896,7 @@ export function createStructureViewer(
         select,
         setColors,
         setSurfaces,
+        setRoof,
         setLayers,
         setPalette,
         setView,

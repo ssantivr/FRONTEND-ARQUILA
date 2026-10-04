@@ -140,8 +140,11 @@ export interface StructureComponent extends Omit<StructureRoom, "kind"> {
 
 export type StructureElement = StructureRoom | StructureComponent;
 
+export type RoofKind = "gable" | "flat";
+
 export interface Structure {
     project_id: number;
+    roof: RoofKind;
     terrains: StructureTerrain[];
     rooms: StructureRoom[];
     components: StructureComponent[];

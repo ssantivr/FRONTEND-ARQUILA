@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 
 import { materialsApi, recommendationsApi } from "../services/api";
-import type { Material, Recommendation, StructureElement } from "../types/api";
+import type { Material, Recommendation, RoofKind, StructureElement } from "../types/api";
 import type { ColorMode } from "../utils/elementColors";
 import type { ElementSurfaces, SurfaceMaterialId } from "../utils/surfaceMaterials";
 
@@ -12,6 +12,7 @@ export interface AppState {
     selection: StructureElement | null;
     colorMode: ColorMode;
     surfaces: ElementSurfaces;
+    roof: RoofKind;
 }
 
 const EMPTY: AppState = {
@@ -21,6 +22,7 @@ const EMPTY: AppState = {
     selection: null,
     colorMode: "realistic",
     surfaces: {},
+    roof: "gable",
 };
 
 let state = EMPTY;
@@ -55,6 +57,7 @@ export const appState = {
     select: (projectId: number, selection: StructureElement | null) =>
         update(projectId, { selection }),
     setColorMode: (projectId: number, colorMode: ColorMode) => update(projectId, { colorMode }),
+    setRoof: (projectId: number, roof: RoofKind) => update(projectId, { roof }),
     setSurfaces: (projectId: number, surfaces: ElementSurfaces) =>
         update(projectId, { surfaces }),
     setSurface: (projectId: number, key: string, surface: SurfaceMaterialId) =>
