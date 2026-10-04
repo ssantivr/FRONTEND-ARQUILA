@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { recommendationsApi } from "../services/api";
-import type { RecommendationSource } from "../types/api";
+import type { RecommendationPriority, RecommendationSource } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./Panel";
@@ -12,6 +12,14 @@ const SOURCE_LABELS: Record<RecommendationSource, string> = {
     user: "Manual",
     ai: "IA",
 };
+
+const PRIORITIES: { id: RecommendationPriority; label: string }[] = [
+    { id: "high", label: "Prioridad alta" },
+    { id: "medium", label: "Prioridad media" },
+    { id: "low", label: "Prioridad baja" },
+];
+
+const PRIORITY_ORDER: Record<RecommendationPriority, number> = { high: 0, medium: 1, low: 2 };
 
 const CATEGORY_LABELS: Record<string, string> = {
     terrain: "Terreno",
@@ -25,6 +33,7 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
     );
     const [category, setCategory] = useState("");
     const [content, setContent] = useState("");
+    const [priority, setPriority] = useState<RecommendationPriority>("medium");
     const [generating, setGenerating] = useState(false);
 
     async function handleGenerate() {
@@ -41,16 +50,22 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                 recommendationsApi.create(projectId, {
                     category: category.trim(),
                     content: content.trim(),
+                    priority,
                 }),
             () => {
                 setCategory("");
                 setContent("");
+                setPriority("medium");
                 recommendations.reload();
             },
         );
     }
 
-    const items = recommendations.data ?? [];
+    const items = [...(recommendations.data ?? [])].sort(
+        (first, second) =>
+            PRIORITY_ORDER[first.priority] - PRIORITY_ORDER[second.priority] ||
+            first.id - second.id,
+    );
 
     return (
         <Panel
@@ -63,8 +78,9 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
         >
             <p className="message">
                 «Analizar proyecto» revisa los terrenos y materiales con reglas generales y
-                reemplaza las recomendaciones automáticas anteriores. Son una guía, no
-                sustituyen un estudio técnico.
+                reemplaza las recomendaciones automáticas anteriores. Se ordenan por
+                prioridad. Son preliminares: sirven para planificar y no sustituyen la revisión
+                de un arquitecto o un ingeniero.
             </p>
             <AsyncStatus
                 loading={recommendations.loading}
@@ -76,6 +92,10 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                 {items.map((recommendation) => (
                     <li key={recommendation.id} className="recommendation">
                         <div className="recommendation-meta">
+                            <span className={`badge badge-priority-${recommendation.priority}`}>
+                                {PRIORITIES.find((item) => item.id === recommendation.priority)
+                                    ?.label ?? recommendation.priority}
+                            </span>
                             <span className={`badge badge-source-${recommendation.source}`}>
                                 {SOURCE_LABELS[recommendation.source]}
                             </span>
@@ -119,6 +139,21 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                         maxLength={2000}
                         required
                     />
+                </label>
+                <label>
+                    Prioridad
+                    <select
+                        value={priority}
+                        onChange={(event) =>
+                            setPriority(event.target.value as RecommendationPriority)
+                        }
+                    >
+                        {PRIORITIES.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
                 </label>
                 <button
                     type="submit"

@@ -8,6 +8,13 @@ import { Panel } from "./Panel";
 
 const MAX_MESSAGE_LENGTH = 4000;
 
+const SUGGESTED_QUESTIONS = [
+    "¿Qué debo considerar por la pendiente del terreno?",
+    "¿Qué materiales pesan más en el costo?",
+    "¿Qué datos le faltan a este proyecto?",
+    "¿Qué me recomiendas revisar antes de construir?",
+];
+
 const SOURCE_STYLE: Record<AssistantStatus["provider"], string> = {
     claude: "ai",
     ollama: "ai",
@@ -83,12 +90,15 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
         list.current?.lastElementChild?.scrollIntoView({ block: "nearest" });
     }, [messages, sending]);
 
-    async function handleSend(event: FormEvent) {
+    function handleSend(event: FormEvent) {
         event.preventDefault();
+        ask(draft);
+    }
 
-        const content = draft.trim();
+    async function ask(question: string) {
+        const content = question.trim();
 
-        if (content === "") {
+        if (content === "" || sending) {
             return;
         }
 
@@ -186,6 +196,19 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
                     {error}
                 </p>
             )}
+            <div className="suggestions" role="group" aria-label="Preguntas sugeridas">
+                {SUGGESTED_QUESTIONS.map((question) => (
+                    <button
+                        key={question}
+                        type="button"
+                        className="button-secondary suggestion"
+                        disabled={sending}
+                        onClick={() => ask(question)}
+                    >
+                        {question}
+                    </button>
+                ))}
+            </div>
             <form className="form-row" onSubmit={handleSend}>
                 <label className="field-wide">
                     Pregunta

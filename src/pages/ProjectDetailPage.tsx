@@ -5,6 +5,7 @@ import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
 import { FilesPanel } from "../components/FilesPanel";
+import { FloorPlansPanel } from "../components/FloorPlansPanel";
 import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
@@ -175,6 +176,7 @@ export function ProjectDetailPage({
                 {section === "plans" && (
                     <>
                         <PlansPanel projectId={projectId} run={run} files={projectFiles} />
+                        <FloorPlansPanel projectId={projectId} projectName={current.name} />
                         <SitePlanPanel projectId={projectId} />
                     </>
                 )}

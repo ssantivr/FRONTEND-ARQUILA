@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
 import { bounds, edges, footprint, insetBounds } from "../utils/geometry";
+import { downloadSvg } from "../utils/svg";
 
 const VIEW_WIDTH = 470;
 const VIEW_HEIGHT = 330;
@@ -40,14 +41,7 @@ const TEXT = { fontFamily: "system-ui, sans-serif", fontSize: 11, fill: COLORS.t
 const NOTE = { ...TEXT, fontSize: 10, fill: COLORS.muted };
 
 function download(svg: SVGSVGElement, name: string) {
-    const source = new XMLSerializer().serializeToString(svg);
-    const url = URL.createObjectURL(new Blob([source], { type: "image/svg+xml" }));
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `implantacion-${name.trim().replace(/\s+/g, "-").toLowerCase()}.svg`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadSvg(svg, `implantacion-${name}`);
 }
 
 export function printableDocument(svgSource: string, title: string): string {

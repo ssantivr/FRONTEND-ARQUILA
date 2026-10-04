@@ -1,6 +1,7 @@
 export type ProjectStatus = "draft" | "active" | "archived";
 export type Orientation = "north" | "south" | "east" | "west";
 export type RecommendationSource = "ai" | "user" | "system";
+export type RecommendationPriority = "high" | "medium" | "low";
 export type DeletedItemKind = "terrain" | "material" | "plan" | "elevation";
 
 export interface DeletedItem {
@@ -14,12 +15,14 @@ export interface Recommendation {
     category: string;
     content: string;
     source: RecommendationSource;
+    priority: RecommendationPriority;
     created_at: string;
 }
 
 export interface RecommendationCreate {
     category: string;
     content: string;
+    priority?: RecommendationPriority;
 }
 
 export interface RecommendationFilters {

@@ -1107,3 +1107,34 @@ code {
     border: 1px solid var(--border);
     border-radius: 4px;
 }
+
+.badge-priority-high {
+    color: var(--error);
+}
+
+.badge-priority-medium {
+    color: var(--warning);
+}
+
+.badge-priority-low {
+    color: var(--text-secondary);
+}
+
+.suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.suggestion {
+    padding: 6px 12px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    border-radius: 999px;
+}
+
+.suggestion:hover:not(:disabled) {
+    color: var(--cyan);
+    border-color: var(--cyan);
+}
