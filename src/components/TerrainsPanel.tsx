@@ -110,6 +110,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
             <AsyncStatus
                 loading={terrains.loading}
                 error={terrains.error}
+                onRetry={terrains.reload}
                 isEmpty={items.length === 0}
                 emptyText="Este proyecto no tiene terrenos."
             />

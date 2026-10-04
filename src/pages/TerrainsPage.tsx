@@ -53,6 +53,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                 <AsyncStatus
                     loading={data.loading}
                     error={data.error}
+                    onRetry={data.reload}
                     isEmpty={terrains.length === 0}
                     emptyText="Todavía no hay terrenos. Regístralos en la pestaña Terreno de un proyecto."
                 />

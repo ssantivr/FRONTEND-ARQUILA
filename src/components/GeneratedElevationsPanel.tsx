@@ -61,6 +61,7 @@ export function GeneratedElevationsPanel({ projectId, projectName }: GeneratedEl
             <AsyncStatus
                 loading={structure.loading}
                 error={structure.error}
+                onRetry={structure.reload}
                 isEmpty={drawing === null}
                 emptyText="Agrega cuartos en la pestaña Modelo 3D, o crea un proyecto de ejemplo, para generar las fachadas."
             />

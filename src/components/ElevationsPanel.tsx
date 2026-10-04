@@ -97,6 +97,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
             <AsyncStatus
                 loading={elevations.loading}
                 error={elevations.error}
+                onRetry={elevations.reload}
                 isEmpty={items.length === 0}
                 emptyText={
                     filter === ""

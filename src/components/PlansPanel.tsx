@@ -77,6 +77,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
             <AsyncStatus
                 loading={plans.loading}
                 error={plans.error}
+                onRetry={plans.reload}
                 isEmpty={items.length === 0}
                 emptyText="Este proyecto no tiene planos."
             />

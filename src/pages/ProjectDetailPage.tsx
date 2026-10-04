@@ -1,4 +1,4 @@
-import { Fragment, Suspense, lazy, useState } from "react";
+import { Fragment, Suspense, lazy, useRef, useState } from "react";
 
 import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
@@ -37,6 +37,8 @@ export function ProjectDetailPage({
     const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
     const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
+    const [actionPending, setActionPending] = useState(false);
+    const running = useRef(false);
     const [panelsVersion, setPanelsVersion] = useState(0);
     const [section, setSection] = useState<SectionId>(initialSection);
     const [editingProject, setEditingProject] = useState(false);
@@ -48,15 +50,26 @@ export function ProjectDetailPage({
     }
 
     async function run(action: () => Promise<unknown>, onDone: () => void) {
+        if (running.current) {
+            return;
+        }
+
+        running.current = true;
+        setActionPending(true);
         setActionError(null);
 
         try {
             await action();
-            onDone();
-            undoable.reload();
         } catch (reason) {
             setActionError(errorMessage(reason));
+            return;
+        } finally {
+            running.current = false;
+            setActionPending(false);
         }
+
+        onDone();
+        undoable.reload();
     }
 
     const lastDeleted = undoable.data?.[0];
@@ -67,6 +80,7 @@ export function ProjectDetailPage({
                 <AsyncStatus
                     loading={project.loading}
                     error={project.error}
+                    onRetry={project.reload}
                     isEmpty
                     emptyText="Proyecto no encontrado."
                 />
@@ -150,6 +164,11 @@ export function ProjectDetailPage({
                             )
                         }
                     />
+                )}
+                {actionPending && (
+                    <p className="message" role="status">
+                        Guardando…
+                    </p>
                 )}
                 {actionError && (
                     <p className="message message-error" role="alert">

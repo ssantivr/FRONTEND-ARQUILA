@@ -52,6 +52,7 @@ export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps
                 <AsyncStatus
                     loading={structure.loading}
                     error={structure.error}
+                    onRetry={structure.reload}
                     isEmpty={indicators === null}
                     emptyText="Agrega cuartos en la pestaña Modelo 3D, o crea un proyecto de ejemplo, para calcular la ocupación."
                 />
@@ -117,6 +118,7 @@ export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps
                 <AsyncStatus
                     loading={structure.loading}
                     error={structure.error}
+                    onRetry={structure.reload}
                     isEmpty={levels.length === 0}
                     emptyText="Todavía no hay niveles con cuartos o componentes."
                 />

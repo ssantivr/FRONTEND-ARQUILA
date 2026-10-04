@@ -118,6 +118,7 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
                 <AsyncStatus
                     loading={templates.loading}
                     error={templates.error}
+                    onRetry={templates.reload}
                     isEmpty={(templates.data ?? []).length === 0}
                     emptyText="No hay ejemplos disponibles."
                 />
@@ -180,6 +181,7 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
                 <AsyncStatus
                     loading={projects.loading}
                     error={projects.error}
+                    onRetry={projects.reload}
                     isEmpty={items.length === 0}
                     emptyText="No hay proyectos."
                 />

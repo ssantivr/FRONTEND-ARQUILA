@@ -40,6 +40,7 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                 <AsyncStatus
                     loading={summary.loading}
                     error={summary.error}
+                    onRetry={summary.reload}
                     isEmpty={false}
                     emptyText=""
                 />
@@ -79,6 +80,7 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                 <AsyncStatus
                     loading={projects.loading}
                     error={projects.error}
+                    onRetry={projects.reload}
                     isEmpty={recent.length === 0}
                     emptyText="Todavía no tienes proyectos. Crea el primero desde Proyectos."
                 />

@@ -91,6 +91,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
             <AsyncStatus
                 loading={materials.loading}
                 error={materials.error}
+                onRetry={materials.reload}
                 isEmpty={items.length === 0}
                 emptyText="Este proyecto no tiene materiales."
             />

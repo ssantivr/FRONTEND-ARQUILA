@@ -188,6 +188,7 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
             <AsyncStatus
                 loading={conversations.loading}
                 error={conversations.error}
+                onRetry={conversations.reload}
                 isEmpty={false}
                 emptyText=""
             />

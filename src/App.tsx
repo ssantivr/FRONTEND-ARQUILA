@@ -86,6 +86,7 @@ export function App() {
     async function handleLogout() {
         try {
             await authApi.logout();
+        } catch {
         } finally {
             setProject(null);
             setView("home");
@@ -162,6 +163,9 @@ export function App() {
 
     return (
         <div className="layout">
+            <a className="skip-link" href="#content">
+                Saltar al contenido
+            </a>
             <header className="header">
                 <span className="brand">ARQUILA</span>
                 <div className="user-menu">
@@ -189,16 +193,16 @@ export function App() {
             </header>
 
             {resetToken !== null ? (
-                <main className="content">
+                <main id="content" className="content" tabIndex={-1}>
                     <ResetPasswordPage token={resetToken} onDone={handleResetDone} />
                 </main>
             ) : session.state === "authenticated" ? (
                 <div className="shell">
                     <Sidebar current={view} onNavigate={navigate} />
-                    <main className="content">{renderView(session.user)}</main>
+                    <main id="content" className="content" tabIndex={-1}>{renderView(session.user)}</main>
                 </div>
             ) : (
-                <main className="content">
+                <main id="content" className="content" tabIndex={-1}>
                     {session.state === "loading" && (
                         <Panel title="ARQUILA">
                             <p className="message">Cargando…</p>

@@ -56,6 +56,7 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
                 <AsyncStatus
                     loading={projects.loading}
                     error={projects.error}
+                    onRetry={projects.reload}
                     isEmpty={items.length === 0}
                     emptyText="Todavía no tienes proyectos. Crea el primero desde Proyectos."
                 />

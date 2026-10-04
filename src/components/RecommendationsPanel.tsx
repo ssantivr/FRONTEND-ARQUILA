@@ -92,6 +92,7 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
             <AsyncStatus
                 loading={recommendations.loading}
                 error={recommendations.error}
+                onRetry={recommendations.reload}
                 isEmpty={items.length === 0}
                 emptyText="No hay recomendaciones."
             />

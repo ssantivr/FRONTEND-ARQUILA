@@ -27,6 +27,7 @@ export function StructurePanel({ projectId, run }: SectionProps) {
                 <AsyncStatus
                     loading={structure.loading}
                     error={structure.error}
+                    onRetry={structure.reload}
                     isEmpty={isEmpty}
                     emptyText="Registra un terreno con medidas, un cuarto o un componente para ver el modelo."
                 />

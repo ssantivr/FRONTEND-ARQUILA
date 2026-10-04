@@ -17,6 +17,7 @@ export function ProjectModel({ projectId }: { projectId: number }) {
             <AsyncStatus
                 loading={structure.loading}
                 error={structure.error}
+                onRetry={structure.reload}
                 isEmpty={isEmpty}
                 emptyText="Este proyecto todavía no tiene terrenos con medidas, cuartos ni componentes."
             />

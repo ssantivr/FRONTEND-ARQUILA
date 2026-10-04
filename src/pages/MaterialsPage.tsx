@@ -77,6 +77,7 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                 <AsyncStatus
                     loading={data.loading}
                     error={data.error}
+                    onRetry={data.reload}
                     isEmpty={materials.length === 0}
                     emptyText="Todavía no hay materiales. Regístralos en la pestaña Materiales de un proyecto."
                 />
