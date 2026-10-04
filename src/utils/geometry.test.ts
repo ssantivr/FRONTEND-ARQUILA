@@ -4,6 +4,8 @@ import type { Terrain } from "../types/api";
 import {
     type Edge,
     bounds,
+    contourLevels,
+    contourStep,
     edges,
     footprint,
     insetBounds,
@@ -107,6 +109,28 @@ describe("insetBounds", () => {
     it("is null when the margin leaves no room", () => {
         expect(insetBounds(box, 7.5)).toBeNull();
         expect(insetBounds(box, 10)).toBeNull();
+    });
+});
+
+describe("contourLevels", () => {
+    it("picks a round step that gives at most six curves", () => {
+        expect(contourStep(2.55)).toBe(0.5);
+        expect(contourLevels(2.55)).toEqual([0.5, 1, 1.5, 2, 2.5]);
+        expect(contourStep(6.6)).toBe(2);
+        expect(contourLevels(6.6)).toEqual([2, 4, 6]);
+    });
+
+    it("leaves out a curve that would fall on the far edge", () => {
+        expect(contourLevels(3)).toEqual([0.5, 1, 1.5, 2, 2.5]);
+    });
+
+    it("has no curves on flat or nearly flat ground", () => {
+        expect(contourLevels(0)).toEqual([]);
+        expect(contourLevels(0.08)).toEqual([]);
+    });
+
+    it("stays bounded on very steep ground", () => {
+        expect(contourLevels(5000).length).toBeLessThanOrEqual(6);
     });
 });
 

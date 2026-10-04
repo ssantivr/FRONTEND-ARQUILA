@@ -1,6 +1,12 @@
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
-import { bounds, footprint, frontElevation } from "../utils/geometry";
+import {
+    bounds,
+    contourLevels,
+    contourStep,
+    footprint,
+    frontElevation,
+} from "../utils/geometry";
 import { Terrain3D } from "./Terrain3D";
 
 const VIEW_WIDTH = 260;
@@ -27,6 +33,7 @@ export function TerrainDiagrams({ terrain }: { terrain: Terrain }) {
             <figcaption>{terrain.name}</figcaption>
             <div className="diagram-row">
                 <TopView terrain={terrain} />
+                <ContourMap terrain={terrain} />
                 <FrontView terrain={terrain} />
                 <Profile terrain={terrain} />
                 <Terrain3D terrain={terrain} />
@@ -93,6 +100,97 @@ function TopView({ terrain }: { terrain: Terrain }) {
                     textAnchor="middle"
                 >
                     Área: {formatNumber(terrain.area_m2)} m²
+                </text>
+            </svg>
+        </div>
+    );
+}
+
+function ContourMap({ terrain }: { terrain: Terrain }) {
+    const shape = footprint(terrain);
+    const slope = terrain.slope_percent;
+
+    if (shape === null || slope === null) {
+        return (
+            <Missing
+                title="Curvas de nivel"
+                text="Faltan las medidas del lote o la pendiente del terreno."
+            />
+        );
+    }
+
+    const box = bounds(shape);
+    const width = box.maxX - box.minX;
+    const height = box.maxY - box.minY;
+    const rise = (height * slope) / 100;
+    const levels = contourLevels(rise);
+    const scale = Math.min(DRAW_WIDTH / width, DRAW_HEIGHT / height);
+    const x = LEFT - 20 + (DRAW_WIDTH - width * scale) / 2;
+    const y = TOP + (DRAW_HEIGHT - height * scale) / 2;
+    const right = x + width * scale;
+    const levelY = (level: number) =>
+        y + (height - (slope > 0 ? (level * 100) / slope : 0)) * scale;
+    const edgesOfBands = [0, ...levels, rise].map(levelY);
+    const clipId = `contour-clip-${terrain.id}`;
+    const outline = shape
+        .map((point) => `${x + (point.x - box.minX) * scale},${y + (box.maxY - point.y) * scale}`)
+        .join(" ");
+
+    return (
+        <div className="diagram">
+            <h3>Curvas de nivel</h3>
+            <svg
+                viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+                role="img"
+                aria-label={`Curvas de nivel de ${terrain.name}: el terreno sube ${formatNumber(rise)} metros desde el frente hasta el fondo`}
+            >
+                <clipPath id={clipId}>
+                    <polygon points={outline} />
+                </clipPath>
+                <g clipPath={`url(#${clipId})`}>
+                    {edgesOfBands.slice(0, -1).map((bottom, index) => (
+                        <rect
+                            key={index}
+                            className="diagram-band"
+                            x={x}
+                            y={edgesOfBands[index + 1]}
+                            width={width * scale}
+                            height={bottom - edgesOfBands[index + 1]}
+                            fillOpacity={0.1 + (0.5 * index) / Math.max(1, levels.length)}
+                        />
+                    ))}
+                    {levels.map((level) => (
+                        <line
+                            key={level}
+                            className="diagram-contour"
+                            x1={x}
+                            y1={levelY(level)}
+                            x2={right}
+                            y2={levelY(level)}
+                        />
+                    ))}
+                </g>
+                <polygon className="diagram-outline" points={outline} />
+                {levels.map((level) => (
+                    <text
+                        key={level}
+                        className="diagram-label"
+                        x={right + 6}
+                        y={levelY(level)}
+                        dominantBaseline="middle"
+                    >
+                        +{formatNumber(level)} m
+                    </text>
+                ))}
+                <text
+                    className="diagram-note"
+                    x={VIEW_WIDTH / 2}
+                    y={VIEW_HEIGHT - 8}
+                    textAnchor="middle"
+                >
+                    {levels.length === 0
+                        ? `Desnivel de ${formatNumber(rise)} m: casi plano`
+                        : `Una curva cada ${formatNumber(contourStep(rise))} m · más alto hacia el fondo`}
                 </text>
             </svg>
         </div>

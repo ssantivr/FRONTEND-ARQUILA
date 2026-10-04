@@ -98,6 +98,27 @@ export function insetBounds(box: Bounds, margin: number): Bounds | null {
     return inner.maxX > inner.minX && inner.maxY > inner.minY ? inner : null;
 }
 
+const CONTOUR_STEPS = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100];
+const MAX_CONTOURS = 6;
+
+export function contourStep(rise: number): number {
+    return (
+        CONTOUR_STEPS.find((step) => rise / step <= MAX_CONTOURS) ??
+        CONTOUR_STEPS[CONTOUR_STEPS.length - 1]
+    );
+}
+
+export function contourLevels(rise: number): number[] {
+    const step = contourStep(rise);
+    const levels: number[] = [];
+
+    for (let index = 1; index * step < rise && levels.length < MAX_CONTOURS; index += 1) {
+        levels.push(Number((index * step).toFixed(2)));
+    }
+
+    return levels;
+}
+
 export function frontElevation(points: Point[], slopePercent: number): Point[] {
     const { minY } = bounds(points);
 
