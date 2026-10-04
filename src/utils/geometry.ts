@@ -52,6 +52,52 @@ export function bounds(points: Point[]): Bounds {
     };
 }
 
+export interface Edge {
+    middle: Point;
+    outward: Point;
+    length: number;
+}
+
+export function edges(points: Point[]): Edge[] {
+    let signedArea = 0;
+
+    points.forEach((point, index) => {
+        const next = points[(index + 1) % points.length];
+        signedArea += point.x * next.y - next.x * point.y;
+    });
+
+    const side = signedArea >= 0 ? 1 : -1;
+    const result: Edge[] = [];
+
+    points.forEach((point, index) => {
+        const next = points[(index + 1) % points.length];
+        const dx = next.x - point.x;
+        const dy = next.y - point.y;
+        const length = Math.hypot(dx, dy);
+
+        if (length > 0) {
+            result.push({
+                middle: { x: (point.x + next.x) / 2, y: (point.y + next.y) / 2 },
+                outward: { x: (side * dy) / length, y: (-side * dx) / length },
+                length,
+            });
+        }
+    });
+
+    return result;
+}
+
+export function insetBounds(box: Bounds, margin: number): Bounds | null {
+    const inner = {
+        minX: box.minX + margin,
+        maxX: box.maxX - margin,
+        minY: box.minY + margin,
+        maxY: box.maxY - margin,
+    };
+
+    return inner.maxX > inner.minX && inner.maxY > inner.minY ? inner : null;
+}
+
 export function frontElevation(points: Point[], slopePercent: number): Point[] {
     const { minY } = bounds(points);
 

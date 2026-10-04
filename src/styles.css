@@ -417,6 +417,16 @@ textarea {
     height: auto;
 }
 
+.site-plan svg {
+    max-width: 640px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.site-plan .diagram-controls {
+    max-width: 320px;
+}
+
 .diagram-lot {
     fill: rgba(32, 199, 245, 0.12);
     stroke: var(--cyan);

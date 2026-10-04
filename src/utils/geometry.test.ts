@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import type { Terrain } from "../types/api";
 import {
+    type Edge,
     bounds,
+    edges,
     footprint,
+    insetBounds,
     formatPoints,
     frontElevation,
     parsePoints,
@@ -57,6 +60,53 @@ describe("polygonArea", () => {
 describe("bounds", () => {
     it("returns the extremes of the outline", () => {
         expect(bounds(L_SHAPE)).toEqual({ minX: 0, maxX: 20, minY: 0, maxY: 30 });
+    });
+});
+
+describe("edges", () => {
+    const square = [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10, y: 10 },
+        { x: 0, y: 10 },
+    ];
+
+    it("measures each side and points away from the lot", () => {
+        const [bottom, right, top, left] = edges(square);
+
+        expect(edges(L_SHAPE).map((edge) => edge.length)).toEqual([20, 10, 10, 20, 10, 30]);
+        const direction = (edge: Edge) => [edge.outward.x + 0, edge.outward.y + 0];
+
+        expect(bottom.middle).toEqual({ x: 5, y: 0 });
+        expect(bottom.length).toBe(10);
+        expect(direction(bottom)).toEqual([0, -1]);
+        expect(direction(right)).toEqual([1, 0]);
+        expect(direction(top)).toEqual([0, 1]);
+        expect(direction(left)).toEqual([-1, 0]);
+    });
+
+    it("points away from the lot whatever the direction of the outline", () => {
+        const [first] = edges([...square].reverse());
+
+        expect(first.middle).toEqual({ x: 5, y: 10 });
+        expect(first.outward.y).toBe(1);
+    });
+
+    it("skips repeated vertices", () => {
+        expect(edges([square[0], square[0], square[1], square[2]])).toHaveLength(3);
+    });
+});
+
+describe("insetBounds", () => {
+    const box = { minX: 0, maxX: 15, minY: 0, maxY: 30 };
+
+    it("shrinks the rectangle by the margin on every side", () => {
+        expect(insetBounds(box, 3)).toEqual({ minX: 3, maxX: 12, minY: 3, maxY: 27 });
+    });
+
+    it("is null when the margin leaves no room", () => {
+        expect(insetBounds(box, 7.5)).toBeNull();
+        expect(insetBounds(box, 10)).toBeNull();
     });
 });
 

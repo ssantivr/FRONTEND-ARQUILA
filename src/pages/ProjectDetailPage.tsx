@@ -10,6 +10,7 @@ import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
 import { ProjectEditForm } from "../components/ProjectEditForm";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
+import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { filesApi, projectsApi, undoApi } from "../services/api";
@@ -163,7 +164,10 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
             <Fragment key={panelsVersion}>
                 {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}
                 {section === "plans" && (
-                    <PlansPanel projectId={projectId} run={run} files={projectFiles} />
+                    <>
+                        <PlansPanel projectId={projectId} run={run} files={projectFiles} />
+                        <SitePlanPanel projectId={projectId} />
+                    </>
                 )}
                 {section === "elevations" && (
                     <ElevationsPanel projectId={projectId} run={run} files={projectFiles} />
