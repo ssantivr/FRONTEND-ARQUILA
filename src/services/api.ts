@@ -34,6 +34,8 @@ import type {
     RoomUpdate,
     StructuralComponent,
     Structure,
+    StructureElement,
+    SurfaceMaterialId,
     Terrain,
     TerrainCreate,
     TerrainUpdate,
@@ -177,6 +179,11 @@ export const componentsApi = {
 
 export const structureApi = {
     get: (projectId: number) => request<Structure>(`/projects/${projectId}/structure`),
+    setSurface: (projectId: number, element: StructureElement, surface: SurfaceMaterialId) =>
+        request<void>(
+            `/projects/${projectId}/structure/${element.kind}/${element.id}/surface`,
+            { method: "PATCH", body: { surface } },
+        ),
 };
 
 export const filesApi = {

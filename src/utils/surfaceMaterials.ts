@@ -1,13 +1,7 @@
-import type { StructureElement } from "../types/api";
+import type { StructureElement, SurfaceMaterialId } from "../types/api";
+import { elementKey } from "./openings";
 
-export type SurfaceMaterialId =
-    | "concrete"
-    | "brick"
-    | "plaster"
-    | "glass"
-    | "steel"
-    | "wood"
-    | "stone";
+export type { SurfaceMaterialId };
 
 export interface SurfaceMaterial {
     label: string;
@@ -45,6 +39,19 @@ export const DEFAULT_SURFACE: Record<StructureElement["kind"], SurfaceMaterialId
     beam: "concrete",
     wall: "concrete",
 };
+
+/** Collects the materials the backend has saved for the given elements. */
+export function savedSurfaces(elements: StructureElement[]): ElementSurfaces {
+    const surfaces: Record<string, SurfaceMaterialId> = {};
+
+    for (const element of elements) {
+        if (element.surface !== null) {
+            surfaces[elementKey(element)] = element.surface;
+        }
+    }
+
+    return surfaces;
+}
 
 export function surfaceOf(
     surfaces: ElementSurfaces,

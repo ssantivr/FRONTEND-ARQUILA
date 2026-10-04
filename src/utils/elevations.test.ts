@@ -18,6 +18,7 @@ function room(overrides: Partial<StructureRoom>): StructureRoom {
         width_m: 6,
         depth_m: 4,
         height_m: 3,
+        surface: null,
         ...overrides,
     };
 }

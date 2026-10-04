@@ -80,6 +80,15 @@ export interface RoomCreate {
 
 export type RoomUpdate = Partial<RoomCreate>;
 
+export type SurfaceMaterialId =
+    | "concrete"
+    | "brick"
+    | "plaster"
+    | "glass"
+    | "steel"
+    | "wood"
+    | "stone";
+
 export interface StructureRoom {
     kind: "room" | "volume";
     id: number;
@@ -93,6 +102,7 @@ export interface StructureRoom {
     width_m: number;
     depth_m: number;
     height_m: number;
+    surface: SurfaceMaterialId | null;
 }
 
 export type ComponentKind = "column" | "beam" | "wall";

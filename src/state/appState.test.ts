@@ -38,6 +38,7 @@ const COLUMN: StructureElement = {
     width_m: 0.4,
     depth_m: 0.4,
     height_m: 3,
+    surface: null,
 };
 
 beforeEach(() => {
@@ -91,6 +92,13 @@ describe("appState", () => {
 
         expect(appState.get().surfaces).toEqual({ "column-1": "wood", "room-1": "glass" });
         expect(listener).toHaveBeenCalledTimes(3);
+    });
+
+    it("replaces the surface materials with the saved ones", () => {
+        appState.setSurface(1, "column-1", "steel");
+        appState.setSurfaces(1, { "room-1": "glass" });
+
+        expect(appState.get().surfaces).toEqual({ "room-1": "glass" });
     });
 
     it("drops the surface materials of another project", () => {

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { errorMessage } from "../hooks/useAsync";
+import { structureApi } from "../services/api";
 import { appState, useProjectState } from "../state/appState";
 import { useTheme } from "../state/theme";
 import {
@@ -31,6 +33,7 @@ import { formatMoney, formatNumber } from "../utils/format";
 import {
     SURFACE_MATERIALS,
     SURFACE_MATERIAL_IDS,
+    savedSurfaces,
     surfaceOf,
     type SurfaceMaterialId,
 } from "../utils/surfaceMaterials";
@@ -137,6 +140,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const [layers, setLayers] = useState(ALL_LAYERS);
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
+    const [surfaceError, setSurfaceError] = useState<string | null>(null);
     const projectId = structure.project_id;
     const theme = useTheme();
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
@@ -175,6 +179,18 @@ export function StructureViewer({ structure }: { structure: Structure }) {
             projectId,
             elements.find((element) => elementKey(element) === key) ?? null,
         );
+    }
+
+    /** Shows the new material at once and puts the old one back if it cannot be saved. */
+    function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
+        const previous = surfaces;
+
+        setSurfaceError(null);
+        appState.setSurface(projectId, elementKey(element), surface);
+        structureApi.setSurface(projectId, element, surface).catch((reason: unknown) => {
+            appState.setSurfaces(projectId, previous);
+            setSurfaceError(errorMessage(reason));
+        });
     }
 
     const selectByKey = useRef(setSelectedKey);
@@ -219,6 +235,14 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     useEffect(() => {
         viewer.current?.show(structure);
     }, [structure]);
+
+    useEffect(() => {
+        appState.setSurfaces(projectId, savedSurfaces(elements));
+    }, [projectId, elements]);
+
+    useEffect(() => {
+        setSurfaceError(null);
+    }, [selectedKey]);
 
     useEffect(() => {
         viewer.current?.select(selectedKey);
@@ -343,11 +367,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                                 id="inspector-surface"
                                 value={surfaceOf(surfaces, elementKey(selected), selected.kind)}
                                 onChange={(event) =>
-                                    appState.setSurface(
-                                        projectId,
-                                        elementKey(selected),
-                                        event.target.value as SurfaceMaterialId,
-                                    )
+                                    changeSurface(selected, event.target.value as SurfaceMaterialId)
                                 }
                             >
                                 {SURFACE_MATERIAL_IDS.map((id) => (
@@ -386,6 +406,11 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                             </>
                         )}
                     </dl>
+                )}
+                {surfaceError !== null && (
+                    <p className="message message-error" role="alert">
+                        No se guardó el material: {surfaceError}
+                    </p>
                 )}
                 {selectedAlerts.length > 0 && (
                     <ul className="hud-alerts">

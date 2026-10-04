@@ -7,6 +7,7 @@ const MESSAGES: Record<string, string> = {
     "Room not found": "Cuarto no encontrado.",
     "Template not found": "Ese ejemplo no existe.",
     "Component not found": "Componente no encontrado.",
+    "Element not found": "Ese elemento ya no existe.",
     "Elevation not found": "Elevación no encontrada.",
     "Recommendation not found": "Recomendación no encontrada.",
     "Conversation not found": "Conversación no encontrada.",
