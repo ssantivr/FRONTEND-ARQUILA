@@ -5,9 +5,13 @@ import { Sidebar, type View } from "./components/Sidebar";
 import { errorMessage } from "./hooks/useAsync";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
-import { ProjectDetailPage } from "./pages/ProjectDetailPage";
+import { MaterialsPage } from "./pages/MaterialsPage";
+import { ProjectDetailPage, type SectionId } from "./pages/ProjectDetailPage";
+import { ProjectToolPage } from "./pages/ProjectToolPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { TerrainsPage } from "./pages/TerrainsPage";
 import { authApi } from "./services/api";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
@@ -18,10 +22,15 @@ type Session =
     | { state: "error"; message: string }
     | { state: "authenticated"; user: User };
 
+interface OpenProject {
+    id: number;
+    section: SectionId;
+}
+
 export function App() {
     const [session, setSession] = useState<Session>({ state: "loading" });
     const [view, setView] = useState<View>("home");
-    const [projectId, setProjectId] = useState<number | null>(null);
+    const [project, setProject] = useState<OpenProject | null>(null);
     const [resetToken, setResetToken] = useState(() =>
         new URLSearchParams(window.location.search).get("reset_token"),
     );
@@ -56,7 +65,7 @@ export function App() {
 
     useEffect(() => {
         function handleSessionEnded() {
-            setProjectId(null);
+            setProject(null);
             setView("home");
             setSession({ state: "anonymous" });
         }
@@ -70,7 +79,7 @@ export function App() {
         try {
             await authApi.logout();
         } finally {
-            setProjectId(null);
+            setProject(null);
             setView("home");
             setSession({ state: "anonymous" });
         }
@@ -79,7 +88,7 @@ export function App() {
     function handleResetDone(changed: boolean) {
         window.history.replaceState(null, "", window.location.pathname);
         setResetToken(null);
-        setProjectId(null);
+        setProject(null);
         setLoginNotice(
             changed ? "Contraseña cambiada. Ya puedes iniciar sesión con la nueva." : undefined,
         );
@@ -87,13 +96,55 @@ export function App() {
     }
 
     function navigate(next: View) {
-        setProjectId(null);
+        setProject(null);
         setView(next);
     }
 
-    function openProject(id: number) {
+    function openProject(id: number, section: SectionId = "terrain") {
         setView("projects");
-        setProjectId(id);
+        setProject({ id, section });
+    }
+
+    function renderView(user: User) {
+        if (project !== null) {
+            return (
+                <ProjectDetailPage
+                    key={project.id}
+                    projectId={project.id}
+                    initialSection={project.section}
+                    onBack={() => setProject(null)}
+                />
+            );
+        }
+
+        switch (view) {
+            case "home":
+                return <HomePage user={user} onOpenProject={openProject} onNavigate={navigate} />;
+            case "projects":
+                return <ProjectsPage onOpenProject={openProject} />;
+            case "terrains":
+                return <TerrainsPage onOpenProject={(id) => openProject(id, "terrain")} />;
+            case "materials":
+                return <MaterialsPage onOpenProject={(id) => openProject(id, "materials")} />;
+            case "viewer":
+                return (
+                    <ProjectToolPage
+                        key="viewer"
+                        tool="viewer"
+                        onOpenProject={(id) => openProject(id, "model")}
+                    />
+                );
+            case "assistant":
+                return (
+                    <ProjectToolPage
+                        key="assistant"
+                        tool="assistant"
+                        onOpenProject={(id) => openProject(id, "assistant")}
+                    />
+                );
+            case "settings":
+                return <SettingsPage user={user} onLogout={handleLogout} />;
+        }
     }
 
     return (
@@ -117,22 +168,7 @@ export function App() {
             ) : session.state === "authenticated" ? (
                 <div className="shell">
                     <Sidebar current={view} onNavigate={navigate} />
-                    <main className="content">
-                        {projectId !== null ? (
-                            <ProjectDetailPage
-                                projectId={projectId}
-                                onBack={() => setProjectId(null)}
-                            />
-                        ) : view === "home" ? (
-                            <HomePage
-                                user={session.user}
-                                onOpenProject={openProject}
-                                onShowProjects={() => navigate("projects")}
-                            />
-                        ) : (
-                            <ProjectsPage onOpenProject={openProject} />
-                        )}
-                    </main>
+                    <main className="content">{renderView(session.user)}</main>
                 </div>
             ) : (
                 <main className="content">

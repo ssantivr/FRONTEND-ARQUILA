@@ -22,16 +22,21 @@ const StructurePanel = lazy(() =>
 
 interface ProjectDetailPageProps {
     projectId: number;
+    initialSection?: SectionId;
     onBack: () => void;
 }
 
-export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps) {
+export function ProjectDetailPage({
+    projectId,
+    initialSection = "terrain",
+    onBack,
+}: ProjectDetailPageProps) {
     const project = useAsync(() => projectsApi.get(projectId), [projectId]);
     const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
     const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
     const [panelsVersion, setPanelsVersion] = useState(0);
-    const [section, setSection] = useState<SectionId>("terrain");
+    const [section, setSection] = useState<SectionId>(initialSection);
     const [editingProject, setEditingProject] = useState(false);
     const projectFiles = files.data ?? [];
 
@@ -200,7 +205,7 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
     );
 }
 
-type SectionId =
+export type SectionId =
     | "terrain"
     | "plans"
     | "model"

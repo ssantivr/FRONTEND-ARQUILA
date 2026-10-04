@@ -1,7 +1,9 @@
 import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
+import { Icon } from "../components/Icon";
 import { MetricCard } from "../components/MetricCard";
 import { Panel } from "../components/Panel";
+import { MODULES, type View } from "../components/Sidebar";
 import { useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi } from "../services/api";
 import type { User } from "../types/api";
@@ -12,10 +14,10 @@ const RECENT_PROJECTS = 4;
 interface HomePageProps {
     user: User;
     onOpenProject: (projectId: number) => void;
-    onShowProjects: () => void;
+    onNavigate: (view: View) => void;
 }
 
-export function HomePage({ user, onOpenProject, onShowProjects }: HomePageProps) {
+export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
     const summary = useAsync(() => summaryApi.get(), []);
     const projects = useAsync(() => projectsApi.list(), []);
 
@@ -25,7 +27,16 @@ export function HomePage({ user, onOpenProject, onShowProjects }: HomePageProps)
 
     return (
         <>
-            <Panel title={`Hola, ${user.name}`}>
+            <section className="hero">
+                <h1>Hola, {user.name}</h1>
+                <p>
+                    ARQUILA reúne en un solo lugar los proyectos de arquitectura con sus
+                    terrenos, planos, materiales, modelo 3D y un asistente que conoce cada
+                    proyecto.
+                </p>
+            </section>
+
+            <Panel title="Resumen">
                 <AsyncStatus
                     loading={summary.loading}
                     error={summary.error}
@@ -56,7 +67,11 @@ export function HomePage({ user, onOpenProject, onShowProjects }: HomePageProps)
             <Panel
                 title="Proyectos recientes"
                 actions={
-                    <button type="button" className="button-secondary" onClick={onShowProjects}>
+                    <button
+                        type="button"
+                        className="button-secondary"
+                        onClick={() => onNavigate("projects")}
+                    >
                         Ver todos
                     </button>
                 }
@@ -80,6 +95,26 @@ export function HomePage({ user, onOpenProject, onShowProjects }: HomePageProps)
                                     {project.location ?? "Sin ubicación"}
                                 </span>
                                 <StatusBadge status={project.status} />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </Panel>
+
+            <Panel title="Módulos">
+                <ul className="card-list">
+                    {MODULES.filter((module) => module.id !== "home").map((module) => (
+                        <li key={module.id}>
+                            <button
+                                type="button"
+                                className="card module-card"
+                                onClick={() => onNavigate(module.id)}
+                            >
+                                <span className="module-icon">
+                                    <Icon name={module.icon} />
+                                </span>
+                                <span className="card-title">{module.label}</span>
+                                <span className="card-subtitle">{module.description}</span>
                             </button>
                         </li>
                     ))}

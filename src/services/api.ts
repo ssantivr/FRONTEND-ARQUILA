@@ -71,6 +71,15 @@ export const projectsApi = {
     remove: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
 };
 
+export async function loadAcrossProjects<T>(
+    loader: (projectId: number) => Promise<T[]>,
+): Promise<{ projects: Project[]; items: T[] }> {
+    const projects = await projectsApi.list();
+    const lists = await Promise.all(projects.map((project) => loader(project.id)));
+
+    return { projects, items: lists.flat() };
+}
+
 export const terrainsApi = {
     listByProject: (projectId: number) =>
         request<Terrain[]>(`/projects/${projectId}/terrains`),
