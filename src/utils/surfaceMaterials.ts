@@ -20,12 +20,12 @@ export const SURFACE_MATERIALS: Record<SurfaceMaterialId, SurfaceMaterial> = {
     plaster: { label: "Revoque", color: 0x8d6a5a, roughness: 0.8, metalness: 0, opacity: 1 },
     glass: {
         label: "Vidrio arquitectónico",
-        color: 0x7fb6d9,
+        color: 0x9fc4dc,
         roughness: 0.1,
-        metalness: 0.3,
-        opacity: 0.45,
+        metalness: 0.8,
+        opacity: 0.4,
     },
-    steel: { label: "Acero", color: 0x8a939e, roughness: 0.35, metalness: 0.6, opacity: 1 },
+    steel: { label: "Acero", color: 0x8a939e, roughness: 0.35, metalness: 0.9, opacity: 1 },
     wood: { label: "Madera", color: 0x9c6b3f, roughness: 0.7, metalness: 0, opacity: 1 },
     stone: { label: "Piedra", color: 0x7d7a73, roughness: 0.9, metalness: 0, opacity: 1 },
 };

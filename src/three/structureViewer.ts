@@ -3,6 +3,7 @@ import {
     AmbientLight,
     Box3,
     BoxGeometry,
+    BufferGeometry,
     Color,
     DirectionalLight,
     EdgesGeometry,
@@ -18,8 +19,9 @@ import {
     MeshStandardMaterial,
     Object3D,
     PCFShadowMap,
+    PMREMGenerator,
     PerspectiveCamera,
-    PlaneGeometry,
+    PointLight,
     Raycaster,
     Scene,
     Shape,
@@ -29,6 +31,7 @@ import {
     WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
@@ -42,7 +45,6 @@ import {
     roofShape,
     unionOf,
     type Opening,
-    type Side,
 } from "../utils/openings";
 import {
     DEFAULT_SURFACE,
@@ -50,14 +52,20 @@ import {
     surfaceOf,
     type ElementSurfaces,
 } from "../utils/surfaceMaterials";
+import { buildRoomShell } from "./roomGeometry";
 
 const HOVER_COLOR = 0x4a90c2;
 const SELECTION_COLOR = 0x00f0ff;
 const OUTLINE_WIDTH_PX = 3;
 const TERRAIN_COLOR = 0x35634a;
 const ROOF_COLOR = 0xb0655a;
-const GLASS_COLOR = 0x2f5f8a;
+const GLASS_COLOR = 0x9fc4dc;
+const FRAME_COLOR = 0x1c1f24;
 const DOOR_COLOR = 0x4a3526;
+const CYAN_ACCENT = 0x00f0ff;
+const MAGENTA_ACCENT = 0xff007f;
+const ENVIRONMENT_INTENSITY = 0.3;
+const SHADOW_RADIUS = 3;
 const TRUNK_COLOR = 0x5a4030;
 const CANOPY_COLOR = 0x3f7a4f;
 const EDGE_COLOR = 0x1b1410;
@@ -78,11 +86,13 @@ export type Layers = Record<LayerName, boolean>;
 export interface ScenePalette {
     background: number;
     grid: number;
+    /** Strength of the cyan and magenta accent lights; 0 turns them off. */
+    accent: number;
 }
 
 export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
-    light: { background: 0xe8ecf1, grid: 0xcfd5dd },
-    dark: { background: 0x171a20, grid: 0x2e343f },
+    light: { background: 0xe8ecf1, grid: 0xcfd5dd, accent: 0 },
+    dark: { background: 0x090a0f, grid: 0x232833, accent: 1.4 },
 };
 
 const VIEW_DIRECTIONS: Record<ViewName, Vector3> = {
@@ -183,42 +193,57 @@ function buildTerrain(terrain: StructureTerrain): Mesh {
     return mesh;
 }
 
-type ElementMesh = Mesh<BoxGeometry, MeshStandardMaterial>;
+type ElementMesh = Mesh<BufferGeometry, MeshStandardMaterial>;
 
-const SIDE_ROTATION: Record<Side, number> = {
-    front: 0,
-    right: Math.PI / 2,
-    back: Math.PI,
-    left: -Math.PI / 2,
-};
-
-function addOpenings(mesh: ElementMesh, element: StructureElement, openings: Opening[]): void {
-    for (const opening of openings) {
-        const across = opening.side === "front" || opening.side === "back";
-        const mirrored = opening.side === "back" || opening.side === "left";
-        const along = opening.center - (across ? element.width_m : element.depth_m) / 2;
-        const plane = new Mesh(
-            new PlaneGeometry(opening.width, opening.height),
-            opening.kind === "door"
-                ? new MeshStandardMaterial({ color: DOOR_COLOR, roughness: 0.7 })
-                : new MeshStandardMaterial({ color: GLASS_COLOR, roughness: 0.15, metalness: 0.5 }),
-        );
-        const pivot = new Group();
-
-        plane.position.set(
-            mirrored ? -along : along,
-            -element.height_m / 2 + opening.sill + opening.height / 2,
-            (across ? element.depth_m : element.width_m) / 2 + SURFACE_GAP_M,
-        );
-        pivot.rotation.y = SIDE_ROTATION[opening.side];
-        pivot.add(plane);
-        mesh.add(pivot);
-    }
+function glassMaterial(): MeshPhysicalMaterial {
+    return new MeshPhysicalMaterial({
+        color: GLASS_COLOR,
+        transparent: true,
+        opacity: 0.4,
+        roughness: 0.1,
+        metalness: 0.8,
+        depthWrite: false,
+    });
 }
 
-function buildElement(element: StructureElement): ElementMesh {
-    const geometry = new BoxGeometry(element.width_m, element.height_m, element.depth_m);
-    const mesh = new Mesh(geometry, buildMaterial(element));
+function frameMaterial(): MeshPhysicalMaterial {
+    return new MeshPhysicalMaterial({
+        color: FRAME_COLOR,
+        roughness: 0.35,
+        metalness: 0.9,
+        clearcoat: 0.4,
+        clearcoatRoughness: 0.3,
+    });
+}
+
+/** A room is a hollow shell with real openings; every other element is a solid box. */
+function buildElement(element: StructureElement, openings: Opening[]): ElementMesh {
+    const solid = new BoxGeometry(element.width_m, element.height_m, element.depth_m);
+    const shell = element.kind === "room" ? buildRoomShell(element, openings) : null;
+    const geometry = shell === null ? solid : shell.walls;
+    const lines = shell === null ? new EdgesGeometry(solid) : shell.lines;
+    const mesh: ElementMesh = new Mesh(geometry, buildMaterial(element));
+
+    if (shell !== null) {
+        solid.dispose();
+
+        if (shell.frames !== null) {
+            const frames = new Mesh(shell.frames, frameMaterial());
+            frames.castShadow = true;
+            mesh.add(frames);
+        }
+
+        if (shell.door !== null) {
+            const door = new Mesh(shell.door, standard(DOOR_COLOR, 0.7));
+            door.castShadow = true;
+            mesh.add(door);
+        }
+
+        if (shell.glass !== null) {
+            mesh.add(new Mesh(shell.glass, glassMaterial()));
+        }
+    }
+
     mesh.position.set(element.x_m, element.base_m + element.height_m / 2, -element.y_m);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -227,11 +252,12 @@ function buildElement(element: StructureElement): ElementMesh {
     mesh.userData.kind = element.kind;
 
     const edges = new LineSegments(
-        new EdgesGeometry(geometry),
+        lines,
         new LineBasicMaterial({ color: EDGE_COLOR, transparent: true, opacity: 0.6 }),
     );
     mesh.add(edges);
     mesh.userData.edges = edges.material;
+    mesh.userData.lines = lines;
 
     return mesh;
 }
@@ -361,16 +387,30 @@ export function createStructureViewer(
     controls.dampingFactor = 0.08;
     controls.maxPolarAngle = Math.PI / 2 - 0.02;
 
-    const sun = new DirectionalLight(0xfff4e0, 2.8);
+    const pmrem = new PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    const environmentMap = pmrem.fromScene(room, 0.04);
+    room.dispose();
+    pmrem.dispose();
+    scene.environment = environmentMap.texture;
+    scene.environmentIntensity = ENVIRONMENT_INTENSITY;
+
+    const sun = new DirectionalLight(0xfff4e0, 2.6);
     sun.castShadow = true;
     sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
     sun.shadow.bias = -0.0005;
     sun.shadow.normalBias = 0.03;
+    sun.shadow.radius = SHADOW_RADIUS;
+
+    const cyanAccent = new PointLight(CYAN_ACCENT, palette.accent, 0, 0);
+    const magentaAccent = new PointLight(MAGENTA_ACCENT, palette.accent, 0, 0);
     scene.add(
-        new AmbientLight(0xffffff, 0.45),
-        new HemisphereLight(0xbfd9ff, 0x2a3326, 0.7),
+        new AmbientLight(0xffffff, 0.2),
+        new HemisphereLight(0xbfd9ff, 0x2a3326, 0.6),
         sun,
         sun.target,
+        cyanAccent,
+        magentaAccent,
     );
 
     const outlineMaterial = new LineMaterial({
@@ -447,6 +487,13 @@ export function createStructureViewer(
         sun.shadow.camera.near = bounds.radius * 0.5;
         sun.shadow.camera.far = bounds.radius * 3.5;
         sun.shadow.camera.updateProjectionMatrix();
+
+        cyanAccent.position
+            .copy(bounds.center)
+            .add(new Vector3(-1.2, 0.5, 1).multiplyScalar(bounds.radius));
+        magentaAccent.position
+            .copy(bounds.center)
+            .add(new Vector3(1.2, 0.35, -1).multiplyScalar(bounds.radius));
     }
 
     function setView(view: ViewName): void {
@@ -518,13 +565,12 @@ export function createStructureViewer(
         const mesh = elements.find((item) => item.userData.key === selectedKey);
 
         if (mesh !== undefined) {
-            const edges = new EdgesGeometry(mesh.geometry);
+            const lines = mesh.userData.lines as BufferGeometry;
 
             outline = new LineSegments2(
-                new LineSegmentsGeometry().fromEdgesGeometry(edges),
+                new LineSegmentsGeometry().setPositions([...lines.getAttribute("position").array]),
                 outlineMaterial,
             );
-            edges.dispose();
             mesh.add(outline);
         }
     }
@@ -550,6 +596,8 @@ export function createStructureViewer(
     function setPalette(next: ScenePalette): void {
         palette = next;
         scene.background = new Color(palette.background);
+        cyanAccent.intensity = palette.accent;
+        magentaAccent.intensity = palette.accent;
 
         if (model !== null) {
             buildGrid(model);
@@ -590,13 +638,9 @@ export function createStructureViewer(
     function buildElements(structure: Structure): ElementMesh[] {
         const openings = placeOpenings(structure.rooms);
 
-        return [...structure.rooms, ...structure.components].map((element) => {
-            const mesh = buildElement(element);
-
-            addOpenings(mesh, element, openings.get(elementKey(element)) ?? []);
-
-            return mesh;
-        });
+        return [...structure.rooms, ...structure.components].map((element) =>
+            buildElement(element, openings.get(elementKey(element)) ?? []),
+        );
     }
 
     function show(structure: Structure): void {
@@ -722,6 +766,7 @@ export function createStructureViewer(
         controls.dispose();
         clear();
         outlineMaterial.dispose();
+        environmentMap.dispose();
         sun.shadow.map?.dispose();
         sun.dispose();
         renderer.dispose();
