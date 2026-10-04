@@ -81,7 +81,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
             />
             <aside className="hud hud-levels" aria-label="Niveles del modelo">
                 <h3>Niveles</h3>
-                {structure.rooms.length === 0 && <p>Registra un plano para ver niveles.</p>}
+                {structure.rooms.length === 0 && <p>Agrega cuartos a un plano, o ponle un nivel numérico, para verlo aquí.</p>}
                 {groupByLevel(structure.rooms).map((level) => (
                     <section key={level.planId}>
                         <h4>{level.title}</h4>

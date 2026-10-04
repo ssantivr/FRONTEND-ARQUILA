@@ -15,7 +15,7 @@ import {
     Mesh,
     MeshStandardMaterial,
     Object3D,
-    PCFSoftShadowMap,
+    PCFShadowMap,
     PerspectiveCamera,
     Raycaster,
     Scene,
@@ -132,7 +132,7 @@ export function createStructureViewer(
 ): StructureViewer {
     const renderer = new WebGLRenderer({ antialias: true });
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = PCFSoftShadowMap;
+    renderer.shadowMap.type = PCFShadowMap;
     renderer.toneMapping = ACESFilmicToneMapping;
     container.append(renderer.domElement);
 

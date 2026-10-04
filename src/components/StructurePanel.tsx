@@ -16,9 +16,9 @@ export function StructurePanel({ projectId, run }: SectionProps) {
         <>
             <Panel title="Modelo 3D">
                 <p className="message">
-                    Cada terreno es una losa y cada plano es un nivel. Un plano con cuartos
-                    muestra sus cuartos; un plano sin cuartos se dibuja como un volumen de 3 m
-                    dentro del retiro del primer terreno rectangular.
+                    Cada terreno es una losa. Un plano con cuartos muestra sus cuartos; un plano
+                    sin cuartos cuyo nivel es un número se dibuja como un volumen de 3 m dentro
+                    del retiro del primer terreno rectangular. Los demás planos no se dibujan.
                 </p>
                 <AsyncStatus
                     loading={structure.loading}
