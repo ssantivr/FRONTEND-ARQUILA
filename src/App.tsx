@@ -39,6 +39,12 @@ export function App() {
     const theme = useTheme();
 
     useEffect(() => {
+        if (new URLSearchParams(window.location.search).has("reset_token")) {
+            window.history.replaceState(null, "", window.location.pathname);
+        }
+    }, []);
+
+    useEffect(() => {
         let cancelled = false;
 
         authApi
