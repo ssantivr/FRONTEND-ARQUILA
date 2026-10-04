@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <style>
+        .mark { stroke: #1f4e79; fill: none; }
+        .core { fill: #1f4e79; }
+        @media (prefers-color-scheme: dark) {
+            .mark { stroke: #8ab4de; }
+            .core { fill: #8ab4de; }
+        }
+    </style>
+    <rect class="mark" x="7" y="7" width="18" height="18" rx="3" stroke-width="3" transform="rotate(45 16 16)" />
+    <rect class="core" x="12" y="12" width="8" height="8" transform="rotate(45 16 16)" />
+</svg>

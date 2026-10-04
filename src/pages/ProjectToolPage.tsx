@@ -23,7 +23,7 @@ const TEXT = {
         open: "Editar en el proyecto",
     },
     assistant: {
-        title: "Asistente IA",
+        title: "Proyecto",
         intro: "Elige un proyecto: el asistente responde con los datos de ese proyecto y guarda la conversación en él.",
         open: "Abrir el proyecto",
     },

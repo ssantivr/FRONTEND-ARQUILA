@@ -1,7 +1,11 @@
-const numberFormat = new Intl.NumberFormat("es", { maximumFractionDigits: 2 });
+const numberFormat = new Intl.NumberFormat("es", {
+    maximumFractionDigits: 2,
+    useGrouping: "always",
+});
 const moneyFormat = new Intl.NumberFormat("es", {
     style: "currency",
     currency: "USD",
+    useGrouping: "always",
 });
 
 export function formatNumber(value: number | null): string {

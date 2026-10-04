@@ -1,12 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { formatFileSize, formatNumber, optionalNumber, optionalText } from "./format";
+import { formatFileSize, formatMoney, formatNumber, optionalNumber, optionalText } from "./format";
 
 describe("formatNumber", () => {
     it("uses a dash for missing values and a decimal comma", () => {
         expect(formatNumber(null)).toBe("—");
         expect(formatNumber(8.5)).toBe("8,5");
         expect(formatNumber(2.555)).toBe("2,56");
+    });
+
+    it("groups thousands from four digits on", () => {
+        expect(formatNumber(4980)).toBe("4.980");
+        expect(formatNumber(21000)).toBe("21.000");
+    });
+});
+
+describe("formatMoney", () => {
+    it("groups thousands the same way for four and five digits", () => {
+        expect(formatMoney(6047)).toMatch(/^6\.047,00/);
+        expect(formatMoney(44880)).toMatch(/^44\.880,00/);
     });
 });
 
