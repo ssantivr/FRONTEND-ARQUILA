@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { conversationsApi } from "../services/api";
-import { ApiError } from "../services/http";
 import type { ConversationMessage } from "../types/api";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./Panel";
@@ -91,11 +90,7 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
             setDraft("");
             conversations.reload();
         } catch (reason) {
-            setError(
-                reason instanceof ApiError && reason.status === 503
-                    ? "El asistente de IA no está disponible en este momento."
-                    : errorMessage(reason),
-            );
+            setError(errorMessage(reason));
         } finally {
             setSending(false);
         }
@@ -129,7 +124,8 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
         >
             <p className="message">
                 Responde con los datos de este proyecto. Es una guía general: lo estructural y
-                lo normativo debe confirmarlo un profesional.
+                lo normativo debe confirmarlo un profesional. Si la IA no está disponible,
+                contesta con reglas fijas sobre esos mismos datos y lo indica en la respuesta.
             </p>
             <AsyncStatus
                 loading={conversations.loading}
@@ -142,6 +138,11 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
                     <li key={message.id} className={`chat-message chat-${message.role}`}>
                         <span className="chat-author">
                             {message.role === "user" ? "Tú" : "Asistente"}
+                            {message.source === "rules" && (
+                                <span className="badge badge-source-system">
+                                    Respuesta por reglas
+                                </span>
+                            )}
                         </span>
                         <p>{message.content}</p>
                     </li>

@@ -182,6 +182,7 @@ export interface ConversationMessage {
     conversation_id: number;
     role: "user" | "assistant" | "system";
     content: string;
+    source: "ai" | "rules" | null;
     created_at: string;
 }
 

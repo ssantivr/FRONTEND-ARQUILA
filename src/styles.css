@@ -354,6 +354,10 @@ textarea {
     font-size: 0.8rem;
 }
 
+.chat-author .badge {
+    margin-left: 8px;
+}
+
 .tabs {
     display: flex;
     gap: 4px;
