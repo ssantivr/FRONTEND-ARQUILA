@@ -3,6 +3,8 @@ const MESSAGES: Record<string, string> = {
     "Terrain not found": "Terreno no encontrado.",
     "Material not found": "Material no encontrado.",
     "Plan not found": "Plano no encontrado.",
+    "Plan not found in this project": "Ese plano no pertenece a este proyecto.",
+    "Room not found": "Cuarto no encontrado.",
     "Elevation not found": "Elevación no encontrada.",
     "Recommendation not found": "Recomendación no encontrada.",
     "Conversation not found": "Conversación no encontrada.",

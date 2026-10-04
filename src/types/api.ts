@@ -46,6 +46,58 @@ export interface PlanCreate {
 
 export type PlanUpdate = Partial<PlanCreate>;
 
+export interface StructureTerrain {
+    id: number;
+    name: string;
+    outline: TerrainPoint[];
+}
+
+export interface Room {
+    id: number;
+    project_id: number;
+    plan_id: number;
+    name: string;
+    x_m: number;
+    y_m: number;
+    width_m: number;
+    depth_m: number;
+    height_m: number;
+    created_at: string;
+}
+
+export interface RoomCreate {
+    plan_id: number;
+    name: string;
+    x_m: number;
+    y_m: number;
+    width_m: number;
+    depth_m: number;
+    height_m?: number;
+}
+
+export type RoomUpdate = Partial<RoomCreate>;
+
+export interface StructureRoom {
+    kind: "room" | "volume";
+    id: number;
+    plan_id: number;
+    plan_title: string;
+    name: string;
+    level: string | null;
+    x_m: number;
+    y_m: number;
+    base_m: number;
+    width_m: number;
+    depth_m: number;
+    height_m: number;
+}
+
+export interface Structure {
+    project_id: number;
+    terrains: StructureTerrain[];
+    rooms: StructureRoom[];
+}
+
 export interface Elevation {
     id: number;
     project_id: number;

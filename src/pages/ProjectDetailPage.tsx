@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, Suspense, lazy, useState } from "react";
 
 import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
@@ -15,6 +15,10 @@ import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { filesApi, projectsApi, undoApi } from "../services/api";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
+
+const StructurePanel = lazy(() =>
+    import("../components/StructurePanel").then((module) => ({ default: module.StructurePanel })),
+);
 
 interface ProjectDetailPageProps {
     projectId: number;
@@ -169,6 +173,11 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
                         <SitePlanPanel projectId={projectId} />
                     </>
                 )}
+                {section === "model" && (
+                    <Suspense fallback={<p className="message">Cargando…</p>}>
+                        <StructurePanel projectId={projectId} run={run} />
+                    </Suspense>
+                )}
                 {section === "elevations" && (
                     <ElevationsPanel projectId={projectId} run={run} files={projectFiles} />
                 )}
@@ -194,6 +203,7 @@ export function ProjectDetailPage({ projectId, onBack }: ProjectDetailPageProps)
 type SectionId =
     | "terrain"
     | "plans"
+    | "model"
     | "elevations"
     | "materials"
     | "analysis"
@@ -203,6 +213,7 @@ type SectionId =
 const SECTIONS: { id: SectionId; label: string }[] = [
     { id: "terrain", label: "Terreno" },
     { id: "plans", label: "Planos" },
+    { id: "model", label: "Modelo 3D" },
     { id: "elevations", label: "Elevaciones" },
     { id: "materials", label: "Materiales" },
     { id: "analysis", label: "Análisis" },

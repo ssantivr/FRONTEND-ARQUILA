@@ -67,6 +67,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 
     const response = await fetch(buildUrl(path, query), {
         method,
+        credentials: "include",
         headers: body === undefined ? undefined : { "Content-Type": "application/json" },
         body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -87,7 +88,7 @@ export async function upload<T>(path: string, file: File): Promise<T> {
     const body = new FormData();
     body.append("file", file);
 
-    const response = await fetch(buildUrl(path), { method: "POST", body });
+    const response = await fetch(buildUrl(path), { method: "POST", credentials: "include", body });
 
     if (!response.ok) {
         notifyIfSessionEnded(path, response.status);

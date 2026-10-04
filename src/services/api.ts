@@ -25,6 +25,10 @@ import type {
     Recommendation,
     RecommendationCreate,
     RecommendationFilters,
+    Room,
+    RoomCreate,
+    RoomUpdate,
+    Structure,
     Terrain,
     TerrainCreate,
     TerrainUpdate,
@@ -127,6 +131,19 @@ export const elevationsApi = {
     update: (id: number, data: ElevationUpdate) =>
         request<Elevation>(`/elevations/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/elevations/${id}`, { method: "DELETE" }),
+};
+
+export const roomsApi = {
+    listByProject: (projectId: number) => request<Room[]>(`/projects/${projectId}/rooms`),
+    create: (projectId: number, data: RoomCreate) =>
+        request<Room>(`/projects/${projectId}/rooms`, { method: "POST", body: data }),
+    update: (id: number, data: RoomUpdate) =>
+        request<Room>(`/rooms/${id}`, { method: "PATCH", body: data }),
+    remove: (id: number) => request<void>(`/rooms/${id}`, { method: "DELETE" }),
+};
+
+export const structureApi = {
+    get: (projectId: number) => request<Structure>(`/projects/${projectId}/structure`),
 };
 
 export const filesApi = {
