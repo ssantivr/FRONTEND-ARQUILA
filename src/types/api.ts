@@ -180,6 +180,16 @@ export interface Project {
     updated_at: string;
 }
 
+export interface ProjectTemplate {
+    id: string;
+    name: string;
+    kind: string;
+    description: string;
+    levels: number;
+    lot_area_m2: number;
+    built_area_m2: number;
+}
+
 export interface ProjectCreate {
     name: string;
     description?: string | null;

@@ -22,6 +22,7 @@ import type {
     ProjectCreate,
     ProjectFile,
     ProjectFilters,
+    ProjectTemplate,
     ProjectUpdate,
     RegisterRequest,
     Summary,
@@ -69,6 +70,12 @@ export const projectsApi = {
     update: (id: number, data: ProjectUpdate) =>
         request<Project>(`/projects/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
+};
+
+export const templatesApi = {
+    list: () => request<ProjectTemplate[]>("/templates"),
+    createProject: (templateId: string) =>
+        request<Project>(`/templates/${templateId}/projects`, { method: "POST" }),
 };
 
 export async function loadAcrossProjects<T>(

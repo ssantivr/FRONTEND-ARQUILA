@@ -121,7 +121,12 @@ export function App() {
             case "home":
                 return <HomePage user={user} onOpenProject={openProject} onNavigate={navigate} />;
             case "projects":
-                return <ProjectsPage onOpenProject={openProject} />;
+                return (
+                    <ProjectsPage
+                        onOpenProject={openProject}
+                        onOpenModel={(id) => openProject(id, "model")}
+                    />
+                );
             case "terrains":
                 return <TerrainsPage onOpenProject={(id) => openProject(id, "terrain")} />;
             case "materials":

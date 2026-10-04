@@ -5,6 +5,7 @@ const MESSAGES: Record<string, string> = {
     "Plan not found": "Plano no encontrado.",
     "Plan not found in this project": "Ese plano no pertenece a este proyecto.",
     "Room not found": "Cuarto no encontrado.",
+    "Template not found": "Ese ejemplo no existe.",
     "Component not found": "Componente no encontrado.",
     "Elevation not found": "Elevación no encontrada.",
     "Recommendation not found": "Recomendación no encontrada.",

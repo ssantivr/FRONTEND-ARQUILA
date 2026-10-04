@@ -4,15 +4,16 @@ import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
 import { Panel } from "../components/Panel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
-import { projectsApi } from "../services/api";
+import { projectsApi, templatesApi } from "../services/api";
 import type { ProjectStatus } from "../types/api";
-import { optionalText } from "../utils/format";
+import { formatNumber, optionalText } from "../utils/format";
 
 interface ProjectsPageProps {
     onOpenProject: (projectId: number) => void;
+    onOpenModel: (projectId: number) => void;
 }
 
-export function ProjectsPage({ onOpenProject }: ProjectsPageProps) {
+export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) {
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState<ProjectStatus | "">("");
     const [name, setName] = useState("");
@@ -20,6 +21,22 @@ export function ProjectsPage({ onOpenProject }: ProjectsPageProps) {
     const [description, setDescription] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const templates = useAsync(() => templatesApi.list(), []);
+    const [templateError, setTemplateError] = useState<string | null>(null);
+    const [creatingTemplate, setCreatingTemplate] = useState<string | null>(null);
+
+    async function handleTemplate(templateId: string) {
+        setCreatingTemplate(templateId);
+        setTemplateError(null);
+
+        try {
+            const project = await templatesApi.createProject(templateId);
+            onOpenModel(project.id);
+        } catch (reason) {
+            setTemplateError(errorMessage(reason));
+            setCreatingTemplate(null);
+        }
+    }
 
     const projects = useAsync(
         () =>
@@ -89,6 +106,47 @@ export function ProjectsPage({ onOpenProject }: ProjectsPageProps) {
                 {formError && (
                     <p className="message message-error" role="alert">
                         {formError}
+                    </p>
+                )}
+            </Panel>
+
+            <Panel title="Ejemplos">
+                <p className="message">
+                    Crea un proyecto ya armado, con su terreno, planos, cuartos y columnas, y
+                    ábrelo en el modelo 3D. Después se puede editar como cualquier otro.
+                </p>
+                <AsyncStatus
+                    loading={templates.loading}
+                    error={templates.error}
+                    isEmpty={(templates.data ?? []).length === 0}
+                    emptyText="No hay ejemplos disponibles."
+                />
+                <ul className="card-list">
+                    {(templates.data ?? []).map((template) => (
+                        <li key={template.id}>
+                            <button
+                                type="button"
+                                className="card module-card"
+                                disabled={creatingTemplate !== null}
+                                onClick={() => handleTemplate(template.id)}
+                            >
+                                <span className="badge badge-source-system">{template.kind}</span>
+                                <span className="card-title">{template.name}</span>
+                                <span className="card-subtitle">{template.description}</span>
+                                <span className="card-subtitle">
+                                    {template.levels === 1
+                                        ? "1 nivel"
+                                        : `${template.levels} niveles`}{" "}
+                                    · {formatNumber(template.built_area_m2)} m² construidos · lote
+                                    de {formatNumber(template.lot_area_m2)} m²
+                                </span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+                {templateError && (
+                    <p className="message message-error" role="alert">
+                        {templateError}
                     </p>
                 )}
             </Panel>
