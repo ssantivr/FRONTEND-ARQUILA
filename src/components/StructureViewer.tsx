@@ -28,6 +28,12 @@ import {
     type ElementColors,
 } from "../utils/elementColors";
 import { formatMoney, formatNumber } from "../utils/format";
+import {
+    SURFACE_MATERIALS,
+    SURFACE_MATERIAL_IDS,
+    surfaceOf,
+    type SurfaceMaterialId,
+} from "../utils/surfaceMaterials";
 
 interface Level {
     planId: number;
@@ -137,6 +143,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const materials = useProjectState(projectId, (state) => state.materials);
     const recommendations = useProjectState(projectId, (state) => state.recommendations);
     const selection = useProjectState(projectId, (state) => state.selection);
+    const surfaces = useProjectState(projectId, (state) => state.surfaces);
     const selectedKey = selection === null ? null : elementKey(selection);
     const elements = useMemo<StructureElement[]>(
         () => [...structure.rooms, ...structure.components],
@@ -220,6 +227,10 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     useEffect(() => {
         viewer.current?.setColors(colors);
     }, [colors]);
+
+    useEffect(() => {
+        viewer.current?.setSurfaces(surfaces);
+    }, [surfaces, structure]);
 
     useEffect(() => {
         viewer.current?.setLayers(layers);
@@ -324,6 +335,28 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                         <dd>{selected.name}</dd>
                         <dt>Tipo</dt>
                         <dd>{KIND_LABELS[selected.kind]}</dd>
+                        <dt className="hud-wide">
+                            <label htmlFor="inspector-surface">Material</label>
+                        </dt>
+                        <dd className="hud-wide">
+                            <select
+                                id="inspector-surface"
+                                value={surfaceOf(surfaces, elementKey(selected), selected.kind)}
+                                onChange={(event) =>
+                                    appState.setSurface(
+                                        projectId,
+                                        elementKey(selected),
+                                        event.target.value as SurfaceMaterialId,
+                                    )
+                                }
+                            >
+                                {SURFACE_MATERIAL_IDS.map((id) => (
+                                    <option key={id} value={id}>
+                                        {SURFACE_MATERIALS[id].label}
+                                    </option>
+                                ))}
+                            </select>
+                        </dd>
                         <dt>Plano</dt>
                         <dd>{selected.plan_title}</dd>
                         <dt>Nivel</dt>

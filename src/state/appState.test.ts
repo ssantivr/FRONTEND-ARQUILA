@@ -77,7 +77,27 @@ describe("appState", () => {
             recommendations: [],
             selection: null,
             colorMode: "cost",
+            surfaces: {},
         });
+    });
+
+    it("keeps the surface material chosen for each element", () => {
+        const listener = vi.fn();
+        appState.subscribe(listener);
+
+        appState.setSurface(1, "column-1", "steel");
+        appState.setSurface(1, "room-1", "glass");
+        appState.setSurface(1, "column-1", "wood");
+
+        expect(appState.get().surfaces).toEqual({ "column-1": "wood", "room-1": "glass" });
+        expect(listener).toHaveBeenCalledTimes(3);
+    });
+
+    it("drops the surface materials of another project", () => {
+        appState.setSurface(1, "column-1", "steel");
+        appState.setSurface(2, "room-1", "glass");
+
+        expect(appState.get().surfaces).toEqual({ "room-1": "glass" });
     });
 
     it("refreshes materials and recommendations from the API", async () => {

@@ -574,6 +574,16 @@ textarea {
     overflow-wrap: anywhere;
 }
 
+.hud-inspector .hud-wide {
+    grid-column: 1 / -1;
+}
+
+.hud-inspector select {
+    width: 100%;
+    padding: 4px 6px;
+    font-size: inherit;
+}
+
 .hud-colors {
     right: 12px;
     bottom: 12px;

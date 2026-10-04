@@ -29,6 +29,9 @@ import {
     WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
+import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 
 import type { Structure, StructureElement, StructureRoom, StructureTerrain } from "../types/api";
 import type { ElementColors } from "../utils/elementColors";
@@ -41,13 +44,17 @@ import {
     type Opening,
     type Side,
 } from "../utils/openings";
+import {
+    DEFAULT_SURFACE,
+    SURFACE_MATERIALS,
+    surfaceOf,
+    type ElementSurfaces,
+} from "../utils/surfaceMaterials";
 
 const HOVER_COLOR = 0x4a90c2;
-const SELECTION_COLOR = 0xe08a1e;
+const SELECTION_COLOR = 0x00f0ff;
+const OUTLINE_WIDTH_PX = 3;
 const TERRAIN_COLOR = 0x35634a;
-const WALL_COLOR = 0xa9583f;
-const VOLUME_COLOR = 0x8d6a5a;
-const CONCRETE_COLOR = 0xaab4bf;
 const ROOF_COLOR = 0xb0655a;
 const GLASS_COLOR = 0x2f5f8a;
 const DOOR_COLOR = 0x4a3526;
@@ -89,6 +96,7 @@ export interface StructureViewer {
     show: (structure: Structure) => void;
     select: (key: string | null) => void;
     setColors: (colors: ElementColors | null) => void;
+    setSurfaces: (surfaces: ElementSurfaces) => void;
     setLayers: (layers: Layers) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
@@ -136,11 +144,13 @@ function standard(color: number, roughness: number, metalness = 0): MeshStandard
 }
 
 function buildMaterial(element: StructureElement): MeshStandardMaterial {
+    const surface = SURFACE_MATERIALS[DEFAULT_SURFACE[element.kind]];
+
     if (element.kind === "room") {
         return new MeshPhysicalMaterial({
-            color: WALL_COLOR,
-            roughness: 0.75,
-            metalness: 0,
+            color: surface.color,
+            roughness: surface.roughness,
+            metalness: surface.metalness,
             clearcoat: 0.15,
             clearcoatRoughness: 0.6,
             polygonOffset: true,
@@ -149,9 +159,7 @@ function buildMaterial(element: StructureElement): MeshStandardMaterial {
         });
     }
 
-    return element.kind === "volume"
-        ? standard(VOLUME_COLOR, 0.8)
-        : standard(CONCRETE_COLOR, 0.85);
+    return standard(surface.color, surface.roughness, surface.metalness);
 }
 
 function buildTerrain(terrain: StructureTerrain): Mesh {
@@ -216,7 +224,7 @@ function buildElement(element: StructureElement): ElementMesh {
     mesh.receiveShadow = true;
     mesh.userData.key = elementKey(element);
     mesh.userData.space = isSpace(element);
-    mesh.userData.baseColor = mesh.material.color.getHex();
+    mesh.userData.kind = element.kind;
 
     const edges = new LineSegments(
         new EdgesGeometry(geometry),
@@ -365,6 +373,10 @@ export function createStructureViewer(
         sun.target,
     );
 
+    const outlineMaterial = new LineMaterial({
+        color: SELECTION_COLOR,
+        linewidth: OUTLINE_WIDTH_PX,
+    });
     const raycaster = new Raycaster();
     const pointer = new Vector2();
     const bounds = new Sphere(new Vector3(), 1);
@@ -377,6 +389,8 @@ export function createStructureViewer(
     let layers: Layers = { rooms: true, roof: true, environment: true, grid: true };
     let selectedKey: string | null = null;
     let colors: ElementColors | null = null;
+    let surfaces: ElementSurfaces = {};
+    let outline: LineSegments2 | null = null;
     let hoveredKey: string | null = null;
     let framed = false;
     let pressX = 0;
@@ -393,6 +407,7 @@ export function createStructureViewer(
 
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
         renderer.setSize(width, height, false);
+        outlineMaterial.resolution.set(width, height);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
     }
@@ -459,28 +474,58 @@ export function createStructureViewer(
         for (const mesh of elements) {
             const key = mesh.userData.key as string;
 
+            const surface =
+                SURFACE_MATERIALS[
+                    surfaceOf(surfaces, key, mesh.userData.kind as StructureElement["kind"])
+                ];
+            const opacity = colors === null ? surface.opacity : 1;
+
             mesh.material.color.setHex(
-                colors === null
-                    ? (mesh.userData.baseColor as number)
-                    : (colors.get(key) ?? MUTED_COLOR),
+                colors === null ? surface.color : (colors.get(key) ?? MUTED_COLOR),
             );
+            mesh.material.roughness = surface.roughness;
+            mesh.material.metalness = surface.metalness;
+            mesh.material.opacity = opacity;
+
+            if (mesh.material.transparent !== opacity < 1) {
+                mesh.material.transparent = opacity < 1;
+                mesh.material.needsUpdate = true;
+            }
 
             const edges = mesh.userData.edges as LineBasicMaterial;
-            const outlined = key === selectedKey && colors !== null;
+            const selected = key === selectedKey;
 
-            edges.color.setHex(outlined ? 0xffffff : EDGE_COLOR);
-            edges.opacity = outlined ? 1 : 0.6;
+            edges.color.setHex(selected ? SELECTION_COLOR : EDGE_COLOR);
+            edges.opacity = selected ? 1 : 0.6;
+            mesh.material.emissive.setHex(
+                !selected && key === hoveredKey ? HOVER_COLOR : 0x000000,
+            );
+            mesh.material.emissiveIntensity = 0.2;
+        }
+    }
 
-            if (outlined) {
-                mesh.material.emissive.copy(mesh.material.color);
-                mesh.material.emissiveIntensity = 0.6;
-            } else if (key === selectedKey) {
-                mesh.material.emissive.setHex(SELECTION_COLOR);
-                mesh.material.emissiveIntensity = 0.5;
-            } else {
-                mesh.material.emissive.setHex(key === hoveredKey ? HOVER_COLOR : 0x000000);
-                mesh.material.emissiveIntensity = 0.2;
-            }
+    function removeOutline(): void {
+        if (outline !== null) {
+            outline.removeFromParent();
+            outline.geometry.dispose();
+            outline = null;
+        }
+    }
+
+    function outlineSelection(): void {
+        removeOutline();
+
+        const mesh = elements.find((item) => item.userData.key === selectedKey);
+
+        if (mesh !== undefined) {
+            const edges = new EdgesGeometry(mesh.geometry);
+
+            outline = new LineSegments2(
+                new LineSegmentsGeometry().fromEdgesGeometry(edges),
+                outlineMaterial,
+            );
+            edges.dispose();
+            mesh.add(outline);
         }
     }
 
@@ -529,6 +574,8 @@ export function createStructureViewer(
     }
 
     function clear(): void {
+        removeOutline();
+
         if (model !== null) {
             scene.remove(model);
             disposeObject(model);
@@ -575,6 +622,7 @@ export function createStructureViewer(
         resize();
         fitLimits();
         applyLayers();
+        outlineSelection();
         paint();
 
         if (!framed) {
@@ -587,11 +635,17 @@ export function createStructureViewer(
 
     function select(key: string | null): void {
         selectedKey = key;
+        outlineSelection();
         paint();
     }
 
     function setColors(next: ElementColors | null): void {
         colors = next;
+        paint();
+    }
+
+    function setSurfaces(next: ElementSurfaces): void {
+        surfaces = next;
         paint();
     }
 
@@ -667,11 +721,22 @@ export function createStructureViewer(
         canvas.removeEventListener("pointerleave", handlePointerLeave);
         controls.dispose();
         clear();
+        outlineMaterial.dispose();
         sun.shadow.map?.dispose();
         sun.dispose();
         renderer.dispose();
         canvas.remove();
     }
 
-    return { show, select, setColors, setLayers, setPalette, setView, zoomBy, dispose };
+    return {
+        show,
+        select,
+        setColors,
+        setSurfaces,
+        setLayers,
+        setPalette,
+        setView,
+        zoomBy,
+        dispose,
+    };
 }
