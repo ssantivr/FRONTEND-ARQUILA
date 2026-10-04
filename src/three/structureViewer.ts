@@ -5,6 +5,7 @@ import {
     BoxGeometry,
     BufferGeometry,
     Color,
+    DataTexture,
     DirectionalLight,
     EdgesGeometry,
     ExtrudeGeometry,
@@ -12,6 +13,8 @@ import {
     Group,
     HemisphereLight,
     LineBasicMaterial,
+    LinearFilter,
+    LinearMipmapLinearFilter,
     LineSegments,
     Material,
     Mesh,
@@ -23,6 +26,7 @@ import {
     PerspectiveCamera,
     PointLight,
     Raycaster,
+    RepeatWrapping,
     Scene,
     Shape,
     Sphere,
@@ -52,7 +56,7 @@ import {
     surfaceOf,
     type ElementSurfaces,
 } from "../utils/surfaceMaterials";
-import { buildRoomShell } from "./roomGeometry";
+import { buildRoomShell, useMetricUVs } from "./roomGeometry";
 
 const HOVER_COLOR = 0x4a90c2;
 const SELECTION_COLOR = 0x00f0ff;
@@ -66,6 +70,9 @@ const CYAN_ACCENT = 0x00f0ff;
 const MAGENTA_ACCENT = 0xff007f;
 const ENVIRONMENT_INTENSITY = 0.3;
 const SHADOW_RADIUS = 3;
+const GRAIN_SIZE_PX = 128;
+const GRAIN_TILE_M = 1.5;
+const GRAIN_BUMP = 2;
 const TRUNK_COLOR = 0x5a4030;
 const CANOPY_COLOR = 0x3f7a4f;
 const EDGE_COLOR = 0x1b1410;
@@ -140,6 +147,41 @@ function insidePolygon(x: number, y: number, outline: StructureTerrain["outline"
     });
 
     return inside;
+}
+
+/** A tileable noise used as roughness and relief of the rough materials. */
+function buildGrain(): DataTexture {
+    const size = GRAIN_SIZE_PX;
+    const coarse = size / 8;
+    const data = new Uint8Array(size * size * 4);
+    let seed = 7;
+    const random = () => {
+        seed = (seed * 16807) % 2147483647;
+
+        return seed / 2147483647;
+    };
+    const blotches = Array.from({ length: coarse * coarse }, random);
+
+    for (let y = 0; y < size; y += 1) {
+        for (let x = 0; x < size; x += 1) {
+            const blotch = blotches[Math.floor(y / 8) * coarse + Math.floor(x / 8)];
+            const value = 255 * (0.7 + 0.12 * blotch + 0.18 * random());
+
+            data.fill(value, (y * size + x) * 4, (y * size + x) * 4 + 3);
+            data[(y * size + x) * 4 + 3] = 255;
+        }
+    }
+
+    const texture = new DataTexture(data, size, size);
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    texture.repeat.setScalar(1 / GRAIN_TILE_M);
+    texture.magFilter = LinearFilter;
+    texture.minFilter = LinearMipmapLinearFilter;
+    texture.generateMipmaps = true;
+    texture.needsUpdate = true;
+
+    return texture;
 }
 
 function standard(color: number, roughness: number, metalness = 0): MeshStandardMaterial {
@@ -220,7 +262,7 @@ function frameMaterial(): MeshPhysicalMaterial {
 function buildElement(element: StructureElement, openings: Opening[]): ElementMesh {
     const solid = new BoxGeometry(element.width_m, element.height_m, element.depth_m);
     const shell = element.kind === "room" ? buildRoomShell(element, openings) : null;
-    const geometry = shell === null ? solid : shell.walls;
+    const geometry = useMetricUVs(shell === null ? solid : shell.walls);
     const lines = shell === null ? new EdgesGeometry(solid) : shell.lines;
     const mesh: ElementMesh = new Mesh(geometry, buildMaterial(element));
 
@@ -413,6 +455,7 @@ export function createStructureViewer(
         magentaAccent,
     );
 
+    const grain = buildGrain();
     const outlineMaterial = new LineMaterial({
         color: SELECTION_COLOR,
         linewidth: OUTLINE_WIDTH_PX,
@@ -533,6 +576,16 @@ export function createStructureViewer(
             mesh.material.roughness = surface.roughness;
             mesh.material.metalness = surface.metalness;
             mesh.material.opacity = opacity;
+
+            const relief = colors === null && surface.grain > 0 ? grain : null;
+
+            if (mesh.material.bumpMap !== relief) {
+                mesh.material.bumpMap = relief;
+                mesh.material.roughnessMap = relief;
+                mesh.material.needsUpdate = true;
+            }
+
+            mesh.material.bumpScale = surface.grain * GRAIN_BUMP;
 
             if (mesh.material.transparent !== opacity < 1) {
                 mesh.material.transparent = opacity < 1;
@@ -767,6 +820,7 @@ export function createStructureViewer(
         clear();
         outlineMaterial.dispose();
         environmentMap.dispose();
+        grain.dispose();
         sun.shadow.map?.dispose();
         sun.dispose();
         renderer.dispose();

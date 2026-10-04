@@ -76,6 +76,34 @@ function rectangle(x: number, bottom: number, top: number, width: number): numbe
     ];
 }
 
+/** Rewrites the UVs in metres, so a texture keeps its scale on faces of any size. */
+export function useMetricUVs(geometry: BufferGeometry): BufferGeometry {
+    const position = geometry.getAttribute("position");
+    const normal = geometry.getAttribute("normal");
+    const uv: number[] = [];
+
+    for (let index = 0; index < position.count; index += 1) {
+        const x = position.getX(index);
+        const y = position.getY(index);
+        const z = position.getZ(index);
+        const nx = Math.abs(normal.getX(index));
+        const ny = Math.abs(normal.getY(index));
+        const nz = Math.abs(normal.getZ(index));
+
+        if (ny >= nx && ny >= nz) {
+            uv.push(x, z);
+        } else if (nx >= nz) {
+            uv.push(z, y);
+        } else {
+            uv.push(x, y);
+        }
+    }
+
+    geometry.setAttribute("uv", new Float32BufferAttribute(uv, 2));
+
+    return geometry;
+}
+
 export function buildRoomShell(element: StructureElement, openings: Opening[]): RoomShell {
     const { width_m: width, depth_m: depth, height_m: height } = element;
     const wall = Math.min(MAX_WALL_M, Math.min(width, depth) / 4);

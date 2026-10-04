@@ -9,25 +9,70 @@ export interface SurfaceMaterial {
     roughness: number;
     metalness: number;
     opacity: number;
+    /** Strength of the surface relief, from 0 (smooth) to 1. */
+    grain: number;
 }
 
 /** The surface material chosen for each element, by element key. */
 export type ElementSurfaces = Readonly<Record<string, SurfaceMaterialId>>;
 
 export const SURFACE_MATERIALS: Record<SurfaceMaterialId, SurfaceMaterial> = {
-    concrete: { label: "Concreto", color: 0xaab4bf, roughness: 0.85, metalness: 0, opacity: 1 },
-    brick: { label: "Ladrillo", color: 0xa9583f, roughness: 0.75, metalness: 0, opacity: 1 },
-    plaster: { label: "Revoque", color: 0x8d6a5a, roughness: 0.8, metalness: 0, opacity: 1 },
+    concrete: {
+        label: "Concreto",
+        color: 0xaab4bf,
+        roughness: 0.85,
+        metalness: 0,
+        opacity: 1,
+        grain: 0.6,
+    },
+    brick: {
+        label: "Ladrillo",
+        color: 0xa9583f,
+        roughness: 0.75,
+        metalness: 0,
+        opacity: 1,
+        grain: 1,
+    },
+    plaster: {
+        label: "Revoque",
+        color: 0x8d6a5a,
+        roughness: 0.8,
+        metalness: 0,
+        opacity: 1,
+        grain: 0.5,
+    },
     glass: {
         label: "Vidrio arquitectónico",
         color: 0x9fc4dc,
         roughness: 0.1,
         metalness: 0.8,
         opacity: 0.4,
+        grain: 0,
     },
-    steel: { label: "Acero", color: 0x8a939e, roughness: 0.35, metalness: 0.9, opacity: 1 },
-    wood: { label: "Madera", color: 0x9c6b3f, roughness: 0.7, metalness: 0, opacity: 1 },
-    stone: { label: "Piedra", color: 0x7d7a73, roughness: 0.9, metalness: 0, opacity: 1 },
+    steel: {
+        label: "Acero",
+        color: 0x8a939e,
+        roughness: 0.35,
+        metalness: 0.9,
+        opacity: 1,
+        grain: 0,
+    },
+    wood: {
+        label: "Madera",
+        color: 0x9c6b3f,
+        roughness: 0.7,
+        metalness: 0,
+        opacity: 1,
+        grain: 0.3,
+    },
+    stone: {
+        label: "Piedra",
+        color: 0x7d7a73,
+        roughness: 0.9,
+        metalness: 0,
+        opacity: 1,
+        grain: 1,
+    },
 };
 
 export const SURFACE_MATERIAL_IDS = Object.keys(SURFACE_MATERIALS) as SurfaceMaterialId[];

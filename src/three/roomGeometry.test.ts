@@ -1,9 +1,9 @@
-import { Box3 } from "three";
+import { Box3, BoxGeometry } from "three";
 import { describe, expect, it } from "vitest";
 
 import type { StructureRoom } from "../types/api";
 import type { Opening } from "../utils/openings";
-import { buildRoomShell } from "./roomGeometry";
+import { buildRoomShell, useMetricUVs } from "./roomGeometry";
 
 const ROOM: StructureRoom = {
     kind: "room",
@@ -66,5 +66,20 @@ describe("buildRoomShell", () => {
 
         expect(glass.max.x).toBeLessThanOrEqual(2.5);
         expect(glass.min.x).toBeGreaterThan(2.5 - 0.2);
+    });
+});
+
+describe("useMetricUVs", () => {
+    it("measures the texture in metres on every face", () => {
+        const uv = useMetricUVs(new BoxGeometry(4, 2, 6)).getAttribute("uv");
+        const spans = [0, 1].map((axis) => {
+            const values = Array.from({ length: uv.count }, (_, index) =>
+                axis === 0 ? uv.getX(index) : uv.getY(index),
+            );
+
+            return Math.max(...values) - Math.min(...values);
+        });
+
+        expect(spans).toEqual([6, 6]);
     });
 });
