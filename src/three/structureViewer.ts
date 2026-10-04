@@ -2,22 +2,29 @@ import {
     ACESFilmicToneMapping,
     AmbientLight,
     Box3,
+    BackSide,
     BoxGeometry,
+    BufferAttribute,
     BufferGeometry,
+    CircleGeometry,
     Color,
+    CylinderGeometry,
     DataTexture,
     DirectionalLight,
     EdgesGeometry,
     ExtrudeGeometry,
+    Fog,
     GridHelper,
     Group,
     HemisphereLight,
+    IcosahedronGeometry,
     LineBasicMaterial,
     LinearFilter,
     LinearMipmapLinearFilter,
     LineSegments,
     Material,
     Mesh,
+    MeshBasicMaterial,
     MeshPhysicalMaterial,
     MeshStandardMaterial,
     Object3D,
@@ -30,6 +37,7 @@ import {
     Scene,
     Shape,
     Sphere,
+    SphereGeometry,
     Vector2,
     Vector3,
     WebGLRenderer,
@@ -67,7 +75,7 @@ import { buildFlatRoof, buildRoomShell, applyMetricUVs } from "./roomGeometry";
 const HOVER_COLOR = 0x4a90c2;
 const SELECTION_COLOR = 0x00f0ff;
 const OUTLINE_WIDTH_PX = 3;
-const TERRAIN_COLOR = 0x35634a;
+const TERRAIN_COLOR = 0x4a7d55;
 const ROOF_COLOR = 0xb0655a;
 const SLAB_COLOR = 0xb9c0c8;
 const GLASS_COLOR = 0x9fc4dc;
@@ -82,6 +90,11 @@ const GRAIN_TILE_M = 1.5;
 const GRAIN_BUMP = 2;
 const TRUNK_COLOR = 0x5a4030;
 const CANOPY_COLOR = 0x3f7a4f;
+const CANOPY_LIGHT_COLOR = 0x5a9a5f;
+const SKY_FALLOFF = 0.35;
+const SKY_RADIUS_FACTOR = 20;
+const GROUND_RADIUS_FACTOR = 8;
+const FOG_DEPTH_FACTOR = 5;
 const EDGE_COLOR = 0x1b1410;
 const MUTED_COLOR = 0x39414d;
 const SLAB_THICKNESS_M = 0.3;
@@ -98,15 +111,29 @@ export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
 
 export interface ScenePalette {
-    background: number;
+    sky: number;
+    fog: number;
+    ground: number;
     grid: number;
     /** Strength of the cyan and magenta accent lights; 0 turns them off. */
     accent: number;
 }
 
 export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
-    light: { background: 0xe8ecf1, grid: 0xcfd5dd, accent: 0 },
-    dark: { background: 0x090a0f, grid: 0x232833, accent: 1.4 },
+    light: {
+        sky: 0xb7d3ee,
+        fog: 0xeef2f6,
+        ground: 0xdde3d8,
+        grid: 0xc2cabf,
+        accent: 0,
+    },
+    dark: {
+        sky: 0x14171e,
+        fog: 0x1a202c,
+        ground: 0x12161e,
+        grid: 0x262c38,
+        accent: 1.4,
+    },
 };
 
 const VIEW_DIRECTIONS: Record<ViewName, Vector3> = {
@@ -192,6 +219,36 @@ function buildGrain(): DataTexture {
     texture.needsUpdate = true;
 
     return texture;
+}
+
+/** A dome whose colour goes from the fog colour at the horizon to the sky colour overhead. */
+function buildSky(palette: ScenePalette, radius: number): Mesh {
+    const geometry = new SphereGeometry(radius, 32, 24);
+    const positions = geometry.getAttribute("position");
+    const colors = new Float32Array(positions.count * 3);
+    const horizon = new Color(palette.fog);
+    const sky = new Color(palette.sky);
+    const mixed = new Color();
+
+    for (let index = 0; index < positions.count; index += 1) {
+        const height = Math.max(positions.getY(index) / radius, 0);
+
+        mixed.copy(horizon).lerp(sky, Math.pow(height, SKY_FALLOFF));
+        mixed.toArray(colors, index * 3);
+    }
+
+    geometry.setAttribute("color", new BufferAttribute(colors, 3));
+
+    return new Mesh(
+        geometry,
+        new MeshBasicMaterial({
+            vertexColors: true,
+            side: BackSide,
+            fog: false,
+            toneMapped: false,
+            depthWrite: false,
+        }),
+    );
 }
 
 function standard(color: number, roughness: number, metalness = 0): MeshStandardMaterial {
@@ -370,21 +427,36 @@ function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
     mesh.position.set(...center);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    mesh.add(
+        new LineSegments(
+            new EdgesGeometry(geometry),
+            new LineBasicMaterial({ color: EDGE_COLOR, transparent: true, opacity: 0.45 }),
+        ),
+    );
 
     return mesh;
 }
 
 function buildTree(x: number, y: number): Group {
     const tree = new Group();
-    const trunk = new Mesh(new BoxGeometry(0.3, 1.6, 0.3), standard(TRUNK_COLOR, 0.9));
-    const canopy = new Mesh(new BoxGeometry(1.8, 1.8, 1.8), standard(CANOPY_COLOR, 0.9));
+    const trunk = new Mesh(new CylinderGeometry(0.12, 0.18, 1.6, 8), standard(TRUNK_COLOR, 0.9));
+    const canopy = new Mesh(new IcosahedronGeometry(1.15, 1), standard(CANOPY_COLOR, 0.9));
+    const crown = new Mesh(new IcosahedronGeometry(0.8, 1), standard(CANOPY_LIGHT_COLOR, 0.9));
+    const variation = (Math.abs(Math.round(x * 13 + y * 7)) % 5) / 5;
 
     trunk.position.y = 0.8;
-    canopy.position.y = 2.5;
-    trunk.castShadow = true;
-    canopy.castShadow = true;
-    tree.add(trunk, canopy);
+    canopy.position.y = 2.3;
+    crown.position.set(0.25, 3.2, -0.15);
+
+    for (const part of [trunk, canopy, crown]) {
+        part.material.flatShading = true;
+        part.castShadow = true;
+    }
+
+    tree.add(trunk, canopy, crown);
     tree.position.set(x, 0, -y);
+    tree.scale.setScalar(0.85 + variation * 0.4);
+    tree.rotation.y = variation * Math.PI * 2;
 
     return tree;
 }
@@ -458,7 +530,9 @@ export function createStructureViewer(
     const canvas = renderer.domElement;
     const scene = new Scene();
     let palette = SCENE_PALETTES.dark;
-    scene.background = new Color(palette.background);
+    const fog = new Fog(palette.fog, 1, 2);
+    scene.background = new Color(palette.fog);
+    scene.fog = fog;
 
     const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 0.1, 1000);
 
@@ -507,6 +581,8 @@ export function createStructureViewer(
     let roof: Mesh | null = null;
     let environment: Group | null = null;
     let grid: GridHelper | null = null;
+    let ground: Mesh | null = null;
+    let sky: Mesh | null = null;
     let layers: Layers = { rooms: true, roof: true, environment: true, grid: true };
     let selectedKey: string | null = null;
     let colors: ElementColors | null = null;
@@ -684,7 +760,8 @@ export function createStructureViewer(
 
     function setPalette(next: ScenePalette): void {
         palette = next;
-        scene.background = new Color(palette.background);
+        scene.background = new Color(palette.fog);
+        fog.color.setHex(palette.fog);
         cyanAccent.intensity = palette.accent;
         magentaAccent.intensity = palette.accent;
 
@@ -700,9 +777,30 @@ export function createStructureViewer(
             disposeObject(grid);
         }
 
+        if (ground !== null) {
+            parent.remove(ground);
+            disposeObject(ground);
+        }
+
+        if (sky !== null) {
+            parent.remove(sky);
+            disposeObject(sky);
+        }
+
+        sky = buildSky(palette, bounds.radius * SKY_RADIUS_FACTOR);
+        sky.position.set(bounds.center.x, -SLAB_THICKNESS_M, bounds.center.z);
+
+        ground = new Mesh(
+            new CircleGeometry(bounds.radius * GROUND_RADIUS_FACTOR, 64),
+            standard(palette.ground, 1),
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.08, bounds.center.z);
+        ground.receiveShadow = true;
+
         grid = new GridHelper(bounds.radius * 6, 60, palette.grid, palette.grid);
         grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05, bounds.center.z);
-        parent.add(grid);
+        parent.add(sky, ground, grid);
     }
 
     function setLayers(next: Layers): void {
@@ -721,6 +819,8 @@ export function createStructureViewer(
             roof = null;
             environment = null;
             grid = null;
+            ground = null;
+            sky = null;
         }
     }
 
@@ -866,6 +966,11 @@ export function createStructureViewer(
 
     renderer.setAnimationLoop(() => {
         controls.update();
+
+        const reach = camera.position.distanceTo(controls.target);
+
+        fog.near = reach + bounds.radius;
+        fog.far = reach + bounds.radius * FOG_DEPTH_FACTOR;
         renderer.render(scene, camera);
     });
 
