@@ -18,6 +18,9 @@ const MESSAGES: Record<string, string> = {
     "Owner already has a project with this name": "Ya tienes un proyecto con ese nombre.",
     "Project already has a material with this name":
         "El proyecto ya tiene un material con ese nombre.",
+    "The change conflicts with existing data":
+        "El cambio entra en conflicto con datos que ya existen.",
+    "Nothing to redo": "No hay nada que rehacer.",
     "Email is already registered": "Ese correo ya está registrado.",
     "Invalid email or password": "Correo o contraseña incorrectos.",
     "Not authenticated": "Tu sesión terminó. Vuelve a iniciar sesión.",
