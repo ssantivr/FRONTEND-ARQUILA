@@ -286,7 +286,7 @@ export interface Conversation {
 }
 
 export interface AssistantStatus {
-    provider: "claude" | "ollama" | "rules";
+    provider: "ollama" | "rules";
     model: string | null;
 }
 

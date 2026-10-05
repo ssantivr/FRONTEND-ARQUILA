@@ -18,7 +18,6 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 const SOURCE_STYLE: Record<AssistantStatus["provider"], string> = {
-    claude: "ai",
     ollama: "ai",
     rules: "system",
 };
@@ -38,10 +37,6 @@ export function elementQuestion(element: StructureElement): string {
 }
 
 export function describeStatus(status: AssistantStatus): string {
-    if (status.provider === "claude") {
-        return `Claude (${status.model})`;
-    }
-
     if (status.provider === "ollama") {
         return `Modelo local ${status.model} (Ollama)`;
     }
