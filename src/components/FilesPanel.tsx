@@ -16,10 +16,12 @@ const TYPE_LABELS: Record<string, string> = {
 
 interface FilesPanelProps extends SectionProps {
     files: ProjectFile[];
+    /** Another action of the project is being saved, so a file chosen now would be dropped. */
+    busy: boolean;
     onChanged: () => void;
 }
 
-export function FilesPanel({ projectId, run, files, onChanged }: FilesPanelProps) {
+export function FilesPanel({ projectId, run, files, busy, onChanged }: FilesPanelProps) {
     const input = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
@@ -104,7 +106,7 @@ export function FilesPanel({ projectId, run, files, onChanged }: FilesPanelProps
                         ref={input}
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg,.webp"
-                        disabled={uploading}
+                        disabled={uploading || busy}
                         onChange={handleSelect}
                     />
                 </label>

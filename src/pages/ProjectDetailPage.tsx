@@ -235,6 +235,7 @@ export function ProjectDetailPage({
                     projectId={projectId}
                     run={run}
                     files={projectFiles}
+                    busy={actionPending}
                     onChanged={handleFilesChanged}
                 />
             )}
