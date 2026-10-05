@@ -40,6 +40,7 @@ export function ProjectDetailPage({
     const [actionPending, setActionPending] = useState(false);
     const running = useRef(false);
     const [panelsVersion, setPanelsVersion] = useState(0);
+    const [plansVersion, setPlansVersion] = useState(0);
     const [section, setSection] = useState<SectionId>(initialSection);
     const [editingProject, setEditingProject] = useState(false);
     const projectFiles = files.data ?? [];
@@ -70,6 +71,13 @@ export function ProjectDetailPage({
 
         onDone();
         undoable.reload();
+    }
+
+    function runOnPlans(action: () => Promise<unknown>, onDone: () => void) {
+        return run(action, () => {
+            onDone();
+            setPlansVersion((version) => version + 1);
+        });
     }
 
     const lastDeleted = undoable.data?.[0];
@@ -195,8 +203,12 @@ export function ProjectDetailPage({
                 {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}
                 {section === "plans" && (
                     <>
-                        <PlansPanel projectId={projectId} run={run} files={projectFiles} />
-                        <FloorPlansPanel projectId={projectId} projectName={current.name} />
+                        <PlansPanel projectId={projectId} run={runOnPlans} files={projectFiles} />
+                        <FloorPlansPanel
+                            projectId={projectId}
+                            projectName={current.name}
+                            version={plansVersion}
+                        />
                         <SitePlanPanel projectId={projectId} />
                     </>
                 )}

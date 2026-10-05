@@ -13,6 +13,8 @@ import { Panel } from "./Panel";
 interface FloorPlansPanelProps {
     projectId: number;
     projectName: string;
+    /** Changes whenever the plans of the project do, so the drawings are loaded again. */
+    version: number;
 }
 
 const DEFAULT_MAX_COS = "0.6";
@@ -32,8 +34,8 @@ function compliance(value: number | null, limit: string): string {
     return `${value <= max ? "Cumple" : "No cumple"} · máx. ${formatNumber(max)}`;
 }
 
-export function FloorPlansPanel({ projectId, projectName }: FloorPlansPanelProps) {
-    const structure = useAsync(() => structureApi.get(projectId), [projectId]);
+export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansPanelProps) {
+    const structure = useAsync(() => structureApi.get(projectId), [projectId, version]);
     const [maxCos, setMaxCos] = useState(DEFAULT_MAX_COS);
     const [maxCus, setMaxCus] = useState(DEFAULT_MAX_CUS);
     const levels = structure.data === null ? [] : planLevels(structure.data);
