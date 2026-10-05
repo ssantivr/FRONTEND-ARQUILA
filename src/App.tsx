@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 
 import { Panel } from "./components/Panel";
 import { Sidebar, type View } from "./components/Sidebar";
@@ -16,6 +16,10 @@ import { authApi } from "./services/api";
 import { setTheme, useTheme } from "./state/theme";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
+
+const InteriorPage = lazy(() =>
+    import("./pages/InteriorPage").then((module) => ({ default: module.InteriorPage })),
+);
 
 type Session =
     | { state: "loading" }
@@ -147,6 +151,12 @@ export function App() {
                         tool="viewer"
                         onOpenProject={(id) => openProject(id, "model")}
                     />
+                );
+            case "interior":
+                return (
+                    <Suspense fallback={<p className="message">Cargando…</p>}>
+                        <InteriorPage />
+                    </Suspense>
                 );
             case "assistant":
                 return (

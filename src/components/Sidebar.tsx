@@ -1,7 +1,14 @@
 import { Icon, type IconName } from "./Icon";
 
 export type View =
-    "home" | "projects" | "terrains" | "materials" | "viewer" | "assistant" | "settings";
+    | "home"
+    | "projects"
+    | "terrains"
+    | "materials"
+    | "viewer"
+    | "interior"
+    | "assistant"
+    | "settings";
 
 export interface Module {
     id: View;
@@ -40,6 +47,12 @@ export const MODULES: Module[] = [
         label: "Visualización 3D",
         icon: "viewer",
         description: "Modelo 3D de un proyecto: terrenos, niveles, cuartos y estructura.",
+    },
+    {
+        id: "interior",
+        label: "Recorrido interior",
+        icon: "interior",
+        description: "Interior 3D de un loft de doble altura con la ciudad al atardecer.",
     },
     {
         id: "assistant",
