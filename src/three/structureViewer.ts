@@ -595,20 +595,46 @@ export function createStructureViewer(
     let pressX = 0;
     let pressY = 0;
     let lastZoom = 0;
+    let viewport = "";
+    let dirty = true;
 
+    function invalidate(): void {
+        dirty = true;
+    }
+
+    function render(): void {
+        const reach = camera.position.distanceTo(controls.target);
+
+        dirty = false;
+        fog.near = reach + bounds.radius;
+        fog.far = reach + bounds.radius * FOG_DEPTH_FACTOR;
+        renderer.render(scene, camera);
+    }
+
+    /** Resizing clears the canvas, so it is drawn again at once instead of on the next frame. */
     function resize(): void {
         const width = container.clientWidth;
         const height = container.clientHeight;
+        const pixelRatio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
+        const next = `${width}x${height}@${pixelRatio}`;
 
-        if (width === 0 || height === 0) {
+        if (width === 0 || height === 0 || next === viewport) {
             return;
         }
 
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
+        viewport = next;
+        renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height, false);
         outlineMaterial.resolution.set(width, height);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+
+        if (model !== null) {
+            fitLimits();
+            reportZoom();
+        }
+
+        render();
     }
 
     function viewDistance(): number {
@@ -714,6 +740,8 @@ export function createStructureViewer(
             mesh.material.emissive.setHex(!selected && key === hoveredKey ? HOVER_COLOR : 0x000000);
             mesh.material.emissiveIntensity = 0.2;
         }
+
+        invalidate();
     }
 
     function removeOutline(): void {
@@ -759,6 +787,10 @@ export function createStructureViewer(
     }
 
     function setPalette(next: ScenePalette): void {
+        if (next === palette) {
+            return;
+        }
+
         palette = next;
         scene.background = new Color(palette.fog);
         fog.color.setHex(palette.fog);
@@ -949,15 +981,23 @@ export function createStructureViewer(
     }
 
     function handlePointerLeave(): void {
-        hoveredKey = null;
-        canvas.style.cursor = "";
-        paint();
+        if (hoveredKey !== null) {
+            hoveredKey = null;
+            canvas.style.cursor = "";
+            paint();
+        }
+    }
+
+    function handleCameraChange(): void {
+        invalidate();
+        reportZoom();
     }
 
     const observer = new ResizeObserver(resize);
     observer.observe(container);
     window.addEventListener("resize", resize);
-    controls.addEventListener("change", reportZoom);
+    controls.addEventListener("change", handleCameraChange);
+    canvas.addEventListener("webglcontextrestored", invalidate);
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointermove", handlePointerMove);
@@ -967,18 +1007,17 @@ export function createStructureViewer(
     renderer.setAnimationLoop(() => {
         controls.update();
 
-        const reach = camera.position.distanceTo(controls.target);
-
-        fog.near = reach + bounds.radius;
-        fog.far = reach + bounds.radius * FOG_DEPTH_FACTOR;
-        renderer.render(scene, camera);
+        if (dirty) {
+            render();
+        }
     });
 
     function dispose(): void {
         renderer.setAnimationLoop(null);
         observer.disconnect();
         window.removeEventListener("resize", resize);
-        controls.removeEventListener("change", reportZoom);
+        controls.removeEventListener("change", handleCameraChange);
+        canvas.removeEventListener("webglcontextrestored", invalidate);
         canvas.removeEventListener("pointerdown", handlePointerDown);
         canvas.removeEventListener("pointerup", handlePointerUp);
         canvas.removeEventListener("pointermove", handlePointerMove);
@@ -991,19 +1030,30 @@ export function createStructureViewer(
         sun.shadow.map?.dispose();
         sun.dispose();
         renderer.dispose();
+        renderer.forceContextLoss();
         canvas.remove();
     }
 
+    /** The scene is only drawn again after something in it changed. */
+    function changing<Arguments extends unknown[]>(
+        action: (...values: Arguments) => void,
+    ): (...values: Arguments) => void {
+        return (...values) => {
+            action(...values);
+            invalidate();
+        };
+    }
+
     return {
-        show,
-        select,
-        setColors,
-        setSurfaces,
-        setRoof,
-        setLayers,
-        setPalette,
-        setView,
-        zoomBy,
+        show: changing(show),
+        select: changing(select),
+        setColors: changing(setColors),
+        setSurfaces: changing(setSurfaces),
+        setRoof: changing(setRoof),
+        setLayers: changing(setLayers),
+        setPalette: changing(setPalette),
+        setView: changing(setView),
+        zoomBy: changing(zoomBy),
         dispose,
     };
 }

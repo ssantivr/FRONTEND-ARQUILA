@@ -21,6 +21,7 @@ const DOOR_LEAF_M = 0.05;
 const THRESHOLD_M = 0.02;
 const BAND_M = 0.1;
 const PARAPET_M = 0.15;
+const BAND_LIFT_M = 0.005;
 
 const SIDE_ROTATION: Record<Side, number> = {
     front: 0,
@@ -39,7 +40,7 @@ export interface RoomShell {
     glass: BufferGeometry | null;
     frames: BufferGeometry | null;
     door: BufferGeometry | null;
-    /** The edge of the slab above the room, which sticks out of the walls. */
+    /** The edge of the slab above the room, which sticks out of the walls and just over them. */
     band: BufferGeometry;
 }
 
@@ -278,7 +279,7 @@ export function buildRoomShell(element: StructureElement, openings: Opening[]): 
             width + 2 * SLAB_OVERHANG_M,
             BAND_M,
             depth + 2 * SLAB_OVERHANG_M,
-        ).translate(0, -floor - BAND_M / 2, 0),
+        ).translate(0, -floor - BAND_M / 2 + BAND_LIFT_M, 0),
     };
 }
 

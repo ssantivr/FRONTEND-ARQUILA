@@ -133,7 +133,10 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
             }
 
             const added = await conversationsApi.sendMessage(id, content);
-            setMessages((current) => [...current, ...added]);
+            setMessages((current) => [
+                ...current.filter((message) => !added.some((item) => item.id === message.id)),
+                ...added,
+            ]);
             setDraft("");
             conversations.reload();
         } catch (reason) {
@@ -152,6 +155,7 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
                         <select
                             aria-label="Conversación"
                             value={conversationId ?? ""}
+                            disabled={sending}
                             onChange={(event) =>
                                 setConversationId(
                                     event.target.value === "" ? null : Number(event.target.value),

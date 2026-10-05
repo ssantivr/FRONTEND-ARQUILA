@@ -181,12 +181,13 @@ export function StructureViewer({ structure }: { structure: Structure }) {
 
     /** Shows the new material at once and puts the old one back if it cannot be saved. */
     function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
-        const previous = surfaces;
+        const key = elementKey(element);
+        const previous = surfaceOf(surfaces, key, element.kind);
 
         setSaveError(null);
-        appState.setSurface(projectId, elementKey(element), surface);
+        appState.setSurface(projectId, key, surface);
         structureApi.setSurface(projectId, element, surface).catch((reason: unknown) => {
-            appState.setSurfaces(projectId, previous);
+            appState.setSurface(projectId, key, previous);
             setSaveError(`No se guardó el material: ${errorMessage(reason)}`);
         });
     }
