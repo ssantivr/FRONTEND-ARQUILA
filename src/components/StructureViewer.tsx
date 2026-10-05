@@ -367,7 +367,10 @@ export function StructureViewer({ structure }: { structure: Structure }) {
             <aside className="hud hud-inspector" aria-live="polite" aria-label="Inspector">
                 <h3>Inspector</h3>
                 {selected === null ? (
-                    <p>Haz clic en un cuarto o en un componente para inspeccionarlo.</p>
+                    <p>
+                        Haz clic en un cuarto o en un componente para inspeccionarlo, o doble clic
+                        para acercar la cámara a él.
+                    </p>
                 ) : (
                     <dl>
                         <dt>Nombre</dt>
@@ -422,6 +425,16 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                         )}
                     </dl>
                 )}
+                {selected !== null && (
+                    <button
+                        type="button"
+                        className="hud-item"
+                        title="Acerca la cámara al elemento seleccionado"
+                        onClick={() => viewer.current?.focus(selectedKey)}
+                    >
+                        Enfocar
+                    </button>
+                )}
                 {saveError !== null && (
                     <p className="message message-error" role="alert">
                         {saveError}
@@ -474,7 +487,12 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                 {colorNote !== null && <p>{colorNote}</p>}
             </aside>
             <div className="hud hud-toolbar">
-                <button type="button" className="hud-item" onClick={() => chooseView(view)}>
+                <button
+                    type="button"
+                    className="hud-item"
+                    title="Vuelve a encuadrar todo el modelo"
+                    onClick={() => chooseView(view)}
+                >
                     Restablecer vista
                 </button>
                 <button type="button" className="hud-item" onClick={toggleFullscreen}>

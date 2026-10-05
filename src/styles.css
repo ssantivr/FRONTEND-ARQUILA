@@ -1287,3 +1287,39 @@ code {
     background: var(--accent-soft);
     border-color: var(--accent);
 }
+
+:root[data-theme="dark"] .structure-stage {
+    background: #090a0f;
+    border-color: rgba(0, 240, 255, 0.22);
+}
+
+:root[data-theme="dark"] .structure-stage .hud {
+    background: rgba(13, 16, 24, 0.55);
+    border-color: rgba(0, 240, 255, 0.18);
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+}
+
+:root[data-theme="dark"] .structure-stage .hud-item {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .structure-stage .hud-item:hover {
+    border-color: rgba(255, 0, 127, 0.6);
+}
+
+:root[data-theme="dark"] .structure-stage .hud-item[aria-pressed="true"] {
+    color: #00f0ff;
+    background: rgba(0, 240, 255, 0.1);
+    border-color: #00f0ff;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+}
+
+.hud-inspector .hud-item {
+    margin-top: 8px;
+    text-align: center;
+}

@@ -8,7 +8,6 @@ import {
     BufferGeometry,
     CircleGeometry,
     Color,
-    CylinderGeometry,
     DataTexture,
     DirectionalLight,
     EdgesGeometry,
@@ -17,7 +16,7 @@ import {
     GridHelper,
     Group,
     HemisphereLight,
-    IcosahedronGeometry,
+    InstancedMesh,
     LineBasicMaterial,
     LinearFilter,
     LinearMipmapLinearFilter,
@@ -42,7 +41,6 @@ import {
     Vector3,
     WebGLRenderer,
 } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
@@ -70,7 +68,10 @@ import {
     surfaceOf,
     type ElementSurfaces,
 } from "../utils/surfaceMaterials";
+import { createCameraRig, type ViewName } from "./cameraRig";
+import { createPostprocessing } from "./postprocessing";
 import { buildFlatRoof, buildRoomShell, applyMetricUVs } from "./roomGeometry";
+import { buildTrees, type TreeSpot } from "./vegetation";
 
 const HOVER_COLOR = 0x4a90c2;
 const SELECTION_COLOR = 0x00f0ff;
@@ -88,9 +89,11 @@ const SHADOW_RADIUS = 3;
 const GRAIN_SIZE_PX = 128;
 const GRAIN_TILE_M = 1.5;
 const GRAIN_BUMP = 2;
-const TRUNK_COLOR = 0x5a4030;
-const CANOPY_COLOR = 0x3f7a4f;
-const CANOPY_LIGHT_COLOR = 0x5a9a5f;
+const NEON_BOOST = 3;
+const LOT_EDGE_BOOST = 1.5;
+const LOT_EDGE_WIDTH_PX = 2;
+const BLOOM_STRENGTH = 0.55;
+const WINDOW_GLOW = 0.5;
 const SKY_FALLOFF = 0.35;
 const SKY_RADIUS_FACTOR = 20;
 const GROUND_RADIUS_FACTOR = 8;
@@ -106,7 +109,7 @@ const SURFACE_GAP_M = 0.02;
 const TREE_SPACING_M = 4.5;
 const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
 
-export type ViewName = "isometric" | "front" | "side" | "top";
+export type { ViewName };
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
 
@@ -115,8 +118,11 @@ export interface ScenePalette {
     fog: number;
     ground: number;
     grid: number;
+    axis: number;
     /** Strength of the cyan and magenta accent lights; 0 turns them off. */
     accent: number;
+    /** How much the neon accents glow, from 0 (no bloom at all) to 1. */
+    glow: number;
 }
 
 export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
@@ -125,22 +131,19 @@ export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
         fog: 0xeef2f6,
         ground: 0xdde3d8,
         grid: 0xc2cabf,
+        axis: 0xc2cabf,
         accent: 0,
+        glow: 0,
     },
     dark: {
-        sky: 0x14171e,
-        fog: 0x1a202c,
-        ground: 0x12161e,
-        grid: 0x262c38,
+        sky: 0x10131f,
+        fog: 0x090a0f,
+        ground: 0x0b0d14,
+        grid: 0x1b2030,
+        axis: 0x0d5a63,
         accent: 1.4,
+        glow: 1,
     },
-};
-
-const VIEW_DIRECTIONS: Record<ViewName, Vector3> = {
-    isometric: new Vector3(0.7, 0.6, 1).normalize(),
-    front: new Vector3(0, 0.22, 1).normalize(),
-    side: new Vector3(1, 0.22, 0).normalize(),
-    top: new Vector3(0, 1, 0.001).normalize(),
 };
 
 export interface StructureViewer {
@@ -152,6 +155,8 @@ export interface StructureViewer {
     setLayers: (layers: Layers) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
+    /** Flies the camera to an element, or back to the whole model when the key is null. */
+    focus: (key: string | null) => void;
     zoomBy: (factor: number) => void;
     dispose: () => void;
 }
@@ -320,29 +325,52 @@ function buildSlab(geometry: BufferGeometry): Mesh {
     return slab;
 }
 
-function glassMaterial(): MeshPhysicalMaterial {
-    return new MeshPhysicalMaterial({
-        color: GLASS_COLOR,
-        transparent: true,
-        opacity: 0.4,
-        roughness: 0.1,
-        metalness: 0.8,
-        depthWrite: false,
-    });
+/** Materials every room shares; they outlive the model and are disposed with the viewer. */
+interface SharedMaterials {
+    glass: MeshPhysicalMaterial;
+    frame: MeshPhysicalMaterial;
 }
 
-function frameMaterial(): MeshPhysicalMaterial {
-    return new MeshPhysicalMaterial({
-        color: FRAME_COLOR,
-        roughness: 0.35,
-        metalness: 0.9,
-        clearcoat: 0.4,
-        clearcoatRoughness: 0.3,
-    });
+function shared<Shared extends Material>(material: Shared): Shared {
+    material.userData.shared = true;
+
+    return material;
+}
+
+function buildSharedMaterials(): SharedMaterials {
+    return {
+        glass: shared(
+            new MeshPhysicalMaterial({
+                color: GLASS_COLOR,
+                transparent: true,
+                opacity: 0.4,
+                roughness: 0.08,
+                metalness: 0.8,
+                clearcoat: 1,
+                clearcoatRoughness: 0.05,
+                emissive: CYAN_ACCENT,
+                emissiveIntensity: 0,
+                depthWrite: false,
+            }),
+        ),
+        frame: shared(
+            new MeshPhysicalMaterial({
+                color: FRAME_COLOR,
+                roughness: 0.35,
+                metalness: 0.9,
+                clearcoat: 0.4,
+                clearcoatRoughness: 0.3,
+            }),
+        ),
+    };
 }
 
 /** A room is a hollow shell with real openings; every other element is a solid box. */
-function buildElement(element: StructureElement, openings: Opening[]): ElementMesh {
+function buildElement(
+    element: StructureElement,
+    openings: Opening[],
+    materials: SharedMaterials,
+): ElementMesh {
     const solid = new BoxGeometry(element.width_m, element.height_m, element.depth_m);
     const shell = element.kind === "room" ? buildRoomShell(element, openings) : null;
     const geometry = applyMetricUVs(shell === null ? solid : shell.walls);
@@ -355,7 +383,7 @@ function buildElement(element: StructureElement, openings: Opening[]): ElementMe
         mesh.add(buildSlab(shell.band));
 
         if (shell.frames !== null) {
-            const frames = new Mesh(shell.frames, frameMaterial());
+            const frames = new Mesh(shell.frames, materials.frame);
             frames.castShadow = true;
             mesh.add(frames);
         }
@@ -367,7 +395,7 @@ function buildElement(element: StructureElement, openings: Opening[]): ElementMe
         }
 
         if (shell.glass !== null) {
-            mesh.add(new Mesh(shell.glass, glassMaterial()));
+            mesh.add(new Mesh(shell.glass, materials.glass));
         }
     }
 
@@ -437,32 +465,8 @@ function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
     return mesh;
 }
 
-function buildTree(x: number, y: number): Group {
-    const tree = new Group();
-    const trunk = new Mesh(new CylinderGeometry(0.12, 0.18, 1.6, 8), standard(TRUNK_COLOR, 0.9));
-    const canopy = new Mesh(new IcosahedronGeometry(1.15, 1), standard(CANOPY_COLOR, 0.9));
-    const crown = new Mesh(new IcosahedronGeometry(0.8, 1), standard(CANOPY_LIGHT_COLOR, 0.9));
-    const variation = (Math.abs(Math.round(x * 13 + y * 7)) % 5) / 5;
-
-    trunk.position.y = 0.8;
-    canopy.position.y = 2.3;
-    crown.position.set(0.25, 3.2, -0.15);
-
-    for (const part of [trunk, canopy, crown]) {
-        part.material.flatShading = true;
-        part.castShadow = true;
-    }
-
-    tree.add(trunk, canopy, crown);
-    tree.position.set(x, 0, -y);
-    tree.scale.setScalar(0.85 + variation * 0.4);
-    tree.rotation.y = variation * Math.PI * 2;
-
-    return tree;
-}
-
 function buildEnvironment(structure: Structure): Group {
-    const environment = new Group();
+    const planted: TreeSpot[] = [];
     const blocked = [...structure.rooms, ...structure.components].map(rectOf);
 
     for (const terrain of structure.terrains) {
@@ -494,17 +498,36 @@ function buildEnvironment(structure: Structure): Group {
             );
 
             if (clear && insidePolygon(x, y, terrain.outline)) {
-                environment.add(buildTree(x, y));
+                planted.push({ x, y });
             }
         }
     }
 
-    return environment;
+    return buildTrees(planted);
+}
+
+/** The boundary of each lot as a thin line, which glows in the dark scene. */
+function buildLotEdges(terrains: StructureTerrain[], material: LineMaterial): Group {
+    const edges = new Group();
+
+    for (const { outline } of terrains) {
+        const positions = outline.flatMap((point, index) => {
+            const next = outline[(index + 1) % outline.length];
+
+            return [point.x_m, SURFACE_GAP_M, -point.y_m, next.x_m, SURFACE_GAP_M, -next.y_m];
+        });
+
+        edges.add(new LineSegments2(new LineSegmentsGeometry().setPositions(positions), material));
+    }
+
+    return edges;
 }
 
 function disposeMaterial(material: Material | Material[]): void {
     for (const item of Array.isArray(material) ? material : [material]) {
-        item.dispose();
+        if (item.userData.shared !== true) {
+            item.dispose();
+        }
     }
 }
 
@@ -513,6 +536,10 @@ function disposeObject(root: Object3D): void {
         if (child instanceof Mesh || child instanceof LineSegments) {
             child.geometry.dispose();
             disposeMaterial(child.material);
+        }
+
+        if (child instanceof InstancedMesh) {
+            child.dispose();
         }
     });
 }
@@ -536,10 +563,8 @@ export function createStructureViewer(
 
     const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 0.1, 1000);
 
-    const controls = new OrbitControls(camera, canvas);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.maxPolarAngle = Math.PI / 2 - 0.02;
+    const rig = createCameraRig(camera, canvas, handleCameraChange);
+    const post = createPostprocessing(renderer, scene, camera);
 
     const pmrem = new PMREMGenerator(renderer);
     const room = new RoomEnvironment();
@@ -568,10 +593,9 @@ export function createStructureViewer(
     );
 
     const grain = buildGrain();
-    const outlineMaterial = new LineMaterial({
-        color: SELECTION_COLOR,
-        linewidth: OUTLINE_WIDTH_PX,
-    });
+    const materials = buildSharedMaterials();
+    const outlineMaterial = shared(new LineMaterial({ linewidth: OUTLINE_WIDTH_PX }));
+    const lotEdgeMaterial = shared(new LineMaterial({ linewidth: LOT_EDGE_WIDTH_PX }));
     const raycaster = new Raycaster();
     const pointer = new Vector2();
     const bounds = new Sphere(new Vector3(), 1);
@@ -580,6 +604,7 @@ export function createStructureViewer(
     let elements: ElementMesh[] = [];
     let roof: Mesh | null = null;
     let environment: Group | null = null;
+    let lotEdges: Group | null = null;
     let grid: GridHelper | null = null;
     let ground: Mesh | null = null;
     let sky: Mesh | null = null;
@@ -603,12 +628,12 @@ export function createStructureViewer(
     }
 
     function render(): void {
-        const reach = camera.position.distanceTo(controls.target);
+        const reach = rig.distance();
 
         dirty = false;
         fog.near = reach + bounds.radius;
         fog.far = reach + bounds.radius * FOG_DEPTH_FACTOR;
-        renderer.render(scene, camera);
+        post.render();
     }
 
     /** Resizing clears the canvas, so it is drawn again at once instead of on the next frame. */
@@ -625,7 +650,9 @@ export function createStructureViewer(
         viewport = next;
         renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height, false);
+        post.setSize(width, height, pixelRatio);
         outlineMaterial.resolution.set(width, height);
+        lotEdgeMaterial.resolution.set(width, height);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
 
@@ -637,16 +664,8 @@ export function createStructureViewer(
         render();
     }
 
-    function viewDistance(): number {
-        const fitAngle = Math.min(FIELD_OF_VIEW, FIELD_OF_VIEW * camera.aspect) / 2;
-
-        return bounds.radius / Math.sin((fitAngle * Math.PI) / 180);
-    }
-
     function reportZoom(): void {
-        const percent = Math.round(
-            (viewDistance() / camera.position.distanceTo(controls.target)) * 100,
-        );
+        const percent = rig.zoomPercent();
 
         if (percent !== lastZoom) {
             lastZoom = percent;
@@ -655,13 +674,7 @@ export function createStructureViewer(
     }
 
     function fitLimits(): void {
-        const distance = viewDistance();
-
-        camera.near = distance / 200;
-        camera.far = distance * 12;
-        camera.updateProjectionMatrix();
-        controls.minDistance = bounds.radius * 0.3;
-        controls.maxDistance = distance * 4;
+        rig.fit(bounds);
 
         sun.position.copy(bounds.center).addScaledVector(LIGHT_DIRECTION, bounds.radius * 2);
         sun.target.position.copy(bounds.center);
@@ -681,23 +694,24 @@ export function createStructureViewer(
             .add(new Vector3(1.2, 0.35, -1).multiplyScalar(bounds.radius));
     }
 
+    /** The first view is set at once; later ones fly there. */
     function setView(view: ViewName): void {
-        camera.position.copy(bounds.center).addScaledVector(VIEW_DIRECTIONS[view], viewDistance());
-        controls.target.copy(bounds.center);
-        controls.update();
+        rig.frame(view, framed);
         reportZoom();
     }
 
     function zoomBy(factor: number): void {
-        const offset = camera.position.clone().sub(controls.target);
-        const distance = Math.min(
-            Math.max(offset.length() / factor, controls.minDistance),
-            controls.maxDistance,
-        );
+        rig.zoomBy(factor);
+    }
 
-        camera.position.copy(controls.target).add(offset.setLength(distance));
-        controls.update();
-        reportZoom();
+    function focus(key: string | null): void {
+        const mesh = elements.find((item) => item.userData.key === key);
+
+        rig.focus(
+            mesh === undefined
+                ? null
+                : new Box3().setFromObject(mesh).getBoundingSphere(new Sphere()),
+        );
     }
 
     function paint(): void {
@@ -781,6 +795,10 @@ export function createStructureViewer(
             environment.visible = layers.environment;
         }
 
+        if (lotEdges !== null) {
+            lotEdges.visible = palette.glow > 0;
+        }
+
         if (grid !== null) {
             grid.visible = layers.grid;
         }
@@ -792,15 +810,24 @@ export function createStructureViewer(
         }
 
         palette = next;
-        scene.background = new Color(palette.fog);
-        fog.color.setHex(palette.fog);
-        cyanAccent.intensity = palette.accent;
-        magentaAccent.intensity = palette.accent;
+        applyPalette();
 
         if (model !== null) {
             buildGrid(model);
             applyLayers();
         }
+    }
+
+    /** In the dark scene the neon accents are brighter than white, which is what makes them glow. */
+    function applyPalette(): void {
+        scene.background = new Color(palette.fog);
+        fog.color.setHex(palette.fog);
+        cyanAccent.intensity = palette.accent;
+        magentaAccent.intensity = palette.accent;
+        post.setBloom(palette.glow * BLOOM_STRENGTH);
+        outlineMaterial.color.setHex(SELECTION_COLOR).multiplyScalar(1 + NEON_BOOST * palette.glow);
+        lotEdgeMaterial.color.setHex(CYAN_ACCENT).multiplyScalar(1 + LOT_EDGE_BOOST * palette.glow);
+        materials.glass.emissiveIntensity = palette.glow * WINDOW_GLOW;
     }
 
     function buildGrid(parent: Group): void {
@@ -830,7 +857,7 @@ export function createStructureViewer(
         ground.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.08, bounds.center.z);
         ground.receiveShadow = true;
 
-        grid = new GridHelper(bounds.radius * 6, 60, palette.grid, palette.grid);
+        grid = new GridHelper(bounds.radius * 6, 60, palette.axis, palette.grid);
         grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05, bounds.center.z);
         parent.add(sky, ground, grid);
     }
@@ -850,6 +877,7 @@ export function createStructureViewer(
             elements = [];
             roof = null;
             environment = null;
+            lotEdges = null;
             grid = null;
             ground = null;
             sky = null;
@@ -860,7 +888,7 @@ export function createStructureViewer(
         const openings = placeOpenings(structure.rooms);
 
         return [...structure.rooms, ...structure.components].map((element) =>
-            buildElement(element, openings.get(elementKey(element)) ?? []),
+            buildElement(element, openings.get(elementKey(element)) ?? [], materials),
         );
     }
 
@@ -871,6 +899,7 @@ export function createStructureViewer(
         roofRooms = structure.rooms;
         roof = buildRoof(roofRooms, roofKind);
         environment = buildEnvironment(structure);
+        lotEdges = buildLotEdges(structure.terrains, lotEdgeMaterial);
         model = new Group();
         model.add(...structure.terrains.map(buildTerrain), ...elements, environment);
 
@@ -882,6 +911,7 @@ export function createStructureViewer(
         bounds.radius = Math.max(bounds.radius, 1);
 
         buildGrid(model);
+        model.add(lotEdges);
         scene.add(model);
 
         hoveredKey = null;
@@ -940,7 +970,7 @@ export function createStructureViewer(
         paint();
     }
 
-    function pick(event: PointerEvent): string | null {
+    function pick(event: MouseEvent): string | null {
         const box = canvas.getBoundingClientRect();
 
         pointer.set(
@@ -988,6 +1018,17 @@ export function createStructureViewer(
         }
     }
 
+    function handleDoubleClick(event: MouseEvent): void {
+        const key = pick(event);
+
+        if (key !== null) {
+            events.onSelect(key);
+        }
+
+        focus(key);
+        invalidate();
+    }
+
     function handleCameraChange(): void {
         invalidate();
         reportZoom();
@@ -996,16 +1037,17 @@ export function createStructureViewer(
     const observer = new ResizeObserver(resize);
     observer.observe(container);
     window.addEventListener("resize", resize);
-    controls.addEventListener("change", handleCameraChange);
     canvas.addEventListener("webglcontextrestored", invalidate);
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.addEventListener("pointerleave", handlePointerLeave);
+    canvas.addEventListener("dblclick", handleDoubleClick);
+    applyPalette();
     resize();
 
-    renderer.setAnimationLoop(() => {
-        controls.update();
+    renderer.setAnimationLoop((time) => {
+        rig.update(time);
 
         if (dirty) {
             render();
@@ -1016,14 +1058,18 @@ export function createStructureViewer(
         renderer.setAnimationLoop(null);
         observer.disconnect();
         window.removeEventListener("resize", resize);
-        controls.removeEventListener("change", handleCameraChange);
         canvas.removeEventListener("webglcontextrestored", invalidate);
         canvas.removeEventListener("pointerdown", handlePointerDown);
         canvas.removeEventListener("pointerup", handlePointerUp);
         canvas.removeEventListener("pointermove", handlePointerMove);
         canvas.removeEventListener("pointerleave", handlePointerLeave);
-        controls.dispose();
+        canvas.removeEventListener("dblclick", handleDoubleClick);
+        rig.dispose();
         clear();
+        post.dispose();
+        materials.glass.dispose();
+        materials.frame.dispose();
+        lotEdgeMaterial.dispose();
         outlineMaterial.dispose();
         environmentMap.dispose();
         grain.dispose();
@@ -1053,6 +1099,7 @@ export function createStructureViewer(
         setLayers: changing(setLayers),
         setPalette: changing(setPalette),
         setView: changing(setView),
+        focus: changing(focus),
         zoomBy: changing(zoomBy),
         dispose,
     };
