@@ -33,6 +33,8 @@ const SLAB = 0.25;
 const STAIR_WIDTH = 1.1;
 const STAIR_START = -2.5;
 const STEPS = 16;
+/** The staircase blocks the camera as four boxes that rise with it. */
+const STAIR_FLIGHTS = [0, 1, 2, 3];
 const RAIL = 1;
 const CAMERA_MARGIN = 0.35;
 const CYAN = 0x00f0ff;
@@ -366,6 +368,17 @@ export function buildLoftScene(): LoftScene {
                 [-1.65, 0, -3.25, -0.35, 0.42, -2.55],
                 [-2.8, 0, 3.55, 0, 0.92, 4.65],
                 [-3.15, MEZZANINE_Y, 3.5, -1.25, MEZZANINE_Y + 0.9, 5.8],
+                ...STAIR_FLIGHTS.map(
+                    (flight) =>
+                        [
+                            HALF_WIDTH - STAIR_WIDTH,
+                            0,
+                            STAIR_START + (flight * stairRun) / STAIR_FLIGHTS.length,
+                            HALF_WIDTH,
+                            ((flight + 1) * MEZZANINE_Y) / STAIR_FLIGHTS.length,
+                            STAIR_START + ((flight + 1) * stairRun) / STAIR_FLIGHTS.length,
+                        ] as const,
+                ),
             ] as const
         ).map(
             ([minX, minY, minZ, maxX, maxY, maxZ]) =>
