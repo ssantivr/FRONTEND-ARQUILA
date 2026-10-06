@@ -1,12 +1,15 @@
 import react from "@vitejs/plugin-react";
+import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 
-export default defineConfig({
+const DEFAULT_PROXY_TARGET = "http://localhost:8000";
+
+export default defineConfig(({ mode }) => ({
     plugins: [react()],
     server: {
         proxy: {
             "/api": {
-                target: "http://localhost:8000",
+                target: loadEnv(mode, ".", "API_").API_PROXY_TARGET ?? DEFAULT_PROXY_TARGET,
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api/, ""),
             },
@@ -33,4 +36,4 @@ export default defineConfig({
             },
         ],
     },
-});
+}));
