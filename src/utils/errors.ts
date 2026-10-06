@@ -35,6 +35,7 @@ const MESSAGES: Record<string, string> = {
 };
 
 const RESTORE_CONFLICT = /^Cannot restore "(.*)": it conflicts with existing data$/;
+const RESTORE_WITHOUT_PLAN = /^Cannot restore "(.*)": its plan no longer exists$/;
 const FILE_TOO_LARGE = /^File exceeds the (\d+) MB limit$/;
 
 export function translateError(message: string): string {
@@ -48,6 +49,12 @@ export function translateError(message: string): string {
 
     if (conflict) {
         return `No se puede restaurar «${conflict[1]}»: ya existe un registro que entra en conflicto.`;
+    }
+
+    const withoutPlan = RESTORE_WITHOUT_PLAN.exec(message);
+
+    if (withoutPlan) {
+        return `No se puede restaurar «${withoutPlan[1]}»: su plano ya no existe.`;
     }
 
     const tooLarge = FILE_TOO_LARGE.exec(message);

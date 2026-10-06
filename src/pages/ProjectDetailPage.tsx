@@ -263,6 +263,8 @@ const KIND_LABELS: Record<DeletedItemKind, string> = {
     material: "material",
     plan: "plano",
     elevation: "elevación",
+    room: "cuarto",
+    component: "componente",
 };
 
 function BackButton({ onBack }: { onBack: () => void }) {

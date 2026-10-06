@@ -2,7 +2,7 @@ export type ProjectStatus = "draft" | "active" | "archived";
 export type Orientation = "north" | "south" | "east" | "west";
 export type RecommendationSource = "ai" | "user" | "system";
 export type RecommendationPriority = "high" | "medium" | "low";
-export type DeletedItemKind = "terrain" | "material" | "plan" | "elevation";
+export type DeletedItemKind = "terrain" | "material" | "plan" | "elevation" | "room" | "component";
 
 export interface DeletedItem {
     kind: DeletedItemKind;

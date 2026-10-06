@@ -16,6 +16,9 @@ describe("translateError", () => {
         expect(translateError('Cannot restore "Clay brick": it conflicts with existing data')).toBe(
             "No se puede restaurar «Clay brick»: ya existe un registro que entra en conflicto.",
         );
+        expect(translateError('Cannot restore "Cocina": its plan no longer exists')).toBe(
+            "No se puede restaurar «Cocina»: su plano ya no existe.",
+        );
         expect(translateError("File exceeds the 20 MB limit")).toBe(
             "El archivo supera el límite de 20 MB.",
         );
