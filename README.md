@@ -5,7 +5,7 @@ Interfaz web de ARQUILA, una aplicación para organizar proyectos de arquitectur
 ```text
 ARQUILA
 ├── FRONTEND-ARQUILA        Este repositorio
-├── BACKEND-ARGUILA-        API (FastAPI)
+├── BACKEND-ARQUILA         API (FastAPI)
 └── BASE-DE-DATOS-ARQUILA   Migraciones y datos de ejemplo (PostgreSQL)
 ```
 
@@ -16,7 +16,7 @@ TypeScript, React 18 y Vite, con Three.js para el modelo 3D. Vitest y Testing Li
 ## Requisitos
 
 - Node 24 con `npm`.
-- El backend de `BACKEND-ARGUILA-` en marcha.
+- El backend de `BACKEND-ARQUILA` en marcha.
 
 ## Instalación e inicio
 
@@ -72,7 +72,7 @@ Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar 
 
 ## Documentación
 
-- Las decisiones de la interfaz (estados de carga, pantallas pequeñas, accesibilidad, modelo 3D) están en `docs/BACKEND_Y_API.md` del repositorio [BACKEND-ARGUILA-](https://github.com/ssantivr/BACKEND-ARGUILA-).
+- Las decisiones de la interfaz (estados de carga, pantallas pequeñas, accesibilidad, modelo 3D) están en `docs/BACKEND_Y_API.md` del repositorio [BACKEND-ARQUILA](https://github.com/ssantivr/BACKEND-ARQUILA).
 - La documentación general del proyecto está en el repositorio [ARQUILA](https://github.com/ssantivr/ARQUILA).
 
 Para que Prettier formatee los archivos antes de cada commit, instalar [pre-commit](https://pre-commit.com) y activar los hooks una vez con `pre-commit install`.
