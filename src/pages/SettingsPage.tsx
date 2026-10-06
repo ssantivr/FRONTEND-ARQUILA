@@ -4,6 +4,7 @@ import { describeStatus } from "../components/AssistantPanel";
 import { Panel } from "../components/Panel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { authApi, conversationsApi, healthApi } from "../services/api";
+import { BASE_URL } from "../services/http";
 import type { User } from "../types/api";
 
 interface SettingsPageProps {
@@ -85,11 +86,11 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                               : "Consultando…"}
                     </dd>
                     <dt>Dirección de la API</dt>
-                    <dd>{import.meta.env.VITE_API_URL ?? "/api"}</dd>
+                    <dd>{BASE_URL}</dd>
                 </dl>
                 <p className="message">
-                    El proveedor de IA y el correo se configuran en el archivo{" "}
-                    <code>backend/.env</code> del servidor, no desde aquí.
+                    El proveedor de IA y el correo se configuran en el archivo <code>.env</code> del
+                    servidor, no desde aquí.
                 </p>
             </Panel>
         </>
