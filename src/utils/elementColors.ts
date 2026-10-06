@@ -52,7 +52,6 @@ export function kindColors(elements: StructureElement[]): Map<string, number> {
     return new Map(elements.map((element) => [elementKey(element), KIND_COLORS[element.kind]]));
 }
 
-/** Splits the project's material budget across the elements by their share of the volume. */
 export function estimateCosts(
     elements: StructureElement[],
     materials: Material[],
@@ -93,7 +92,6 @@ function mentions(text: string, name: string): boolean {
     return new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}($|[^\\p{L}\\p{N}])`, "iu").test(text);
 }
 
-/** Links each element to the recommendations that mention it by name. */
 export function findAlerts(
     elements: StructureElement[],
     recommendations: Recommendation[],

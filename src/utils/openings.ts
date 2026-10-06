@@ -152,7 +152,6 @@ export function placeOpenings(rooms: StructureRoom[]): Map<string, Opening[]> {
     return placed;
 }
 
-/** A gable roof overhangs and rises to a ridge; a flat one is a slab with a parapet. */
 export function roofShape(rooms: StructureRoom[], kind: RoofKind = "gable"): RoofShape | null {
     if (rooms.length === 0) {
         return null;

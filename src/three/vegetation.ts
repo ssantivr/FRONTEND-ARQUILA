@@ -20,7 +20,6 @@ export interface TreeSpot {
     y: number;
 }
 
-/** Every tree shares three instanced meshes, so any number of them costs three draw calls. */
 export function buildTrees(spots: TreeSpot[]): Group {
     const trees = new Group();
 

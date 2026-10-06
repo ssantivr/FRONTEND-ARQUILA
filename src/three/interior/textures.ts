@@ -12,7 +12,6 @@ function seeded(seed: number): () => number {
     };
 }
 
-/** A small tileable texture painted once; `tile` is the side it covers, in metres. */
 function paint(size: number, tile: number, seed: number, painter: Painter): CanvasTexture {
     const canvas = document.createElement("canvas");
 
@@ -45,7 +44,6 @@ function speckle(
     }
 }
 
-/** Planks running along the horizontal axis, each with its own tone and grain. */
 export function woodTexture(base: [number, number, number], tile: number): CanvasTexture {
     return paint(256, tile, 11, (context, size, random) => {
         const planks = 6;
@@ -100,7 +98,6 @@ export function fabricTexture(tile: number): CanvasTexture {
     });
 }
 
-/** The lit and dark windows of a tower at dusk; every building of the skyline shares it. */
 export function cityWindowsTexture(): CanvasTexture {
     return paint(256, 1, 53, (context, size, random) => {
         const columns = 20;

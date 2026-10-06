@@ -119,9 +119,7 @@ export interface ScenePalette {
     ground: number;
     grid: number;
     axis: number;
-    /** Strength of the cyan and magenta accent lights; 0 turns them off. */
     accent: number;
-    /** How much the neon accents glow, from 0 (no bloom at all) to 1. */
     glow: number;
 }
 
@@ -155,7 +153,6 @@ export interface StructureViewer {
     setLayers: (layers: Layers) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
-    /** Flies the camera to an element, or back to the whole model when the key is null. */
     focus: (key: string | null) => void;
     zoomBy: (factor: number) => void;
     dispose: () => void;
@@ -191,7 +188,6 @@ function insidePolygon(x: number, y: number, outline: StructureTerrain["outline"
     return inside;
 }
 
-/** A tileable noise used as roughness and relief of the rough materials. */
 function buildGrain(): DataTexture {
     const size = GRAIN_SIZE_PX;
     const coarse = size / 8;
@@ -226,7 +222,6 @@ function buildGrain(): DataTexture {
     return texture;
 }
 
-/** A dome whose colour goes from the fog colour at the horizon to the sky colour overhead. */
 function buildSky(palette: ScenePalette, radius: number): Mesh {
     const geometry = new SphereGeometry(radius, 32, 24);
     const positions = geometry.getAttribute("position");
@@ -309,7 +304,6 @@ function buildTerrain(terrain: StructureTerrain): Mesh {
 
 type ElementMesh = Mesh<BufferGeometry, MeshStandardMaterial>;
 
-/** A concrete slab with its corner lines drawn. */
 function buildSlab(geometry: BufferGeometry): Mesh {
     const slab = new Mesh(geometry, standard(SLAB_COLOR, 0.85));
 
@@ -325,7 +319,6 @@ function buildSlab(geometry: BufferGeometry): Mesh {
     return slab;
 }
 
-/** Materials every room shares; they outlive the model and are disposed with the viewer. */
 interface SharedMaterials {
     glass: MeshPhysicalMaterial;
     frame: MeshPhysicalMaterial;
@@ -365,7 +358,6 @@ function buildSharedMaterials(): SharedMaterials {
     };
 }
 
-/** A room is a hollow shell with real openings; every other element is a solid box. */
 function buildElement(
     element: StructureElement,
     openings: Opening[],
@@ -506,7 +498,6 @@ function buildEnvironment(structure: Structure): Group {
     return buildTrees(planted);
 }
 
-/** The boundary of each lot as a thin line, which glows in the dark scene. */
 function buildLotEdges(terrains: StructureTerrain[], material: LineMaterial): Group {
     const edges = new Group();
 
@@ -636,7 +627,6 @@ export function createStructureViewer(
         post.render();
     }
 
-    /** Resizing clears the canvas, so it is drawn again at once instead of on the next frame. */
     function resize(): void {
         const width = container.clientWidth;
         const height = container.clientHeight;
@@ -694,7 +684,6 @@ export function createStructureViewer(
             .add(new Vector3(1.2, 0.35, -1).multiplyScalar(bounds.radius));
     }
 
-    /** The first view is set at once; later ones fly there. */
     function setView(view: ViewName): void {
         rig.frame(view, framed);
         reportZoom();
@@ -818,7 +807,6 @@ export function createStructureViewer(
         }
     }
 
-    /** In the dark scene the neon accents are brighter than white, which is what makes them glow. */
     function applyPalette(): void {
         scene.background = new Color(palette.fog);
         fog.color.setHex(palette.fog);
@@ -1080,7 +1068,6 @@ export function createStructureViewer(
         canvas.remove();
     }
 
-    /** The scene is only drawn again after something in it changed. */
     function changing<Arguments extends unknown[]>(
         action: (...values: Arguments) => void,
     ): (...values: Arguments) => void {

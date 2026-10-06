@@ -103,7 +103,6 @@ export function createInteriorViewer(container: HTMLElement): InteriorViewer {
         post.render();
     }
 
-    /** Resizing clears the canvas, so it is drawn again at once instead of on the next frame. */
     function resize(): void {
         const width = container.clientWidth;
         const height = container.clientHeight;
@@ -123,7 +122,6 @@ export function createInteriorViewer(container: HTMLElement): InteriorViewer {
         render();
     }
 
-    /** The first viewpoint is set at once; later ones fly there. */
     function setViewpoint(id: ViewpointId): void {
         rig.flyTo(VIEWPOINTS[id], placed);
         placed = true;

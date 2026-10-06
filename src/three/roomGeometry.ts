@@ -33,14 +33,11 @@ const SIDE_ROTATION: Record<Side, number> = {
 const SIDES = Object.keys(SIDE_ROTATION) as Side[];
 
 export interface RoomShell {
-    /** Walls with their openings cut out, plus the floor and ceiling slabs. */
     walls: BufferGeometry;
-    /** Line segments of the outer corners and of each opening. */
     lines: BufferGeometry;
     glass: BufferGeometry | null;
     frames: BufferGeometry | null;
     door: BufferGeometry | null;
-    /** The edge of the slab above the room, which sticks out of the walls and just over them. */
     band: BufferGeometry;
 }
 
@@ -51,7 +48,6 @@ interface Hole {
     top: number;
 }
 
-/** Moves a geometry built facing +Z onto the given side of the room. */
 function onSide(
     geometry: BufferGeometry,
     side: Side,
@@ -115,7 +111,6 @@ function rectangle(x: number, bottom: number, top: number, width: number): numbe
     ];
 }
 
-/** Rewrites the UVs in metres, so a texture keeps its scale on faces of any size. */
 export function applyMetricUVs(geometry: BufferGeometry): BufferGeometry {
     const position = geometry.getAttribute("position");
     const normal = geometry.getAttribute("normal");
@@ -283,7 +278,6 @@ export function buildRoomShell(element: StructureElement, openings: Opening[]): 
     };
 }
 
-/** A flat roof: a slab over the top level with a parapet around it, resting on y = 0. */
 export function buildFlatRoof(shape: RoofShape): BufferGeometry {
     const width = shape.alongX ? shape.length : shape.span;
     const depth = shape.alongX ? shape.span : shape.length;

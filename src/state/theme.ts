@@ -37,9 +37,7 @@ export function setTheme(next: Theme): void {
 
     try {
         window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-        // The choice still applies for this visit when storage is unavailable.
-    }
+    } catch {}
 
     for (const listener of listeners) {
         listener();

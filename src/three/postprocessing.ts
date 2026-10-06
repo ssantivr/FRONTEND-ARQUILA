@@ -12,14 +12,12 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 const BLOOM_RADIUS = 0.55;
-/** Above what sunlit surfaces reach, so only the neon accents and sharp glints glow. */
 const BLOOM_THRESHOLD = 1.4;
 const MSAA_SAMPLES = 4;
 
 export interface Postprocessing {
     render: () => void;
     setSize: (width: number, height: number, pixelRatio: number) => void;
-    /** A strength of 0 draws straight to the canvas and skips every extra pass. */
     setBloom: (strength: number) => void;
     dispose: () => void;
 }
@@ -46,7 +44,6 @@ export function createPostprocessing(
         composer.setSize(width, height);
     }
 
-    /** The passes are only created the first time the glow is needed. */
     function build(): Pipeline {
         const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: MSAA_SAMPLES });
         const composer = new EffectComposer(renderer, target);

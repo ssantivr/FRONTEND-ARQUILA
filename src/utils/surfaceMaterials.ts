@@ -9,11 +9,9 @@ export interface SurfaceMaterial {
     roughness: number;
     metalness: number;
     opacity: number;
-    /** Strength of the surface relief, from 0 (smooth) to 1. */
     grain: number;
 }
 
-/** The surface material chosen for each element, by element key. */
 export type ElementSurfaces = Readonly<Record<string, SurfaceMaterialId>>;
 
 export const SURFACE_MATERIALS: Record<SurfaceMaterialId, SurfaceMaterial> = {
@@ -85,7 +83,6 @@ export const DEFAULT_SURFACE: Record<StructureElement["kind"], SurfaceMaterialId
     wall: "concrete",
 };
 
-/** Collects the materials the backend has saved for the given elements. */
 export function savedSurfaces(elements: StructureElement[]): ElementSurfaces {
     const surfaces: Record<string, SurfaceMaterialId> = {};
 

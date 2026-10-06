@@ -179,7 +179,6 @@ export function StructureViewer({ structure }: { structure: Structure }) {
         appState.select(projectId, elements.find((element) => elementKey(element) === key) ?? null);
     }
 
-    /** Shows the new material at once and puts the old one back if it cannot be saved. */
     function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
         const key = elementKey(element);
         const previous = surfaceOf(surfaces, key, element.kind);

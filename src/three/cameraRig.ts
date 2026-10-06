@@ -25,15 +25,12 @@ interface Transition {
 }
 
 export interface CameraRig {
-    /** Adapts the clipping planes and the zoom limits to the size of the scene. */
     fit: (bounds: Sphere) => void;
     frame: (view: ViewName, animate: boolean) => void;
-    /** Flies to the given volume, or back to the whole scene when there is none. */
     focus: (volume: Sphere | null) => void;
     zoomBy: (factor: number) => void;
     zoomPercent: () => number;
     distance: () => number;
-    /** Advances the camera one frame; returns whether a transition is still running. */
     update: (time: number) => boolean;
     dispose: () => void;
 }
@@ -115,7 +112,6 @@ export function createCameraRig(
         };
     }
 
-    /** Keeps the point the camera orbits near the model, so panning cannot lose it. */
     function clampTarget(): void {
         const limit = scene.radius * PAN_LIMIT_FACTOR;
         const away = offset.copy(controls.target).sub(scene.center).length();

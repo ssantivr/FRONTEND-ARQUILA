@@ -33,7 +33,6 @@ const SLAB = 0.25;
 const STAIR_WIDTH = 1.1;
 const STAIR_START = -2.5;
 const STEPS = 16;
-/** The staircase blocks the camera as four boxes that rise with it. */
 const STAIR_FLIGHTS = [0, 1, 2, 3];
 const RAIL = 1;
 const CAMERA_MARGIN = 0.35;
@@ -46,16 +45,12 @@ const CUSHION_RADIUS = 0.07;
 
 export interface LoftScene {
     group: Group;
-    /** The neon strips with the light they cast, so they can be switched off together. */
     neon: Group;
-    /** The volume the camera may move in. */
     room: Box3;
-    /** What the camera must not get inside of: the mezzanine slab and the large furniture. */
     solids: Box3[];
     dispose: () => void;
 }
 
-/** Collects geometry by material and merges it, so each material costs one draw call. */
 function createAssembler() {
     const parts = new Map<Material, BufferGeometry[]>();
 
@@ -73,7 +68,6 @@ function createAssembler() {
         add(material, new BoxGeometry(...size).translate(...center));
     }
 
-    /** Upholstery has rounded corners, which is what stops it from reading as a plain box. */
     function cushion(
         material: Material,
         size: [number, number, number],
@@ -178,14 +172,12 @@ export function buildLoftScene(): LoftScene {
     const mezzanineDepth = HALF_DEPTH - MEZZANINE_EDGE;
     const mezzanineMiddle = (HALF_DEPTH + MEZZANINE_EDGE) / 2;
 
-    // Shell: floor, ceiling, side walls of concrete and a back wall of dark wood.
     shell.box(floor, [width, 0.1, depth], [0, -0.05, 0]);
     shell.box(concrete, [width, 0.2, depth], [0, HEIGHT + 0.1, 0]);
     shell.box(concrete, [WALL, HEIGHT, depth], [-HALF_WIDTH - WALL / 2, HEIGHT / 2, 0]);
     shell.box(concrete, [WALL, HEIGHT, depth], [HALF_WIDTH + WALL / 2, HEIGHT / 2, 0]);
     shell.box(darkWood, [width, HEIGHT, WALL], [0, HEIGHT / 2, HALF_DEPTH + WALL / 2]);
 
-    // Window wall towards the city: a single pane behind a grid of slim mullions.
     shell.box(pane, [width, HEIGHT, 0.02], [0, HEIGHT / 2, -HALF_DEPTH]);
 
     for (let x = -HALF_WIDTH; x <= HALF_WIDTH; x += 1.5) {
@@ -196,7 +188,6 @@ export function buildLoftScene(): LoftScene {
         shell.box(metal, [width, 0.06, 0.1], [0, y, -HALF_DEPTH]);
     }
 
-    // Mezzanine: a concrete slab with a wooden deck, a dark fascia and a glass railing.
     shell.box(
         concrete,
         [width, SLAB, mezzanineDepth],
@@ -219,7 +210,6 @@ export function buildLoftScene(): LoftScene {
         [railCenter, MEZZANINE_Y + RAIL, MEZZANINE_EDGE + 0.05],
     );
 
-    // Staircase along the right wall: floating treads and a sloped glass balustrade.
     for (let step = 0; step < STEPS; step += 1) {
         shell.box(
             darkWood,
@@ -239,7 +229,6 @@ export function buildLoftScene(): LoftScene {
             .translate(HALF_WIDTH - STAIR_WIDTH, MEZZANINE_Y / 2 + RAIL / 2 + 0.1, stairMiddle),
     );
 
-    // Living room under the double height: sofa, armchair, rug and coffee table.
     shell.box(linen, [3.4, 0.02, 2.4], [-1, 0.01, -2.6]);
     shell.cushion(sofa, [2.6, 0.42, 1], [-1, 0.21, -1.4]);
     shell.cushion(sofa, [2.6, 0.5, 0.24], [-1, 0.67, -1.02]);
@@ -252,13 +241,11 @@ export function buildLoftScene(): LoftScene {
     shell.box(darkWood, [1.3, 0.05, 0.65], [-1, 0.38, -2.9]);
     shell.box(metal, [1.2, 0.34, 0.04], [-1, 0.18, -2.9]);
 
-    // Kitchen island under the mezzanine and the bed upstairs.
     shell.box(darkWood, [2.6, 0.86, 0.9], [-1.4, 0.43, 4.1]);
     shell.box(concrete, [2.75, 0.05, 1.05], [-1.4, 0.885, 4.1]);
     shell.cushion(linen, [1.9, 0.4, 2.2], [-2.2, MEZZANINE_Y + 0.2, 4.6]);
     shell.box(darkWood, [2.1, 0.9, 0.08], [-2.2, MEZZANINE_Y + 0.45, 5.75]);
 
-    // Pendant lamps over the living room and a floor lamp next to the sofa.
     const pendants: Vector3[] = [-2.2, -1, 0.2].map((x) => new Vector3(x, 3.7, -2.4));
 
     for (const { x, y, z } of pendants) {
@@ -276,7 +263,6 @@ export function buildLoftScene(): LoftScene {
 
     shell.build(group);
 
-    // The lamp bulbs stay lit when the neon is off, so they are assembled apart from it.
     const bulbs = createAssembler();
 
     for (const { x, y, z } of pendants) {
@@ -286,7 +272,6 @@ export function buildLoftScene(): LoftScene {
     bulbs.add(bulb, new SphereGeometry(0.11, 16, 12).translate(1, 1.55, -1.3));
     bulbs.build(lamps);
 
-    // Neon: cyan along the concrete and the mezzanine edge, magenta on the dark wood and stair.
     const strips = createAssembler();
 
     strips.box(cyan, [NEON_SIZE, NEON_SIZE, depth], [-HALF_WIDTH + 0.03, MEZZANINE_Y, 0]);
@@ -311,7 +296,6 @@ export function buildLoftScene(): LoftScene {
     );
     strips.build(neon);
 
-    // Warm light inside against the cold dusk that comes through the window wall.
     const spot = new SpotLight(WARM, 34, 14, 0.95, 0.85, 1.6);
 
     spot.position.set(-0.6, HEIGHT - 0.1, -1.6);

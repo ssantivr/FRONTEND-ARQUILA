@@ -16,7 +16,6 @@ const TYPE_LABELS: Record<string, string> = {
 
 interface FilesPanelProps extends SectionProps {
     files: ProjectFile[];
-    /** Another action of the project is being saved, so a file chosen now would be dropped. */
     busy: boolean;
     onChanged: () => void;
 }

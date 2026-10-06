@@ -13,7 +13,6 @@ import { Panel } from "./Panel";
 interface FloorPlansPanelProps {
     projectId: number;
     projectName: string;
-    /** Changes whenever the plans of the project do, so the drawings are loaded again. */
     version: number;
 }
 

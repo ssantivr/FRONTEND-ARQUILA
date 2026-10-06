@@ -42,7 +42,6 @@ function skyColor(height: number, target: Color): Color {
         .lerp(new Color(toColor), to === from ? 0 : (height - from) / (to - from));
 }
 
-/** A dome that goes from the orange of the horizon to the deep blue overhead. */
 function buildSky(): Mesh {
     const geometry = new SphereGeometry(SKY_RADIUS, 32, 24);
     const positions = geometry.getAttribute("position");
@@ -68,7 +67,6 @@ function buildSky(): Mesh {
     );
 }
 
-/** The skyline in front of the window wall: one instanced mesh, so a single draw call. */
 function buildSkyline(): InstancedMesh {
     const texture = cityWindowsTexture();
     const facade = new MeshBasicMaterial({ map: texture, fog: false });

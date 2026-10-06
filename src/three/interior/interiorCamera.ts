@@ -12,7 +12,6 @@ export interface Viewpoint {
 
 export interface InteriorCamera {
     flyTo: (viewpoint: Viewpoint, animate: boolean) => void;
-    /** Advances the camera one frame; returns whether a transition is still running. */
     update: (time: number) => boolean;
     dispose: () => void;
 }
@@ -29,7 +28,6 @@ function easeInOut(progress: number): number {
     return progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
 }
 
-/** Moves a point that got inside a solid out through the face it is closest to. */
 function pushOut(point: Vector3, solid: Box3): void {
     let nearest = Infinity;
     let axis: (typeof AXES)[number] = "x";
@@ -55,7 +53,6 @@ function pushOut(point: Vector3, solid: Box3): void {
     point[axis] = face;
 }
 
-/** Orbit controls that keep the camera inside the room and out of its solids. */
 export function createInteriorCamera(
     camera: PerspectiveCamera,
     canvas: HTMLCanvasElement,

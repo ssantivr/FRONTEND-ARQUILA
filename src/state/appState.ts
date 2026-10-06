@@ -28,7 +28,6 @@ const EMPTY: AppState = {
 let state = EMPTY;
 const listeners = new Set<() => void>();
 
-/** Applies a change to the given project, dropping what belonged to another one. */
 function update(projectId: number, patch: Partial<AppState>): void {
     const base = state.projectId === projectId ? state : { ...EMPTY, colorMode: state.colorMode };
 
@@ -66,7 +65,6 @@ export const appState = {
                 [key]: surface,
             },
         }),
-    /** Reloads what the 3D model colors by; a failed request keeps what was already there. */
     async refresh(projectId: number): Promise<void> {
         update(projectId, {});
 
@@ -95,7 +93,6 @@ export function useAppState<T>(selector: (current: AppState) => T): T {
     return useSyncExternalStore(subscribe, () => selector(state));
 }
 
-/** Reads a field only while the store holds the given project. */
 export function useProjectState<T>(projectId: number, selector: (current: AppState) => T): T {
     return useAppState((current) => selector(current.projectId === projectId ? current : EMPTY));
 }
