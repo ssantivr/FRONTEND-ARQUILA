@@ -39,7 +39,8 @@ Todas las llamadas HTTP salen de `src/services/http.ts`, que toma la dirección 
 Para cambiarlas, copiar `.env.example` a `.env`. El archivo `.env` no se sube al repositorio.
 
 - **Desarrollo.** No hay que definir nada: el navegador llama a `/api` y Vite lo reenvía al backend del puerto 8000. Si el backend está en otra dirección, cambiar `API_PROXY_TARGET`.
-- **Despliegue.** `VITE_API_URL` se fija al compilar (`npm run build`). Lo más sencillo es servir la API bajo `/api` en el mismo dominio que la interfaz. Si se usa otro dominio, poner su dirección completa en `VITE_API_URL` y añadir el origen de la interfaz a `APP_URL` o `CORS_ORIGINS` en el backend.
+- **Vercel.** La interfaz está publicada en <https://arquila-frontend.vercel.app>. El archivo `vercel.json` reenvía `/api` al backend publicado, así que la interfaz y la API comparten dominio y `VITE_API_URL` se queda en `/api`.
+- **Otro despliegue.** `VITE_API_URL` se fija al compilar (`npm run build`). Lo más sencillo es servir la API bajo `/api` en el mismo dominio que la interfaz. Si se usa otro dominio, poner su dirección completa en `VITE_API_URL` y añadir el origen de la interfaz a `APP_URL` o `CORS_ORIGINS` en el backend.
 
 La sesión viaja en una cookie `HttpOnly` que pone el backend; la interfaz no guarda tokens y envía todas las peticiones con `credentials: "include"`. Cuando la API responde 401, la interfaz vuelve a la pantalla de inicio de sesión.
 
