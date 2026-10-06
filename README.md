@@ -72,7 +72,8 @@ Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar 
 
 ## Documentación
 
-- Las decisiones de la interfaz (estados de carga, pantallas pequeñas, accesibilidad, modelo 3D) están en `docs/BACKEND_Y_API.md` del repositorio [BACKEND-ARQUILA](https://github.com/ssantivr/BACKEND-ARQUILA).
+- `docs/FRONTEND.md`: decisiones de la interfaz (esquemas del terreno, planos, modelo 3D, estados de carga, pantallas pequeñas y accesibilidad).
+- Las decisiones de la API están en `docs/BACKEND_Y_API.md` del repositorio [BACKEND-ARQUILA](https://github.com/ssantivr/BACKEND-ARQUILA).
 - La documentación general del proyecto está en el repositorio [ARQUILA](https://github.com/ssantivr/ARQUILA).
 
 Para que Prettier formatee los archivos antes de cada commit, instalar [pre-commit](https://pre-commit.com) y activar los hooks una vez con `pre-commit install`.
