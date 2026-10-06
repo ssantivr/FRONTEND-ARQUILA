@@ -69,3 +69,10 @@ src/
 | `npm run format` / `npm run format:check` | Formato con Prettier. |
 
 Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar con `demo@example.com`, contraseña `arquila-demo` (credencial pública, solo para desarrollo).
+
+## Documentación
+
+- Las decisiones de la interfaz (estados de carga, pantallas pequeñas, accesibilidad, modelo 3D) están en `docs/BACKEND_Y_API.md` del repositorio [BACKEND-ARGUILA-](https://github.com/ssantivr/BACKEND-ARGUILA-).
+- La documentación general del proyecto está en el repositorio [ARQUILA](https://github.com/ssantivr/ARQUILA).
+
+Para que Prettier formatee los archivos antes de cada commit, instalar [pre-commit](https://pre-commit.com) y activar los hooks una vez con `pre-commit install`.
