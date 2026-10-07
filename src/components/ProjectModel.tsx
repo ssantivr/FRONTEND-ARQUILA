@@ -3,7 +3,12 @@ import { structureApi } from "../services/api";
 import { AsyncStatus } from "./AsyncStatus";
 import { StructureViewer } from "./StructureViewer";
 
-export function ProjectModel({ projectId }: { projectId: number }) {
+interface ProjectModelProps {
+    projectId: number;
+    walkthrough?: boolean;
+}
+
+export function ProjectModel({ projectId, walkthrough = false }: ProjectModelProps) {
     const structure = useAsync(() => structureApi.get(projectId), [projectId]);
     const isEmpty =
         structure.data === null ||
@@ -21,7 +26,9 @@ export function ProjectModel({ projectId }: { projectId: number }) {
                 isEmpty={isEmpty}
                 emptyText="Este proyecto todavía no tiene terrenos con medidas, cuartos ni componentes."
             />
-            {structure.data !== null && !isEmpty && <StructureViewer structure={structure.data} />}
+            {structure.data !== null && !isEmpty && (
+                <StructureViewer structure={structure.data} walkthrough={walkthrough} />
+            )}
         </>
     );
 }

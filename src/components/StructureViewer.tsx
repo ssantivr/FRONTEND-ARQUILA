@@ -226,7 +226,16 @@ function itemLabel(element: StructureElement): string {
     return isSpace(element) ? element.name : `${KIND_LABELS[element.kind]} · ${element.name}`;
 }
 
-export function StructureViewer({ structure }: { structure: Structure }) {
+interface StructureViewerProps {
+    structure: Structure;
+    walkthrough?: boolean;
+}
+
+export function StructureViewer({
+    structure,
+    walkthrough: startInside = false,
+}: StructureViewerProps) {
+    const entered = useRef(false);
     const stage = useRef<HTMLDivElement>(null);
     const container = useRef<HTMLDivElement>(null);
     const viewer = useRef<Viewer | null>(null);
@@ -440,6 +449,21 @@ export function StructureViewer({ structure }: { structure: Structure }) {
 
     const advance = useRef(step);
     advance.current = step;
+
+    const enter = useRef(visit);
+    enter.current = visit;
+
+    const stopsReady = !walkthrough.loading;
+    const firstStop = stops[0]?.key ?? null;
+
+    // Opened as a walkthrough, the viewer goes straight into the first stop.
+    useEffect(() => {
+        if (startInside && stopsReady && firstStop !== null && !entered.current) {
+            entered.current = true;
+            enter.current(firstStop, 0);
+            setInside(true);
+        }
+    }, [startInside, stopsReady, firstStop]);
 
     const selectedCost = selected === null ? undefined : costs.get(elementKey(selected));
     const selectedAlerts = selected === null ? [] : (alerts.get(elementKey(selected)) ?? []);

@@ -154,9 +154,16 @@ export function App() {
                 );
             case "interior":
                 return (
-                    <Suspense fallback={<p className="message">Cargando…</p>}>
-                        <InteriorPage />
-                    </Suspense>
+                    <>
+                        <ProjectToolPage
+                            key="interior"
+                            tool="interior"
+                            onOpenProject={(id) => openProject(id, "model")}
+                        />
+                        <Suspense fallback={<p className="message">Cargando…</p>}>
+                            <InteriorPage />
+                        </Suspense>
+                    </>
                 );
             case "assistant":
                 return (
