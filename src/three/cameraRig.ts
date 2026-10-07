@@ -27,7 +27,7 @@ interface Transition {
 export interface CameraRig {
     fit: (bounds: Sphere) => void;
     frame: (view: ViewName, animate: boolean) => void;
-    focus: (volume: Sphere | null) => void;
+    focus: (volume: Sphere | null, toward?: Vector3) => void;
     zoomBy: (factor: number) => void;
     zoomPercent: () => number;
     distance: () => number;
@@ -171,15 +171,10 @@ export function createCameraRig(
         fit,
         frame: (view, animate) =>
             moveTo(scene.center, VIEW_DIRECTIONS[view], viewDistance(), animate),
-        focus: (volume) =>
+        focus: (volume, toward = direction()) =>
             volume === null
-                ? moveTo(scene.center, direction(), viewDistance(), true)
-                : moveTo(
-                      volume.center,
-                      direction(),
-                      viewDistance(volume.radius) * FOCUS_MARGIN,
-                      true,
-                  ),
+                ? moveTo(scene.center, toward, viewDistance(), true)
+                : moveTo(volume.center, toward, viewDistance(volume.radius) * FOCUS_MARGIN, true),
         zoomBy: (factor) => moveTo(controls.target, direction(), distance() / factor, true),
         zoomPercent: () => Math.round((viewDistance() / distance()) * 100),
         distance,

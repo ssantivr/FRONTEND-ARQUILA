@@ -312,3 +312,79 @@ export interface Summary {
     total_area_m2: number;
     materials_total_cost: number;
 }
+
+export type SpatialLayer = "structure" | "installations" | "finishes";
+export type WorkStatus = "existing" | "planned" | "demolition";
+export type RenovationStatus = "planned" | "in_progress" | "completed" | "cancelled";
+
+export interface SpatialElement {
+    id: number;
+    project_id: number;
+    room_id: number | null;
+    layer: SpatialLayer;
+    kind: string;
+    name: string;
+    work_status: WorkStatus;
+    min_x_m: number;
+    min_y_m: number;
+    min_z_m: number;
+    max_x_m: number;
+    max_y_m: number;
+    max_z_m: number;
+    mesh_ref: string | null;
+    config: Record<string, unknown>;
+    source: string;
+    external_id: string | null;
+    created_at: string;
+}
+
+export interface SpatialData {
+    project_id: number;
+    counts: Record<SpatialLayer, number>;
+    elements: SpatialElement[];
+}
+
+export interface WalkthroughStep {
+    id: number;
+    project_id: number;
+    room_id: number | null;
+    position: number;
+    title: string;
+    description: string | null;
+    duration_ms: number;
+    view_config: Record<string, unknown>;
+    created_at: string;
+}
+
+export interface RenovationLog {
+    id: number;
+    project_id: number;
+    room_id: number | null;
+    spatial_element_id: number | null;
+    created_by: number | null;
+    layer: SpatialLayer;
+    title: string;
+    description: string | null;
+    status: RenovationStatus;
+    planned_start: string | null;
+    planned_end: string | null;
+    completed_at: string | null;
+    estimated_cost: number | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface RenovationLogCreate {
+    project_id: number;
+    room_id: number | null;
+    layer: SpatialLayer;
+    title: string;
+    planned_start?: string;
+    planned_end?: string;
+}
+
+export interface Walkthrough {
+    project_id: number;
+    steps: WalkthroughStep[];
+    renovation_logs: RenovationLog[];
+}

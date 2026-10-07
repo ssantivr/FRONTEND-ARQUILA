@@ -25,21 +25,25 @@
 }
 
 :root[data-theme="dark"] {
-    --bg: #14171c;
-    --bg-secondary: #1a1e25;
-    --panel: #1d2129;
-    --panel-raised: #242932;
-    --border: #353b47;
+    --bg: #090a0f;
+    --bg-secondary: #0e1017;
+    --panel: #10131b;
+    --panel-raised: #161a24;
+    --border: #262c3a;
     --text: #e8eaed;
-    --text-secondary: #a3abb7;
-    --accent: #8ab4de;
-    --accent-contrast: #10202f;
-    --accent-soft: rgba(138, 180, 222, 0.13);
-    --success: #5fc28d;
-    --warning: #e0b84c;
-    --error: #f08a80;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.25);
-    --viewport: #171a20;
+    --text-secondary: #9aa3b5;
+    --accent: #00f0ff;
+    --accent-contrast: #04141a;
+    --accent-soft: rgba(0, 240, 255, 0.1);
+    --accent-alt: #ff007f;
+    --glass: rgba(16, 19, 27, 0.55);
+    --glass-border: rgba(0, 240, 255, 0.18);
+    --glow: 0 0 14px rgba(0, 240, 255, 0.3);
+    --success: #3df5a7;
+    --warning: #ffc857;
+    --error: #ff5c7a;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --viewport: #090a0f;
 
     color-scheme: dark;
 }
@@ -596,7 +600,7 @@ textarea {
     top: 12px;
     right: 12px;
     width: 220px;
-    max-height: calc(100% - 236px);
+    max-height: calc(100% - 300px);
     overflow-y: auto;
     border-color: var(--border);
 }
@@ -741,6 +745,114 @@ textarea {
 .hud-toolbar .hud-field select {
     padding: 3px 6px;
     font-size: inherit;
+}
+
+.hud-toolbar .hud-field input[type="range"] {
+    width: 96px;
+    padding: 0;
+    accent-color: var(--accent);
+}
+
+.hud-tour {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hud-works {
+    top: 12px;
+    left: 12px;
+    width: 250px;
+    max-height: calc(100% - 150px);
+    overflow-y: auto;
+}
+
+.hud-works .hud-works-title {
+    margin-bottom: 4px;
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.hud-works-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hud-works small {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+}
+
+.hud-work {
+    display: grid;
+    gap: 2px;
+    padding-left: 8px;
+    color: var(--text-secondary);
+    border-left: 2px solid var(--accent-alt, var(--accent));
+}
+
+.hud-work strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.hud-work select,
+.hud-works-form :is(input, select) {
+    width: 100%;
+    padding: 3px 6px;
+    font-size: inherit;
+}
+
+.hud-works-form {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.hud-works-form .hud-item {
+    text-align: center;
+}
+
+.hud-work-layers > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 3px;
+}
+
+.hud-work-layers .checkbox {
+    display: flex;
+    gap: 4px;
+    accent-color: var(--accent);
+}
+
+.hud-work-layers .hud-swatch {
+    width: 8px;
+    margin-right: 2px;
+}
+
+.hud-work-layers .hud-item {
+    width: auto;
+    margin: 0;
+    padding: 1px 6px;
+    font-size: 0.74rem;
+}
+
+.hud-count {
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.hud-picked {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
 }
 
 .hud-toolbar .checkbox {
@@ -1286,6 +1398,58 @@ code {
     color: var(--accent);
     background: var(--accent-soft);
     border-color: var(--accent);
+}
+
+:root[data-theme="dark"] body {
+    background:
+        radial-gradient(900px 520px at 12% -10%, rgba(0, 240, 255, 0.08), transparent 60%),
+        radial-gradient(800px 520px at 100% 0%, rgba(255, 0, 127, 0.07), transparent 60%), var(--bg);
+    background-attachment: fixed;
+}
+
+:root[data-theme="dark"] :is(.header, .panel, .card, .metric, .modal) {
+    background: var(--glass);
+    border-color: var(--glass-border);
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+}
+
+/* Nested surfaces sit on an already blurred panel, so they skip the second blur pass. */
+:root[data-theme="dark"] .panel :is(.card, .metric) {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+:root[data-theme="dark"] .brand {
+    text-shadow: var(--glow);
+}
+
+:root[data-theme="dark"] :is(.panel-header h2, .metric)::before {
+    background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+}
+
+:root[data-theme="dark"] button:hover:not(:disabled) {
+    border-color: var(--accent-alt);
+    box-shadow: 0 0 12px rgba(255, 0, 127, 0.3);
+}
+
+:root[data-theme="dark"] :is(.card:hover, .sidebar-item[aria-current="page"]),
+:root[data-theme="dark"] .segmented button[aria-pressed="true"] {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+}
+
+:root[data-theme="dark"] :is(input, select, textarea):focus-visible {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+}
+
+:root[data-theme="dark"] .badge {
+    box-shadow: 0 0 10px color-mix(in srgb, currentColor 35%, transparent);
 }
 
 :root[data-theme="dark"] .structure-stage {

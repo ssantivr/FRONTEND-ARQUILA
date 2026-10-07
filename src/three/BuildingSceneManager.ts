@@ -22,6 +22,7 @@ import {
     LinearMipmapLinearFilter,
     LineSegments,
     Material,
+    MathUtils,
     Mesh,
     MeshBasicMaterial,
     MeshPhysicalMaterial,
@@ -30,6 +31,7 @@ import {
     PCFShadowMap,
     PMREMGenerator,
     PerspectiveCamera,
+    Plane,
     PointLight,
     Raycaster,
     RepeatWrapping,
@@ -48,10 +50,13 @@ import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeome
 
 import type {
     RoofKind,
+    SpatialElement,
+    SpatialLayer,
     Structure,
     StructureElement,
     StructureRoom,
     StructureTerrain,
+    WorkStatus,
 } from "../types/api";
 import type { ElementColors } from "../utils/elementColors";
 import {
@@ -100,6 +105,29 @@ const GROUND_RADIUS_FACTOR = 8;
 const FOG_DEPTH_FACTOR = 5;
 const EDGE_COLOR = 0x1b1410;
 const MUTED_COLOR = 0x39414d;
+const GHOST_OPACITY = 0.3;
+const HIGHLIGHT_GLOW = 0.45;
+const COMPANION_REACH_M = 0.05;
+const CUT_DISABLED_M = 1e6;
+const DEMOLITION_COLOR = 0xff5c7a;
+const OVERLAY_COLORS: Record<SpatialLayer, number> = {
+    structure: CYAN_ACCENT,
+    installations: MAGENTA_ACCENT,
+    finishes: 0xffc857,
+};
+const OVERLAY_OPACITY: Record<WorkStatus, number> = {
+    existing: 0.85,
+    planned: 0.4,
+    demolition: 0.3,
+};
+const OVERLAY_GLOW = 0.7;
+const OVERLAY_RENDER_ORDER = 2;
+const EXPLODE_GAP_M = 3.5;
+const EXPLODE_RATE = 8;
+const EXPLODE_REST = 0.002;
+const MAX_FRAME_S = 0.1;
+const LEVEL_TOLERANCE_M = 0.05;
+const INSPECT_POLAR = 0.75;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
 const MAX_PIXEL_RATIO = 2;
@@ -112,6 +140,7 @@ const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
 export type { ViewName };
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
+export type OverlayLayers = Record<SpatialLayer, boolean>;
 
 export interface ScenePalette {
     sky: number;
@@ -153,7 +182,13 @@ export interface StructureViewer {
     setLayers: (layers: Layers) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
-    focus: (key: string | null) => void;
+    isolate: (key: string | null) => void;
+    setCutaway: (fraction: number) => void;
+    setHighlight: (keys: ReadonlySet<string> | null) => void;
+    setOverlays: (items: SpatialElement[]) => void;
+    setOverlayLayers: (layers: OverlayLayers) => void;
+    setExplode: (fraction: number) => void;
+    focus: (key: string | null, azimuth?: number) => void;
     zoomBy: (factor: number) => void;
     dispose: () => void;
 }
@@ -164,6 +199,10 @@ export interface ViewerEvents {
 }
 
 export { elementKey };
+
+export function overlayKey(id: number): string {
+    return `spatial-${id}`;
+}
 
 export function isSpace(element: StructureElement): boolean {
     return element.kind === "room" || element.kind === "volume";
@@ -409,6 +448,48 @@ function buildElement(
     return mesh;
 }
 
+type OverlayMesh = Mesh<BoxGeometry, MeshStandardMaterial>;
+
+function buildOverlay(item: SpatialElement): OverlayMesh {
+    const color = item.work_status === "demolition" ? DEMOLITION_COLOR : OVERLAY_COLORS[item.layer];
+    const geometry = new BoxGeometry(
+        item.max_x_m - item.min_x_m,
+        item.max_z_m - item.min_z_m,
+        item.max_y_m - item.min_y_m,
+    );
+    const mesh: OverlayMesh = new Mesh(
+        geometry,
+        new MeshStandardMaterial({
+            color,
+            emissive: color,
+            emissiveIntensity: OVERLAY_GLOW,
+            roughness: 0.5,
+            transparent: true,
+            opacity: OVERLAY_OPACITY[item.work_status],
+            depthTest: false,
+            depthWrite: false,
+        }),
+    );
+    const edges = new LineSegments(
+        new EdgesGeometry(geometry),
+        new LineBasicMaterial({ color, transparent: true, depthTest: false }),
+    );
+
+    mesh.position.set(
+        (item.min_x_m + item.max_x_m) / 2,
+        (item.min_z_m + item.max_z_m) / 2,
+        -(item.min_y_m + item.max_y_m) / 2,
+    );
+    mesh.renderOrder = OVERLAY_RENDER_ORDER;
+    edges.renderOrder = OVERLAY_RENDER_ORDER;
+    mesh.add(edges);
+    mesh.userData.key = overlayKey(item.id);
+    mesh.userData.layer = item.layer;
+    mesh.userData.room = item.room_id === null ? null : `room-${item.room_id}`;
+
+    return mesh;
+}
+
 function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
     const shape = roofShape(rooms, kind);
 
@@ -514,6 +595,20 @@ function buildLotEdges(terrains: StructureTerrain[], material: LineMaterial): Gr
     return edges;
 }
 
+function clip(root: Object3D, planes: Plane[]): void {
+    root.traverse((child) => {
+        if (child instanceof Mesh || child instanceof LineSegments) {
+            const materials: Material[] = Array.isArray(child.material)
+                ? child.material
+                : [child.material];
+
+            for (const material of materials) {
+                material.clippingPlanes = planes;
+            }
+        }
+    });
+}
+
 function disposeMaterial(material: Material | Material[]): void {
     for (const item of Array.isArray(material) ? material : [material]) {
         if (item.userData.shared !== true) {
@@ -543,6 +638,7 @@ export function createStructureViewer(
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFShadowMap;
     renderer.toneMapping = ACESFilmicToneMapping;
+    renderer.localClippingEnabled = true;
     container.append(renderer.domElement);
 
     const canvas = renderer.domElement;
@@ -587,8 +683,12 @@ export function createStructureViewer(
     const materials = buildSharedMaterials();
     const outlineMaterial = shared(new LineMaterial({ linewidth: OUTLINE_WIDTH_PX }));
     const lotEdgeMaterial = shared(new LineMaterial({ linewidth: LOT_EDGE_WIDTH_PX }));
+    const cutPlane = new Plane(new Vector3(0, -1, 0), CUT_DISABLED_M);
+    const cutPlanes = [cutPlane];
+    outlineMaterial.clippingPlanes = cutPlanes;
     const raycaster = new Raycaster();
     const pointer = new Vector2();
+    let pendingHover: PointerEvent | null = null;
     const bounds = new Sphere(new Vector3(), 1);
 
     let model: Group | null = null;
@@ -607,6 +707,19 @@ export function createStructureViewer(
     let roofRooms: StructureRoom[] = [];
     let outline: LineSegments2 | null = null;
     let hoveredKey: string | null = null;
+    let isolatedKey: string | null = null;
+    let companions: ReadonlySet<string> = new Set();
+    let cutFraction = 1;
+    let highlight: ReadonlySet<string> | null = null;
+    let overlayData: SpatialElement[] = [];
+    let overlays: OverlayMesh[] = [];
+    let overlayGroup: Group | null = null;
+    let overlayLayers: OverlayLayers = { structure: true, installations: true, finishes: true };
+    let levelBases: number[] = [];
+    let explodeTarget = 0;
+    let explodeCurrent = 0;
+    let lastFrame = 0;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let framed = false;
     let pressX = 0;
     let pressY = 0;
@@ -693,13 +806,16 @@ export function createStructureViewer(
         rig.zoomBy(factor);
     }
 
-    function focus(key: string | null): void {
-        const mesh = elements.find((item) => item.userData.key === key);
+    function focus(key: string | null, azimuth?: number): void {
+        const mesh = [...elements, ...overlays].find((item) => item.userData.key === key);
 
         rig.focus(
             mesh === undefined
                 ? null
                 : new Box3().setFromObject(mesh).getBoundingSphere(new Sphere()),
+            azimuth === undefined
+                ? undefined
+                : new Vector3().setFromSphericalCoords(1, INSPECT_POLAR, azimuth),
         );
     }
 
@@ -711,10 +827,15 @@ export function createStructureViewer(
                 SURFACE_MATERIALS[
                     surfaceOf(surfaces, key, mesh.userData.kind as StructureElement["kind"])
                 ];
-            const opacity = colors === null ? surface.opacity : 1;
+            const dimmed = highlight !== null && !highlight.has(key);
+            const opacity = dimmed ? GHOST_OPACITY : colors === null ? surface.opacity : 1;
 
             mesh.material.color.setHex(
-                colors === null ? surface.color : (colors.get(key) ?? MUTED_COLOR),
+                dimmed
+                    ? MUTED_COLOR
+                    : colors === null
+                      ? surface.color
+                      : (colors.get(key) ?? MUTED_COLOR),
             );
             mesh.material.roughness = surface.roughness;
             mesh.material.metalness = surface.metalness;
@@ -740,8 +861,11 @@ export function createStructureViewer(
 
             edges.color.setHex(selected ? SELECTION_COLOR : EDGE_COLOR);
             edges.opacity = selected ? 1 : 0.6;
-            mesh.material.emissive.setHex(!selected && key === hoveredKey ? HOVER_COLOR : 0x000000);
-            mesh.material.emissiveIntensity = 0.2;
+            const hovered = !selected && key === hoveredKey;
+            const marked = highlight !== null && !dimmed;
+
+            mesh.material.emissive.setHex(hovered ? HOVER_COLOR : marked ? CYAN_ACCENT : 0x000000);
+            mesh.material.emissiveIntensity = !hovered && marked ? HIGHLIGHT_GLOW : 0.2;
         }
 
         invalidate();
@@ -773,11 +897,20 @@ export function createStructureViewer(
 
     function applyLayers(): void {
         for (const mesh of elements) {
-            mesh.visible = layers.rooms || mesh.userData.space !== true;
+            mesh.visible =
+                isolatedKey === null
+                    ? layers.rooms || mesh.userData.space !== true
+                    : companions.has(mesh.userData.key as string);
+        }
+
+        for (const mesh of overlays) {
+            mesh.visible =
+                overlayLayers[mesh.userData.layer as SpatialLayer] &&
+                (isolatedKey === null || companions.has(mesh.userData.key as string));
         }
 
         if (roof !== null) {
-            roof.visible = layers.roof && layers.rooms;
+            roof.visible = layers.roof && layers.rooms && isolatedKey === null;
         }
 
         if (environment !== null) {
@@ -850,6 +983,138 @@ export function createStructureViewer(
         parent.add(sky, ground, grid);
     }
 
+    function updateIsolation(): void {
+        const target = elements.find((item) => item.userData.key === isolatedKey);
+        const range = new Box3();
+        const kept = new Set<string>();
+
+        if (target === undefined) {
+            isolatedKey = null;
+
+            for (const mesh of elements) {
+                range.expandByObject(mesh);
+            }
+        } else {
+            range.setFromObject(target);
+
+            const reach = range.clone().expandByScalar(COMPANION_REACH_M);
+            const box = new Box3();
+
+            for (const mesh of elements) {
+                if (
+                    mesh === target ||
+                    (mesh.userData.space !== true && reach.intersectsBox(box.setFromObject(mesh)))
+                ) {
+                    kept.add(mesh.userData.key as string);
+                }
+            }
+
+            for (const mesh of overlays) {
+                if (
+                    mesh.userData.room === isolatedKey ||
+                    (mesh.userData.room === null && reach.intersectsBox(box.setFromObject(mesh)))
+                ) {
+                    kept.add(mesh.userData.key as string);
+                }
+            }
+        }
+
+        companions = kept;
+        cutPlane.constant =
+            cutFraction >= 1 || range.isEmpty()
+                ? CUT_DISABLED_M
+                : range.min.y + (range.max.y - range.min.y) * cutFraction;
+    }
+
+    function isolate(key: string | null): void {
+        isolatedKey = key;
+        updateIsolation();
+        applyLayers();
+    }
+
+    function setCutaway(fraction: number): void {
+        cutFraction = fraction;
+        updateIsolation();
+    }
+
+    function setHighlight(keys: ReadonlySet<string> | null): void {
+        highlight = keys;
+        paint();
+    }
+
+    function levelAt(height: number): number {
+        let level = 0;
+
+        for (const [index, base] of levelBases.entries()) {
+            if (height >= base - LEVEL_TOLERANCE_M) {
+                level = index;
+            }
+        }
+
+        return level;
+    }
+
+    function applyExplode(): void {
+        const lift = EXPLODE_GAP_M * explodeCurrent;
+
+        for (const mesh of [...elements, ...overlays]) {
+            mesh.position.y =
+                (mesh.userData.baseY as number) + (mesh.userData.level as number) * lift;
+        }
+
+        if (roof !== null) {
+            roof.position.y = (roof.userData.baseY as number) + levelBases.length * lift;
+        }
+
+        updateIsolation();
+    }
+
+    function placeRoof(): void {
+        if (roof !== null && model !== null) {
+            roof.userData.baseY = roof.position.y;
+            clip(roof, cutPlanes);
+            model.add(roof);
+        }
+    }
+
+    function rebuildOverlays(): void {
+        if (model === null) {
+            return;
+        }
+
+        if (overlayGroup !== null) {
+            model.remove(overlayGroup);
+            disposeObject(overlayGroup);
+        }
+
+        overlays = overlayData.map(buildOverlay);
+        overlayGroup = new Group();
+
+        for (const [index, mesh] of overlays.entries()) {
+            mesh.userData.baseY = mesh.position.y;
+            mesh.userData.level = levelAt(overlayData[index].min_z_m);
+            overlayGroup.add(mesh);
+        }
+
+        model.add(overlayGroup);
+        applyExplode();
+        applyLayers();
+    }
+
+    function setOverlays(items: SpatialElement[]): void {
+        overlayData = items;
+        rebuildOverlays();
+    }
+
+    function setOverlayLayers(next: OverlayLayers): void {
+        overlayLayers = next;
+        applyLayers();
+    }
+
+    function setExplode(fraction: number): void {
+        explodeTarget = MathUtils.clamp(fraction, 0, 1);
+    }
+
     function setLayers(next: Layers): void {
         layers = next;
         applyLayers();
@@ -863,6 +1128,8 @@ export function createStructureViewer(
             disposeObject(model);
             model = null;
             elements = [];
+            overlays = [];
+            overlayGroup = null;
             roof = null;
             environment = null;
             lotEdges = null;
@@ -874,10 +1141,25 @@ export function createStructureViewer(
 
     function buildElements(structure: Structure): ElementMesh[] {
         const openings = placeOpenings(structure.rooms);
+        const items = [...structure.rooms, ...structure.components];
+        const bases = new Map<number, number>();
 
-        return [...structure.rooms, ...structure.components].map((element) =>
-            buildElement(element, openings.get(elementKey(element)) ?? [], materials),
-        );
+        for (const item of items) {
+            bases.set(item.plan_id, Math.min(bases.get(item.plan_id) ?? Infinity, item.base_m));
+        }
+
+        const plans = [...bases.keys()].sort((a, b) => (bases.get(a) ?? 0) - (bases.get(b) ?? 0));
+
+        levelBases = plans.map((plan) => bases.get(plan) ?? 0);
+
+        return items.map((element) => {
+            const mesh = buildElement(element, openings.get(elementKey(element)) ?? [], materials);
+
+            mesh.userData.baseY = mesh.position.y;
+            mesh.userData.level = plans.indexOf(element.plan_id);
+
+            return mesh;
+        });
     }
 
     function show(structure: Structure): void {
@@ -891,9 +1173,11 @@ export function createStructureViewer(
         model = new Group();
         model.add(...structure.terrains.map(buildTerrain), ...elements, environment);
 
-        if (roof !== null) {
-            model.add(roof);
+        for (const mesh of elements) {
+            clip(mesh, cutPlanes);
         }
+
+        placeRoof();
 
         new Box3().setFromObject(model).getBoundingSphere(bounds);
         bounds.radius = Math.max(bounds.radius, 1);
@@ -905,7 +1189,7 @@ export function createStructureViewer(
         hoveredKey = null;
         resize();
         fitLimits();
-        applyLayers();
+        rebuildOverlays();
         outlineSelection();
         paint();
 
@@ -945,11 +1229,8 @@ export function createStructureViewer(
         }
 
         roof = buildRoof(roofRooms, roofKind);
-
-        if (roof !== null) {
-            model.add(roof);
-        }
-
+        placeRoof();
+        applyExplode();
         applyLayers();
     }
 
@@ -967,9 +1248,14 @@ export function createStructureViewer(
         );
         raycaster.setFromCamera(pointer, camera);
 
-        const [hit] = raycaster.intersectObjects(
-            elements.filter((mesh) => mesh.visible),
-            false,
+        // The work layers are drawn over the model, so they are also picked before it.
+        const [hit] = [overlays, elements].flatMap((group) =>
+            raycaster
+                .intersectObjects(
+                    group.filter((mesh) => mesh.visible),
+                    false,
+                )
+                .slice(0, 1),
         );
 
         return hit === undefined ? null : (hit.object.userData.key as string);
@@ -989,6 +1275,10 @@ export function createStructureViewer(
     }
 
     function handlePointerMove(event: PointerEvent): void {
+        pendingHover = event;
+    }
+
+    function updateHover(event: PointerEvent): void {
         const key = event.buttons === 0 ? pick(event) : null;
 
         if (key !== hoveredKey) {
@@ -999,6 +1289,8 @@ export function createStructureViewer(
     }
 
     function handlePointerLeave(): void {
+        pendingHover = null;
+
         if (hoveredKey !== null) {
             hoveredKey = null;
             canvas.style.cursor = "";
@@ -1035,7 +1327,26 @@ export function createStructureViewer(
     resize();
 
     renderer.setAnimationLoop((time) => {
+        const elapsed = Math.min((time - lastFrame) / 1000, MAX_FRAME_S);
+
+        lastFrame = time;
         rig.update(time);
+
+        if (explodeCurrent !== explodeTarget) {
+            const settled =
+                reducedMotion.matches || Math.abs(explodeTarget - explodeCurrent) < EXPLODE_REST;
+
+            explodeCurrent = settled
+                ? explodeTarget
+                : MathUtils.damp(explodeCurrent, explodeTarget, EXPLODE_RATE, elapsed);
+            applyExplode();
+            invalidate();
+        }
+
+        if (pendingHover !== null) {
+            updateHover(pendingHover);
+            pendingHover = null;
+        }
 
         if (dirty) {
             render();
@@ -1086,6 +1397,12 @@ export function createStructureViewer(
         setLayers: changing(setLayers),
         setPalette: changing(setPalette),
         setView: changing(setView),
+        isolate: changing(isolate),
+        setCutaway: changing(setCutaway),
+        setHighlight: changing(setHighlight),
+        setOverlays: changing(setOverlays),
+        setOverlayLayers: changing(setOverlayLayers),
+        setExplode: changing(setExplode),
         focus: changing(focus),
         zoomBy: changing(zoomBy),
         dispose,
