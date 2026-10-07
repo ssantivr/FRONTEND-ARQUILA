@@ -25,6 +25,10 @@ import type {
     ProjectTemplate,
     ProjectUpdate,
     RegisterRequest,
+    RenovationLog,
+    RenovationLogCreate,
+    RenovationStatus,
+    SpatialData,
     Summary,
     Recommendation,
     RecommendationCreate,
@@ -41,6 +45,7 @@ import type {
     TerrainCreate,
     TerrainUpdate,
     User,
+    Walkthrough,
 } from "../types/api";
 import { apiUrl, request, upload } from "./http";
 
@@ -214,4 +219,21 @@ export const conversationsApi = {
 
 export const summaryApi = {
     get: () => request<Summary>("/summary"),
+};
+
+export const spatialApi = {
+    get: (projectId: number) =>
+        request<SpatialData>("/api/v1/spatial-data", { query: { project_id: projectId } }),
+};
+
+export const walkthroughApi = {
+    get: (projectId: number) =>
+        request<Walkthrough>("/api/v1/interior-walkthrough", { query: { project_id: projectId } }),
+    createLog: (data: RenovationLogCreate) =>
+        request<RenovationLog>("/api/v1/interior-walkthrough/logs", { method: "POST", body: data }),
+    setLogStatus: (id: number, status: RenovationStatus) =>
+        request<RenovationLog>(`/api/v1/interior-walkthrough/logs/${id}`, {
+            method: "PATCH",
+            body: { status },
+        }),
 };

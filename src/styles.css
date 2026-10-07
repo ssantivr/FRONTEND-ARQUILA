@@ -600,7 +600,7 @@ textarea {
     top: 12px;
     right: 12px;
     width: 220px;
-    max-height: calc(100% - 236px);
+    max-height: calc(100% - 300px);
     overflow-y: auto;
     border-color: var(--border);
 }
@@ -745,6 +745,114 @@ textarea {
 .hud-toolbar .hud-field select {
     padding: 3px 6px;
     font-size: inherit;
+}
+
+.hud-toolbar .hud-field input[type="range"] {
+    width: 96px;
+    padding: 0;
+    accent-color: var(--accent);
+}
+
+.hud-tour {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hud-works {
+    top: 12px;
+    left: 12px;
+    width: 250px;
+    max-height: calc(100% - 150px);
+    overflow-y: auto;
+}
+
+.hud-works .hud-works-title {
+    margin-bottom: 4px;
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.hud-works-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hud-works small {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+}
+
+.hud-work {
+    display: grid;
+    gap: 2px;
+    padding-left: 8px;
+    color: var(--text-secondary);
+    border-left: 2px solid var(--accent-alt, var(--accent));
+}
+
+.hud-work strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.hud-work select,
+.hud-works-form :is(input, select) {
+    width: 100%;
+    padding: 3px 6px;
+    font-size: inherit;
+}
+
+.hud-works-form {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.hud-works-form .hud-item {
+    text-align: center;
+}
+
+.hud-work-layers > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 3px;
+}
+
+.hud-work-layers .checkbox {
+    display: flex;
+    gap: 4px;
+    accent-color: var(--accent);
+}
+
+.hud-work-layers .hud-swatch {
+    width: 8px;
+    margin-right: 2px;
+}
+
+.hud-work-layers .hud-item {
+    width: auto;
+    margin: 0;
+    padding: 1px 6px;
+    font-size: 0.74rem;
+}
+
+.hud-count {
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.hud-picked {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
 }
 
 .hud-toolbar .checkbox {

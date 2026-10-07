@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { errorMessage } from "../hooks/useAsync";
-import { structureApi } from "../services/api";
+import { errorMessage, useAsync } from "../hooks/useAsync";
+import { spatialApi, structureApi, walkthroughApi } from "../services/api";
 import { appState, useProjectState } from "../state/appState";
 import { useTheme } from "../state/theme";
 import {
@@ -9,12 +9,21 @@ import {
     createStructureViewer,
     elementKey,
     isSpace,
+    overlayKey,
     type LayerName,
     type Layers,
+    type OverlayLayers,
     type StructureViewer as Viewer,
     type ViewName,
 } from "../three/BuildingSceneManager";
-import type { RecommendationPriority, RoofKind, Structure, StructureElement } from "../types/api";
+import type {
+    RecommendationPriority,
+    RoofKind,
+    SpatialElement,
+    SpatialLayer,
+    Structure,
+    StructureElement,
+} from "../types/api";
 import {
     HIGH_COLOR,
     KIND_COLORS,
@@ -31,12 +40,20 @@ import {
 } from "../utils/elementColors";
 import { formatMoney, formatNumber } from "../utils/format";
 import {
+    DEFAULT_SURFACE,
     SURFACE_MATERIALS,
     SURFACE_MATERIAL_IDS,
     savedSurfaces,
     surfaceOf,
     type SurfaceMaterialId,
 } from "../utils/surfaceMaterials";
+import {
+    RoomWorksPanel,
+    WORK_LAYERS,
+    WORK_STATUS_LABELS,
+    layerLabel,
+    workSwatch,
+} from "./RoomWorksPanel";
 
 interface Level {
     planId: number;
@@ -102,6 +119,38 @@ const ALERT_LEGEND = (Object.keys(PRIORITY_LABELS) as RecommendationPriority[]).
     swatch: cssColor(PRIORITY_COLORS[priority]),
 }));
 
+const HIGHLIGHTS: Record<SpatialLayer, { title: string; empty: string }> = {
+    structure: {
+        title: "Resalta columnas, vigas y muros",
+        empty: "El proyecto no tiene componentes estructurales.",
+    },
+    installations: {
+        title: "Atenúa el modelo para dejar a la vista las instalaciones",
+        empty: "El proyecto no tiene instalaciones registradas.",
+    },
+    finishes: {
+        title: "Resalta los elementos con un material asignado",
+        empty: "Ningún elemento tiene un material distinto al predeterminado.",
+    },
+};
+
+interface TourStop {
+    key: string;
+    title: string;
+    description: string | null;
+    durationMs: number;
+    cut: number;
+}
+
+const NO_ELEMENTS: SpatialElement[] = [];
+const ALL_WORK_LAYERS: OverlayLayers = { structure: true, installations: true, finishes: true };
+const TOUR_STEP_MS = 5000;
+const TOUR_START_AZIMUTH = 0.6;
+const TOUR_TURN = 0.7;
+const EXPLODE_STEP_PERCENT = 5;
+const ISOLATION_CUT_PERCENT = 80;
+const CUT_MIN_PERCENT = 10;
+const CUT_STEP_PERCENT = 5;
 const ALL_LAYERS: Layers = { rooms: true, roof: true, environment: true, grid: true };
 const ZOOM_STEP = 1.25;
 
@@ -144,6 +193,13 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [isolation, setIsolation] = useState<string | null>(null);
+    const [touring, setTouring] = useState(false);
+    const [cut, setCut] = useState(100);
+    const [highlight, setHighlight] = useState<SpatialLayer | null>(null);
+    const [workLayers, setWorkLayers] = useState(ALL_WORK_LAYERS);
+    const [explode, setExplode] = useState(0);
+    const [pickedId, setPickedId] = useState<number | null>(null);
     const projectId = structure.project_id;
     const theme = useTheme();
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
@@ -174,9 +230,87 @@ export function StructureViewer({ structure }: { structure: Structure }) {
         return colorMode === "alerts" ? alertColors(alerts) : null;
     }, [colorMode, elements, costs, alerts]);
     const selected = elements.find((element) => elementKey(element) === selectedKey) ?? null;
+    const rooms = useMemo(
+        () =>
+            structure.rooms
+                .filter((room) => room.kind === "room")
+                .sort((a, b) => a.base_m - b.base_m),
+        [structure],
+    );
+    const spatial = useAsync(() => spatialApi.get(projectId), [projectId, structure]);
+    const walkthrough = useAsync(() => walkthroughApi.get(projectId), [projectId, structure]);
+    const works = spatial.data?.elements ?? NO_ELEMENTS;
+    const steps = walkthrough.data?.steps;
+    const stops = useMemo<TourStop[]>(() => {
+        const planned = (steps ?? []).flatMap((item) => {
+            const room = rooms.find((candidate) => candidate.id === item.room_id);
+            const cut = item.view_config.cut_fraction;
+
+            return room === undefined
+                ? []
+                : [
+                      {
+                          key: elementKey(room),
+                          title: item.title,
+                          description: item.description,
+                          durationMs: item.duration_ms,
+                          cut:
+                              typeof cut === "number"
+                                  ? Math.round(cut * 100)
+                                  : ISOLATION_CUT_PERCENT,
+                      },
+                  ];
+        });
+
+        return planned.length > 0
+            ? planned
+            : rooms.map((room) => ({
+                  key: elementKey(room),
+                  title: room.name,
+                  description: null,
+                  durationMs: TOUR_STEP_MS,
+                  cut: ISOLATION_CUT_PERCENT,
+              }));
+    }, [rooms, steps]);
+    const isolatedRoom = rooms.find((room) => elementKey(room) === isolation) ?? null;
+    const isolatedKey = isolatedRoom === null ? null : isolation;
+    const stopIndex = stops.findIndex((stop) => stop.key === isolatedKey);
+    const currentStop = stopIndex === -1 ? null : stops[stopIndex];
+    const picked = works.find((item) => item.id === pickedId) ?? null;
+    const highlighted = useMemo<ReadonlySet<string> | null>(() => {
+        if (highlight === null) {
+            return null;
+        }
+
+        return new Set(
+            elements
+                .filter((element) =>
+                    highlight === "structure"
+                        ? !isSpace(element)
+                        : highlight === "finishes" &&
+                          surfaceOf(surfaces, elementKey(element), element.kind) !==
+                              DEFAULT_SURFACE[element.kind],
+                )
+                .map(elementKey),
+        );
+    }, [highlight, elements, surfaces]);
+    const nothingToHighlight =
+        highlight === "installations"
+            ? !works.some((item) => item.layer === "installations")
+            : highlighted !== null && highlighted.size === 0;
 
     function setSelectedKey(key: string | null) {
         appState.select(projectId, elements.find((element) => elementKey(element) === key) ?? null);
+    }
+
+    function pick(key: string | null) {
+        const work = works.find((item) => overlayKey(item.id) === key);
+
+        setPickedId(work?.id ?? null);
+
+        if (work === undefined) {
+            setSelectedKey(key);
+        }
     }
 
     function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
@@ -202,8 +336,49 @@ export function StructureViewer({ structure }: { structure: Structure }) {
         });
     }
 
-    const selectByKey = useRef(setSelectedKey);
-    selectByKey.current = setSelectedKey;
+    function visit(key: string | null, stop = stops.findIndex((item) => item.key === key)) {
+        setIsolation(key);
+        setPickedId(null);
+
+        if (key === null) {
+            setTouring(false);
+            setCut(100);
+        } else {
+            setSelectedKey(key);
+            setCut((current) =>
+                stop !== -1 ? stops[stop].cut : current === 100 ? ISOLATION_CUT_PERCENT : current,
+            );
+        }
+
+        viewer.current?.isolate(key);
+        // Each stop turns the camera a little, so the walkthrough circles the building.
+        viewer.current?.focus(
+            key,
+            key === null || stop === -1 ? undefined : TOUR_START_AZIMUTH + stop * TOUR_TURN,
+        );
+    }
+
+    function step(delta: number) {
+        if (stops.length > 0) {
+            const next = stopIndex === -1 ? 0 : (stopIndex + delta + stops.length) % stops.length;
+
+            visit(stops[next].key, next);
+        }
+    }
+
+    function toggleTour() {
+        if (!touring && isolatedKey === null) {
+            step(1);
+        }
+
+        setTouring(!touring);
+    }
+
+    const selectByKey = useRef(pick);
+    selectByKey.current = pick;
+
+    const advance = useRef(step);
+    advance.current = step;
 
     const selectedCost = selected === null ? undefined : costs.get(elementKey(selected));
     const selectedAlerts = selected === null ? [] : (alerts.get(elementKey(selected)) ?? []);
@@ -275,6 +450,42 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     }, [layers]);
 
     useEffect(() => {
+        viewer.current?.isolate(isolatedKey);
+    }, [isolatedKey, structure]);
+
+    useEffect(() => {
+        viewer.current?.setCutaway(cut / 100);
+    }, [cut, structure]);
+
+    useEffect(() => {
+        viewer.current?.setHighlight(highlighted);
+    }, [highlighted, structure]);
+
+    useEffect(() => {
+        viewer.current?.setOverlays(works);
+    }, [works]);
+
+    useEffect(() => {
+        viewer.current?.setOverlayLayers(workLayers);
+    }, [workLayers]);
+
+    useEffect(() => {
+        viewer.current?.setExplode(explode / 100);
+    }, [explode]);
+
+    const stopDuration = currentStop?.durationMs ?? TOUR_STEP_MS;
+
+    useEffect(() => {
+        if (!touring) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => advance.current(1), stopDuration);
+
+        return () => window.clearTimeout(timer);
+    }, [touring, isolatedKey, stopDuration]);
+
+    useEffect(() => {
         viewer.current?.setPalette(SCENE_PALETTES[theme]);
     }, [theme, structure]);
 
@@ -337,39 +548,88 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                 </button>
                 <span className="hud-readout">Zoom {zoom} %</span>
             </div>
-            <aside className="hud hud-levels" aria-label="Niveles del modelo">
-                <h3>Niveles</h3>
-                {elements.length === 0 && (
-                    <p>Agrega cuartos a un plano, o ponle un nivel numérico, para verlo aquí.</p>
-                )}
-                {groupByLevel(elements).map((level) => (
-                    <section key={level.planId}>
-                        <h4>{level.title}</h4>
-                        {level.elements.map((element) => {
-                            const key = elementKey(element);
+            {isolatedRoom === null ? (
+                <aside className="hud hud-levels" aria-label="Niveles del modelo">
+                    <h3>Niveles</h3>
+                    {elements.length === 0 && (
+                        <p>
+                            Agrega cuartos a un plano, o ponle un nivel numérico, para verlo aquí.
+                        </p>
+                    )}
+                    {groupByLevel(elements).map((level) => (
+                        <section key={level.planId}>
+                            <h4>{level.title}</h4>
+                            {level.elements.map((element) => {
+                                const key = elementKey(element);
 
-                            return (
-                                <button
-                                    key={key}
-                                    type="button"
-                                    className="hud-item"
-                                    aria-pressed={key === selectedKey}
-                                    onClick={() => setSelectedKey(key === selectedKey ? null : key)}
-                                >
-                                    {itemLabel(element)}
-                                </button>
-                            );
-                        })}
-                    </section>
-                ))}
-            </aside>
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        className="hud-item"
+                                        aria-pressed={key === selectedKey}
+                                        onClick={() =>
+                                            setSelectedKey(key === selectedKey ? null : key)
+                                        }
+                                    >
+                                        {itemLabel(element)}
+                                    </button>
+                                );
+                            })}
+                        </section>
+                    ))}
+                </aside>
+            ) : (
+                <RoomWorksPanel
+                    projectId={projectId}
+                    roomId={isolatedRoom.id}
+                    title={currentStop?.title ?? isolatedRoom.name}
+                    description={currentStop?.description ?? null}
+                    elements={works.filter((item) => item.room_id === isolatedRoom.id)}
+                    logs={(walkthrough.data?.renovation_logs ?? []).filter(
+                        (log) => log.room_id === isolatedRoom.id,
+                    )}
+                    unavailable={spatial.error ?? walkthrough.error}
+                    onChanged={walkthrough.reload}
+                    onFocus={(item) => {
+                        setPickedId(item.id);
+                        viewer.current?.focus(overlayKey(item.id));
+                    }}
+                />
+            )}
             <aside className="hud hud-inspector" aria-live="polite" aria-label="Inspector">
                 <h3>Inspector</h3>
+                {picked !== null && (
+                    <dl className="hud-picked">
+                        <dt>Elemento</dt>
+                        <dd>{picked.name}</dd>
+                        <dt>Capa</dt>
+                        <dd>
+                            <span
+                                className="hud-swatch"
+                                style={{ background: workSwatch(picked) }}
+                            />
+                            {layerLabel(picked.layer)}
+                        </dd>
+                        <dt>Estado</dt>
+                        <dd>{WORK_STATUS_LABELS[picked.work_status]}</dd>
+                        <dt>Medidas</dt>
+                        <dd>
+                            {formatNumber(picked.max_x_m - picked.min_x_m)} ×{" "}
+                            {formatNumber(picked.max_y_m - picked.min_y_m)} ×{" "}
+                            {formatNumber(picked.max_z_m - picked.min_z_m)} m
+                        </dd>
+                        <dt>Altura de la base</dt>
+                        <dd>+{formatNumber(picked.min_z_m)} m</dd>
+                    </dl>
+                )}
                 {selected === null ? (
-                    <p>
-                        Haz clic en un cuarto o en un componente para inspeccionarlo, o doble clic
-                        para acercar la cámara a él.
-                    </p>
+                    picked === null && (
+                        <p>
+                            Haz clic en un cuarto, un componente o una instalación para
+                            inspeccionarlo, o doble clic para acercar la cámara a él.
+                        </p>
+                    )
                 ) : (
                     <dl>
                         <dt>Nombre</dt>
@@ -434,6 +694,17 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                         Enfocar
                     </button>
                 )}
+                {selected !== null && selected.kind === "room" && (
+                    <button
+                        type="button"
+                        className="hud-item"
+                        aria-pressed={selectedKey === isolatedKey}
+                        title="Oculta el resto del modelo y deja solo este cuarto con su estructura"
+                        onClick={() => visit(selectedKey === isolatedKey ? null : selectedKey)}
+                    >
+                        Aislar cuarto
+                    </button>
+                )}
                 {saveError !== null && (
                     <p className="message message-error" role="alert">
                         {saveError}
@@ -484,6 +755,45 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                     <p>Reparto del presupuesto de materiales según el volumen de cada elemento.</p>
                 )}
                 {colorNote !== null && <p>{colorNote}</p>}
+                <h4>Capas de obra</h4>
+                <div className="hud-work-layers" role="group" aria-label="Capas de obra">
+                    {WORK_LAYERS.map((layer) => (
+                        <div key={layer.id}>
+                            <label
+                                className="checkbox"
+                                title={`Muestra u oculta los elementos de ${layer.label.toLowerCase()} registrados`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={workLayers[layer.id]}
+                                    onChange={(event) =>
+                                        setWorkLayers({
+                                            ...workLayers,
+                                            [layer.id]: event.target.checked,
+                                        })
+                                    }
+                                />
+                                <span className="hud-swatch" style={{ background: layer.swatch }} />
+                                {layer.label}
+                                <span className="hud-count">
+                                    {spatial.data?.counts[layer.id] ?? 0}
+                                </span>
+                            </label>
+                            <button
+                                type="button"
+                                className="hud-item"
+                                aria-pressed={layer.id === highlight}
+                                title={HIGHLIGHTS[layer.id].title}
+                                onClick={() =>
+                                    setHighlight(layer.id === highlight ? null : layer.id)
+                                }
+                            >
+                                Resaltar
+                            </button>
+                        </div>
+                    ))}
+                </div>
+                {highlight !== null && nothingToHighlight && <p>{HIGHLIGHTS[highlight].empty}</p>}
             </aside>
             <div className="hud hud-toolbar">
                 <button
@@ -497,6 +807,79 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                 <button type="button" className="hud-item" onClick={toggleFullscreen}>
                     Pantalla completa
                 </button>
+                {stops.length > 0 && (
+                    <div className="hud-tour" role="group" aria-label="Corrida de interior">
+                        <button
+                            type="button"
+                            className="hud-item"
+                            aria-pressed={touring}
+                            title="Recorre los cuartos uno por uno, aislando cada uno y mostrando lo que se va a hacer"
+                            onClick={toggleTour}
+                        >
+                            Corrida de interior
+                        </button>
+                        <button
+                            type="button"
+                            className="hud-item"
+                            aria-label="Cuarto anterior"
+                            onClick={() => step(-1)}
+                        >
+                            ‹
+                        </button>
+                        <button
+                            type="button"
+                            className="hud-item"
+                            aria-label="Cuarto siguiente"
+                            onClick={() => step(1)}
+                        >
+                            ›
+                        </button>
+                        {isolatedRoom !== null && (
+                            <>
+                                <span className="hud-readout">
+                                    {currentStop === null
+                                        ? isolatedRoom.name
+                                        : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`}
+                                </span>
+                                <button
+                                    type="button"
+                                    className="hud-item"
+                                    title="Vuelve a mostrar todo el modelo"
+                                    onClick={() => visit(null)}
+                                >
+                                    Ver todo
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
+                <label
+                    className="hud-field"
+                    title="Corta el modelo a una altura para ver su interior"
+                >
+                    Corte
+                    <input
+                        type="range"
+                        min={CUT_MIN_PERCENT}
+                        max={100}
+                        step={CUT_STEP_PERCENT}
+                        value={cut}
+                        aria-valuetext={cut === 100 ? "Sin corte" : `${cut} % de la altura`}
+                        onChange={(event) => setCut(Number(event.target.value))}
+                    />
+                </label>
+                <label className="hud-field" title="Separa los niveles para ver cada planta">
+                    Despiece
+                    <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={EXPLODE_STEP_PERCENT}
+                        value={explode}
+                        aria-valuetext={explode === 0 ? "Sin despiece" : `${explode} %`}
+                        onChange={(event) => setExplode(Number(event.target.value))}
+                    />
+                </label>
                 {LAYERS.map((layer) => (
                     <label key={layer.id} className="checkbox">
                         <input
