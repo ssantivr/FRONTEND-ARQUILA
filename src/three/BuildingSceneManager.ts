@@ -589,6 +589,7 @@ export function createStructureViewer(
     const lotEdgeMaterial = shared(new LineMaterial({ linewidth: LOT_EDGE_WIDTH_PX }));
     const raycaster = new Raycaster();
     const pointer = new Vector2();
+    let pendingHover: PointerEvent | null = null;
     const bounds = new Sphere(new Vector3(), 1);
 
     let model: Group | null = null;
@@ -989,6 +990,10 @@ export function createStructureViewer(
     }
 
     function handlePointerMove(event: PointerEvent): void {
+        pendingHover = event;
+    }
+
+    function updateHover(event: PointerEvent): void {
         const key = event.buttons === 0 ? pick(event) : null;
 
         if (key !== hoveredKey) {
@@ -999,6 +1004,8 @@ export function createStructureViewer(
     }
 
     function handlePointerLeave(): void {
+        pendingHover = null;
+
         if (hoveredKey !== null) {
             hoveredKey = null;
             canvas.style.cursor = "";
@@ -1036,6 +1043,11 @@ export function createStructureViewer(
 
     renderer.setAnimationLoop((time) => {
         rig.update(time);
+
+        if (pendingHover !== null) {
+            updateHover(pendingHover);
+            pendingHover = null;
+        }
 
         if (dirty) {
             render();
