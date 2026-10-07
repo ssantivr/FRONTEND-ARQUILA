@@ -35,6 +35,7 @@ import type {
     RecommendationFilters,
     Room,
     RoomCreate,
+    RoomSpatial,
     RoomUpdate,
     StructuralComponent,
     RoofKind,
@@ -222,6 +223,8 @@ export const summaryApi = {
 };
 
 export const spatialApi = {
+    rooms: (projectId: number) =>
+        request<RoomSpatial[]>("/api/v1/rooms", { query: { project_id: projectId } }),
     get: (projectId: number) =>
         request<SpatialData>("/api/v1/spatial-data", { query: { project_id: projectId } }),
 };

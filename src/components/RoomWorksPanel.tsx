@@ -70,6 +70,7 @@ interface RoomWorksPanelProps {
     elements: SpatialElement[];
     logs: RenovationLog[];
     unavailable: string | null;
+    assetNote: string | null;
     onChanged: () => void;
     onFocus: (element: SpatialElement) => void;
 }
@@ -82,6 +83,7 @@ export function RoomWorksPanel({
     elements,
     logs,
     unavailable,
+    assetNote,
     onChanged,
     onFocus,
 }: RoomWorksPanelProps) {
@@ -132,6 +134,7 @@ export function RoomWorksPanel({
                     No se pudieron cargar las obras: {unavailable}
                 </p>
             )}
+            {assetNote !== null && <p>{assetNote}</p>}
             <h4>Elementos del cuarto</h4>
             {elements.length === 0 ? (
                 <p>Este cuarto no tiene instalaciones ni acabados registrados.</p>

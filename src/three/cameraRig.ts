@@ -28,6 +28,7 @@ export interface CameraRig {
     fit: (bounds: Sphere) => void;
     frame: (view: ViewName, animate: boolean) => void;
     focus: (volume: Sphere | null, toward?: Vector3) => void;
+    lookFrom: (position: Vector3, target: Vector3) => void;
     zoomBy: (factor: number) => void;
     zoomPercent: () => number;
     distance: () => number;
@@ -175,6 +176,8 @@ export function createCameraRig(
             volume === null
                 ? moveTo(scene.center, toward, viewDistance(), true)
                 : moveTo(volume.center, toward, viewDistance(volume.radius) * FOCUS_MARGIN, true),
+        lookFrom: (position, target) =>
+            moveTo(target, position.clone().sub(target), position.distanceTo(target), true),
         zoomBy: (factor) => moveTo(controls.target, direction(), distance() / factor, true),
         zoomPercent: () => Math.round((viewDistance() / distance()) * 100),
         distance,

@@ -388,3 +388,13 @@ export interface Walkthrough {
     steps: WalkthroughStep[];
     renovation_logs: RenovationLog[];
 }
+
+export interface RoomSpatial {
+    id: number;
+    project_id: number;
+    plan_id: number;
+    unit_id: number | null;
+    name: string;
+    category: string;
+    mesh_ref: string | null;
+}
