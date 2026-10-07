@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { spatialApi, structureApi, walkthroughApi } from "../services/api";
+import { apiUrl } from "../services/http";
 import { appState, useProjectState } from "../state/appState";
 import { useTheme } from "../state/theme";
 import {
@@ -10,6 +11,7 @@ import {
     elementKey,
     isSpace,
     overlayKey,
+    type CameraPose,
     type LayerName,
     type Layers,
     type OverlayLayers,
@@ -140,6 +142,46 @@ interface TourStop {
     description: string | null;
     durationMs: number;
     cut: number;
+    camera: CameraPose | null;
+}
+
+type AssetState = "loading" | "ready" | "error";
+
+const ASSET_NOTES: Record<AssetState, string> = {
+    loading: "Cargando el modelo 3D del cuarto…",
+    ready: "Modelo 3D del cuarto cargado.",
+    error: "No se pudo cargar el modelo 3D del cuarto.",
+};
+
+function isPoint(value: unknown): boolean {
+    return (
+        Array.isArray(value) &&
+        value.length === 3 &&
+        value.every((item) => typeof item === "number")
+    );
+}
+
+function readPose(value: unknown): CameraPose | null {
+    const pose = value as Partial<CameraPose> | null | undefined;
+
+    return typeof pose === "object" &&
+        pose !== null &&
+        isPoint(pose.position) &&
+        isPoint(pose.target)
+        ? (pose as CameraPose)
+        : null;
+}
+
+function assetUrl(reference: string | null): string | null {
+    if (reference === null) {
+        return null;
+    }
+
+    if (reference.startsWith("https://")) {
+        return reference;
+    }
+
+    return reference.startsWith("/api/v1/") ? apiUrl(reference) : null;
 }
 
 const NO_ELEMENTS: SpatialElement[] = [];
@@ -200,6 +242,8 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     const [workLayers, setWorkLayers] = useState(ALL_WORK_LAYERS);
     const [explode, setExplode] = useState(0);
     const [pickedId, setPickedId] = useState<number | null>(null);
+    const [inside, setInside] = useState(false);
+    const [assetState, setAssetState] = useState<AssetState | null>(null);
     const projectId = structure.project_id;
     const theme = useTheme();
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
@@ -239,6 +283,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     );
     const spatial = useAsync(() => spatialApi.get(projectId), [projectId, structure]);
     const walkthrough = useAsync(() => walkthroughApi.get(projectId), [projectId, structure]);
+    const roomAssets = useAsync(() => spatialApi.rooms(projectId), [projectId, structure]);
     const works = spatial.data?.elements ?? NO_ELEMENTS;
     const steps = walkthrough.data?.steps;
     const stops = useMemo<TourStop[]>(() => {
@@ -258,6 +303,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                               typeof cut === "number"
                                   ? Math.round(cut * 100)
                                   : ISOLATION_CUT_PERCENT,
+                          camera: readPose(item.view_config.camera),
                       },
                   ];
         });
@@ -270,6 +316,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                   description: null,
                   durationMs: TOUR_STEP_MS,
                   cut: ISOLATION_CUT_PERCENT,
+                  camera: null,
               }));
     }, [rooms, steps]);
     const isolatedRoom = rooms.find((room) => elementKey(room) === isolation) ?? null;
@@ -342,6 +389,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
 
         if (key === null) {
             setTouring(false);
+            setInside(false);
             setCut(100);
         } else {
             setSelectedKey(key);
@@ -351,6 +399,11 @@ export function StructureViewer({ structure }: { structure: Structure }) {
         }
 
         viewer.current?.isolate(key);
+
+        if (inside && key !== null) {
+            return;
+        }
+
         // Each stop turns the camera a little, so the walkthrough circles the building.
         viewer.current?.focus(
             key,
@@ -364,6 +417,14 @@ export function StructureViewer({ structure }: { structure: Structure }) {
 
             visit(stops[next].key, next);
         }
+    }
+
+    function toggleInside() {
+        if (inside) {
+            viewer.current?.focus(isolatedKey);
+        }
+
+        setInside(!inside);
     }
 
     function toggleTour() {
@@ -400,6 +461,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
             viewer.current = createStructureViewer(container.current, {
                 onSelect: (key) => selectByKey.current(key),
                 onZoom: setZoom,
+                onAsset: setAssetState,
             });
         } catch {
             setUnsupported(true);
@@ -472,6 +534,21 @@ export function StructureViewer({ structure }: { structure: Structure }) {
     useEffect(() => {
         viewer.current?.setExplode(explode / 100);
     }, [explode]);
+
+    const pose = currentStop?.camera ?? null;
+
+    useEffect(() => {
+        viewer.current?.enterRoom(inside ? isolatedKey : null, pose ?? undefined);
+    }, [inside, isolatedKey, pose, structure]);
+
+    const meshUrl = assetUrl(
+        roomAssets.data?.find((room) => room.id === isolatedRoom?.id)?.mesh_ref ?? null,
+    );
+
+    useEffect(() => {
+        setAssetState(meshUrl === null ? null : "loading");
+        viewer.current?.setAsset(meshUrl);
+    }, [meshUrl, structure]);
 
     const stopDuration = currentStop?.durationMs ?? TOUR_STEP_MS;
 
@@ -590,6 +667,7 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                         (log) => log.room_id === isolatedRoom.id,
                     )}
                     unavailable={spatial.error ?? walkthrough.error}
+                    assetNote={assetState === null ? null : ASSET_NOTES[assetState]}
                     onChanged={walkthrough.reload}
                     onFocus={(item) => {
                         setPickedId(item.id);
@@ -841,6 +919,15 @@ export function StructureViewer({ structure }: { structure: Structure }) {
                                         ? isolatedRoom.name
                                         : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`}
                                 </span>
+                                <button
+                                    type="button"
+                                    className="hud-item"
+                                    aria-pressed={inside}
+                                    title="Coloca la cámara dentro del cuarto, a la altura de los ojos"
+                                    onClick={toggleInside}
+                                >
+                                    Vista interior
+                                </button>
                                 <button
                                     type="button"
                                     className="hud-item"

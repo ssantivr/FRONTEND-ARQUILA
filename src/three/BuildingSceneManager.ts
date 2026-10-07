@@ -10,9 +10,11 @@ import {
     Color,
     DataTexture,
     DirectionalLight,
+    DoubleSide,
     EdgesGeometry,
     ExtrudeGeometry,
     Fog,
+    FrontSide,
     GridHelper,
     Group,
     HemisphereLight,
@@ -128,6 +130,9 @@ const EXPLODE_REST = 0.002;
 const MAX_FRAME_S = 0.1;
 const LEVEL_TOLERANCE_M = 0.05;
 const INSPECT_POLAR = 0.75;
+const EYE_HEIGHT_M = 1.6;
+const GAZE_HEIGHT_M = 1.2;
+const INTERIOR_INSET_M = 0.6;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
 const MAX_PIXEL_RATIO = 2;
@@ -141,6 +146,12 @@ export type { ViewName };
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
 export type OverlayLayers = Record<SpatialLayer, boolean>;
+export type PlanPoint = [number, number, number];
+
+export interface CameraPose {
+    position: PlanPoint;
+    target: PlanPoint;
+}
 
 export interface ScenePalette {
     sky: number;
@@ -188,6 +199,8 @@ export interface StructureViewer {
     setOverlays: (items: SpatialElement[]) => void;
     setOverlayLayers: (layers: OverlayLayers) => void;
     setExplode: (fraction: number) => void;
+    enterRoom: (key: string | null, pose?: CameraPose) => void;
+    setAsset: (url: string | null) => void;
     focus: (key: string | null, azimuth?: number) => void;
     zoomBy: (factor: number) => void;
     dispose: () => void;
@@ -196,6 +209,7 @@ export interface StructureViewer {
 export interface ViewerEvents {
     onSelect: (key: string | null) => void;
     onZoom: (percent: number) => void;
+    onAsset: (state: "ready" | "error") => void;
 }
 
 export { elementKey };
@@ -719,6 +733,8 @@ export function createStructureViewer(
     let explodeTarget = 0;
     let explodeCurrent = 0;
     let lastFrame = 0;
+    let asset: Object3D | null = null;
+    let assetRequest = 0;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let framed = false;
     let pressX = 0;
@@ -1115,6 +1131,79 @@ export function createStructureViewer(
         explodeTarget = MathUtils.clamp(fraction, 0, 1);
     }
 
+    function enterRoom(key: string | null, pose?: CameraPose): void {
+        const room = elements.find(
+            (item) => item.userData.key === key && item.userData.space === true,
+        );
+
+        // Walls are drawn from outside only; seen from inside they need both faces.
+        for (const mesh of elements) {
+            const side = mesh === room ? DoubleSide : FrontSide;
+
+            if (mesh.material.side !== side) {
+                mesh.material.side = side;
+                mesh.material.needsUpdate = true;
+            }
+        }
+
+        if (room === undefined) {
+            return;
+        }
+
+        const box = new Box3().setFromObject(room);
+        const lift = room.position.y - (room.userData.baseY as number);
+        const inset = Math.min(
+            INTERIOR_INSET_M,
+            (box.max.x - box.min.x) / 4,
+            (box.max.z - box.min.z) / 4,
+        );
+        const place = ([x, y, z]: PlanPoint) => new Vector3(x, z + lift, -y);
+
+        rig.lookFrom(
+            pose === undefined
+                ? new Vector3(box.min.x + inset, box.min.y + EYE_HEIGHT_M, box.max.z - inset)
+                : place(pose.position),
+            pose === undefined
+                ? new Vector3(box.max.x - inset, box.min.y + GAZE_HEIGHT_M, box.min.z + inset)
+                : place(pose.target),
+        );
+    }
+
+    function setAsset(url: string | null): void {
+        const request = ++assetRequest;
+
+        if (asset !== null) {
+            asset.removeFromParent();
+            disposeObject(asset);
+            asset = null;
+        }
+
+        if (url === null) {
+            return;
+        }
+
+        // The loader is only downloaded when a room actually has a model to show.
+        import("three/examples/jsm/loaders/GLTFLoader.js")
+            .then(({ GLTFLoader }) => new GLTFLoader().setWithCredentials(true).loadAsync(url))
+            .then((gltf) => {
+                if (request !== assetRequest || model === null) {
+                    disposeObject(gltf.scene);
+                    return;
+                }
+
+                asset = gltf.scene;
+                clip(asset, cutPlanes);
+                model.add(asset);
+                invalidate();
+                events.onAsset("ready");
+            })
+            .catch(() => {
+                if (request === assetRequest) {
+                    events.onAsset("error");
+                }
+            });
+    }
+
     function setLayers(next: Layers): void {
         layers = next;
         applyLayers();
@@ -1130,6 +1219,7 @@ export function createStructureViewer(
             elements = [];
             overlays = [];
             overlayGroup = null;
+            asset = null;
             roof = null;
             environment = null;
             lotEdges = null;
@@ -1403,6 +1493,8 @@ export function createStructureViewer(
         setOverlays: changing(setOverlays),
         setOverlayLayers: changing(setOverlayLayers),
         setExplode: changing(setExplode),
+        enterRoom: changing(enterRoom),
+        setAsset: changing(setAsset),
         focus: changing(focus),
         zoomBy: changing(zoomBy),
         dispose,
