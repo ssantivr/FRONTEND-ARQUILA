@@ -13,7 +13,7 @@ import {
     type Layers,
     type StructureViewer as Viewer,
     type ViewName,
-} from "../three/structureViewer";
+} from "../three/BuildingSceneManager";
 import type { RecommendationPriority, RoofKind, Structure, StructureElement } from "../types/api";
 import {
     HIGH_COLOR,
