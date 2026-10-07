@@ -52,7 +52,8 @@ export const MODULES: Module[] = [
         id: "interior",
         label: "Recorrido interior",
         icon: "interior",
-        description: "Interior 3D de un loft de doble altura con la ciudad al atardecer.",
+        description:
+            "Recorre tu proyecto por dentro, cuarto por cuarto, con lo que se va a hacer en cada uno.",
     },
     {
         id: "assistant",
