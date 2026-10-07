@@ -15,11 +15,7 @@ function readStored(): Theme | null {
     }
 }
 
-function preferred(): Theme {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
-let theme: Theme = readStored() ?? preferred();
+let theme: Theme = readStored() ?? "dark";
 
 function apply(): void {
     document.documentElement.dataset.theme = theme;
