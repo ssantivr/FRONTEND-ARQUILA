@@ -104,6 +104,16 @@ describe("StructureViewer", () => {
         expect([...(lastCall("setHidden")[0] as Set<string>)]).toEqual([]);
     });
 
+    it("warns that the roof goes with a hidden room of the top floor", async () => {
+        render(<StructureViewer structure={structure} />);
+
+        expect(screen.queryByText(/El techo se oculta/)).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Ocultar Cocina" }));
+
+        expect(screen.getByText(/El techo se oculta/)).toBeInTheDocument();
+    });
+
     it("turns the sun of the scene with its slider", () => {
         render(<StructureViewer structure={structure} />);
 

@@ -1002,6 +1002,21 @@ export function createStructureViewer(
         }
     }
 
+    /**
+     * The roof is one piece that sits on the rooms of the top floor. With one of them hidden it
+     * would hang in the air, so it is hidden with them.
+     */
+    function topFloorHasHiddenRoom(): boolean {
+        const top = levelBases.length - 1;
+
+        return elements.some(
+            (mesh) =>
+                mesh.userData.space === true &&
+                mesh.userData.level === top &&
+                hidden.has(mesh.userData.key as string),
+        );
+    }
+
     function applyLayers(): void {
         for (const mesh of elements) {
             mesh.visible =
@@ -1018,7 +1033,8 @@ export function createStructureViewer(
         }
 
         if (roof !== null) {
-            roof.visible = layers.roof && layers.rooms && isolatedKey === null;
+            roof.visible =
+                layers.roof && layers.rooms && isolatedKey === null && !topFloorHasHiddenRoom();
         }
 
         if (environment !== null) {

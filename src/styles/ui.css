@@ -492,3 +492,11 @@
         justify-content: center;
     }
 }
+
+.hud .hud-note {
+    margin-top: var(--space-2);
+    padding: 6px 8px;
+    color: var(--text);
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+}

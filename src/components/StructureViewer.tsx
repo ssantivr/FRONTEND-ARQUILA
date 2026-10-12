@@ -676,6 +676,12 @@ export function StructureViewer({
         }
     }
 
+    // Mirrors the engine's rule: the roof goes with the rooms of the top floor.
+    const topBase = Math.max(...elements.filter(isSpace).map((element) => element.base_m));
+    const roofHiddenWithRooms = elements.some(
+        (element) =>
+            isSpace(element) && element.base_m === topBase && hiddenKeys.has(elementKey(element)),
+    );
     const wanted = objectQuery.trim().toLowerCase();
     const visibleElements =
         wanted === ""
@@ -835,6 +841,12 @@ export function StructureViewer({
                                     })}
                                 </details>
                             ))}
+                            {roofHiddenWithRooms && (
+                                <p className="hud-note" role="status">
+                                    El techo se oculta mientras haya un cuarto oculto en la última
+                                    planta, porque se apoya en ellos.
+                                </p>
+                            )}
                             {elements.length > 0 && visibleElements.length === 0 && (
                                 <p>Ningún objeto coincide con la búsqueda.</p>
                             )}
