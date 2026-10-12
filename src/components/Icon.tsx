@@ -6,7 +6,15 @@ export type IconName =
     | "viewer"
     | "interior"
     | "assistant"
-    | "settings";
+    | "settings"
+    | "collapse"
+    | "logout"
+    | "sun"
+    | "moon"
+    | "plus"
+    | "eye"
+    | "eyeOff"
+    | "search";
 
 const PATHS: Record<IconName, string> = {
     home: "M3 11l9-8 9 8M5 10v10h14V10",
@@ -17,6 +25,14 @@ const PATHS: Record<IconName, string> = {
     interior: "M4 20V9l8-6 8 6v11M4 20h16M9 20v-5h6v5M9 11h6",
     assistant: "M4 5h16v11H9l-5 4z",
     settings: "M4 7h10M18 7h2M4 17h2M10 17h10M16 4v6M8 14v6",
+    collapse: "M14 6l-6 6 6 6M19 5v14",
+    logout: "M10 4H5v16h5M15 8l4 4-4 4M19 12H9",
+    sun: "M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2",
+    moon: "M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z",
+    plus: "M12 5v14M5 12h14",
+    eye: "M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z",
+    eyeOff: "M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12zM4 4l16 16",
+    search: "M11 4a7 7 0 100 14 7 7 0 000-14zM16 16l5 5",
 };
 
 export function Icon({ name }: { name: IconName }) {
