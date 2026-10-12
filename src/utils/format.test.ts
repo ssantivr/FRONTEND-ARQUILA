@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { formatFileSize, formatMoney, formatNumber, optionalNumber, optionalText } from "./format";
+import {
+    formatDate,
+    formatFileSize,
+    formatMoney,
+    formatNumber,
+    optionalNumber,
+    optionalText,
+} from "./format";
 
 describe("formatNumber", () => {
     it("uses a dash for missing values and a decimal comma", () => {
@@ -37,5 +44,10 @@ describe("formatFileSize", () => {
         expect(formatFileSize(512)).toBe("512 B");
         expect(formatFileSize(2048)).toBe("2 KB");
         expect(formatFileSize(5 * 1024 * 1024)).toBe("5 MB");
+    });
+
+    it("writes a date in Spanish and marks an unreadable one", () => {
+        expect(formatDate("2026-10-04T12:00:00Z")).toMatch(/4 oct 2026/);
+        expect(formatDate("no es una fecha")).toBe("—");
     });
 });
