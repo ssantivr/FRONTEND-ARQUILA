@@ -182,6 +182,10 @@ export function App() {
             case "projects":
                 return (
                     <ProjectsPage
+                        key={location.key}
+                        focusCreate={
+                            (location.state as { create?: boolean } | null)?.create === true
+                        }
                         onOpenProject={openProject}
                         onOpenModel={(id) => openProject(id, "model")}
                     />
@@ -265,6 +269,16 @@ export function App() {
                         </div>
                         <GlobalSearch onOpenProject={(id) => openProject(id)} />
                         <div className="user-menu">
+                            <button
+                                type="button"
+                                className="button-lime icon-button"
+                                onClick={() =>
+                                    go(viewPath("projects"), { state: { create: true } })
+                                }
+                            >
+                                <Icon name="plus" />
+                                Nuevo proyecto
+                            </button>
                             {themeToggle}
                             <button
                                 type="button"

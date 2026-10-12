@@ -118,6 +118,15 @@ describe("App routing", () => {
         expect(screen.getByTestId("path")).toHaveTextContent("/configuracion");
     });
 
+    it("takes Nuevo proyecto to the creation form with the cursor in its name", async () => {
+        renderAt("/terrenos");
+
+        await userEvent.click(await screen.findByRole("button", { name: "Nuevo proyecto" }));
+
+        expect(screen.getByTestId("path")).toHaveTextContent("/proyectos");
+        expect(await screen.findByLabelText("Nombre")).toHaveFocus();
+    });
+
     it("says so when the address is not a screen of the app", async () => {
         renderAt("/no-existe");
 

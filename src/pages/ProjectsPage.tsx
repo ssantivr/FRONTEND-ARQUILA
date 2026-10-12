@@ -14,9 +14,15 @@ type Order = "recent" | "name";
 interface ProjectsPageProps {
     onOpenProject: (projectId: number) => void;
     onOpenModel: (projectId: number) => void;
+    /** Puts the cursor in the name field, for when the user arrives through "Nuevo proyecto". */
+    focusCreate?: boolean;
 }
 
-export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) {
+export function ProjectsPage({
+    onOpenProject,
+    onOpenModel,
+    focusCreate = false,
+}: ProjectsPageProps) {
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState<ProjectStatus | "">("");
     const [order, setOrder] = useState<Order>("recent");
@@ -119,6 +125,7 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
                     <label>
                         Nombre
                         <input
+                            autoFocus={focusCreate}
                             value={name}
                             onChange={(event) => setName(event.target.value)}
                             maxLength={160}
