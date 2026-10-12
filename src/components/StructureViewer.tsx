@@ -56,6 +56,7 @@ import {
     layerLabel,
     workSwatch,
 } from "./RoomWorksPanel";
+import { Icon } from "./Icon";
 
 interface Level {
     planId: number;
@@ -84,6 +85,14 @@ const LAYERS: { id: LayerName; label: string }[] = [
     { id: "roof", label: "Techo" },
     { id: "environment", label: "Árboles" },
     { id: "grid", label: "Cuadrícula" },
+];
+
+const SUN_STEP_DEG = 15;
+const TABLET_QUERY = "(min-width: 721px) and (max-width: 1024px)";
+
+const TREE_GROUPS: { label: string; spaces: boolean }[] = [
+    { label: "Espacios", spaces: true },
+    { label: "Estructura", spaces: false },
 ];
 
 const ROOFS: { id: RoofKind; label: string }[] = [
@@ -240,6 +249,24 @@ export function StructureViewer({
     const container = useRef<HTMLDivElement>(null);
     const viewer = useRef<Viewer | null>(null);
     const [unsupported, setUnsupported] = useState(false);
+    // On a tablet the side panels would cover half the model, so they start folded there.
+    const [panels, setPanels] = useState(
+        () => typeof window.matchMedia !== "function" || !window.matchMedia(TABLET_QUERY).matches,
+    );
+    const [objectQuery, setObjectQuery] = useState("");
+    const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(() => new Set());
+
+    function toggleHidden(key: string) {
+        setHiddenKeys((previous) => {
+            const next = new Set(previous);
+
+            if (!next.delete(key)) {
+                next.add(key);
+            }
+
+            return next;
+        });
+    }
     const [layers, setLayers] = useState(ALL_LAYERS);
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
@@ -250,6 +277,7 @@ export function StructureViewer({
     const [highlight, setHighlight] = useState<SpatialLayer | null>(null);
     const [workLayers, setWorkLayers] = useState(ALL_WORK_LAYERS);
     const [explode, setExplode] = useState(0);
+    const [sun, setSun] = useState(0);
     const [pickedId, setPickedId] = useState<number | null>(null);
     const [inside, setInside] = useState(false);
     const [assetState, setAssetState] = useState<AssetState | null>(null);
@@ -536,6 +564,14 @@ export function StructureViewer({
     }, [layers]);
 
     useEffect(() => {
+        viewer.current?.setHidden(hiddenKeys);
+    }, [hiddenKeys, structure]);
+
+    useEffect(() => {
+        viewer.current?.setSun(sun);
+    }, [sun, structure]);
+
+    useEffect(() => {
         viewer.current?.isolate(isolatedKey);
     }, [isolatedKey, structure]);
 
@@ -595,6 +631,20 @@ export function StructureViewer({
         viewer.current?.setView(next);
     }
 
+    function downloadCapture() {
+        const image = viewer.current?.capture();
+
+        if (image === undefined) {
+            return;
+        }
+
+        const link = document.createElement("a");
+
+        link.href = image;
+        link.download = `arquila-proyecto-${projectId}.png`;
+        link.click();
+    }
+
     function toggleFullscreen() {
         if (document.fullscreenElement === null) {
             stage.current?.requestFullscreen().catch(() => undefined);
@@ -602,6 +652,12 @@ export function StructureViewer({
             document.exitFullscreen().catch(() => undefined);
         }
     }
+
+    const wanted = objectQuery.trim().toLowerCase();
+    const visibleElements =
+        wanted === ""
+            ? elements
+            : elements.filter((element) => itemLabel(element).toLowerCase().includes(wanted));
 
     if (unsupported) {
         return (
@@ -619,403 +675,569 @@ export function StructureViewer({
                 role="img"
                 aria-label={`Modelo 3D con ${structure.terrains.length} terrenos, ${structure.rooms.length} espacios y ${structure.components.length} componentes estructurales`}
             />
-            <div className="hud hud-views" role="group" aria-label="Vista de la cámara">
-                {VIEWS.map((item) => (
-                    <button
-                        key={item.id}
-                        type="button"
-                        className="hud-item"
-                        aria-pressed={item.id === view}
-                        onClick={() => chooseView(item.id)}
-                    >
-                        {item.label}
-                    </button>
-                ))}
-                <button
-                    type="button"
-                    className="hud-item"
-                    aria-label="Acercar"
-                    onClick={() => viewer.current?.zoomBy(ZOOM_STEP)}
-                >
-                    +
-                </button>
-                <button
-                    type="button"
-                    className="hud-item"
-                    aria-label="Alejar"
-                    onClick={() => viewer.current?.zoomBy(1 / ZOOM_STEP)}
-                >
-                    −
-                </button>
-                <span className="hud-readout">Zoom {zoom} %</span>
-            </div>
-            {isolatedRoom === null ? (
-                <aside className="hud hud-levels" aria-label="Niveles del modelo">
-                    <h3>Niveles</h3>
-                    {elements.length === 0 && (
-                        <p>
-                            Agrega cuartos a un plano, o ponle un nivel numérico, para verlo aquí.
-                        </p>
-                    )}
-                    {groupByLevel(elements).map((level) => (
-                        <section key={level.planId}>
-                            <h4>{level.title}</h4>
-                            {level.elements.map((element) => {
-                                const key = elementKey(element);
-
-                                return (
-                                    <button
-                                        key={key}
-                                        type="button"
-                                        className="hud-item"
-                                        aria-pressed={key === selectedKey}
-                                        onClick={() =>
-                                            setSelectedKey(key === selectedKey ? null : key)
-                                        }
-                                    >
-                                        {itemLabel(element)}
-                                    </button>
-                                );
-                            })}
-                        </section>
-                    ))}
-                </aside>
-            ) : (
-                <RoomWorksPanel
-                    projectId={projectId}
-                    roomId={isolatedRoom.id}
-                    title={currentStop?.title ?? isolatedRoom.name}
-                    description={currentStop?.description ?? null}
-                    elements={works.filter((item) => item.room_id === isolatedRoom.id)}
-                    logs={(walkthrough.data?.renovation_logs ?? []).filter(
-                        (log) => log.room_id === isolatedRoom.id,
-                    )}
-                    unavailable={spatial.error ?? walkthrough.error}
-                    assetNote={assetState === null ? null : ASSET_NOTES[assetState]}
-                    onChanged={walkthrough.reload}
-                    onFocus={(item) => {
-                        setPickedId(item.id);
-                        viewer.current?.focus(overlayKey(item.id));
-                    }}
-                />
-            )}
-            <aside className="hud hud-inspector" aria-live="polite" aria-label="Inspector">
-                <h3>Inspector</h3>
-                {picked !== null && (
-                    <dl className="hud-picked">
-                        <dt>Elemento</dt>
-                        <dd>{picked.name}</dd>
-                        <dt>Capa</dt>
-                        <dd>
-                            <span
-                                className="hud-swatch"
-                                style={{ background: workSwatch(picked) }}
-                            />
-                            {layerLabel(picked.layer)}
-                        </dd>
-                        <dt>Estado</dt>
-                        <dd>{WORK_STATUS_LABELS[picked.work_status]}</dd>
-                        <dt>Medidas</dt>
-                        <dd>
-                            {formatNumber(picked.max_x_m - picked.min_x_m)} ×{" "}
-                            {formatNumber(picked.max_y_m - picked.min_y_m)} ×{" "}
-                            {formatNumber(picked.max_z_m - picked.min_z_m)} m
-                        </dd>
-                        <dt>Altura de la base</dt>
-                        <dd>+{formatNumber(picked.min_z_m)} m</dd>
-                    </dl>
-                )}
-                {selected === null ? (
-                    picked === null && (
-                        <p>
-                            Haz clic en un cuarto, un componente o una instalación para
-                            inspeccionarlo, o doble clic para acercar la cámara a él.
-                        </p>
-                    )
-                ) : (
-                    <dl>
-                        <dt>Nombre</dt>
-                        <dd>{selected.name}</dd>
-                        <dt>Tipo</dt>
-                        <dd>{KIND_LABELS[selected.kind]}</dd>
-                        <dt className="hud-wide">
-                            <label htmlFor="inspector-surface">Material</label>
-                        </dt>
-                        <dd className="hud-wide">
-                            <select
-                                id="inspector-surface"
-                                value={surfaceOf(surfaces, elementKey(selected), selected.kind)}
-                                onChange={(event) =>
-                                    changeSurface(selected, event.target.value as SurfaceMaterialId)
-                                }
-                            >
-                                {SURFACE_MATERIAL_IDS.map((id) => (
-                                    <option key={id} value={id}>
-                                        {SURFACE_MATERIALS[id].label}
-                                    </option>
-                                ))}
-                            </select>
-                        </dd>
-                        <dt>Plano</dt>
-                        <dd>{selected.plan_title}</dd>
-                        <dt>Nivel</dt>
-                        <dd>{selected.level ?? "—"}</dd>
-                        <dt>Medidas</dt>
-                        <dd>
-                            {formatNumber(selected.width_m)} × {formatNumber(selected.depth_m)} ×{" "}
-                            {formatNumber(selected.height_m)} m
-                        </dd>
-                        {isSpace(selected) && (
-                            <>
-                                <dt>Área</dt>
-                                <dd>{formatNumber(selected.width_m * selected.depth_m)} m²</dd>
-                            </>
-                        )}
-                        <dt>Volumen</dt>
-                        <dd>
-                            {formatNumber(selected.width_m * selected.depth_m * selected.height_m)}{" "}
-                            m³
-                        </dd>
-                        <dt>Altura de la base</dt>
-                        <dd>+{formatNumber(selected.base_m)} m</dd>
-                        {selectedCost !== undefined && (
-                            <>
-                                <dt>Coste estimado</dt>
-                                <dd>{formatMoney(selectedCost)}</dd>
-                            </>
-                        )}
-                    </dl>
-                )}
-                {selected !== null && (
-                    <button
-                        type="button"
-                        className="hud-item"
-                        title="Acerca la cámara al elemento seleccionado"
-                        onClick={() => viewer.current?.focus(selectedKey)}
-                    >
-                        Enfocar
-                    </button>
-                )}
-                {selected !== null && selected.kind === "room" && (
-                    <button
-                        type="button"
-                        className="hud-item"
-                        aria-pressed={selectedKey === isolatedKey}
-                        title="Oculta el resto del modelo y deja solo este cuarto con su estructura"
-                        onClick={() => visit(selectedKey === isolatedKey ? null : selectedKey)}
-                    >
-                        Aislar cuarto
-                    </button>
-                )}
-                {saveError !== null && (
-                    <p className="message message-error" role="alert">
-                        {saveError}
-                    </p>
-                )}
-                {selectedAlerts.length > 0 && (
-                    <ul className="hud-alerts">
-                        {selectedAlerts.map((alert) => (
-                            <li key={alert.id}>
-                                <span
-                                    className="hud-swatch"
-                                    style={{
-                                        background: cssColor(PRIORITY_COLORS[alert.priority]),
-                                    }}
-                                />
-                                {alert.content}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </aside>
-            <aside className="hud hud-colors" aria-label="Color del modelo">
-                <h3>Color</h3>
-                <div className="hud-modes" role="group" aria-label="Modo de color">
-                    {COLOR_MODES.map((mode) => (
+            <div className={panels ? "hud-layer" : "hud-layer hud-layer-min"}>
+                <div className="hud hud-views" role="group" aria-label="Vista de la cámara">
+                    {VIEWS.map((item) => (
                         <button
-                            key={mode.id}
+                            key={item.id}
                             type="button"
                             className="hud-item"
-                            aria-pressed={mode.id === colorMode}
-                            onClick={() => appState.setColorMode(projectId, mode.id)}
+                            aria-pressed={item.id === view}
+                            onClick={() => chooseView(item.id)}
                         >
-                            {mode.label}
+                            {item.label}
                         </button>
                     ))}
+                    <button
+                        type="button"
+                        className="hud-item"
+                        aria-label="Acercar"
+                        onClick={() => viewer.current?.zoomBy(ZOOM_STEP)}
+                    >
+                        +
+                    </button>
+                    <button
+                        type="button"
+                        className="hud-item"
+                        aria-label="Alejar"
+                        onClick={() => viewer.current?.zoomBy(1 / ZOOM_STEP)}
+                    >
+                        −
+                    </button>
+                    <span className="hud-readout">Zoom {zoom} %</span>
+                    <button
+                        type="button"
+                        className="hud-item"
+                        aria-pressed={panels}
+                        title="Muestra u oculta los paneles laterales para despejar la escena"
+                        onClick={() => setPanels((visible) => !visible)}
+                    >
+                        Paneles
+                    </button>
                 </div>
-                {colorMode !== "realistic" && (
-                    <ul className="hud-legend">
-                        {legend.map((item) => (
-                            <li key={item.label}>
-                                <span className="hud-swatch" style={{ background: item.swatch }} />
-                                {item.label}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                {colorMode === "cost" && costs.size > 0 && (
-                    <p>Reparto del presupuesto de materiales según el volumen de cada elemento.</p>
-                )}
-                {colorNote !== null && <p>{colorNote}</p>}
-                <h4>Capas de obra</h4>
-                <div className="hud-work-layers" role="group" aria-label="Capas de obra">
-                    {WORK_LAYERS.map((layer) => (
-                        <div key={layer.id}>
-                            <label
-                                className="checkbox"
-                                title={`Muestra u oculta los elementos de ${layer.label.toLowerCase()} registrados`}
-                            >
+                {isolatedRoom === null ? (
+                    <aside className="hud hud-levels" aria-label="Objetos del modelo">
+                        <details open>
+                            <summary>Objetos · {elements.length}</summary>
+                            {elements.length === 0 ? (
+                                <p>
+                                    Agrega cuartos a un plano, o ponle un nivel numérico, para verlo
+                                    aquí.
+                                </p>
+                            ) : (
                                 <input
-                                    type="checkbox"
-                                    checked={workLayers[layer.id]}
-                                    onChange={(event) =>
-                                        setWorkLayers({
-                                            ...workLayers,
-                                            [layer.id]: event.target.checked,
-                                        })
-                                    }
+                                    type="search"
+                                    className="hud-search"
+                                    placeholder="Buscar objeto"
+                                    aria-label="Buscar objeto por nombre"
+                                    value={objectQuery}
+                                    onChange={(event) => setObjectQuery(event.target.value)}
                                 />
-                                <span className="hud-swatch" style={{ background: layer.swatch }} />
-                                {layer.label}
-                                <span className="hud-count">
-                                    {spatial.data?.counts[layer.id] ?? 0}
-                                </span>
+                            )}
+                            {groupByLevel(visibleElements).map((level) => (
+                                <details key={level.planId} className="hud-tree" open>
+                                    <summary>
+                                        {level.title}
+                                        <span className="hud-count">{level.elements.length}</span>
+                                    </summary>
+                                    {TREE_GROUPS.map((group) => {
+                                        const members = level.elements.filter(
+                                            (element) => isSpace(element) === group.spaces,
+                                        );
+
+                                        if (members.length === 0) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <section key={group.label}>
+                                                <h4>{group.label}</h4>
+                                                {members.map((element) => {
+                                                    const key = elementKey(element);
+
+                                                    return (
+                                                        <div key={key} className="hud-tree-row">
+                                                            <button
+                                                                type="button"
+                                                                className="hud-item"
+                                                                aria-pressed={key === selectedKey}
+                                                                onClick={() =>
+                                                                    setSelectedKey(
+                                                                        key === selectedKey
+                                                                            ? null
+                                                                            : key,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {itemLabel(element)}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="hud-item hud-eye"
+                                                                aria-pressed={hiddenKeys.has(key)}
+                                                                aria-label={`${hiddenKeys.has(key) ? "Mostrar" : "Ocultar"} ${itemLabel(element)}`}
+                                                                title={
+                                                                    hiddenKeys.has(key)
+                                                                        ? "Mostrar en el modelo"
+                                                                        : "Ocultar del modelo"
+                                                                }
+                                                                onClick={() => toggleHidden(key)}
+                                                            >
+                                                                <Icon
+                                                                    name={
+                                                                        hiddenKeys.has(key)
+                                                                            ? "eyeOff"
+                                                                            : "eye"
+                                                                    }
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </section>
+                                        );
+                                    })}
+                                </details>
+                            ))}
+                            {elements.length > 0 && visibleElements.length === 0 && (
+                                <p>Ningún objeto coincide con la búsqueda.</p>
+                            )}
+                        </details>
+                    </aside>
+                ) : (
+                    <RoomWorksPanel
+                        projectId={projectId}
+                        roomId={isolatedRoom.id}
+                        title={currentStop?.title ?? isolatedRoom.name}
+                        description={currentStop?.description ?? null}
+                        elements={works.filter((item) => item.room_id === isolatedRoom.id)}
+                        logs={(walkthrough.data?.renovation_logs ?? []).filter(
+                            (log) => log.room_id === isolatedRoom.id,
+                        )}
+                        unavailable={spatial.error ?? walkthrough.error}
+                        assetNote={assetState === null ? null : ASSET_NOTES[assetState]}
+                        onChanged={walkthrough.reload}
+                        onFocus={(item) => {
+                            setPickedId(item.id);
+                            viewer.current?.focus(overlayKey(item.id));
+                        }}
+                    />
+                )}
+                <div className="hud-dock">
+                    <aside className="hud hud-inspector" aria-live="polite" aria-label="Inspector">
+                        <details open>
+                            <summary>Inspector</summary>
+                            {picked !== null && (
+                                <dl className="hud-picked">
+                                    <dt>Elemento</dt>
+                                    <dd>{picked.name}</dd>
+                                    <dt>Capa</dt>
+                                    <dd>
+                                        <span
+                                            className="hud-swatch"
+                                            style={{ background: workSwatch(picked) }}
+                                        />
+                                        {layerLabel(picked.layer)}
+                                    </dd>
+                                    <dt>Estado</dt>
+                                    <dd>{WORK_STATUS_LABELS[picked.work_status]}</dd>
+                                    <dt>Medidas</dt>
+                                    <dd>
+                                        {formatNumber(picked.max_x_m - picked.min_x_m)} ×{" "}
+                                        {formatNumber(picked.max_y_m - picked.min_y_m)} ×{" "}
+                                        {formatNumber(picked.max_z_m - picked.min_z_m)} m
+                                    </dd>
+                                    <dt>Altura de la base</dt>
+                                    <dd>+{formatNumber(picked.min_z_m)} m</dd>
+                                </dl>
+                            )}
+                            {selected === null ? (
+                                picked === null && (
+                                    <p>
+                                        Haz clic en un cuarto, un componente o una instalación para
+                                        inspeccionarlo, o doble clic para acercar la cámara a él.
+                                    </p>
+                                )
+                            ) : (
+                                <dl>
+                                    <dt>Nombre</dt>
+                                    <dd>{selected.name}</dd>
+                                    <dt>Tipo</dt>
+                                    <dd>{KIND_LABELS[selected.kind]}</dd>
+                                    <dt className="hud-wide">
+                                        <label htmlFor="inspector-surface">Material</label>
+                                    </dt>
+                                    <dd className="hud-wide">
+                                        <select
+                                            id="inspector-surface"
+                                            value={surfaceOf(
+                                                surfaces,
+                                                elementKey(selected),
+                                                selected.kind,
+                                            )}
+                                            onChange={(event) =>
+                                                changeSurface(
+                                                    selected,
+                                                    event.target.value as SurfaceMaterialId,
+                                                )
+                                            }
+                                        >
+                                            {SURFACE_MATERIAL_IDS.map((id) => (
+                                                <option key={id} value={id}>
+                                                    {SURFACE_MATERIALS[id].label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </dd>
+                                    <dt>Plano</dt>
+                                    <dd>{selected.plan_title}</dd>
+                                    <dt>Nivel</dt>
+                                    <dd>{selected.level ?? "—"}</dd>
+                                    <dt>Medidas</dt>
+                                    <dd>
+                                        {formatNumber(selected.width_m)} ×{" "}
+                                        {formatNumber(selected.depth_m)} ×{" "}
+                                        {formatNumber(selected.height_m)} m
+                                    </dd>
+                                    {isSpace(selected) && (
+                                        <>
+                                            <dt>Área</dt>
+                                            <dd>
+                                                {formatNumber(selected.width_m * selected.depth_m)}{" "}
+                                                m²
+                                            </dd>
+                                        </>
+                                    )}
+                                    <dt>Volumen</dt>
+                                    <dd>
+                                        {formatNumber(
+                                            selected.width_m * selected.depth_m * selected.height_m,
+                                        )}{" "}
+                                        m³
+                                    </dd>
+                                    <dt>Altura de la base</dt>
+                                    <dd>+{formatNumber(selected.base_m)} m</dd>
+                                    {selectedCost !== undefined && (
+                                        <>
+                                            <dt>Coste estimado</dt>
+                                            <dd>{formatMoney(selectedCost)}</dd>
+                                        </>
+                                    )}
+                                </dl>
+                            )}
+                            {selected !== null && (
+                                <button
+                                    type="button"
+                                    className="hud-item"
+                                    title="Acerca la cámara al elemento seleccionado"
+                                    onClick={() => viewer.current?.focus(selectedKey)}
+                                >
+                                    Enfocar
+                                </button>
+                            )}
+                            {selected !== null && selected.kind === "room" && (
+                                <button
+                                    type="button"
+                                    className="hud-item"
+                                    aria-pressed={selectedKey === isolatedKey}
+                                    title="Oculta el resto del modelo y deja solo este cuarto con su estructura"
+                                    onClick={() =>
+                                        visit(selectedKey === isolatedKey ? null : selectedKey)
+                                    }
+                                >
+                                    Aislar cuarto
+                                </button>
+                            )}
+                            {saveError !== null && (
+                                <p className="message message-error" role="alert">
+                                    {saveError}
+                                </p>
+                            )}
+                            {selectedAlerts.length > 0 && (
+                                <ul className="hud-alerts">
+                                    {selectedAlerts.map((alert) => (
+                                        <li key={alert.id}>
+                                            <span
+                                                className="hud-swatch"
+                                                style={{
+                                                    background: cssColor(
+                                                        PRIORITY_COLORS[alert.priority],
+                                                    ),
+                                                }}
+                                            />
+                                            {alert.content}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </details>
+                    </aside>
+                    <aside className="hud hud-scene" aria-label="Corte, despiece y capas">
+                        <details open>
+                            <summary>Escena</summary>
+                            <div
+                                className="hud-scene-layers"
+                                role="group"
+                                aria-label="Capas del modelo"
+                            >
+                                {LAYERS.map((layer) => (
+                                    <label key={layer.id} className="checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={layers[layer.id]}
+                                            onChange={(event) =>
+                                                setLayers({
+                                                    ...layers,
+                                                    [layer.id]: event.target.checked,
+                                                })
+                                            }
+                                        />
+                                        {layer.label}
+                                    </label>
+                                ))}
+                            </div>
+                            <label
+                                className="hud-field"
+                                title="Corta el modelo a una altura para ver su interior"
+                            >
+                                Corte
+                                <input
+                                    type="range"
+                                    min={CUT_MIN_PERCENT}
+                                    max={100}
+                                    step={CUT_STEP_PERCENT}
+                                    value={cut}
+                                    aria-valuetext={
+                                        cut === 100 ? "Sin corte" : `${cut} % de la altura`
+                                    }
+                                    onChange={(event) => setCut(Number(event.target.value))}
+                                />
+                                <output className="hud-readout">{cut} %</output>
                             </label>
+                            <label
+                                className="hud-field"
+                                title="Separa los niveles para ver cada planta"
+                            >
+                                Despiece
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    step={EXPLODE_STEP_PERCENT}
+                                    value={explode}
+                                    aria-valuetext={explode === 0 ? "Sin despiece" : `${explode} %`}
+                                    onChange={(event) => setExplode(Number(event.target.value))}
+                                />
+                                <output className="hud-readout">{explode} %</output>
+                            </label>
+                            <label
+                                className="hud-field"
+                                title="Gira el sol alrededor del modelo para estudiar las sombras"
+                            >
+                                Sol
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={360}
+                                    step={SUN_STEP_DEG}
+                                    value={sun}
+                                    aria-valuetext={`${sun} grados`}
+                                    onChange={(event) => setSun(Number(event.target.value))}
+                                />
+                                <output className="hud-readout">{sun}°</output>
+                            </label>
+                            <label className="hud-field">
+                                Cubierta
+                                <select
+                                    value={roof}
+                                    onChange={(event) => changeRoof(event.target.value as RoofKind)}
+                                >
+                                    {ROOFS.map((item) => (
+                                        <option key={item.id} value={item.id}>
+                                            {item.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </details>
+                    </aside>
+                    <aside className="hud hud-colors" aria-label="Color del modelo">
+                        <details>
+                            <summary>
+                                Color · {COLOR_MODES.find((mode) => mode.id === colorMode)?.label}
+                            </summary>
+                            <div className="hud-modes" role="group" aria-label="Modo de color">
+                                {COLOR_MODES.map((mode) => (
+                                    <button
+                                        key={mode.id}
+                                        type="button"
+                                        className="hud-item"
+                                        aria-pressed={mode.id === colorMode}
+                                        onClick={() => appState.setColorMode(projectId, mode.id)}
+                                    >
+                                        {mode.label}
+                                    </button>
+                                ))}
+                            </div>
+                            {colorMode !== "realistic" && (
+                                <ul className="hud-legend">
+                                    {legend.map((item) => (
+                                        <li key={item.label}>
+                                            <span
+                                                className="hud-swatch"
+                                                style={{ background: item.swatch }}
+                                            />
+                                            {item.label}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            {colorMode === "cost" && costs.size > 0 && (
+                                <p>
+                                    Reparto del presupuesto de materiales según el volumen de cada
+                                    elemento.
+                                </p>
+                            )}
+                            {colorNote !== null && <p>{colorNote}</p>}
+                            <h4>Capas de obra</h4>
+                            <div
+                                className="hud-work-layers"
+                                role="group"
+                                aria-label="Capas de obra"
+                            >
+                                {WORK_LAYERS.map((layer) => (
+                                    <div key={layer.id}>
+                                        <label
+                                            className="checkbox"
+                                            title={`Muestra u oculta los elementos de ${layer.label.toLowerCase()} registrados`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={workLayers[layer.id]}
+                                                onChange={(event) =>
+                                                    setWorkLayers({
+                                                        ...workLayers,
+                                                        [layer.id]: event.target.checked,
+                                                    })
+                                                }
+                                            />
+                                            <span
+                                                className="hud-swatch"
+                                                style={{ background: layer.swatch }}
+                                            />
+                                            {layer.label}
+                                            <span className="hud-count">
+                                                {spatial.data?.counts[layer.id] ?? 0}
+                                            </span>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            className="hud-item"
+                                            aria-pressed={layer.id === highlight}
+                                            title={HIGHLIGHTS[layer.id].title}
+                                            onClick={() =>
+                                                setHighlight(
+                                                    layer.id === highlight ? null : layer.id,
+                                                )
+                                            }
+                                        >
+                                            Resaltar
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            {highlight !== null && nothingToHighlight && (
+                                <p>{HIGHLIGHTS[highlight].empty}</p>
+                            )}
+                        </details>
+                    </aside>
+                </div>
+                <div
+                    className="hud hud-toolbar"
+                    role="toolbar"
+                    aria-label="Herramientas del modelo"
+                >
+                    <div className="hud-group">
+                        <button
+                            type="button"
+                            className="hud-item"
+                            data-tip="Vuelve a encuadrar todo el modelo"
+                            onClick={() => chooseView(view)}
+                        >
+                            Restablecer vista
+                        </button>
+                        <button type="button" className="hud-item" onClick={toggleFullscreen}>
+                            Pantalla completa
+                        </button>
+                        <button
+                            type="button"
+                            className="hud-item"
+                            data-tip="Descarga la vista actual del modelo como imagen PNG"
+                            onClick={downloadCapture}
+                        >
+                            Guardar imagen
+                        </button>
+                    </div>
+                    {stops.length > 0 && (
+                        <div
+                            className="hud-group hud-tour"
+                            role="group"
+                            aria-label="Corrida de interior"
+                        >
                             <button
                                 type="button"
                                 className="hud-item"
-                                aria-pressed={layer.id === highlight}
-                                title={HIGHLIGHTS[layer.id].title}
-                                onClick={() =>
-                                    setHighlight(layer.id === highlight ? null : layer.id)
-                                }
+                                aria-pressed={touring}
+                                data-tip="Recorre los cuartos uno por uno, aislando cada uno y mostrando lo que se va a hacer"
+                                onClick={toggleTour}
                             >
-                                Resaltar
+                                Corrida de interior
                             </button>
+                            <button
+                                type="button"
+                                className="hud-item"
+                                aria-label="Cuarto anterior"
+                                onClick={() => step(-1)}
+                            >
+                                ‹
+                            </button>
+                            <button
+                                type="button"
+                                className="hud-item"
+                                aria-label="Cuarto siguiente"
+                                onClick={() => step(1)}
+                            >
+                                ›
+                            </button>
+                            {isolatedRoom !== null && (
+                                <>
+                                    <span className="hud-readout">
+                                        {currentStop === null
+                                            ? isolatedRoom.name
+                                            : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="hud-item"
+                                        aria-pressed={inside}
+                                        data-tip="Coloca la cámara dentro del cuarto, a la altura de los ojos"
+                                        onClick={toggleInside}
+                                    >
+                                        Vista interior
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="hud-item"
+                                        data-tip="Vuelve a mostrar todo el modelo"
+                                        onClick={() => visit(null)}
+                                    >
+                                        Ver todo
+                                    </button>
+                                </>
+                            )}
                         </div>
-                    ))}
+                    )}
                 </div>
-                {highlight !== null && nothingToHighlight && <p>{HIGHLIGHTS[highlight].empty}</p>}
-            </aside>
-            <div className="hud hud-toolbar">
-                <button
-                    type="button"
-                    className="hud-item"
-                    title="Vuelve a encuadrar todo el modelo"
-                    onClick={() => chooseView(view)}
-                >
-                    Restablecer vista
-                </button>
-                <button type="button" className="hud-item" onClick={toggleFullscreen}>
-                    Pantalla completa
-                </button>
-                {stops.length > 0 && (
-                    <div className="hud-tour" role="group" aria-label="Corrida de interior">
-                        <button
-                            type="button"
-                            className="hud-item"
-                            aria-pressed={touring}
-                            title="Recorre los cuartos uno por uno, aislando cada uno y mostrando lo que se va a hacer"
-                            onClick={toggleTour}
-                        >
-                            Corrida de interior
-                        </button>
-                        <button
-                            type="button"
-                            className="hud-item"
-                            aria-label="Cuarto anterior"
-                            onClick={() => step(-1)}
-                        >
-                            ‹
-                        </button>
-                        <button
-                            type="button"
-                            className="hud-item"
-                            aria-label="Cuarto siguiente"
-                            onClick={() => step(1)}
-                        >
-                            ›
-                        </button>
-                        {isolatedRoom !== null && (
-                            <>
-                                <span className="hud-readout">
-                                    {currentStop === null
-                                        ? isolatedRoom.name
-                                        : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`}
-                                </span>
-                                <button
-                                    type="button"
-                                    className="hud-item"
-                                    aria-pressed={inside}
-                                    title="Coloca la cámara dentro del cuarto, a la altura de los ojos"
-                                    onClick={toggleInside}
-                                >
-                                    Vista interior
-                                </button>
-                                <button
-                                    type="button"
-                                    className="hud-item"
-                                    title="Vuelve a mostrar todo el modelo"
-                                    onClick={() => visit(null)}
-                                >
-                                    Ver todo
-                                </button>
-                            </>
-                        )}
-                    </div>
-                )}
-                <label
-                    className="hud-field"
-                    title="Corta el modelo a una altura para ver su interior"
-                >
-                    Corte
-                    <input
-                        type="range"
-                        min={CUT_MIN_PERCENT}
-                        max={100}
-                        step={CUT_STEP_PERCENT}
-                        value={cut}
-                        aria-valuetext={cut === 100 ? "Sin corte" : `${cut} % de la altura`}
-                        onChange={(event) => setCut(Number(event.target.value))}
-                    />
-                </label>
-                <label className="hud-field" title="Separa los niveles para ver cada planta">
-                    Despiece
-                    <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={EXPLODE_STEP_PERCENT}
-                        value={explode}
-                        aria-valuetext={explode === 0 ? "Sin despiece" : `${explode} %`}
-                        onChange={(event) => setExplode(Number(event.target.value))}
-                    />
-                </label>
-                {LAYERS.map((layer) => (
-                    <label key={layer.id} className="checkbox">
-                        <input
-                            type="checkbox"
-                            checked={layers[layer.id]}
-                            onChange={(event) =>
-                                setLayers({ ...layers, [layer.id]: event.target.checked })
-                            }
-                        />
-                        {layer.label}
-                    </label>
-                ))}
-                <label className="hud-field">
-                    Cubierta
-                    <select
-                        value={roof}
-                        onChange={(event) => changeRoof(event.target.value as RoofKind)}
-                    >
-                        {ROOFS.map((item) => (
-                            <option key={item.id} value={item.id}>
-                                {item.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
             </div>
         </div>
     );
