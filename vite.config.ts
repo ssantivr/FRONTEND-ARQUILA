@@ -15,6 +15,18 @@ export default defineConfig(({ mode }) => ({
             },
         },
     },
+    build: {
+        // The three.js core cannot be split further. It gets its own chunk, which only loads when
+        // a 3D view opens and stays cached across releases of the app; the limit is set just
+        // above its size so that any other chunk growing past it still warns.
+        chunkSizeWarningLimit: 700,
+        rollupOptions: {
+            output: {
+                manualChunks: (id: string) =>
+                    id.includes("node_modules/three/build/") ? "three" : undefined,
+            },
+        },
+    },
     test: {
         projects: [
             {
