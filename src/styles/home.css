@@ -1,0 +1,274 @@
+/* Home: full-width hero with the figures over it, and the quick access block. */
+
+/* ---- Home hero ---- */
+
+.hero-home {
+    position: relative;
+    display: block;
+    min-height: 470px;
+    isolation: isolate;
+    border-radius: 20px;
+    box-shadow: var(--shadow-float);
+}
+
+.hero-home .render {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    min-height: 0;
+    max-height: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+.hero-home::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(6, 17, 12, 0.92) 0%,
+            rgba(6, 17, 12, 0.7) 36%,
+            rgba(6, 17, 12, 0.08) 72%
+        ),
+        linear-gradient(0deg, rgba(6, 17, 12, 0.7) 0%, transparent 42%);
+}
+
+.hero-home .hero-copy {
+    gap: 18px;
+    max-width: 660px;
+    padding: 60px 52px 172px;
+}
+
+.hero-home .hero-eyebrow {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.hero-home h2 {
+    font-size: clamp(2.75rem, 4.6vw, 3.75rem);
+    font-weight: 770;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.hero-home .hero-copy p {
+    max-width: 44ch;
+    color: rgba(255, 255, 255, 0.84);
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.hero-home .hero-actions button {
+    min-height: 46px;
+    padding: 0 20px;
+    font-size: 1rem;
+    border-radius: 12px;
+}
+
+.hero-home .render-label {
+    top: 20px;
+    right: 22px;
+    bottom: auto;
+}
+
+.hero-stats {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 20px 52px 22px;
+    background: rgba(6, 17, 12, 0.6);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+}
+
+.hero-stats dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 40px;
+    margin: 0;
+}
+
+.hero-stats dl > div {
+    display: grid;
+    gap: 2px;
+}
+
+.hero-stats dl > div + div {
+    padding-left: 40px;
+    border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.hero-stats dt {
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.68rem;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.hero-stats dd {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 740;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+}
+
+.hero-stats .hero-stat-detail {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.86rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.4;
+}
+
+.hero-stats .skeleton {
+    max-width: 420px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---- Quick access: one main action, the rest as a list ---- */
+
+.quick {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+    gap: 20px;
+}
+
+.quick-main {
+    display: grid;
+    align-content: end;
+    gap: 8px;
+    min-height: 220px;
+    padding: 24px;
+    color: #ffffff;
+    text-align: left;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(140deg, var(--forest-raised), var(--forest));
+    border-color: transparent;
+    border-radius: 16px;
+    transition:
+        transform var(--motion),
+        box-shadow var(--motion);
+}
+
+.quick-main:hover:not(:disabled) {
+    box-shadow: var(--shadow-float);
+    transform: translateY(-3px);
+}
+
+.quick-main .icon {
+    width: 32px;
+    height: 32px;
+}
+
+.quick-main-title {
+    font-size: 1.5rem;
+    font-weight: 720;
+    letter-spacing: -0.025em;
+}
+
+.quick-main-text {
+    max-width: 34ch;
+    color: var(--forest-text);
+    font-weight: 400;
+    line-height: 1.45;
+}
+
+.quick-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 0 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.quick-row {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 2px 12px;
+    width: 100%;
+    padding: 12px 8px;
+    color: var(--text);
+    font-weight: 400;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+}
+
+.quick-row:hover:not(:disabled) {
+    background: var(--hover);
+}
+
+.quick-row .icon {
+    grid-row: span 2;
+    align-self: center;
+    width: 20px;
+    height: 20px;
+    color: var(--accent);
+}
+
+.quick-row-title {
+    font-weight: 620;
+}
+
+.quick-row-text {
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    /* On a narrow screen the copy covers the whole picture, so the veil is even. */
+    .hero-home::before {
+        background: rgba(6, 17, 12, 0.74);
+    }
+
+    .hero-home .hero-copy {
+        padding: 64px 24px 28px;
+    }
+
+    .hero-home .render-label {
+        top: 18px;
+        right: auto;
+        left: 24px;
+    }
+
+    .hero-stats {
+        position: static;
+        padding: 18px 24px;
+    }
+
+    .hero-stats dl {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .hero-stats dl > div + div {
+        padding: 16px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        border-left: 0;
+    }
+
+    .hero-stats dd {
+        font-size: 2rem;
+    }
+
+    .quick,
+    .quick-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

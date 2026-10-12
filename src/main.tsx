@@ -16,6 +16,7 @@ import "./styles/states.css";
 import "./styles/media.css";
 import "./styles/ui.css";
 import "./styles/identity.css";
+import "./styles/home.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 

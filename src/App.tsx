@@ -310,7 +310,7 @@ export function App() {
         return (
             <main id="content" className="auth" tabIndex={-1}>
                 <section className="auth-visual" aria-label="ARQUILA">
-                    <RenderImage time="night" />
+                    <RenderImage place="auth" />
                     <span className="brand">ARQUILA</span>
                     <div>
                         <h2>Diseña, organiza y visualiza tu arquitectura.</h2>

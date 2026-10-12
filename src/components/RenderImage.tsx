@@ -1,34 +1,59 @@
 import { useState } from "react";
 
-import houseDay from "../assets/renders/house-day.jpg";
-import houseNight from "../assets/renders/house-night.jpg";
+import sampleLoft from "../assets/renders/sample-loft.jpg";
+import sampleStairs from "../assets/renders/sample-stairs.jpg";
+import { useTheme } from "../state/theme";
 import { ArchitectureArt } from "./ArchitectureArt";
 
-/** Sample house drawn by ARQUILA's own 3D viewer; it is not any user's project. */
-export const RENDERS = { day: houseDay, night: houseNight } as const;
+/**
+ * Drop `house-day.jpg` and/or `house-night.jpg` into `src/assets/renders/` and they replace the
+ * sample scene, with no code change. The glob finds whichever of the two exist at build time.
+ */
+const OWN = import.meta.glob<string>("../assets/renders/house-*.jpg", {
+    eager: true,
+    query: "?url",
+    import: "default",
+});
+const OWN_DAY: string | undefined = OWN["../assets/renders/house-day.jpg"];
+const OWN_NIGHT: string | undefined = OWN["../assets/renders/house-night.jpg"];
 
 interface RenderImageProps {
-    time: keyof typeof RENDERS;
+    /** Where the image is shown; each place has its own sample picture. */
+    place: "home" | "auth";
 }
 
-/** Fades the render in once it has loaded and falls back to the line drawing if it cannot. */
-export function RenderImage({ time }: RenderImageProps) {
+/**
+ * The leading picture of the home page and the sign-in screen. Until the team provides its own
+ * renders it shows the sample loft of the interior walkthrough, labelled as such; if the image
+ * cannot load, a line drawing takes its place.
+ */
+export function RenderImage({ place }: RenderImageProps) {
+    const theme = useTheme();
     const [failed, setFailed] = useState(false);
     const [ready, setReady] = useState(false);
+    const own = theme === "dark" ? (OWN_NIGHT ?? OWN_DAY) : (OWN_DAY ?? OWN_NIGHT);
+    const source = own ?? (place === "home" ? sampleLoft : sampleStairs);
 
     if (failed) {
         return <ArchitectureArt />;
     }
 
     return (
-        <img
-            key={time}
-            className={ready ? "render render-ready" : "render"}
-            src={RENDERS[time]}
-            alt="Casa de muestra modelada con el visor 3D de ARQUILA"
-            decoding="async"
-            onLoad={() => setReady(true)}
-            onError={() => setFailed(true)}
-        />
+        <>
+            <img
+                key={source}
+                className={ready ? "render render-ready" : "render"}
+                src={source}
+                alt={
+                    own === undefined
+                        ? "Escena de muestra: interior de un loft con ventanal a la ciudad al atardecer"
+                        : "Render arquitectónico de ARQUILA"
+                }
+                decoding="async"
+                onLoad={() => setReady(true)}
+                onError={() => setFailed(true)}
+            />
+            {own === undefined && <span className="render-label">Escena de muestra</span>}
+        </>
     );
 }
