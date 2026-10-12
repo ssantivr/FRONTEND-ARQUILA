@@ -1,7 +1,7 @@
 import type { Project } from "../types/api";
 import { formatDate } from "../utils/format";
 import { StatusBadge } from "./Badge";
-import { RENDERS } from "./RenderImage";
+import { ProjectCover } from "./ProjectCover";
 
 interface ProjectCardProps {
     project: Project;
@@ -17,23 +17,13 @@ function initials(name: string): string {
         .join("");
 }
 
-/**
- * Projects have no cover image in the API, so the cover is the project's initials over a dimmed
- * sample render: decoration, not a picture of the project.
- */
+/** Projects have no cover image in the API, so the cover is a drawing generated per project. */
 export function ProjectCard({ project, onOpen }: ProjectCardProps) {
-    const render = project.id % 2 === 0 ? RENDERS.day : RENDERS.night;
-
     return (
         <button type="button" className="card project-card" onClick={() => onOpen(project.id)}>
-            <span
-                className={`project-cover project-cover-${project.id % 4}`}
-                style={{
-                    backgroundImage: `linear-gradient(rgba(11, 33, 26, 0.45), rgba(11, 33, 26, 0.8)), url(${render})`,
-                }}
-                aria-hidden="true"
-            >
-                {initials(project.name)}
+            <span className="project-cover" aria-hidden="true">
+                <ProjectCover id={project.id} name={project.name} />
+                <span className="project-monogram">{initials(project.name)}</span>
             </span>
             <span className="project-body">
                 <span id={`project-${project.id}-name`} className="card-title">

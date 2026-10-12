@@ -48,7 +48,7 @@ import type {
     User,
     Walkthrough,
 } from "../types/api";
-import { apiUrl, request, upload } from "./http";
+import { apiUrl, onWrite, request, upload } from "./http";
 
 export const healthApi = {
     check: () => request<{ status: string }>("/health"),
@@ -85,13 +85,44 @@ export const templatesApi = {
         request<Project>(`/templates/${templateId}/projects`, { method: "POST" }),
 };
 
-export async function loadAcrossProjects<T>(
-    loader: (projectId: number) => Promise<T[]>,
-): Promise<{ projects: Project[]; items: T[] }> {
-    const projects = await projectsApi.list();
-    const lists = await Promise.all(projects.map((project) => loader(project.id)));
+const ACROSS_PROJECTS_TTL_MS = 30_000;
 
-    return { projects, items: lists.flat() };
+interface AcrossProjects<T> {
+    projects: Project[];
+    items: T[];
+}
+
+const acrossProjects = new Map<unknown, { at: number; value: Promise<AcrossProjects<unknown>> }>();
+
+// Any write may change what these lists contain, and so may a different user signing in.
+onWrite(() => acrossProjects.clear());
+
+/**
+ * The API has no route listing terrains or materials of every project, so this asks for the
+ * projects and then for each one's list, all in parallel. The answer is kept for a short while so
+ * that moving between screens does not repeat one request per project.
+ */
+export function loadAcrossProjects<T>(
+    loader: (projectId: number) => Promise<T[]>,
+): Promise<AcrossProjects<T>> {
+    const cached = acrossProjects.get(loader);
+
+    if (cached !== undefined && Date.now() - cached.at < ACROSS_PROJECTS_TTL_MS) {
+        return cached.value as Promise<AcrossProjects<T>>;
+    }
+
+    const value = (async () => {
+        const projects = await projectsApi.list();
+        const lists = await Promise.all(projects.map((project) => loader(project.id)));
+
+        return { projects, items: lists.flat() };
+    })();
+
+    acrossProjects.set(loader, { at: Date.now(), value });
+    // A failed load is not worth remembering: the retry must reach the server again.
+    value.catch(() => acrossProjects.delete(loader));
+
+    return value;
 }
 
 export const terrainsApi = {

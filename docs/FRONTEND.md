@@ -141,6 +141,24 @@ El menú lateral tiene ocho módulos (`MODULES` en `src/components/Sidebar.tsx`)
 
 Los mensajes de error del backend están en inglés. El frontend los traduce al español en `src/utils/errors.ts`; un mensaje que no esté en esa lista se muestra tal cual. Si cualquier petición responde 401, la aplicación vuelve a la pantalla de inicio de sesión.
 
+### Proyectos, terrenos y materiales
+
+- **Portadas.** `ProjectCover.tsx` dibuja en SVG un edificio distinto para cada proyecto a partir de su identificador y su nombre (pisos, ancho, cubierta, árboles). La API no guarda ni imagen de portada ni tipo de proyecto, así que el dibujo no depende de un tipo real; con un campo `type` o `cover_url` en el backend, la portada podría reflejarlo.
+- **Terrenos.** Fichas con el contorno real del lote (sus vértices o su ancho y largo), filtros por nombre, proyecto y suelo, y un panel de detalle. Lo que no está registrado se muestra como «Sin registrar»; no se inventan coordenadas.
+- **Materiales.** Además del listado con filtros, «Superficies del modelo 3D» muestra los acabados que el motor puede aplicar (`utils/surfaceMaterials.ts`) con sus valores reales de rugosidad, metalicidad y opacidad, y una vista ampliada. Las favoritas se guardan en `localStorage` (`arquila:favorite-surfaces`), solo en ese navegador.
+- **Listas de todos los proyectos.** `loadAcrossProjects` pide los proyectos y luego la lista de cada uno en paralelo, y guarda la respuesta 30 segundos. Cualquier escritura (`onWrite` en `services/http.ts`) vacía esa caché, y una carga fallida no se recuerda.
+
+### Pendientes de backend
+
+Lo que la interfaz no puede ofrecer hasta que la API lo soporte:
+
+- Rutas globales `GET /terrains` y `GET /materials`: hoy es una petición por proyecto.
+- Imagen de portada y tipo de proyecto.
+- Duplicar proyecto, versiones, tareas e historial de cambios.
+- Notificaciones.
+- Favoritos y preferencias guardados en la cuenta.
+- Miniaturas o fotos de materiales.
+
 ### Direcciones
 
 Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/materiales`, `/visor`, `/recorrido`, `/asistente` y `/configuracion`. Un proyecto se abre en `/proyectos/:id/:pestaña` (`terreno`, `planos`, `modelo`, `elevaciones`, `materiales`, `analisis`, `archivos`, `asistente`), así que se puede enlazar a una pestaña concreta y el botón atrás del navegador funciona. `App.tsx` no guarda la pantalla actual: la lee de la dirección.

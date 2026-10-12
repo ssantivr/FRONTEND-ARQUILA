@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { MetricCard } from "../components/MetricCard";
 import { Panel } from "../components/Panel";
+import { SurfaceLibrary } from "../components/SurfaceLibrary";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, materialsApi } from "../services/api";
 import type { Material } from "../types/api";
@@ -169,6 +170,7 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                     </table>
                 )}
             </Panel>
+            <SurfaceLibrary />
         </>
     );
 }
