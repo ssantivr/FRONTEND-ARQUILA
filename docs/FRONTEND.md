@@ -174,6 +174,7 @@ Lo que la interfaz no puede ofrecer hasta que la API lo soporte:
 - Rutas globales `GET /terrains` y `GET /materials`: hoy es una petición por proyecto.
 - Imagen de portada y tipo de proyecto.
 - Duplicar proyecto, versiones, tareas e historial de cambios.
+- Avance o progreso de un proyecto: no hay ningún campo que lo mida, así que las tarjetas muestran solo la insignia de estado (borrador, activo, archivado) y no una barra de progreso.
 - Notificaciones.
 - Favoritos y preferencias guardados en la cuenta.
 - Miniaturas o fotos de materiales.
