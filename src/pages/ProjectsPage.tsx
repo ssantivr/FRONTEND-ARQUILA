@@ -1,12 +1,15 @@
 import { useState, type FormEvent } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
-import { StatusBadge } from "../components/Badge";
 import { Panel } from "../components/Panel";
+import { ProjectCard } from "../components/ProjectCard";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi, templatesApi } from "../services/api";
+import { showToast } from "../state/toasts";
 import type { ProjectStatus } from "../types/api";
 import { formatNumber, optionalText } from "../utils/format";
+
+type Order = "recent" | "name";
 
 interface ProjectsPageProps {
     onOpenProject: (projectId: number) => void;
@@ -16,6 +19,11 @@ interface ProjectsPageProps {
 export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) {
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState<ProjectStatus | "">("");
+    const [order, setOrder] = useState<Order>("recent");
+    const [layout, setLayout] = useState<"grid" | "list">("grid");
+    const [confirmingId, setConfirmingId] = useState<number | null>(null);
+    const [actingId, setActingId] = useState<number | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
     const [name, setName] = useState("");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
@@ -62,6 +70,7 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
             setLocation("");
             setDescription("");
             projects.reload();
+            showToast("Proyecto creado.");
         } catch (reason) {
             setFormError(errorMessage(reason));
         } finally {
@@ -69,7 +78,39 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
         }
     }
 
-    const items = projects.data ?? [];
+    async function act(projectId: number, done: string, action: () => Promise<unknown>) {
+        setActingId(projectId);
+        setActionError(null);
+
+        try {
+            await action();
+            projects.reload();
+            showToast(done);
+        } catch (reason) {
+            setActionError(errorMessage(reason));
+        } finally {
+            setActingId(null);
+            setConfirmingId(null);
+        }
+    }
+
+    function handleStatus(projectId: number, next: ProjectStatus) {
+        void act(
+            projectId,
+            next === "archived" ? "Proyecto archivado." : "Proyecto reactivado.",
+            () => projectsApi.update(projectId, { status: next }),
+        );
+    }
+
+    function handleRemove(projectId: number) {
+        void act(projectId, "Proyecto eliminado.", () => projectsApi.remove(projectId));
+    }
+
+    const items = [...(projects.data ?? [])].sort((first, second) =>
+        order === "name"
+            ? first.name.localeCompare(second.name, "es")
+            : second.updated_at.localeCompare(first.updated_at),
+    );
 
     return (
         <>
@@ -175,6 +216,30 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
                             <option value="active">Activo</option>
                             <option value="archived">Archivado</option>
                         </select>
+                        <select
+                            aria-label="Ordenar proyectos"
+                            value={order}
+                            onChange={(event) => setOrder(event.target.value as Order)}
+                        >
+                            <option value="recent">Más recientes</option>
+                            <option value="name">Por nombre</option>
+                        </select>
+                        <div className="segmented" role="group" aria-label="Vista de la lista">
+                            <button
+                                type="button"
+                                aria-pressed={layout === "grid"}
+                                onClick={() => setLayout("grid")}
+                            >
+                                Cuadrícula
+                            </button>
+                            <button
+                                type="button"
+                                aria-pressed={layout === "list"}
+                                onClick={() => setLayout("list")}
+                            >
+                                Lista
+                            </button>
+                        </div>
                     </div>
                 }
             >
@@ -185,20 +250,67 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
                     isEmpty={items.length === 0}
                     emptyText="No hay proyectos."
                 />
-                <ul className="card-list">
+                {actionError && (
+                    <p className="message message-error" role="alert">
+                        {actionError}
+                    </p>
+                )}
+                <ul className={layout === "grid" ? "card-list" : "card-list card-list-rows"}>
                     {items.map((project) => (
-                        <li key={project.id}>
-                            <button
-                                type="button"
-                                className="card"
-                                onClick={() => onOpenProject(project.id)}
-                            >
-                                <span className="card-title">{project.name}</span>
-                                <span className="card-subtitle">
-                                    {project.location ?? "Sin ubicación"}
-                                </span>
-                                <StatusBadge status={project.status} />
-                            </button>
+                        <li key={project.id} className="project-item">
+                            <ProjectCard project={project} onOpen={onOpenProject} />
+                            <div className="project-actions">
+                                {confirmingId === project.id ? (
+                                    <>
+                                        <span role="status">¿Eliminar «{project.name}»?</span>
+                                        <button
+                                            type="button"
+                                            className="button-danger"
+                                            disabled={actingId !== null}
+                                            onClick={() => handleRemove(project.id)}
+                                        >
+                                            Sí, eliminar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="button-secondary"
+                                            onClick={() => setConfirmingId(null)}
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="button-secondary"
+                                            disabled={actingId !== null}
+                                            aria-describedby={`project-${project.id}-name`}
+                                            onClick={() =>
+                                                handleStatus(
+                                                    project.id,
+                                                    project.status === "archived"
+                                                        ? "active"
+                                                        : "archived",
+                                                )
+                                            }
+                                        >
+                                            {project.status === "archived"
+                                                ? "Reactivar"
+                                                : "Archivar"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="button-danger"
+                                            disabled={actingId !== null}
+                                            aria-describedby={`project-${project.id}-name`}
+                                            onClick={() => setConfirmingId(project.id)}
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </li>
                     ))}
                 </ul>
