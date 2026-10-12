@@ -148,6 +148,14 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 - **Materiales.** Además del listado con filtros, «Superficies del modelo 3D» muestra los acabados que el motor puede aplicar (`utils/surfaceMaterials.ts`) con sus valores reales de rugosidad, metalicidad y opacidad, y una vista ampliada. Las favoritas se guardan en `localStorage` (`arquila:favorite-surfaces`), solo en ese navegador.
 - **Listas de todos los proyectos.** `loadAcrossProjects` pide los proyectos y luego la lista de cada uno en paralelo, y guarda la respuesta 30 segundos. Cualquier escritura (`onWrite` en `services/http.ts`) vacía esa caché, y una carga fallida no se recuerda.
 
+### Visor 3D y planos: lo que hacen y lo que no
+
+- **Proyección.** «Paralela» cambia la cámara a una lente muy larga (4°) que se lee como una proyección ortográfica: las líneas paralelas no fugan. No es una cámara ortográfica real, que exigiría otro control de cámara y otros pases de posproceso.
+- **Estado.** La barra inferior muestra la selección, la proyección y el guardado («Guardando…», «Cambios guardados», «Error al guardar») de lo único que el visor guarda en el servidor: el material de un elemento y la cubierta.
+- **Lo que no hay.** No existe deshacer/rehacer ni mover, rotar o escalar, porque el modelo se genera a partir de los planos y no hay historial que deshacer. Por eso tampoco hay una barra vertical de herramientas: tendría una sola herramienta.
+- **Comprobación.** Ocultar objetos, girar el sol, la proyección paralela y la descarga en PNG se probaron en un navegador contra el motor real. `StructureViewer.test.tsx` cubre que cada control llama al motor con lo que debe; el motor en sí no se puede ejecutar en jsdom.
+- **Plantas generadas.** `PlanViewport.tsx` es un visor técnico: zoom (botones, `+` y `−`), desplazamiento (arrastre o flechas) y medición entre dos puntos en metros. Lee el dibujo generado; no es un editor de dibujo, que necesitaría un modelo de datos de trazos que la API no tiene.
+
 ### Pendientes de backend
 
 Lo que la interfaz no puede ofrecer hasta que la API lo soporte:

@@ -13,6 +13,7 @@ import {
     type Side,
 } from "../utils/openings";
 import { downloadSvg } from "../utils/svg";
+import { PlanViewport } from "./PlanViewport";
 
 const VIEW_WIDTH = 660;
 const VIEW_HEIGHT = 520;
@@ -151,343 +152,355 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                 {level.title} · {formatNumber(level.area)} m² · {level.rooms.length} espacios · N+
                 {level.base.toFixed(2)}
             </figcaption>
-            <svg
-                ref={svg}
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-                role="img"
-                aria-label={`Planta de ${level.title}: ${level.rooms.length} espacios, ${formatNumber(width)} por ${formatNumber(depth)} metros, con ${xs.length} ejes en un sentido y ${ys.length} en el otro`}
-            >
-                <defs>
-                    <pattern id={gridId} width={20} height={20} patternUnits="userSpaceOnUse">
-                        <path d="M20 0H0V20" fill="none" stroke={COLORS.grid} strokeWidth={1} />
-                    </pattern>
-                </defs>
-                <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={COLORS.background} />
-                <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={`url(#${gridId})`} />
+            <PlanViewport width={VIEW_WIDTH} height={VIEW_HEIGHT} unitsPerMetre={scale}>
+                <svg
+                    ref={svg}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+                    role="img"
+                    aria-label={`Planta de ${level.title}: ${level.rooms.length} espacios, ${formatNumber(width)} por ${formatNumber(depth)} metros, con ${xs.length} ejes en un sentido y ${ys.length} en el otro`}
+                >
+                    <defs>
+                        <pattern id={gridId} width={20} height={20} patternUnits="userSpaceOnUse">
+                            <path d="M20 0H0V20" fill="none" stroke={COLORS.grid} strokeWidth={1} />
+                        </pattern>
+                    </defs>
+                    <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={COLORS.background} />
+                    <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={`url(#${gridId})`} />
 
-                <g stroke={COLORS.accent} strokeWidth={0.8} strokeDasharray="6 4" opacity={0.45}>
-                    {xs.map((x) => (
-                        <line
-                            key={`x${x}`}
-                            x1={toX(x)}
-                            y1={top - BUBBLE_GAP + BUBBLE_RADIUS}
-                            x2={toX(x)}
-                            y2={bottom + 10}
-                        />
-                    ))}
-                    {ys.map((y) => (
-                        <line
-                            key={`y${y}`}
-                            x1={left - BUBBLE_GAP + BUBBLE_RADIUS}
-                            y1={toY(y)}
-                            x2={right + 10}
-                            y2={toY(y)}
-                        />
-                    ))}
-                </g>
-                {xs.map((x, index) => (
-                    <g key={`bx${x}`}>
-                        <circle
-                            cx={toX(x)}
-                            cy={top - BUBBLE_GAP}
-                            r={BUBBLE_RADIUS}
-                            fill={COLORS.background}
-                            stroke={COLORS.accent}
-                            strokeWidth={1.2}
-                        />
-                        <text
-                            x={toX(x)}
-                            y={top - BUBBLE_GAP + 3.5}
-                            {...TEXT}
-                            fill={COLORS.accent}
-                            fontWeight={600}
-                            textAnchor="middle"
-                        >
-                            {axisName(index)}
-                        </text>
+                    <g
+                        stroke={COLORS.accent}
+                        strokeWidth={0.8}
+                        strokeDasharray="6 4"
+                        opacity={0.45}
+                    >
+                        {xs.map((x) => (
+                            <line
+                                key={`x${x}`}
+                                x1={toX(x)}
+                                y1={top - BUBBLE_GAP + BUBBLE_RADIUS}
+                                x2={toX(x)}
+                                y2={bottom + 10}
+                            />
+                        ))}
+                        {ys.map((y) => (
+                            <line
+                                key={`y${y}`}
+                                x1={left - BUBBLE_GAP + BUBBLE_RADIUS}
+                                y1={toY(y)}
+                                x2={right + 10}
+                                y2={toY(y)}
+                            />
+                        ))}
                     </g>
-                ))}
-                {ys.map((y, index) => (
-                    <g key={`by${y}`}>
-                        <circle
-                            cx={left - BUBBLE_GAP}
-                            cy={toY(y)}
-                            r={BUBBLE_RADIUS}
-                            fill={COLORS.background}
-                            stroke={COLORS.accent}
-                            strokeWidth={1.2}
-                        />
-                        <text
-                            x={left - BUBBLE_GAP}
-                            y={toY(y) + 3.5}
-                            {...TEXT}
-                            fill={COLORS.accent}
-                            fontWeight={600}
-                            textAnchor="middle"
-                        >
-                            {index + 1}
-                        </text>
-                    </g>
-                ))}
+                    {xs.map((x, index) => (
+                        <g key={`bx${x}`}>
+                            <circle
+                                cx={toX(x)}
+                                cy={top - BUBBLE_GAP}
+                                r={BUBBLE_RADIUS}
+                                fill={COLORS.background}
+                                stroke={COLORS.accent}
+                                strokeWidth={1.2}
+                            />
+                            <text
+                                x={toX(x)}
+                                y={top - BUBBLE_GAP + 3.5}
+                                {...TEXT}
+                                fill={COLORS.accent}
+                                fontWeight={600}
+                                textAnchor="middle"
+                            >
+                                {axisName(index)}
+                            </text>
+                        </g>
+                    ))}
+                    {ys.map((y, index) => (
+                        <g key={`by${y}`}>
+                            <circle
+                                cx={left - BUBBLE_GAP}
+                                cy={toY(y)}
+                                r={BUBBLE_RADIUS}
+                                fill={COLORS.background}
+                                stroke={COLORS.accent}
+                                strokeWidth={1.2}
+                            />
+                            <text
+                                x={left - BUBBLE_GAP}
+                                y={toY(y) + 3.5}
+                                {...TEXT}
+                                fill={COLORS.accent}
+                                fontWeight={600}
+                                textAnchor="middle"
+                            >
+                                {index + 1}
+                            </text>
+                        </g>
+                    ))}
 
-                <g stroke={COLORS.muted} strokeWidth={1}>
-                    <line x1={left} y1={top - CHAIN_GAP} x2={right} y2={top - CHAIN_GAP} />
-                    {xs.map((x) => (
-                        <line
-                            key={`tx${x}`}
-                            x1={toX(x) - 3}
-                            y1={top - CHAIN_GAP + 3}
-                            x2={toX(x) + 3}
-                            y2={top - CHAIN_GAP - 3}
-                        />
-                    ))}
-                    <line x1={left - CHAIN_GAP} y1={top} x2={left - CHAIN_GAP} y2={bottom} />
-                    {ys.map((y) => (
-                        <line
-                            key={`ty${y}`}
-                            x1={left - CHAIN_GAP - 3}
-                            y1={toY(y) + 3}
-                            x2={left - CHAIN_GAP + 3}
-                            y2={toY(y) - 3}
-                        />
-                    ))}
+                    <g stroke={COLORS.muted} strokeWidth={1}>
+                        <line x1={left} y1={top - CHAIN_GAP} x2={right} y2={top - CHAIN_GAP} />
+                        {xs.map((x) => (
+                            <line
+                                key={`tx${x}`}
+                                x1={toX(x) - 3}
+                                y1={top - CHAIN_GAP + 3}
+                                x2={toX(x) + 3}
+                                y2={top - CHAIN_GAP - 3}
+                            />
+                        ))}
+                        <line x1={left - CHAIN_GAP} y1={top} x2={left - CHAIN_GAP} y2={bottom} />
+                        {ys.map((y) => (
+                            <line
+                                key={`ty${y}`}
+                                x1={left - CHAIN_GAP - 3}
+                                y1={toY(y) + 3}
+                                x2={left - CHAIN_GAP + 3}
+                                y2={toY(y) - 3}
+                            />
+                        ))}
+                        {xs.length > 2 && (
+                            <line x1={left} y1={top - TOTAL_GAP} x2={right} y2={top - TOTAL_GAP} />
+                        )}
+                        {ys.length > 2 && (
+                            <line
+                                x1={left - TOTAL_GAP}
+                                y1={top}
+                                x2={left - TOTAL_GAP}
+                                y2={bottom}
+                            />
+                        )}
+                    </g>
+                    {xs.slice(1).map((x, index) => {
+                        const previous = xs[index];
+                        const middle = (toX(previous) + toX(x)) / 2;
+
+                        return (
+                            (x - previous) * scale >= MIN_DIMENSION_PX && (
+                                <text
+                                    key={`dx${x}`}
+                                    x={middle}
+                                    y={top - CHAIN_GAP - 5}
+                                    {...DIMENSION}
+                                    textAnchor="middle"
+                                >
+                                    {meters(x - previous)}
+                                </text>
+                            )
+                        );
+                    })}
+                    {ys.slice(1).map((y, index) => {
+                        const previous = ys[index];
+                        const middle = (toY(previous) + toY(y)) / 2;
+
+                        return (
+                            (previous - y) * scale >= MIN_DIMENSION_PX && (
+                                <text
+                                    key={`dy${y}`}
+                                    x={left - CHAIN_GAP - 5}
+                                    y={middle}
+                                    {...DIMENSION}
+                                    textAnchor="middle"
+                                    transform={`rotate(-90 ${left - CHAIN_GAP - 5} ${middle})`}
+                                >
+                                    {meters(previous - y)}
+                                </text>
+                            )
+                        );
+                    })}
                     {xs.length > 2 && (
-                        <line x1={left} y1={top - TOTAL_GAP} x2={right} y2={top - TOTAL_GAP} />
+                        <text
+                            x={(left + right) / 2}
+                            y={top - TOTAL_GAP - 5}
+                            {...DIMENSION}
+                            fill={COLORS.text}
+                            textAnchor="middle"
+                        >
+                            {meters(width)}
+                        </text>
                     )}
                     {ys.length > 2 && (
-                        <line x1={left - TOTAL_GAP} y1={top} x2={left - TOTAL_GAP} y2={bottom} />
+                        <text
+                            x={left - TOTAL_GAP - 5}
+                            y={(top + bottom) / 2}
+                            {...DIMENSION}
+                            fill={COLORS.text}
+                            textAnchor="middle"
+                            transform={`rotate(-90 ${left - TOTAL_GAP - 5} ${(top + bottom) / 2})`}
+                        >
+                            {meters(depth)}
+                        </text>
                     )}
-                </g>
-                {xs.slice(1).map((x, index) => {
-                    const previous = xs[index];
-                    const middle = (toX(previous) + toX(x)) / 2;
 
-                    return (
-                        (x - previous) * scale >= MIN_DIMENSION_PX && (
-                            <text
-                                key={`dx${x}`}
-                                x={middle}
-                                y={top - CHAIN_GAP - 5}
-                                {...DIMENSION}
-                                textAnchor="middle"
-                            >
-                                {meters(x - previous)}
-                            </text>
-                        )
-                    );
-                })}
-                {ys.slice(1).map((y, index) => {
-                    const previous = ys[index];
-                    const middle = (toY(previous) + toY(y)) / 2;
+                    {level.rooms.map((room) => {
+                        const rect = box(rectOf(room));
+                        const labelled =
+                            rect.width >= MIN_LABEL_WIDTH && rect.height >= MIN_LABEL_HEIGHT;
+                        const isStair = /escalera/i.test(room.name);
 
-                    return (
-                        (previous - y) * scale >= MIN_DIMENSION_PX && (
-                            <text
-                                key={`dy${y}`}
-                                x={left - CHAIN_GAP - 5}
-                                y={middle}
-                                {...DIMENSION}
-                                textAnchor="middle"
-                                transform={`rotate(-90 ${left - CHAIN_GAP - 5} ${middle})`}
-                            >
-                                {meters(previous - y)}
-                            </text>
-                        )
-                    );
-                })}
-                {xs.length > 2 && (
-                    <text
-                        x={(left + right) / 2}
-                        y={top - TOTAL_GAP - 5}
-                        {...DIMENSION}
-                        fill={COLORS.text}
-                        textAnchor="middle"
-                    >
-                        {meters(width)}
-                    </text>
-                )}
-                {ys.length > 2 && (
-                    <text
-                        x={left - TOTAL_GAP - 5}
-                        y={(top + bottom) / 2}
-                        {...DIMENSION}
-                        fill={COLORS.text}
-                        textAnchor="middle"
-                        transform={`rotate(-90 ${left - TOTAL_GAP - 5} ${(top + bottom) / 2})`}
-                    >
-                        {meters(depth)}
-                    </text>
-                )}
-
-                {level.rooms.map((room) => {
-                    const rect = box(rectOf(room));
-                    const labelled =
-                        rect.width >= MIN_LABEL_WIDTH && rect.height >= MIN_LABEL_HEIGHT;
-                    const isStair = /escalera/i.test(room.name);
-
-                    return (
-                        <g key={elementKey(room)}>
-                            <rect
-                                {...rect}
-                                fill={COLORS.floor}
-                                stroke={COLORS.wall}
-                                strokeWidth={1.5}
-                                strokeDasharray={room.kind === "room" ? undefined : "6 4"}
-                            >
-                                <title>
-                                    {room.name}: {formatNumber(room.width_m)} ×{" "}
-                                    {formatNumber(room.depth_m)} m,{" "}
-                                    {formatNumber(room.width_m * room.depth_m)} m²
-                                </title>
-                            </rect>
-                            {isStair &&
-                                treads(room).map((line, index) => (
-                                    <line
-                                        key={index}
-                                        {...line}
-                                        stroke={COLORS.muted}
-                                        strokeWidth={0.8}
-                                    />
-                                ))}
-                            {labelled && (
-                                <g pointerEvents="none">
-                                    <text
-                                        x={rect.x + rect.width / 2}
-                                        y={rect.y + rect.height / 2 - 1}
-                                        {...TEXT}
-                                        fontSize={11}
-                                        fontWeight={600}
-                                        textAnchor="middle"
-                                        stroke={COLORS.floor}
-                                        strokeWidth={3}
-                                        paintOrder="stroke"
-                                    >
-                                        {room.kind === "room" ? room.name : "Sin cuartos"}
-                                    </text>
-                                    <text
-                                        x={rect.x + rect.width / 2}
-                                        y={rect.y + rect.height / 2 + 12}
-                                        {...DIMENSION}
-                                        textAnchor="middle"
-                                    >
+                        return (
+                            <g key={elementKey(room)}>
+                                <rect
+                                    {...rect}
+                                    fill={COLORS.floor}
+                                    stroke={COLORS.wall}
+                                    strokeWidth={1.5}
+                                    strokeDasharray={room.kind === "room" ? undefined : "6 4"}
+                                >
+                                    <title>
+                                        {room.name}: {formatNumber(room.width_m)} ×{" "}
+                                        {formatNumber(room.depth_m)} m,{" "}
                                         {formatNumber(room.width_m * room.depth_m)} m²
-                                    </text>
-                                </g>
-                            )}
-                        </g>
-                    );
-                })}
-
-                {level.rooms.map((room) => {
-                    const rect = rectOf(room);
-
-                    return (
-                        <g key={`walls-${elementKey(room)}`} strokeLinecap="square">
-                            {room.kind === "room" &&
-                                exteriorSides(room, rooms).map((side) => (
-                                    <line
-                                        key={side}
-                                        {...edge(rect, side)}
-                                        stroke={COLORS.wall}
-                                        strokeWidth={4.5}
-                                    />
-                                ))}
-                            {(openings.get(elementKey(room)) ?? []).map((opening, index) => {
-                                const line = edge(
-                                    rect,
-                                    opening.side,
-                                    opening.center - opening.width / 2,
-                                    opening.center + opening.width / 2,
-                                );
-                                const swing = opening.width * scale;
-
-                                return (
-                                    <g key={index} strokeLinecap="butt">
-                                        <line {...line} stroke={COLORS.floor} strokeWidth={6} />
-                                        {opening.kind === "window" ? (
-                                            <line
-                                                {...line}
-                                                stroke={COLORS.accent}
-                                                strokeWidth={3}
-                                            />
-                                        ) : (
-                                            <>
-                                                <line
-                                                    x1={line.x1}
-                                                    y1={line.y1}
-                                                    x2={line.x1}
-                                                    y2={line.y1 - swing}
-                                                    stroke={COLORS.accent}
-                                                    strokeWidth={1.4}
-                                                />
-                                                <path
-                                                    d={`M${line.x1} ${line.y1 - swing} A${swing} ${swing} 0 0 1 ${line.x2} ${line.y2}`}
-                                                    fill="none"
-                                                    stroke={COLORS.accent}
-                                                    strokeWidth={1}
-                                                    strokeDasharray="3 3"
-                                                />
-                                            </>
-                                        )}
+                                    </title>
+                                </rect>
+                                {isStair &&
+                                    treads(room).map((line, index) => (
+                                        <line
+                                            key={index}
+                                            {...line}
+                                            stroke={COLORS.muted}
+                                            strokeWidth={0.8}
+                                        />
+                                    ))}
+                                {labelled && (
+                                    <g pointerEvents="none">
+                                        <text
+                                            x={rect.x + rect.width / 2}
+                                            y={rect.y + rect.height / 2 - 1}
+                                            {...TEXT}
+                                            fontSize={11}
+                                            fontWeight={600}
+                                            textAnchor="middle"
+                                            stroke={COLORS.floor}
+                                            strokeWidth={3}
+                                            paintOrder="stroke"
+                                        >
+                                            {room.kind === "room" ? room.name : "Sin cuartos"}
+                                        </text>
+                                        <text
+                                            x={rect.x + rect.width / 2}
+                                            y={rect.y + rect.height / 2 + 12}
+                                            {...DIMENSION}
+                                            textAnchor="middle"
+                                        >
+                                            {formatNumber(room.width_m * room.depth_m)} m²
+                                        </text>
                                     </g>
-                                );
-                            })}
-                        </g>
-                    );
-                })}
+                                )}
+                            </g>
+                        );
+                    })}
 
-                {level.components.map((component) => (
-                    <rect
-                        key={elementKey(component)}
-                        {...box(rectOf(component))}
-                        fill={component.kind === "beam" ? "none" : COLORS.wall}
-                        stroke={component.kind === "beam" ? COLORS.beam : COLORS.wall}
-                        strokeWidth={1}
-                        strokeDasharray={component.kind === "beam" ? "4 3" : undefined}
+                    {level.rooms.map((room) => {
+                        const rect = rectOf(room);
+
+                        return (
+                            <g key={`walls-${elementKey(room)}`} strokeLinecap="square">
+                                {room.kind === "room" &&
+                                    exteriorSides(room, rooms).map((side) => (
+                                        <line
+                                            key={side}
+                                            {...edge(rect, side)}
+                                            stroke={COLORS.wall}
+                                            strokeWidth={4.5}
+                                        />
+                                    ))}
+                                {(openings.get(elementKey(room)) ?? []).map((opening, index) => {
+                                    const line = edge(
+                                        rect,
+                                        opening.side,
+                                        opening.center - opening.width / 2,
+                                        opening.center + opening.width / 2,
+                                    );
+                                    const swing = opening.width * scale;
+
+                                    return (
+                                        <g key={index} strokeLinecap="butt">
+                                            <line {...line} stroke={COLORS.floor} strokeWidth={6} />
+                                            {opening.kind === "window" ? (
+                                                <line
+                                                    {...line}
+                                                    stroke={COLORS.accent}
+                                                    strokeWidth={3}
+                                                />
+                                            ) : (
+                                                <>
+                                                    <line
+                                                        x1={line.x1}
+                                                        y1={line.y1}
+                                                        x2={line.x1}
+                                                        y2={line.y1 - swing}
+                                                        stroke={COLORS.accent}
+                                                        strokeWidth={1.4}
+                                                    />
+                                                    <path
+                                                        d={`M${line.x1} ${line.y1 - swing} A${swing} ${swing} 0 0 1 ${line.x2} ${line.y2}`}
+                                                        fill="none"
+                                                        stroke={COLORS.accent}
+                                                        strokeWidth={1}
+                                                        strokeDasharray="3 3"
+                                                    />
+                                                </>
+                                            )}
+                                        </g>
+                                    );
+                                })}
+                            </g>
+                        );
+                    })}
+
+                    {level.components.map((component) => (
+                        <rect
+                            key={elementKey(component)}
+                            {...box(rectOf(component))}
+                            fill={component.kind === "beam" ? "none" : COLORS.wall}
+                            stroke={component.kind === "beam" ? COLORS.beam : COLORS.wall}
+                            strokeWidth={1}
+                            strokeDasharray={component.kind === "beam" ? "4 3" : undefined}
+                        >
+                            <title>{component.name}</title>
+                        </rect>
+                    ))}
+
+                    <text x={left} y={bottom + 46} {...TEXT} fontSize={15} fontWeight={700}>
+                        {level.title.toUpperCase()} · N+{level.base.toFixed(2)}
+                    </text>
+                    <text x={left} y={bottom + 63} {...DIMENSION}>
+                        Área {meters(level.area)} m² · altura {meters(level.height)} m ·{" "}
+                        {level.rooms.length} espacios
+                    </text>
+                    <g stroke={COLORS.text} strokeWidth={1.2}>
+                        <line
+                            x1={right - barLength * scale}
+                            y1={bottom + 50}
+                            x2={right}
+                            y2={bottom + 50}
+                        />
+                        <line
+                            x1={right - barLength * scale}
+                            y1={bottom + 45}
+                            x2={right - barLength * scale}
+                            y2={bottom + 55}
+                        />
+                        <line x1={right} y1={bottom + 45} x2={right} y2={bottom + 55} />
+                    </g>
+                    <text
+                        x={right - barLength * scale}
+                        y={bottom + 67}
+                        {...DIMENSION}
+                        textAnchor="middle"
                     >
-                        <title>{component.name}</title>
-                    </rect>
-                ))}
-
-                <text x={left} y={bottom + 46} {...TEXT} fontSize={15} fontWeight={700}>
-                    {level.title.toUpperCase()} · N+{level.base.toFixed(2)}
-                </text>
-                <text x={left} y={bottom + 63} {...DIMENSION}>
-                    Área {meters(level.area)} m² · altura {meters(level.height)} m ·{" "}
-                    {level.rooms.length} espacios
-                </text>
-                <g stroke={COLORS.text} strokeWidth={1.2}>
-                    <line
-                        x1={right - barLength * scale}
-                        y1={bottom + 50}
-                        x2={right}
-                        y2={bottom + 50}
-                    />
-                    <line
-                        x1={right - barLength * scale}
-                        y1={bottom + 45}
-                        x2={right - barLength * scale}
-                        y2={bottom + 55}
-                    />
-                    <line x1={right} y1={bottom + 45} x2={right} y2={bottom + 55} />
-                </g>
-                <text
-                    x={right - barLength * scale}
-                    y={bottom + 67}
-                    {...DIMENSION}
-                    textAnchor="middle"
-                >
-                    0
-                </text>
-                <text x={right} y={bottom + 67} {...DIMENSION} textAnchor="middle">
-                    {barLength} m
-                </text>
-                <text x={VIEW_WIDTH / 2} y={VIEW_HEIGHT - 10} {...NOTE} textAnchor="middle">
-                    Frente del lote abajo · ventanas en azul · columnas y muros en negro · vigas en
-                    línea discontinua
-                </text>
-            </svg>
+                        0
+                    </text>
+                    <text x={right} y={bottom + 67} {...DIMENSION} textAnchor="middle">
+                        {barLength} m
+                    </text>
+                    <text x={VIEW_WIDTH / 2} y={VIEW_HEIGHT - 10} {...NOTE} textAnchor="middle">
+                        Frente del lote abajo · ventanas en azul · columnas y muros en negro · vigas
+                        en línea discontinua
+                    </text>
+                </svg>
+            </PlanViewport>
             <div className="filters">
                 <button
                     type="button"

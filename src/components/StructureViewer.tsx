@@ -15,6 +15,7 @@ import {
     type LayerName,
     type Layers,
     type OverlayLayers,
+    type Projection,
     type StructureViewer as Viewer,
     type ViewName,
 } from "../three/BuildingSceneManager";
@@ -88,6 +89,12 @@ const LAYERS: { id: LayerName; label: string }[] = [
 ];
 
 const SUN_STEP_DEG = 15;
+const SAVE_LABELS = {
+    idle: "Sin cambios pendientes",
+    saving: "Guardando…",
+    saved: "Cambios guardados",
+    error: "Error al guardar",
+};
 const TABLET_QUERY = "(min-width: 721px) and (max-width: 1024px)";
 
 const TREE_GROUPS: { label: string; spaces: boolean }[] = [
@@ -271,6 +278,8 @@ export function StructureViewer({
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [saving, setSaving] = useState<keyof typeof SAVE_LABELS>("idle");
+    const [projection, setProjection] = useState<Projection>("perspective");
     const [isolation, setIsolation] = useState<string | null>(null);
     const [touring, setTouring] = useState(false);
     const [cut, setCut] = useState(100);
@@ -402,22 +411,32 @@ export function StructureViewer({
         const previous = surfaceOf(surfaces, key, element.kind);
 
         setSaveError(null);
+        setSaving("saving");
         appState.setSurface(projectId, key, surface);
-        structureApi.setSurface(projectId, element, surface).catch((reason: unknown) => {
-            appState.setSurface(projectId, key, previous);
-            setSaveError(`No se guardó el material: ${errorMessage(reason)}`);
-        });
+        structureApi
+            .setSurface(projectId, element, surface)
+            .then(() => setSaving("saved"))
+            .catch((reason: unknown) => {
+                appState.setSurface(projectId, key, previous);
+                setSaving("error");
+                setSaveError(`No se guardó el material: ${errorMessage(reason)}`);
+            });
     }
 
     function changeRoof(next: RoofKind) {
         const previous = roof;
 
         setSaveError(null);
+        setSaving("saving");
         appState.setRoof(projectId, next);
-        structureApi.setRoof(projectId, next).catch((reason: unknown) => {
-            appState.setRoof(projectId, previous);
-            setSaveError(`No se guardó la cubierta: ${errorMessage(reason)}`);
-        });
+        structureApi
+            .setRoof(projectId, next)
+            .then(() => setSaving("saved"))
+            .catch((reason: unknown) => {
+                appState.setRoof(projectId, previous);
+                setSaving("error");
+                setSaveError(`No se guardó la cubierta: ${errorMessage(reason)}`);
+            });
     }
 
     function visit(key: string | null, stop = stops.findIndex((item) => item.key === key)) {
@@ -572,6 +591,10 @@ export function StructureViewer({
     }, [sun, structure]);
 
     useEffect(() => {
+        viewer.current?.setProjection(projection);
+    }, [projection, structure]);
+
+    useEffect(() => {
         viewer.current?.isolate(isolatedKey);
     }, [isolatedKey, structure]);
 
@@ -705,6 +728,17 @@ export function StructureViewer({
                         −
                     </button>
                     <span className="hud-readout">Zoom {zoom} %</span>
+                    <button
+                        type="button"
+                        className="hud-item"
+                        aria-pressed={projection === "parallel"}
+                        title="Cambia entre la vista en perspectiva y una proyección casi paralela, sin fuga"
+                        onClick={() =>
+                            setProjection(projection === "parallel" ? "perspective" : "parallel")
+                        }
+                    >
+                        Paralela
+                    </button>
                     <button
                         type="button"
                         className="hud-item"
@@ -1237,6 +1271,21 @@ export function StructureViewer({
                             )}
                         </div>
                     )}
+                    <div
+                        className="hud-group hud-status"
+                        role="status"
+                        aria-label="Estado del modelo"
+                    >
+                        <span className="hud-readout">
+                            {selected === null ? "Sin selección" : itemLabel(selected)}
+                        </span>
+                        <span className="hud-readout">
+                            {projection === "parallel" ? "Proyección paralela" : "Perspectiva"}
+                        </span>
+                        <span className={`hud-readout hud-save hud-save-${saving}`}>
+                            {SAVE_LABELS[saving]}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

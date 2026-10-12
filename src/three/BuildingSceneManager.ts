@@ -140,6 +140,10 @@ const GAZE_HEIGHT_M = 1.2;
 const INTERIOR_INSET_M = 0.6;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
+// A true orthographic camera would need its own rig and passes. A very long lens gives the same
+// reading (parallel lines stay parallel to the eye) with the camera the viewer already has.
+const PARALLEL_FIELD_OF_VIEW = 4;
+const PARALLEL_FAR_M = 6000;
 const MAX_PIXEL_RATIO = 2;
 const SHADOW_MAP_SIZE = 2048;
 const CLICK_TOLERANCE_PX = 4;
@@ -149,6 +153,7 @@ const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
 const UP_AXIS = new Vector3(0, 1, 0);
 
 export type { ViewName };
+export type Projection = "perspective" | "parallel";
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
 export type OverlayLayers = Record<SpatialLayer, boolean>;
@@ -245,6 +250,8 @@ export interface StructureViewer {
     setSun: (degrees: number) => void;
     /** Draws the current view and returns it as a PNG data URL. */
     capture: () => string;
+    /** Switches between the perspective lens and a near-parallel one, keeping the model framed. */
+    setProjection: (projection: Projection) => void;
     dispose: () => void;
 }
 
@@ -1581,6 +1588,20 @@ export function createStructureViewer(
         }
     }
 
+    function setProjection(projection: Projection): void {
+        const parallel = projection === "parallel";
+
+        camera.fov = parallel ? PARALLEL_FIELD_OF_VIEW : FIELD_OF_VIEW;
+        camera.far = parallel ? PARALLEL_FAR_M : 1000;
+        camera.updateProjectionMatrix();
+
+        if (model !== null) {
+            fitLimits();
+            rig.focus(null);
+            reportZoom();
+        }
+    }
+
     function capture(): string {
         // The drawing buffer is only readable in the same task that rendered it.
         renderer.shadowMap.needsUpdate = true;
@@ -1620,6 +1641,7 @@ export function createStructureViewer(
         zoomBy: changing(zoomBy),
         setSun: changing(setSun),
         capture,
+        setProjection: changing(setProjection),
         dispose,
     };
 }
