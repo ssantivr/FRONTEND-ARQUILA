@@ -10,7 +10,7 @@ import "./styles/interior.css";
 import "./styles/features.css";
 import "./styles/hierarchy.css";
 import "./styles/states.css";
-import "./styles.css";
+import "./styles/media.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 
