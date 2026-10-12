@@ -139,4 +139,14 @@ describe("LoginPage", () => {
 
         expect(screen.getByRole("status")).toHaveTextContent("Contraseña cambiada.");
     });
+
+    it("reveals and hides the password on request", async () => {
+        render(<LoginPage onAuthenticated={() => undefined} />);
+
+        await userEvent.click(screen.getByRole("button", { name: "Mostrar" }));
+        expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text");
+
+        await userEvent.click(screen.getByRole("button", { name: "Ocultar" }));
+        expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
+    });
 });
