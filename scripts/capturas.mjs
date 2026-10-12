@@ -4,6 +4,7 @@
 // The API is answered here with sample data, so the pictures never show a real account and the
 // script works without a backend. Nothing in this file ships with the app.
 import { mkdir } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
@@ -119,7 +120,11 @@ function answer(path) {
     if (path.endsWith("/terrains")) return path.startsWith("/projects/1/") ? terrains : [];
     if (path.endsWith("/materials")) return path.startsWith("/projects/1/") ? materials : [];
     if (path.includes("spatial-data")) {
-        return { project_id: 1, counts: { structure: 0, installations: 0, finishes: 0 }, elements: [] };
+        return {
+            project_id: 1,
+            counts: { structure: 0, installations: 0, finishes: 0 },
+            elements: [],
+        };
     }
     if (path.includes("interior-walkthrough")) {
         return { project_id: 1, steps: [], renovation_logs: [] };
@@ -163,7 +168,11 @@ async function open(browser, { theme, size, signedIn = true }) {
 async function shoot(page, name) {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(900);
-    await page.screenshot({ path: new URL(`${name}.jpg`, OUT).pathname.slice(1), type: "jpeg", quality: 82 });
+    await page.screenshot({
+        path: fileURLToPath(new URL(`${name}.jpg`, OUT)),
+        type: "jpeg",
+        quality: 82,
+    });
     console.log(`  ${name}.jpg`);
 }
 
@@ -187,11 +196,30 @@ async function checkViewer(browser) {
     await page.waitForTimeout(600);
     await shoot(page, "comprobacion-sol-180");
 
+    // Real picking through the orthographic camera: a click on the model must select something.
+    await page.getByRole("button", { name: "Mostrar Dormitorio" }).click();
+    await page.getByRole("button", { name: "Ortográfica" }).click();
+    await page.waitForTimeout(600);
+
+    const canvas = await page.locator(".structure-viewer canvas").boundingBox();
+    const status = page.getByRole("status", { name: "Estado del modelo" });
+
+    await page.mouse.click(canvas.x + canvas.width / 2, canvas.y + canvas.height * 0.55);
+    await page.waitForTimeout(400);
+
+    const statusText = await status.innerText();
+
+    results.push([
+        `cámara ortográfica: un clic en el modelo selecciona (${statusText.split("\n")[0]})`,
+        statusText.includes("Ortográfica") && !statusText.includes("Sin selección"),
+    ]);
+    await shoot(page, "comprobacion-ortografica");
+
     const [download] = await Promise.all([
         page.waitForEvent("download"),
         page.getByRole("button", { name: "Guardar imagen" }).click(),
     ]);
-    const file = new URL("comprobacion-descarga.png", OUT).pathname.slice(1);
+    const file = fileURLToPath(new URL("comprobacion-descarga.png", OUT));
 
     await download.saveAs(file);
     results.push([

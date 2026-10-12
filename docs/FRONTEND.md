@@ -150,10 +150,10 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 
 ### Visor 3D y planos: lo que hacen y lo que no
 
-- **Proyección.** «Paralela» cambia la cámara a una lente muy larga (4°) que se lee como una proyección ortográfica: las líneas paralelas no fugan. No es una cámara ortográfica real, que exigiría otro control de cámara y otros pases de posproceso.
+- **Proyección.** «Ortográfica» dibuja y selecciona con una `THREE.OrthographicCamera` real. Los controles de órbita siguen moviendo la cámara en perspectiva; la ortográfica se coloca en su misma posición y ajusta su encuadre para mostrar, a la distancia del punto de órbita, lo mismo que la de perspectiva (`syncOrthographic` en `BuildingSceneManager.ts`). Por eso acercarse o alejarse hace zoom también en ortográfica y cambiar de proyección no desencuadra el modelo. El pase de oclusión ambiental cambia de modo con la cámara (`setCamera` en `postprocessing.ts`).
 - **Estado.** La barra inferior muestra la selección, la proyección y el guardado («Guardando…», «Cambios guardados», «Error al guardar») de lo único que el visor guarda en el servidor: el material de un elemento y la cubierta.
 - **Lo que no hay.** No existe deshacer/rehacer ni mover, rotar o escalar, porque el modelo se genera a partir de los planos y no hay historial que deshacer. Por eso tampoco hay una barra vertical de herramientas: tendría una sola herramienta.
-- **Comprobación.** Ocultar objetos, girar el sol, la proyección paralela y la descarga en PNG se probaron en un navegador contra el motor real. `StructureViewer.test.tsx` cubre que cada control llama al motor con lo que debe; el motor en sí no se puede ejecutar en jsdom.
+- **Comprobación.** Ocultar objetos, girar el sol, la cámara ortográfica (incluida la selección con un clic) y la descarga en PNG se prueban en un navegador contra el motor real con `npm run capturas`. `StructureViewer.test.tsx` cubre que cada control llama al motor con lo que debe; el motor en sí no se puede ejecutar en jsdom.
 - **Plantas generadas.** `PlanViewport.tsx` es un visor técnico: zoom (botones, `+` y `−`), desplazamiento (arrastre o flechas) y medición entre dos puntos en metros. Lee el dibujo generado; no es un editor de dibujo, que necesitaría un modelo de datos de trazos que la API no tiene.
 
 ### Apariencia y recorrido de muestra
@@ -164,7 +164,7 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 
 ### Capturas y comprobación en navegador
 
-`npm run capturas` (`scripts/capturas.mjs`) abre el navegador instalado con Playwright, responde la API con datos de muestra y guarda en `docs/capturas/` nueve pantallas en claro y oscuro, a 1366 y a 390 px de ancho, más el inicio de sesión. Después usa el visor 3D como una persona: oculta un objeto con su ojo, gira el sol a 180° y descarga el PNG, y falla si alguno de los tres no responde. Última ejecución: 12 de octubre de 2026, los tres pasos correctos.
+`npm run capturas` (`scripts/capturas.mjs`) abre el navegador instalado con Playwright, responde la API con datos de muestra y guarda en `docs/capturas/` nueve pantallas en claro y oscuro, a 1366 y a 390 px de ancho, más el inicio de sesión. Después usa el visor 3D como una persona: oculta un objeto con su ojo, gira el sol a 180°, cambia a la cámara ortográfica y selecciona con un clic, y descarga el PNG; falla si alguno de los pasos no responde.
 
 ### Pendientes de backend
 

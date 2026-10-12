@@ -129,14 +129,14 @@ describe("StructureViewer", () => {
         click.mockRestore();
     });
 
-    it("switches to the parallel projection and says so in the status", async () => {
+    it("switches to the orthographic camera and says so in the status", async () => {
         render(<StructureViewer structure={structure} />);
 
-        await userEvent.click(screen.getByRole("button", { name: "Paralela" }));
+        await userEvent.click(screen.getByRole("button", { name: "Ortográfica" }));
 
-        expect(lastCall("setProjection")).toEqual(["parallel"]);
+        expect(lastCall("setProjection")).toEqual(["orthographic"]);
         expect(screen.getByRole("status", { name: "Estado del modelo" })).toHaveTextContent(
-            "Proyección paralela",
+            "Ortográfica",
         );
     });
 

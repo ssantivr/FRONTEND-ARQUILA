@@ -28,6 +28,7 @@ import {
     MeshBasicMaterial,
     MeshPhysicalMaterial,
     MeshStandardMaterial,
+    OrthographicCamera,
     Object3D,
     PCFShadowMap,
     PMREMGenerator,
@@ -141,10 +142,7 @@ const GAZE_HEIGHT_M = 1.2;
 const INTERIOR_INSET_M = 0.6;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
-// A true orthographic camera would need its own rig and passes. A very long lens gives the same
-// reading (parallel lines stay parallel to the eye) with the camera the viewer already has.
-const PARALLEL_FIELD_OF_VIEW = 4;
-const PARALLEL_FAR_M = 6000;
+
 const MAX_PIXEL_RATIO = 2;
 const SHADOW_MAP_SIZE = 2048;
 const CLICK_TOLERANCE_PX = 4;
@@ -154,7 +152,7 @@ const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
 const UP_AXIS = new Vector3(0, 1, 0);
 
 export type { ViewName };
-export type Projection = "perspective" | "parallel";
+export type Projection = "perspective" | "orthographic";
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
 export type OverlayLayers = Record<SpatialLayer, boolean>;
@@ -251,7 +249,7 @@ export interface StructureViewer {
     setSun: (degrees: number) => void;
     /** Draws the current view and returns it as a PNG data URL. */
     capture: () => string;
-    /** Switches between the perspective lens and a near-parallel one, keeping the model framed. */
+    /** Switches between the perspective camera and a real orthographic one, keeping the framing. */
     setProjection: (projection: Projection) => void;
     dispose: () => void;
 }
@@ -749,6 +747,10 @@ export function createStructureViewer(
     scene.fog = fog;
 
     const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 0.1, 1000);
+    // The orbit controls keep driving the perspective camera. The orthographic one follows it and
+    // is the camera that draws and picks while that projection is on.
+    const orthographic = new OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
+    let projection: Projection = "perspective";
 
     const rig = createCameraRig(camera, canvas, handleCameraChange);
     const cutPlane = new Plane(new Vector3(0, -1, 0), CUT_DISABLED_M);
@@ -837,6 +839,7 @@ export function createStructureViewer(
         const reach = rig.distance();
 
         dirty = false;
+        syncOrthographic();
         fog.near = reach + bounds.radius;
         fog.far = reach + bounds.radius * FOG_DEPTH_FACTOR;
         post.render();
@@ -1447,7 +1450,8 @@ export function createStructureViewer(
             ((event.clientX - box.left) / box.width) * 2 - 1,
             -((event.clientY - box.top) / box.height) * 2 + 1,
         );
-        raycaster.setFromCamera(pointer, camera);
+        syncOrthographic();
+        raycaster.setFromCamera(pointer, projection === "orthographic" ? orthographic : camera);
 
         // The work layers are drawn over the model, so they are also picked before it.
         const [hit] = [overlays, elements].flatMap((group) =>
@@ -1588,20 +1592,34 @@ export function createStructureViewer(
         }
     }
 
-    function setProjection(projection: Projection): void {
-        const parallel = projection === "parallel";
-
-        camera.fov = parallel ? PARALLEL_FIELD_OF_VIEW : FIELD_OF_VIEW;
-        camera.far = parallel ? PARALLEL_FAR_M : 1000;
-        camera.updateProjectionMatrix();
-
-        if (model !== null) {
-            fitLimits();
-            rig.focus(null);
-            reportZoom();
+    /**
+     * Places the orthographic camera where the perspective one is and sizes its frustum to show,
+     * at the orbit target, exactly what the perspective camera shows there. Moving closer or
+     * farther therefore zooms it, and switching projection keeps the model framed.
+     */
+    function syncOrthographic(): void {
+        if (projection !== "orthographic") {
+            return;
         }
+
+        const half = rig.distance() * Math.tan(MathUtils.degToRad(camera.fov / 2));
+
+        orthographic.position.copy(camera.position);
+        orthographic.quaternion.copy(camera.quaternion);
+        orthographic.left = -half * camera.aspect;
+        orthographic.right = half * camera.aspect;
+        orthographic.top = half;
+        orthographic.bottom = -half;
+        orthographic.near = camera.near;
+        orthographic.far = camera.far;
+        orthographic.updateProjectionMatrix();
+        orthographic.updateMatrixWorld();
     }
 
+    function setProjection(next: Projection): void {
+        projection = next;
+        post.setCamera(next === "orthographic" ? orthographic : camera);
+    }
     function capture(): string {
         // The drawing buffer is only readable in the same task that rendered it.
         renderer.shadowMap.needsUpdate = true;

@@ -26,6 +26,8 @@ export interface Postprocessing {
     render: () => void;
     setSize: (width: number, height: number, pixelRatio: number) => void;
     setBloom: (strength: number) => void;
+    /** Renders through another camera from now on, for example an orthographic one. */
+    setCamera: (camera: Camera) => void;
     dispose: () => void;
 }
 
@@ -38,6 +40,7 @@ export interface PostprocessingOptions {
 
 interface Pipeline {
     composer: EffectComposer;
+    scenePass: RenderPass;
     occlusion: GTAOPass | null;
     bloom: UnrealBloomPass;
     output: OutputPass;
@@ -94,6 +97,7 @@ export function createPostprocessing(
     options: PostprocessingOptions = {},
 ): Postprocessing {
     let pipeline: Pipeline | null = null;
+    let view = camera;
     let strength = 0;
     let width = 1;
     let height = 1;
@@ -105,7 +109,7 @@ export function createPostprocessing(
     }
 
     function buildOcclusion(): GTAOPass {
-        const pass = new SolidOcclusionPass(scene, camera, width, height);
+        const pass = new SolidOcclusionPass(scene, view, width, height);
 
         pass.blendIntensity = OCCLUSION_INTENSITY;
         pass.updateGtaoMaterial({
@@ -133,7 +137,9 @@ export function createPostprocessing(
         );
         const output = new OutputPass();
 
-        composer.addPass(new RenderPass(scene, camera));
+        const scenePass = new RenderPass(scene, view);
+
+        composer.addPass(scenePass);
 
         if (occlusion !== null) {
             composer.addPass(occlusion);
@@ -142,7 +148,7 @@ export function createPostprocessing(
         composer.addPass(bloom);
         composer.addPass(output);
 
-        const built = { composer, occlusion, bloom, output };
+        const built = { composer, scenePass, occlusion, bloom, output };
 
         resize(built);
 
@@ -152,7 +158,7 @@ export function createPostprocessing(
     return {
         render: () => {
             if (strength <= 0 && options.occlusion !== true) {
-                renderer.render(scene, camera);
+                renderer.render(scene, view);
 
                 return;
             }
@@ -173,6 +179,27 @@ export function createPostprocessing(
         },
         setBloom: (next) => {
             strength = next;
+        },
+        setCamera: (next) => {
+            view = next;
+
+            if (pipeline === null) {
+                return;
+            }
+
+            pipeline.scenePass.camera = next;
+
+            if (pipeline.occlusion !== null) {
+                // The occlusion shader reads depth differently for each kind of projection.
+                const material = pipeline.occlusion.gtaoMaterial;
+
+                pipeline.occlusion.camera = next;
+                material.defines.PERSPECTIVE_CAMERA =
+                    (next as { isPerspectiveCamera?: boolean }).isPerspectiveCamera === true
+                        ? 1
+                        : 0;
+                material.needsUpdate = true;
+            }
         },
         dispose: () => {
             if (pipeline !== null) {

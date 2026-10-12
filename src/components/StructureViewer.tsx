@@ -731,13 +731,15 @@ export function StructureViewer({
                     <button
                         type="button"
                         className="hud-item"
-                        aria-pressed={projection === "parallel"}
-                        title="Cambia entre la vista en perspectiva y una proyección casi paralela, sin fuga"
+                        aria-pressed={projection === "orthographic"}
+                        title="Cambia entre la cámara en perspectiva y la ortográfica, sin fuga"
                         onClick={() =>
-                            setProjection(projection === "parallel" ? "perspective" : "parallel")
+                            setProjection(
+                                projection === "orthographic" ? "perspective" : "orthographic",
+                            )
                         }
                     >
-                        Paralela
+                        Ortográfica
                     </button>
                     <button
                         type="button"
@@ -1280,7 +1282,7 @@ export function StructureViewer({
                             {selected === null ? "Sin selección" : itemLabel(selected)}
                         </span>
                         <span className="hud-readout">
-                            {projection === "parallel" ? "Proyección paralela" : "Perspectiva"}
+                            {projection === "orthographic" ? "Ortográfica" : "Perspectiva"}
                         </span>
                         <span className={`hud-readout hud-save hud-save-${saving}`}>
                             {SAVE_LABELS[saving]}
