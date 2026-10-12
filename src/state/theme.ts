@@ -15,7 +15,16 @@ function readStored(): Theme | null {
     }
 }
 
-let theme: Theme = readStored() ?? "dark";
+/** Until the user picks a theme, follow the one their system asks for. */
+function preferred(): Theme {
+    try {
+        return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    } catch {
+        return "dark";
+    }
+}
+
+let theme: Theme = readStored() ?? preferred();
 
 function apply(): void {
     document.documentElement.dataset.theme = theme;
