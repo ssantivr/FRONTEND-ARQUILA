@@ -1,7 +1,12 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 
+import { RenderImage } from "./components/RenderImage";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { GlobalSearch } from "./components/GlobalSearch";
+import { Icon } from "./components/Icon";
 import { Panel } from "./components/Panel";
-import { Sidebar, type View } from "./components/Sidebar";
+import { Toasts } from "./components/Toasts";
+import { MODULES, Sidebar, type View } from "./components/Sidebar";
 import { errorMessage } from "./hooks/useAsync";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -20,6 +25,8 @@ import type { User } from "./types/api";
 const InteriorPage = lazy(() =>
     import("./pages/InteriorPage").then((module) => ({ default: module.InteriorPage })),
 );
+
+const SIDEBAR_KEY = "arquila:sidebar";
 
 type Session =
     | { state: "loading" }
@@ -41,6 +48,17 @@ export function App() {
     );
     const [loginNotice, setLoginNotice] = useState<string | undefined>(undefined);
     const theme = useTheme();
+    const [collapsed, setCollapsed] = useState(
+        () => window.localStorage.getItem(SIDEBAR_KEY) === "collapsed",
+    );
+
+    function toggleSidebar() {
+        setCollapsed((previous) => {
+            window.localStorage.setItem(SIDEBAR_KEY, previous ? "expanded" : "collapsed");
+
+            return !previous;
+        });
+    }
 
     useEffect(() => {
         if (new URLSearchParams(window.location.search).has("reset_token")) {
@@ -178,6 +196,96 @@ export function App() {
         }
     }
 
+    const themeToggle = (
+        <button
+            type="button"
+            className="button-secondary icon-button"
+            aria-pressed={theme === "dark"}
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        >
+            <Icon name={theme === "dark" ? "sun" : "moon"} />
+            {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+        </button>
+    );
+
+    if (resetToken === null && session.state === "authenticated") {
+        const current = MODULES.find((item) => item.id === view);
+
+        return (
+            <div className={collapsed ? "shell shell-collapsed" : "shell"}>
+                <a className="skip-link" href="#content">
+                    Saltar al contenido
+                </a>
+                <Sidebar
+                    current={view}
+                    onNavigate={navigate}
+                    collapsed={collapsed}
+                    onToggle={toggleSidebar}
+                    onLogout={handleLogout}
+                    user={session.user}
+                />
+                <div className="workspace">
+                    <header className="header">
+                        <div>
+                            <p className="header-eyebrow">ARQUILA</p>
+                            <h1>{current?.label ?? "Inicio"}</h1>
+                        </div>
+                        <GlobalSearch onOpenProject={(id) => openProject(id)} />
+                        <div className="user-menu">
+                            {themeToggle}
+                            <button
+                                type="button"
+                                className="button-secondary icon-button"
+                                title="Abrir tu cuenta y la configuración"
+                                onClick={() => navigate("settings")}
+                            >
+                                <span className="avatar" aria-hidden="true">
+                                    {session.user.name.trim().charAt(0).toUpperCase()}
+                                </span>
+                                {session.user.name}
+                            </button>
+                        </div>
+                    </header>
+                    <main id="content" className="content" tabIndex={-1}>
+                        <ErrorBoundary key={`${view}-${project?.id ?? "none"}`}>
+                            {renderView(session.user)}
+                        </ErrorBoundary>
+                    </main>
+                </div>
+                <Toasts />
+            </div>
+        );
+    }
+
+    if (resetToken === null && session.state === "anonymous") {
+        return (
+            <main id="content" className="auth" tabIndex={-1}>
+                <section className="auth-visual" aria-label="ARQUILA">
+                    <RenderImage time="night" />
+                    <span className="brand">ARQUILA</span>
+                    <div>
+                        <h2>Diseña, organiza y visualiza tu arquitectura.</h2>
+                        <p>
+                            Proyectos, terrenos, planos, materiales y modelo 3D en un solo espacio
+                            de trabajo.
+                        </p>
+                    </div>
+                </section>
+                <section className="auth-form">
+                    <LoginPage
+                        notice={loginNotice}
+                        onAuthenticated={(user) => {
+                            setLoginNotice(undefined);
+                            setView("home");
+                            setSession({ state: "authenticated", user });
+                        }}
+                    />
+                    {themeToggle}
+                </section>
+            </main>
+        );
+    }
+
     return (
         <div className="layout">
             <a className="skip-link" href="#content">
@@ -185,41 +293,13 @@ export function App() {
             </a>
             <header className="header">
                 <span className="brand">ARQUILA</span>
-                <div className="user-menu">
-                    <button
-                        type="button"
-                        className="button-secondary"
-                        aria-pressed={theme === "dark"}
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                    >
-                        {theme === "dark" ? "Modo claro" : "Modo oscuro"}
-                    </button>
-                    {session.state === "authenticated" && (
-                        <>
-                            <span>{session.user.name}</span>
-                            <button
-                                type="button"
-                                className="button-secondary"
-                                onClick={handleLogout}
-                            >
-                                Cerrar sesión
-                            </button>
-                        </>
-                    )}
-                </div>
+                <div className="user-menu">{themeToggle}</div>
             </header>
 
             {resetToken !== null ? (
                 <main id="content" className="content" tabIndex={-1}>
                     <ResetPasswordPage token={resetToken} onDone={handleResetDone} />
                 </main>
-            ) : session.state === "authenticated" ? (
-                <div className="shell">
-                    <Sidebar current={view} onNavigate={navigate} />
-                    <main id="content" className="content" tabIndex={-1}>
-                        {renderView(session.user)}
-                    </main>
-                </div>
             ) : (
                 <main id="content" className="content" tabIndex={-1}>
                     {session.state === "loading" && (
@@ -233,16 +313,6 @@ export function App() {
                                 {session.message}
                             </p>
                         </Panel>
-                    )}
-                    {session.state === "anonymous" && (
-                        <LoginPage
-                            notice={loginNotice}
-                            onAuthenticated={(user) => {
-                                setLoginNotice(undefined);
-                                setView("home");
-                                setSession({ state: "authenticated", user });
-                            }}
-                        />
                     )}
                 </main>
             )}
