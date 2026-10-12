@@ -1,3 +1,4 @@
+import type { User } from "../types/api";
 import { Icon, type IconName } from "./Icon";
 
 export type View =
@@ -72,23 +73,78 @@ export const MODULES: Module[] = [
 interface SidebarProps {
     current: View;
     onNavigate: (view: View) => void;
+    collapsed?: boolean;
+    onToggle?: () => void;
+    onLogout?: () => void;
+    user?: Pick<User, "name" | "email">;
 }
 
-export function Sidebar({ current, onNavigate }: SidebarProps) {
+export function Sidebar({
+    current,
+    onNavigate,
+    collapsed = false,
+    onToggle,
+    onLogout,
+    user,
+}: SidebarProps) {
     return (
-        <nav className="sidebar" aria-label="Navegación principal">
-            {MODULES.map((item) => (
-                <button
-                    key={item.id}
-                    type="button"
-                    className="sidebar-item"
-                    aria-current={item.id === current ? "page" : undefined}
-                    onClick={() => onNavigate(item.id)}
-                >
-                    <Icon name={item.icon} />
-                    {item.label}
-                </button>
-            ))}
-        </nav>
+        <aside className="sidebar">
+            <span className="brand">ARQUILA</span>
+            <nav className="sidebar-nav" aria-label="Navegación principal">
+                {MODULES.map((item) => (
+                    <button
+                        key={item.id}
+                        type="button"
+                        className="sidebar-item"
+                        aria-current={item.id === current ? "page" : undefined}
+                        title={collapsed ? item.label : undefined}
+                        onClick={() => onNavigate(item.id)}
+                    >
+                        <Icon name={item.icon} />
+                        <span className="sidebar-label">{item.label}</span>
+                    </button>
+                ))}
+            </nav>
+            {(onToggle !== undefined || onLogout !== undefined) && (
+                <div className="sidebar-foot">
+                    {user !== undefined && (
+                        <div className="sidebar-user" title={collapsed ? user.name : undefined}>
+                            <span className="avatar" aria-hidden="true">
+                                {user.name.trim().charAt(0).toUpperCase()}
+                            </span>
+                            <span className="sidebar-label sidebar-user-text">
+                                <strong>{user.name}</strong>
+                                <span>{user.email}</span>
+                            </span>
+                        </div>
+                    )}
+                    {onLogout !== undefined && (
+                        <button
+                            type="button"
+                            className="sidebar-item"
+                            title={collapsed ? "Cerrar sesión" : undefined}
+                            onClick={onLogout}
+                        >
+                            <Icon name="logout" />
+                            <span className="sidebar-label">Cerrar sesión</span>
+                        </button>
+                    )}
+                    {onToggle !== undefined && (
+                        <button
+                            type="button"
+                            className="sidebar-item sidebar-toggle"
+                            aria-expanded={!collapsed}
+                            title={collapsed ? "Expandir el menú" : undefined}
+                            onClick={onToggle}
+                        >
+                            <Icon name="collapse" />
+                            <span className="sidebar-label">
+                                {collapsed ? "Expandir el menú" : "Contraer el menú"}
+                            </span>
+                        </button>
+                    )}
+                </div>
+            )}
+        </aside>
     );
 }
