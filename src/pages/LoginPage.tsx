@@ -28,6 +28,7 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(notice ?? null);
     const [submitting, setSubmitting] = useState(false);
+    const [revealed, setRevealed] = useState(false);
 
     function switchTo(next: Mode) {
         setMode(next);
@@ -89,20 +90,32 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                         />
                     </label>
                     {mode !== "forgot" && (
-                        <label>
-                            Contraseña
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(event) => setPassword(event.target.value)}
-                                minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
-                                maxLength={128}
-                                autoComplete={
-                                    mode === "register" ? "new-password" : "current-password"
-                                }
-                                required
-                            />
-                        </label>
+                        <div className="field-password">
+                            <label>
+                                Contraseña
+                                <input
+                                    type={revealed ? "text" : "password"}
+                                    value={password}
+                                    onChange={(event) => setPassword(event.target.value)}
+                                    minLength={
+                                        mode === "register" ? MIN_PASSWORD_LENGTH : undefined
+                                    }
+                                    maxLength={128}
+                                    autoComplete={
+                                        mode === "register" ? "new-password" : "current-password"
+                                    }
+                                    required
+                                />
+                            </label>
+                            <button
+                                type="button"
+                                className="field-toggle"
+                                aria-pressed={revealed}
+                                onClick={() => setRevealed((visible) => !visible)}
+                            >
+                                {revealed ? "Ocultar" : "Mostrar"}
+                            </button>
+                        </div>
                     )}
                     {mode === "register" && (
                         <p className="message">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
@@ -117,7 +130,8 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                             {error}
                         </p>
                     )}
-                    <button type="submit" disabled={submitting}>
+                    <button type="submit" disabled={submitting} aria-busy={submitting}>
+                        {submitting && <span className="spinner" aria-hidden="true" />}
                         {mode === "login" && "Entrar"}
                         {mode === "register" && "Crear cuenta"}
                         {mode === "forgot" && "Enviar enlace"}
