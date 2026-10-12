@@ -187,6 +187,16 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 - En Vercel, `vercel.json` reenvía `/api` al backend y cualquier otra ruta a `index.html`; los archivos estáticos se sirven antes que esas reglas.
 - La única dependencia añadida es `react-router`.
 
+### Identidad visual
+
+- **Tipografía.** Inter variable, alojada en el proyecto con `@fontsource-variable/inter` (sin peticiones a terceros, `font-display: swap`). Los títulos de página van a 28 px con peso 720; las cifras usan numerales tabulares.
+- **Tres niveles de superficie.** Fondo, panel y tarjeta tienen tonos distintos en cada tema (`--bg`, `--panel`, `--panel-raised` en `styles/identity.css`).
+- **Un foco de lima por zona.** El lima queda para la acción principal y el elemento activo; el avatar, los puntos de los indicadores y los monogramas ya no lo usan.
+- **Navegación.** Los módulos se agrupan en «Trabajo», «Visualización» y «Asistencia y cuenta».
+- **Imagen protagonista.** La portada y el inicio de sesión muestran, rotulada como «Escena de muestra», la escena del recorrido interior (`sample-loft.jpg`, `sample-stairs.jpg`). Para sustituirla basta copiar `house-day.jpg` y/o `house-night.jpg` en `src/assets/renders/`: `RenderImage.tsx` las prefiere si existen (día en tema claro, noche en oscuro) y entonces quita el rótulo. No hay que tocar código.
+- **Inicio.** Hero a ancho completo con el saludo a 44–60 px y los indicadores reales de la API en una franja sobre la imagen; los accesos rápidos son una acción principal y una lista compacta.
+- **Inicio de sesión.** Titular grande sobre la imagen y formulario sin tarjeta. No hay franja de datos porque sin sesión no hay ningún dato real que mostrar.
+
 ### Sistema de diseño
 
 Los tokens (color, espaciado `--space-*`, radios, sombras, alturas de control y `--motion`) están en `src/styles/tokens.css` para los dos temas. Un tema se puede aplicar a cualquier contenedor con `data-theme`, no solo a la página. Los componentes compartidos viven en `src/components/ui/`: `Button` (primario, secundario, terciario, destructivo y estado de carga), `Field` (etiqueta, ayuda y error unidos al control), `Tabs`, `Menu` (menú contextual sobre `<details>`), `ProgressBar` y `EmptyState`. Junto con `Panel`, `Modal`, `Badge`, `MetricCard`, `AsyncStatus`, `Toasts` y `ProjectCard` se muestran, en claro y en oscuro, en `/design-system`. Esa página solo existe en desarrollo (`npm run dev`); la compilación de producción no la incluye.
