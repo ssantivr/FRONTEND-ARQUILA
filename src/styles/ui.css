@@ -173,3 +173,17 @@
 .ds .tabs {
     position: static;
 }
+
+/* A card with a menu lets it overflow; the cover keeps the rounded corners instead. */
+.project-item:has(.menu) {
+    overflow: visible;
+}
+
+.project-item:has(.menu) .project-card {
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.project-actions .menu > summary {
+    width: 28px;
+    height: 28px;
+}
