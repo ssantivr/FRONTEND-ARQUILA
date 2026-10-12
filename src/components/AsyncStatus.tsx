@@ -27,14 +27,24 @@ export function AsyncStatus({ loading, error, isEmpty, emptyText, onRetry }: Asy
 
     if (loading && isEmpty) {
         return (
-            <p className="message" role="status">
-                Cargando…
-            </p>
+            <div className="skeleton" role="status">
+                <span className="skeleton-text">Cargando…</span>
+                <span className="skeleton-bar" aria-hidden="true" />
+                <span className="skeleton-bar" aria-hidden="true" />
+                <span className="skeleton-bar" aria-hidden="true" />
+            </div>
         );
     }
 
     if (isEmpty && emptyText) {
-        return <p className="message">{emptyText}</p>;
+        return (
+            <div className="empty-state">
+                <svg className="empty-art" viewBox="0 0 64 48" aria-hidden="true">
+                    <path d="M4 44h56M12 44V20l20-14 20 14v24M26 44V30h12v14" />
+                </svg>
+                <p className="message">{emptyText}</p>
+            </div>
+        );
     }
 
     return null;
