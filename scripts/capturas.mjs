@@ -201,12 +201,13 @@ async function checkViewer(browser) {
     await page.getByRole("button", { name: "Ortográfica" }).click();
     await page.waitForTimeout(600);
 
-    const canvas = await page.locator(".structure-viewer canvas").boundingBox();
+    const canvas = page.locator(".structure-viewer canvas");
     const status = page.getByRole("status", { name: "Estado del modelo" });
+    const box = await canvas.boundingBox();
 
-    await page.mouse.click(canvas.x + canvas.width / 2, canvas.y + canvas.height * 0.55);
+    // The canvas is taller than the window, so the click is given relative to it and scrolled to.
+    await canvas.click({ position: { x: box.width / 2, y: box.height / 2 } });
     await page.waitForTimeout(400);
-
     const statusText = await status.innerText();
 
     results.push([
