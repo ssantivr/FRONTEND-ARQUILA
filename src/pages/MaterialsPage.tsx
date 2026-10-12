@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { AsyncStatus } from "../components/AsyncStatus";
 import { MetricCard } from "../components/MetricCard";
 import { Panel } from "../components/Panel";
@@ -28,6 +30,8 @@ function costByCategory(materials: Material[]): [string, number][] {
 }
 
 export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState("");
     const data = useAsync(() => loadAcrossProjects(materialsApi.listByProject), []);
     const materials = [...(data.data?.items ?? [])].sort(
         (first, second) => cost(second) - cost(first),
@@ -36,6 +40,12 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
     const total = materials.reduce((sum, material) => sum + cost(material), 0);
     const categories = costByCategory(materials);
     const highest = categories[0]?.[1] ?? 0;
+    const wanted = search.trim().toLowerCase();
+    const shown = materials.filter(
+        (material) =>
+            (category === "" || (material.category ?? NO_CATEGORY) === category) &&
+            (wanted === "" || material.name.toLowerCase().includes(wanted)),
+    );
 
     return (
         <>
@@ -73,7 +83,34 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                     </ul>
                 </Panel>
             )}
-            <Panel title="Listado">
+            <Panel
+                title="Listado"
+                actions={
+                    materials.length > 0 && (
+                        <div className="filters">
+                            <input
+                                type="search"
+                                placeholder="Buscar material"
+                                aria-label="Buscar material por nombre"
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                            />
+                            <select
+                                aria-label="Filtrar por categoría"
+                                value={category}
+                                onChange={(event) => setCategory(event.target.value)}
+                            >
+                                <option value="">Todas las categorías</option>
+                                {categories.map(([name]) => (
+                                    <option key={name} value={name}>
+                                        {name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )
+                }
+            >
                 <AsyncStatus
                     loading={data.loading}
                     error={data.error}
@@ -81,7 +118,12 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                     isEmpty={materials.length === 0}
                     emptyText="Todavía no hay materiales. Regístralos en la pestaña Materiales de un proyecto."
                 />
-                {materials.length > 0 && (
+                {materials.length > 0 && shown.length === 0 && (
+                    <p className="message" role="status">
+                        Ningún material coincide con el filtro.
+                    </p>
+                )}
+                {shown.length > 0 && (
                     <table>
                         <thead>
                             <tr>
@@ -95,7 +137,7 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                             </tr>
                         </thead>
                         <tbody>
-                            {materials.map((material) => (
+                            {shown.map((material) => (
                                 <tr key={material.id}>
                                     <td data-label="Material">{material.name}</td>
                                     <td data-label="Proyecto">
