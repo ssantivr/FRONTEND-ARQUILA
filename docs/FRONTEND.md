@@ -141,9 +141,18 @@ El menú lateral tiene ocho módulos (`MODULES` en `src/components/Sidebar.tsx`)
 
 Los mensajes de error del backend están en inglés. El frontend los traduce al español en `src/utils/errors.ts`; un mensaje que no esté en esa lista se muestra tal cual. Si cualquier petición responde 401, la aplicación vuelve a la pantalla de inicio de sesión.
 
+### Direcciones
+
+Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/materiales`, `/visor`, `/recorrido`, `/asistente` y `/configuracion`. Un proyecto se abre en `/proyectos/:id/:pestaña` (`terreno`, `planos`, `modelo`, `elevaciones`, `materiales`, `analisis`, `archivos`, `asistente`), así que se puede enlazar a una pestaña concreta y el botón atrás del navegador funciona. `App.tsx` no guarda la pantalla actual: la lee de la dirección.
+
+- Si la sesión no existe o caduca (401), se muestra el inicio de sesión **sin cambiar la dirección**; al entrar, el usuario queda en la pantalla que pidió. Cerrar sesión sí vuelve a `/`.
+- Una dirección desconocida muestra «Página no encontrada» con un botón al inicio.
+- En Vercel, `vercel.json` reenvía `/api` al backend y cualquier otra ruta a `index.html`; los archivos estáticos se sirven antes que esas reglas.
+- La única dependencia añadida es `react-router`.
+
 ### Identidad visual y navegación
 
-La identidad sigue `Prompt_Completo_ARQUILA.md`: verde bosque (`#0B211A`, `#12382A`), verde de interacción (`#236B42`) y verde lima (`#B8F36B`) solo para lo seleccionado, lo activo y la acción principal. Todos los colores son variables de `src/styles/tokens.css`, definidas para el tema claro y el oscuro. Los estilos están en `src/styles/`, en archivos por área que `src/main.tsx` importa en orden; ese orden importa, porque los últimos (`hierarchy`, `states`, `media`) afinan lo que definen los primeros.
+La identidad sigue `docs/DISENO_ARQUILA.md`: verde bosque (`#0B211A`, `#12382A`), verde de interacción (`#236B42`) y verde lima (`#B8F36B`) solo para lo seleccionado, lo activo y la acción principal. Todos los colores son variables de `src/styles/tokens.css`, definidas para el tema claro y el oscuro. Los estilos están en `src/styles/`, en archivos por área que `src/main.tsx` importa en orden; ese orden importa, porque los últimos (`hierarchy`, `states`, `media`) afinan lo que definen los primeros.
 
 - **Sin Tailwind.** El documento pide no añadir dependencias sin justificarlas; la interfaz sigue en una sola hoja de estilos con variables.
 - **Menú lateral.** Mantiene el verde bosque en los dos temas, se contrae a una columna de iconos (se recuerda en `localStorage`, clave `arquila:sidebar`) y entre 721 y 1024 px se contrae solo. Los módulos son los que tienen pantalla real; Planos 2D como módulo, Iluminación y clima, Renderizado y Tareas no están porque la API no los soporta.
