@@ -10,6 +10,9 @@ import { chromium } from "playwright-core";
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
 const OUT = new URL("../docs/capturas/", import.meta.url);
 const NOW = "2026-10-05T10:00:00Z";
+// CAPTURAS_SOLO=inicio,inicio-de-sesion regenerates only those screens and skips the viewer check.
+const ONLY = (process.env.CAPTURAS_SOLO ?? "").split(",").filter(Boolean);
+const wanted = (name) => ONLY.length === 0 || ONLY.includes(name);
 
 const user = { id: 1, name: "Ana Torres", email: "ana@example.com", created_at: NOW };
 const projects = ["Casa Andina", "Oficina Central", "Loft Norte", "Vivienda Mirador"].map(
@@ -247,7 +250,7 @@ for (const theme of ["light", "dark"]) {
 
         console.log(`${suffix}:`);
 
-        for (const [name, path] of SCREENS) {
+        for (const [name, path] of SCREENS.filter(([screen]) => wanted(screen))) {
             await page.goto(`${BASE}${path}`);
             await shoot(page, `${name}-${suffix}`);
         }
@@ -255,17 +258,24 @@ for (const theme of ["light", "dark"]) {
         await context.close();
     }
 
-    const anonymous = await open(browser, { theme, size: "escritorio", signedIn: false });
-    const login = await anonymous.newPage();
+    if (wanted("inicio-de-sesion")) {
+        for (const size of Object.keys(SIZES)) {
+            const anonymous = await open(browser, { theme, size, signedIn: false });
+            const login = await anonymous.newPage();
 
-    await login.goto(`${BASE}/`);
-    await shoot(login, `inicio-de-sesion-${theme === "light" ? "claro" : "oscuro"}-escritorio`);
-    await anonymous.close();
+            await login.goto(`${BASE}/`);
+            await shoot(
+                login,
+                `inicio-de-sesion-${theme === "light" ? "claro" : "oscuro"}-${size}`,
+            );
+            await anonymous.close();
+        }
+    }
 }
 
 console.log("comprobación del visor 3D:");
 
-const results = await checkViewer(browser);
+const results = ONLY.length === 0 ? await checkViewer(browser) : [];
 
 for (const [label, ok] of results) {
     console.log(`  ${ok ? "ok   " : "FALLA"} ${label}`);
