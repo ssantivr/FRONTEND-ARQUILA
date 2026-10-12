@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,7 +7,7 @@ import type { Project } from "../types/api";
 import { ProjectsPage } from "./ProjectsPage";
 
 vi.mock("../services/api", () => ({
-    projectsApi: { list: vi.fn(), create: vi.fn() },
+    projectsApi: { list: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn() },
     templatesApi: { list: vi.fn(), createProject: vi.fn() },
 }));
 
@@ -132,5 +132,56 @@ describe("ProjectsPage", () => {
         );
         expect(screen.getByLabelText("Nombre")).toHaveValue("Casa Nueva");
         expect(screen.getByRole("button", { name: "Crear" })).toBeEnabled();
+    });
+
+    it("archives a project from its card and confirms it", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.update.mockResolvedValue({ ...project(1, "Casa Andina"), status: "archived" });
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Archivar" }));
+
+        expect(projects.update).toHaveBeenCalledWith(1, { status: "archived" });
+        await waitFor(() => expect(projects.list).toHaveBeenCalledTimes(2));
+    });
+
+    it("asks before deleting and deletes only after the confirmation", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.remove.mockResolvedValue(undefined);
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+
+        expect(projects.remove).not.toHaveBeenCalled();
+        expect(screen.getByText("¿Eliminar «Casa Andina»?")).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Sí, eliminar" }));
+
+        expect(projects.remove).toHaveBeenCalledWith(1);
+    });
+
+    it("lets the user cancel a deletion", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+        expect(projects.remove).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    });
+
+    it("sorts by name on request", async () => {
+        projects.list.mockResolvedValue([project(1, "Oficina"), project(2, "Casa Andina")]);
+
+        renderPage();
+        await screen.findByRole("button", { name: /Oficina/ });
+        await userEvent.selectOptions(screen.getByLabelText("Ordenar proyectos"), "name");
+
+        const names = screen
+            .getAllByRole("button", { name: /Casa Andina|Oficina/ })
+            .map((card) => card.textContent ?? "");
+
+        expect(names[0]).toContain("Casa Andina");
     });
 });
