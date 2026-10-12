@@ -18,7 +18,6 @@ import {
     GridHelper,
     Group,
     HemisphereLight,
-    InstancedMesh,
     LineBasicMaterial,
     LinearFilter,
     LinearMipmapLinearFilter,
@@ -35,6 +34,8 @@ import {
     PerspectiveCamera,
     Plane,
     PointLight,
+    Points,
+    PointsMaterial,
     Raycaster,
     RepeatWrapping,
     Scene,
@@ -76,22 +77,22 @@ import {
     type ElementSurfaces,
 } from "../utils/surfaceMaterials";
 import { createCameraRig, type ViewName } from "./cameraRig";
+import { disposeObject } from "./dispose";
 import { createPostprocessing } from "./postprocessing";
 import { buildFlatRoof, buildRoomShell, applyMetricUVs } from "./roomGeometry";
 import { buildTrees, type TreeSpot } from "./vegetation";
 
-const HOVER_COLOR = 0x4a90c2;
-const SELECTION_COLOR = 0x00f0ff;
+const HOVER_COLOR = 0x3f8f5f;
+const SELECTION_COLOR = 0xb8f36b;
 const OUTLINE_WIDTH_PX = 3;
-const TERRAIN_COLOR = 0x4a7d55;
-const ROOF_COLOR = 0xb0655a;
+const TERRAIN_COLOR = 0x5d8a4e;
+const ROOF_COLOR = 0x8a4f43;
 const SLAB_COLOR = 0xb9c0c8;
-const GLASS_COLOR = 0x9fc4dc;
+const GLASS_COLOR = 0x7fb4dc;
 const FRAME_COLOR = 0x1c1f24;
 const DOOR_COLOR = 0x4a3526;
 const CYAN_ACCENT = 0x00f0ff;
 const MAGENTA_ACCENT = 0xff007f;
-const ENVIRONMENT_INTENSITY = 0.3;
 const SHADOW_RADIUS = 3;
 const GRAIN_SIZE_PX = 128;
 const GRAIN_TILE_M = 1.5;
@@ -100,8 +101,12 @@ const NEON_BOOST = 3;
 const LOT_EDGE_BOOST = 1.5;
 const LOT_EDGE_WIDTH_PX = 2;
 const BLOOM_STRENGTH = 0.55;
-const WINDOW_GLOW = 0.5;
-const SKY_FALLOFF = 0.35;
+const AMBIENT_SHARE = 0.28;
+const SKY_FALLOFF = 0.55;
+const SKY_GLOW_HEIGHT = 0.035;
+const STAR_COUNT = 700;
+const STAR_SIZE_PX = 1.6;
+const WINDOW_LIGHT = 0xffc27a;
 const SKY_RADIUS_FACTOR = 20;
 const GROUND_RADIUS_FACTOR = 8;
 const FOG_DEPTH_FACTOR = 5;
@@ -141,6 +146,7 @@ const CLICK_TOLERANCE_PX = 4;
 const SURFACE_GAP_M = 0.02;
 const TREE_SPACING_M = 4.5;
 const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
+const UP_AXIS = new Vector3(0, 1, 0);
 
 export type { ViewName };
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
@@ -161,26 +167,57 @@ export interface ScenePalette {
     axis: number;
     accent: number;
     glow: number;
+    horizon: number;
+    sun: number;
+    sunPower: number;
+    skyLight: number;
+    skyPower: number;
+    reflections: number;
+    windowGlow: number;
+    glassOpacity: number;
+    gridOpacity: number;
+    stars: boolean;
 }
 
 export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
     light: {
-        sky: 0xb7d3ee,
-        fog: 0xeef2f6,
-        ground: 0xdde3d8,
-        grid: 0xc2cabf,
-        axis: 0xc2cabf,
+        sky: 0x5f9fde,
+        fog: 0xe8ede6,
+        ground: 0xe1e6dd,
+        grid: 0xb4bbb2,
+        axis: 0x9aa39a,
         accent: 0,
         glow: 0,
+        horizon: 0xf7eedf,
+        sun: 0xfff0d8,
+        sunPower: 3,
+        skyLight: 0xcfe2ff,
+        skyPower: 0.75,
+        reflections: 0.45,
+        windowGlow: 0,
+        glassOpacity: 0.5,
+        gridOpacity: 0.45,
+        stars: false,
     },
+    // Night: moonlight, lit windows and a dusk glow on the horizon.
     dark: {
-        sky: 0x10131f,
-        fog: 0x090a0f,
-        ground: 0x0b0d14,
-        grid: 0x1b2030,
-        axis: 0x0d5a63,
-        accent: 1.4,
+        sky: 0x030a08,
+        fog: 0x07140f,
+        ground: 0x0a1a13,
+        grid: 0x183a2b,
+        axis: 0x2f6b4a,
+        accent: 0,
         glow: 1,
+        horizon: 0x14463a,
+        sun: 0x9fb6ff,
+        sunPower: 1.15,
+        skyLight: 0x3a4a80,
+        skyPower: 0.4,
+        reflections: 0.14,
+        windowGlow: 2.6,
+        glassOpacity: 0.92,
+        gridOpacity: 0.7,
+        stars: true,
     },
 };
 
@@ -191,6 +228,7 @@ export interface StructureViewer {
     setSurfaces: (surfaces: ElementSurfaces) => void;
     setRoof: (roof: RoofKind) => void;
     setLayers: (layers: Layers) => void;
+    setHidden: (keys: ReadonlySet<string>) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
     isolate: (key: string | null) => void;
@@ -203,6 +241,10 @@ export interface StructureViewer {
     setAsset: (url: string | null) => void;
     focus: (key: string | null, azimuth?: number) => void;
     zoomBy: (factor: number) => void;
+    /** Turns the sun around the model; 0 is its default bearing. */
+    setSun: (degrees: number) => void;
+    /** Draws the current view and returns it as a PNG data URL. */
+    capture: () => string;
     dispose: () => void;
 }
 
@@ -275,24 +317,73 @@ function buildGrain(): DataTexture {
     return texture;
 }
 
+function buildStars(radius: number): Points {
+    const positions = new Float32Array(STAR_COUNT * 3);
+    const point = new Vector3();
+    let seed = 11;
+    const random = () => {
+        seed = (seed * 16807) % 2147483647;
+
+        return seed / 2147483647;
+    };
+
+    for (let index = 0; index < STAR_COUNT; index += 1) {
+        point
+            .setFromSphericalCoords(
+                radius,
+                Math.acos(0.12 + 0.88 * random()),
+                random() * Math.PI * 2,
+            )
+            .toArray(positions, index * 3);
+    }
+
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(positions, 3));
+
+    return new Points(
+        geometry,
+        new PointsMaterial({
+            color: 0xdfe8ff,
+            size: STAR_SIZE_PX,
+            sizeAttenuation: false,
+            transparent: true,
+            opacity: 0.75,
+            fog: false,
+            depthWrite: false,
+        }),
+    );
+}
+
+/** Sky dome: the fog colour at the horizon line, a band of glow just above it, then the zenith. */
 function buildSky(palette: ScenePalette, radius: number): Mesh {
-    const geometry = new SphereGeometry(radius, 32, 24);
+    const geometry = new SphereGeometry(radius, 48, 96);
     const positions = geometry.getAttribute("position");
     const colors = new Float32Array(positions.count * 3);
-    const horizon = new Color(palette.fog);
+    const ground = new Color(palette.fog);
+    const horizon = new Color(palette.horizon);
     const sky = new Color(palette.sky);
     const mixed = new Color();
 
     for (let index = 0; index < positions.count; index += 1) {
         const height = Math.max(positions.getY(index) / radius, 0);
 
-        mixed.copy(horizon).lerp(sky, Math.pow(height, SKY_FALLOFF));
+        if (height < SKY_GLOW_HEIGHT) {
+            mixed.copy(ground).lerp(horizon, height / SKY_GLOW_HEIGHT);
+        } else {
+            mixed
+                .copy(horizon)
+                .lerp(
+                    sky,
+                    Math.pow((height - SKY_GLOW_HEIGHT) / (1 - SKY_GLOW_HEIGHT), SKY_FALLOFF),
+                );
+        }
+
         mixed.toArray(colors, index * 3);
     }
 
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
 
-    return new Mesh(
+    const dome = new Mesh(
         geometry,
         new MeshBasicMaterial({
             vertexColors: true,
@@ -302,6 +393,12 @@ function buildSky(palette: ScenePalette, radius: number): Mesh {
             depthWrite: false,
         }),
     );
+
+    if (palette.stars) {
+        dome.add(buildStars(radius * 0.98));
+    }
+
+    return dome;
 }
 
 function standard(color: number, roughness: number, metalness = 0): MeshStandardMaterial {
@@ -391,10 +488,10 @@ function buildSharedMaterials(): SharedMaterials {
                 transparent: true,
                 opacity: 0.4,
                 roughness: 0.08,
-                metalness: 0.8,
+                metalness: 0.25,
                 clearcoat: 1,
                 clearcoatRoughness: 0.05,
-                emissive: CYAN_ACCENT,
+                emissive: WINDOW_LIGHT,
                 emissiveIntensity: 0,
                 depthWrite: false,
             }),
@@ -623,27 +720,6 @@ function clip(root: Object3D, planes: Plane[]): void {
     });
 }
 
-function disposeMaterial(material: Material | Material[]): void {
-    for (const item of Array.isArray(material) ? material : [material]) {
-        if (item.userData.shared !== true) {
-            item.dispose();
-        }
-    }
-}
-
-function disposeObject(root: Object3D): void {
-    root.traverse((child) => {
-        if (child instanceof Mesh || child instanceof LineSegments) {
-            child.geometry.dispose();
-            disposeMaterial(child.material);
-        }
-
-        if (child instanceof InstancedMesh) {
-            child.dispose();
-        }
-    });
-}
-
 export function createStructureViewer(
     container: HTMLElement,
     events: ViewerEvents,
@@ -651,6 +727,8 @@ export function createStructureViewer(
     const renderer = new WebGLRenderer({ antialias: true });
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true;
     renderer.toneMapping = ACESFilmicToneMapping;
     renderer.localClippingEnabled = true;
     container.append(renderer.domElement);
@@ -665,7 +743,12 @@ export function createStructureViewer(
     const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 0.1, 1000);
 
     const rig = createCameraRig(camera, canvas, handleCameraChange);
-    const post = createPostprocessing(renderer, scene, camera);
+    const cutPlane = new Plane(new Vector3(0, -1, 0), CUT_DISABLED_M);
+    const cutPlanes = [cutPlane];
+    const post = createPostprocessing(renderer, scene, camera, {
+        occlusion: true,
+        clippingPlanes: cutPlanes,
+    });
 
     const pmrem = new PMREMGenerator(renderer);
     const room = new RoomEnvironment();
@@ -673,9 +756,9 @@ export function createStructureViewer(
     room.dispose();
     pmrem.dispose();
     scene.environment = environmentMap.texture;
-    scene.environmentIntensity = ENVIRONMENT_INTENSITY;
+    scene.environmentIntensity = palette.reflections;
 
-    const sun = new DirectionalLight(0xfff4e0, 2.6);
+    const sun = new DirectionalLight(palette.sun, palette.sunPower);
     sun.castShadow = true;
     sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
     sun.shadow.bias = -0.0005;
@@ -684,21 +767,14 @@ export function createStructureViewer(
 
     const cyanAccent = new PointLight(CYAN_ACCENT, palette.accent, 0, 0);
     const magentaAccent = new PointLight(MAGENTA_ACCENT, palette.accent, 0, 0);
-    scene.add(
-        new AmbientLight(0xffffff, 0.2),
-        new HemisphereLight(0xbfd9ff, 0x2a3326, 0.6),
-        sun,
-        sun.target,
-        cyanAccent,
-        magentaAccent,
-    );
+    const ambient = new AmbientLight(0xffffff, 0.2);
+    const skyLight = new HemisphereLight(palette.skyLight, 0x2a3326, palette.skyPower);
+    scene.add(ambient, skyLight, sun, sun.target, cyanAccent, magentaAccent);
 
     const grain = buildGrain();
     const materials = buildSharedMaterials();
     const outlineMaterial = shared(new LineMaterial({ linewidth: OUTLINE_WIDTH_PX }));
     const lotEdgeMaterial = shared(new LineMaterial({ linewidth: LOT_EDGE_WIDTH_PX }));
-    const cutPlane = new Plane(new Vector3(0, -1, 0), CUT_DISABLED_M);
-    const cutPlanes = [cutPlane];
     outlineMaterial.clippingPlanes = cutPlanes;
     const raycaster = new Raycaster();
     const pointer = new Vector2();
@@ -715,6 +791,8 @@ export function createStructureViewer(
     let sky: Mesh | null = null;
     let layers: Layers = { rooms: true, roof: true, environment: true, grid: true };
     let selectedKey: string | null = null;
+    let hidden: ReadonlySet<string> = new Set();
+    const lightDirection = LIGHT_DIRECTION.clone();
     let colors: ElementColors | null = null;
     let surfaces: ElementSurfaces = {};
     let roofKind: RoofKind = "gable";
@@ -744,6 +822,7 @@ export function createStructureViewer(
     let dirty = true;
 
     function invalidate(): void {
+        renderer.shadowMap.needsUpdate = true;
         dirty = true;
     }
 
@@ -795,7 +874,7 @@ export function createStructureViewer(
     function fitLimits(): void {
         rig.fit(bounds);
 
-        sun.position.copy(bounds.center).addScaledVector(LIGHT_DIRECTION, bounds.radius * 2);
+        sun.position.copy(bounds.center).addScaledVector(lightDirection, bounds.radius * 2);
         sun.target.position.copy(bounds.center);
         sun.shadow.camera.left = -bounds.radius;
         sun.shadow.camera.right = bounds.radius;
@@ -880,7 +959,9 @@ export function createStructureViewer(
             const hovered = !selected && key === hoveredKey;
             const marked = highlight !== null && !dimmed;
 
-            mesh.material.emissive.setHex(hovered ? HOVER_COLOR : marked ? CYAN_ACCENT : 0x000000);
+            mesh.material.emissive.setHex(
+                hovered ? HOVER_COLOR : marked ? SELECTION_COLOR : 0x000000,
+            );
             mesh.material.emissiveIntensity = !hovered && marked ? HIGHLIGHT_GLOW : 0.2;
         }
 
@@ -914,9 +995,10 @@ export function createStructureViewer(
     function applyLayers(): void {
         for (const mesh of elements) {
             mesh.visible =
-                isolatedKey === null
+                !hidden.has(mesh.userData.key as string) &&
+                (isolatedKey === null
                     ? layers.rooms || mesh.userData.space !== true
-                    : companions.has(mesh.userData.key as string);
+                    : companions.has(mesh.userData.key as string));
         }
 
         for (const mesh of overlays) {
@@ -963,8 +1045,17 @@ export function createStructureViewer(
         magentaAccent.intensity = palette.accent;
         post.setBloom(palette.glow * BLOOM_STRENGTH);
         outlineMaterial.color.setHex(SELECTION_COLOR).multiplyScalar(1 + NEON_BOOST * palette.glow);
-        lotEdgeMaterial.color.setHex(CYAN_ACCENT).multiplyScalar(1 + LOT_EDGE_BOOST * palette.glow);
-        materials.glass.emissiveIntensity = palette.glow * WINDOW_GLOW;
+        lotEdgeMaterial.color
+            .setHex(SELECTION_COLOR)
+            .multiplyScalar(1 + LOT_EDGE_BOOST * palette.glow);
+        materials.glass.emissiveIntensity = palette.windowGlow;
+        materials.glass.opacity = palette.glassOpacity;
+        sun.color.setHex(palette.sun);
+        sun.intensity = palette.sunPower;
+        skyLight.color.setHex(palette.skyLight);
+        skyLight.intensity = palette.skyPower;
+        ambient.intensity = palette.skyPower * AMBIENT_SHARE;
+        scene.environmentIntensity = palette.reflections;
     }
 
     function buildGrid(parent: Group): void {
@@ -996,6 +1087,9 @@ export function createStructureViewer(
 
         grid = new GridHelper(bounds.radius * 6, 60, palette.axis, palette.grid);
         grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05, bounds.center.z);
+        grid.material.transparent = true;
+        grid.material.opacity = palette.gridOpacity;
+        grid.material.depthWrite = false;
         parent.add(sky, ground, grid);
     }
 
@@ -1174,7 +1268,7 @@ export function createStructureViewer(
 
         if (asset !== null) {
             asset.removeFromParent();
-            disposeObject(asset);
+            disposeObject(asset, { textures: true });
             asset = null;
         }
 
@@ -1187,7 +1281,7 @@ export function createStructureViewer(
             .then(({ GLTFLoader }) => new GLTFLoader().setWithCredentials(true).loadAsync(url))
             .then((gltf) => {
                 if (request !== assetRequest || model === null) {
-                    disposeObject(gltf.scene);
+                    disposeObject(gltf.scene, { textures: true });
                     return;
                 }
 
@@ -1204,6 +1298,11 @@ export function createStructureViewer(
             });
     }
 
+    function setHidden(keys: ReadonlySet<string>): void {
+        hidden = keys;
+        applyLayers();
+    }
+
     function setLayers(next: Layers): void {
         layers = next;
         applyLayers();
@@ -1211,6 +1310,11 @@ export function createStructureViewer(
 
     function clear(): void {
         removeOutline();
+
+        if (asset !== null) {
+            asset.removeFromParent();
+            disposeObject(asset, { textures: true });
+        }
 
         if (model !== null) {
             scene.remove(model);
@@ -1400,7 +1504,7 @@ export function createStructureViewer(
     }
 
     function handleCameraChange(): void {
-        invalidate();
+        dirty = true;
         reportZoom();
     }
 
@@ -1469,6 +1573,22 @@ export function createStructureViewer(
         canvas.remove();
     }
 
+    function setSun(degrees: number): void {
+        lightDirection.copy(LIGHT_DIRECTION).applyAxisAngle(UP_AXIS, MathUtils.degToRad(degrees));
+
+        if (model !== null) {
+            fitLimits();
+        }
+    }
+
+    function capture(): string {
+        // The drawing buffer is only readable in the same task that rendered it.
+        renderer.shadowMap.needsUpdate = true;
+        render();
+
+        return canvas.toDataURL("image/png");
+    }
+
     function changing<Arguments extends unknown[]>(
         action: (...values: Arguments) => void,
     ): (...values: Arguments) => void {
@@ -1485,6 +1605,7 @@ export function createStructureViewer(
         setSurfaces: changing(setSurfaces),
         setRoof: changing(setRoof),
         setLayers: changing(setLayers),
+        setHidden: changing(setHidden),
         setPalette: changing(setPalette),
         setView: changing(setView),
         isolate: changing(isolate),
@@ -1497,6 +1618,8 @@ export function createStructureViewer(
         setAsset: changing(setAsset),
         focus: changing(focus),
         zoomBy: changing(zoomBy),
+        setSun: changing(setSun),
+        capture,
         dispose,
     };
 }
