@@ -1,11 +1,13 @@
+import { RenderImage } from "../components/RenderImage";
 import { AsyncStatus } from "../components/AsyncStatus";
-import { StatusBadge } from "../components/Badge";
 import { Icon } from "../components/Icon";
 import { MetricCard } from "../components/MetricCard";
 import { Panel } from "../components/Panel";
+import { ProjectCard } from "../components/ProjectCard";
 import { MODULES, type View } from "../components/Sidebar";
 import { useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi } from "../services/api";
+import { useTheme } from "../state/theme";
 import type { User } from "../types/api";
 import { formatMoney, formatNumber } from "../utils/format";
 
@@ -18,6 +20,7 @@ interface HomePageProps {
 }
 
 export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
+    const theme = useTheme();
     const summary = useAsync(() => summaryApi.get(), []);
     const projects = useAsync(() => projectsApi.list(), []);
 
@@ -28,11 +31,33 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
     return (
         <>
             <section className="hero">
-                <h1>Hola, {user.name}</h1>
-                <p>
-                    ARQUILA reúne en un solo lugar los proyectos de arquitectura con sus terrenos,
-                    planos, materiales, modelo 3D y un asistente que conoce cada proyecto.
-                </p>
+                <div className="hero-copy">
+                    <span className="hero-eyebrow">Tu espacio de trabajo</span>
+                    <h2>Hola, {user.name}</h2>
+                    <p>
+                        ARQUILA reúne en un solo lugar los proyectos de arquitectura con sus
+                        terrenos, planos, materiales, modelo 3D y un asistente que conoce cada
+                        proyecto.
+                    </p>
+                    <div className="hero-actions">
+                        <button
+                            type="button"
+                            className="button-lime icon-button"
+                            onClick={() => onNavigate("projects")}
+                        >
+                            <Icon name="plus" />
+                            Crear proyecto
+                        </button>
+                        <button
+                            type="button"
+                            className="button-ghost"
+                            onClick={() => onNavigate("viewer")}
+                        >
+                            Abrir el visor 3D
+                        </button>
+                    </div>
+                </div>
+                <RenderImage time={theme === "dark" ? "night" : "day"} />
             </section>
 
             <Panel title="Resumen">
@@ -86,23 +111,13 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                 <ul className="card-list">
                     {recent.map((project) => (
                         <li key={project.id}>
-                            <button
-                                type="button"
-                                className="card"
-                                onClick={() => onOpenProject(project.id)}
-                            >
-                                <span className="card-title">{project.name}</span>
-                                <span className="card-subtitle">
-                                    {project.location ?? "Sin ubicación"}
-                                </span>
-                                <StatusBadge status={project.status} />
-                            </button>
+                            <ProjectCard project={project} onOpen={onOpenProject} />
                         </li>
                     ))}
                 </ul>
             </Panel>
 
-            <Panel title="Módulos">
+            <Panel title="Accesos rápidos">
                 <ul className="card-list">
                     {MODULES.filter((module) => module.id !== "home").map((module) => (
                         <li key={module.id}>
