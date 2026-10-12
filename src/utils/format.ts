@@ -8,6 +8,14 @@ const moneyFormat = new Intl.NumberFormat("es", {
     useGrouping: "always",
 });
 
+const dateFormat = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
+
+export function formatDate(value: string): string {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? "—" : dateFormat.format(date);
+}
+
 export function formatNumber(value: number | null): string {
     return value === null ? "—" : numberFormat.format(value);
 }
