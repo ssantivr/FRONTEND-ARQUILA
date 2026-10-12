@@ -4,6 +4,10 @@
         {
             "source": "/api/:path*",
             "destination": "https://arquila-backend.vercel.app/:path*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }

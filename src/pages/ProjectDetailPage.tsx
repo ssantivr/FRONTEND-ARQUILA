@@ -25,12 +25,15 @@ const StructurePanel = lazy(() =>
 interface ProjectDetailPageProps {
     projectId: number;
     initialSection?: SectionId;
+    /** When given, the open tab follows `initialSection` and every change is reported here. */
+    onSectionChange?: (section: SectionId) => void;
     onBack: () => void;
 }
 
 export function ProjectDetailPage({
     projectId,
     initialSection = "terrain",
+    onSectionChange,
     onBack,
 }: ProjectDetailPageProps) {
     const project = useAsync(() => projectsApi.get(projectId), [projectId]);
@@ -41,7 +44,13 @@ export function ProjectDetailPage({
     const running = useRef(false);
     const [panelsVersion, setPanelsVersion] = useState(0);
     const [plansVersion, setPlansVersion] = useState(0);
-    const [section, setSection] = useState<SectionId>(initialSection);
+    const [localSection, setLocalSection] = useState<SectionId>(initialSection);
+    const section = onSectionChange === undefined ? localSection : initialSection;
+
+    function setSection(next: SectionId) {
+        setLocalSection(next);
+        onSectionChange?.(next);
+    }
     const [editingProject, setEditingProject] = useState(false);
     const projectFiles = files.data ?? [];
 

@@ -71,7 +71,7 @@ export const MODULES: Module[] = [
 ];
 
 interface SidebarProps {
-    current: View;
+    current: View | null;
     onNavigate: (view: View) => void;
     collapsed?: boolean;
     onToggle?: () => void;

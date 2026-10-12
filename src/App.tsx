@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 
 import { RenderImage } from "./components/RenderImage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -17,6 +18,7 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { TerrainsPage } from "./pages/TerrainsPage";
+import { parsePath, projectPath, viewPath } from "./routes";
 import { authApi } from "./services/api";
 import { setTheme, useTheme } from "./state/theme";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
@@ -34,15 +36,14 @@ type Session =
     | { state: "error"; message: string }
     | { state: "authenticated"; user: User };
 
-interface OpenProject {
-    id: number;
-    section: SectionId;
-}
-
 export function App() {
     const [session, setSession] = useState<Session>({ state: "loading" });
-    const [view, setView] = useState<View>("home");
-    const [project, setProject] = useState<OpenProject | null>(null);
+    const location = useLocation();
+    const go = useNavigate();
+    const route = parsePath(location.pathname);
+    const project = route.kind === "project" ? route : null;
+    const view: View | null =
+        route.kind === "view" ? route.view : project !== null ? "projects" : null;
     const [resetToken, setResetToken] = useState(() =>
         new URLSearchParams(window.location.search).get("reset_token"),
     );
@@ -94,9 +95,8 @@ export function App() {
     }, []);
 
     useEffect(() => {
+        // The address stays as it is, so signing in again returns to the same screen.
         function handleSessionEnded() {
-            setProject(null);
-            setView("home");
             setSession({ state: "anonymous" });
         }
 
@@ -110,8 +110,7 @@ export function App() {
             await authApi.logout();
         } catch {
         } finally {
-            setProject(null);
-            setView("home");
+            go(viewPath("home"));
             setSession({ state: "anonymous" });
         }
     }
@@ -119,7 +118,6 @@ export function App() {
     function handleResetDone(changed: boolean) {
         window.history.replaceState(null, "", window.location.pathname);
         setResetToken(null);
-        setProject(null);
         setLoginNotice(
             changed ? "Contraseña cambiada. Ya puedes iniciar sesión con la nueva." : undefined,
         );
@@ -127,13 +125,11 @@ export function App() {
     }
 
     function navigate(next: View) {
-        setProject(null);
-        setView(next);
+        go(viewPath(next));
     }
 
     function openProject(id: number, section: SectionId = "terrain") {
-        setView("projects");
-        setProject({ id, section });
+        go(projectPath(id, section));
     }
 
     function renderView(user: User) {
@@ -143,8 +139,23 @@ export function App() {
                     key={project.id}
                     projectId={project.id}
                     initialSection={project.section}
-                    onBack={() => setProject(null)}
+                    onSectionChange={(section) => go(projectPath(project.id, section))}
+                    onBack={() => navigate("projects")}
                 />
+            );
+        }
+
+        if (view === null) {
+            return (
+                <Panel title="Página no encontrada">
+                    <p className="message">
+                        La dirección <code>{location.pathname}</code> no corresponde a ninguna
+                        pantalla de ARQUILA.
+                    </p>
+                    <button type="button" onClick={() => navigate("home")}>
+                        Ir al inicio
+                    </button>
+                </Panel>
             );
         }
 
@@ -228,7 +239,7 @@ export function App() {
                     <header className="header">
                         <div>
                             <p className="header-eyebrow">ARQUILA</p>
-                            <h1>{current?.label ?? "Inicio"}</h1>
+                            <h1>{current?.label ?? "ARQUILA"}</h1>
                         </div>
                         <GlobalSearch onOpenProject={(id) => openProject(id)} />
                         <div className="user-menu">
@@ -247,7 +258,9 @@ export function App() {
                         </div>
                     </header>
                     <main id="content" className="content" tabIndex={-1}>
-                        <ErrorBoundary key={`${view}-${project?.id ?? "none"}`}>
+                        <ErrorBoundary
+                            key={`${view ?? location.pathname}-${project?.id ?? "none"}`}
+                        >
                             {renderView(session.user)}
                         </ErrorBoundary>
                     </main>
@@ -276,7 +289,6 @@ export function App() {
                         notice={loginNotice}
                         onAuthenticated={(user) => {
                             setLoginNotice(undefined);
-                            setView("home");
                             setSession({ state: "authenticated", user });
                         }}
                     />
