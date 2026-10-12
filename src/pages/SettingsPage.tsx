@@ -5,6 +5,8 @@ import { Panel } from "../components/Panel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { authApi, conversationsApi, healthApi } from "../services/api";
 import { BASE_URL } from "../services/http";
+import { setReduceMotion, useReduceMotion } from "../state/motion";
+import { setThemePreference, useThemePreference, type ThemePreference } from "../state/theme";
 import type { User } from "../types/api";
 
 interface SettingsPageProps {
@@ -14,7 +16,15 @@ interface SettingsPageProps {
 
 const dateFormat = new Intl.DateTimeFormat("es", { dateStyle: "long" });
 
+const THEMES: { id: ThemePreference; label: string }[] = [
+    { id: "light", label: "Claro" },
+    { id: "dark", label: "Oscuro" },
+    { id: "auto", label: "Automático" },
+];
+
 export function SettingsPage({ user, onLogout }: SettingsPageProps) {
+    const themePreference = useThemePreference();
+    const reduceMotion = useReduceMotion();
     const assistant = useAsync(() => conversationsApi.status(), []);
     const health = useAsync(() => healthApi.check(), []);
     const [resetState, setResetState] = useState<"idle" | "sending" | "sent">("idle");
@@ -49,6 +59,32 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                         Cerrar sesión
                     </button>
                 </div>
+            </Panel>
+            <Panel title="Apariencia">
+                <p className="message">Se guarda en este navegador.</p>
+                <div className="settings-row">
+                    <span id="settings-theme">Tema</span>
+                    <div className="segmented" role="group" aria-labelledby="settings-theme">
+                        {THEMES.map((item) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                aria-pressed={themePreference === item.id}
+                                onClick={() => setThemePreference(item.id)}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <label className="checkbox">
+                    <input
+                        type="checkbox"
+                        checked={reduceMotion}
+                        onChange={(event) => setReduceMotion(event.target.checked)}
+                    />
+                    Reducir movimiento: sin transiciones ni movimientos animados de cámara
+                </label>
             </Panel>
             <Panel title="Contraseña">
                 <p className="message">

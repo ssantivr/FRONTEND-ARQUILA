@@ -156,6 +156,12 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 - **Comprobación.** Ocultar objetos, girar el sol, la proyección paralela y la descarga en PNG se probaron en un navegador contra el motor real. `StructureViewer.test.tsx` cubre que cada control llama al motor con lo que debe; el motor en sí no se puede ejecutar en jsdom.
 - **Plantas generadas.** `PlanViewport.tsx` es un visor técnico: zoom (botones, `+` y `−`), desplazamiento (arrastre o flechas) y medición entre dos puntos en metros. Lee el dibujo generado; no es un editor de dibujo, que necesitaría un modelo de datos de trazos que la API no tiene.
 
+### Apariencia y recorrido de muestra
+
+- **Tema.** En Configuración se elige Claro, Oscuro o Automático (`state/theme.ts`). Automático sigue al sistema y cambia con él; el botón de la cabecera fija claro u oscuro.
+- **Reducir movimiento.** El interruptor de Configuración (`state/motion.ts`) se suma al ajuste del sistema: quita las transiciones de la interfaz y hace que la cámara del modelo 3D y la del recorrido salten en vez de animarse. Ambas preferencias se guardan en `localStorage`, no en la cuenta.
+- **Recorrido interior.** Está rotulado como «Escena de muestra» porque no usa datos de ningún proyecto. Las líneas de luz dejaron el cian y el magenta y usan el lima y un ámbar de la paleta; el botón se llama «Luces de acento». Las ventanas de la ciudad del fondo conservan sus colores.
+
 ### Pendientes de backend
 
 Lo que la interfaz no puede ofrecer hasta que la API lo soporte:

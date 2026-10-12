@@ -71,14 +71,14 @@ export function InteriorViewer() {
                 ref={container}
                 className="interior-viewer"
                 role="img"
-                aria-label={`Interior del loft de doble altura visto desde ${current.room}, con la ciudad al atardecer tras el ventanal`}
+                aria-label={`Escena de muestra, no un proyecto: interior de un loft de doble altura visto desde ${current.room}, con la ciudad al atardecer tras el ventanal`}
             />
             <header className="interior-bar interior-top">
                 <div className="interior-title">
                     <span className="interior-room">{current.room}</span>
                     <span className="interior-level">{current.level}</span>
                 </div>
-                <span className="interior-badge">Vista 3D Interactiva</span>
+                <span className="interior-badge">Escena de muestra</span>
             </header>
             <div
                 className="interior-bar interior-bottom"
@@ -104,10 +104,10 @@ export function InteriorViewer() {
                         type="button"
                         className="interior-button"
                         aria-pressed={neon}
-                        title="Enciende o apaga las líneas de luz neón"
+                        title="Enciende o apaga las líneas de luz de acento"
                         onClick={() => setNeon((visible) => !visible)}
                     >
-                        Luces neón
+                        Luces de acento
                     </button>
                     <button
                         type="button"

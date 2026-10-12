@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from "../../state/motion";
 import { Box3, PerspectiveCamera, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -61,7 +62,6 @@ export function createInteriorCamera(
     onChange: () => void,
 ): InteriorCamera {
     const controls = new OrbitControls(camera, canvas);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let transition: Transition | null = null;
 
     controls.enableDamping = true;
@@ -91,7 +91,7 @@ export function createInteriorCamera(
         const toPosition = new Vector3(...viewpoint.position);
         const toTarget = new Vector3(...viewpoint.target);
 
-        if (!animate || reducedMotion.matches) {
+        if (!animate || prefersReducedMotion()) {
             transition = null;
             camera.position.copy(toPosition);
             controls.target.copy(toTarget);

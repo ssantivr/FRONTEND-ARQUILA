@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from "../state/motion";
 import { MathUtils, PerspectiveCamera, Sphere, Spherical, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -59,7 +60,6 @@ export function createCameraRig(
     const scene = new Sphere(new Vector3(), 1);
     const offset = new Vector3();
     const current = new Spherical();
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let transition: Transition | null = null;
 
     function viewDistance(radius = scene.radius): number {
@@ -91,7 +91,7 @@ export function createCameraRig(
         const length = MathUtils.clamp(reach, controls.minDistance, controls.maxDistance);
         const to = new Spherical().setFromVector3(toward.clone().setLength(length));
 
-        if (!animate || reducedMotion.matches) {
+        if (!animate || prefersReducedMotion()) {
             transition = null;
             controls.target.copy(target);
             camera.position.setFromSpherical(to).add(target);
