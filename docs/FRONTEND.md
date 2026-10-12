@@ -162,6 +162,10 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 - **Reducir movimiento.** El interruptor de Configuración (`state/motion.ts`) se suma al ajuste del sistema: quita las transiciones de la interfaz y hace que la cámara del modelo 3D y la del recorrido salten en vez de animarse. Ambas preferencias se guardan en `localStorage`, no en la cuenta.
 - **Recorrido interior.** Está rotulado como «Escena de muestra» porque no usa datos de ningún proyecto. Las líneas de luz dejaron el cian y el magenta y usan el lima y un ámbar de la paleta; el botón se llama «Luces de acento». Las ventanas de la ciudad del fondo conservan sus colores.
 
+### Capturas y comprobación en navegador
+
+`npm run capturas` (`scripts/capturas.mjs`) abre el navegador instalado con Playwright, responde la API con datos de muestra y guarda en `docs/capturas/` nueve pantallas en claro y oscuro, a 1366 y a 390 px de ancho, más el inicio de sesión. Después usa el visor 3D como una persona: oculta un objeto con su ojo, gira el sol a 180° y descarga el PNG, y falla si alguno de los tres no responde. Última ejecución: 12 de octubre de 2026, los tres pasos correctos.
+
 ### Pendientes de backend
 
 Lo que la interfaz no puede ofrecer hasta que la API lo soporte:

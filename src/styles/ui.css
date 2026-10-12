@@ -468,3 +468,27 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
 }
+
+/* ---- Phone header: actions keep to one line; theme and account fold to their icon ---- */
+
+@media (max-width: 720px) {
+    .user-menu {
+        flex-wrap: nowrap;
+        gap: var(--space-2);
+    }
+
+    .user-menu .icon-button {
+        white-space: nowrap;
+    }
+
+    .user-menu .button-secondary.icon-button {
+        gap: 0;
+        padding: 4px;
+        font-size: 0;
+    }
+
+    .user-menu .button-secondary.icon-button:first-of-type {
+        width: var(--control-height);
+        justify-content: center;
+    }
+}
