@@ -19,6 +19,14 @@ describe("SurfaceLibrary", () => {
         );
     });
 
+    it("says the favourites live in this browser and not in the account", () => {
+        render(<SurfaceLibrary />);
+
+        expect(
+            screen.getByText(/se guardan en este navegador, no en tu cuenta/),
+        ).toBeInTheDocument();
+    });
+
     it("remembers a favourite in this browser and can show only those", async () => {
         const { unmount } = render(<SurfaceLibrary />);
 
@@ -31,7 +39,7 @@ describe("SurfaceLibrary", () => {
             "true",
         );
 
-        await userEvent.click(screen.getByLabelText("Solo favoritas"));
+        await userEvent.click(screen.getByLabelText("Solo favoritas de este navegador"));
 
         expect(screen.getAllByRole("button", { name: /Rugosidad/ })).toHaveLength(1);
     });

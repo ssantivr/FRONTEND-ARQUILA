@@ -48,13 +48,14 @@ export function SurfaceLibrary() {
                         checked={onlyFavorites}
                         onChange={(event) => setOnlyFavorites(event.target.checked)}
                     />
-                    Solo favoritas
+                    Solo favoritas de este navegador
                 </label>
             }
         >
             <p className="message">
                 Acabados que el visor 3D puede aplicar a un cuarto o a un componente, con los
-                valores con que se dibujan. Las favoritas se guardan solo en este navegador.
+                valores con que se dibujan. Las favoritas se guardan en este navegador, no en tu
+                cuenta: no las verás en otro equipo.
             </p>
             {shown.length === 0 && (
                 <p className="message" role="status">

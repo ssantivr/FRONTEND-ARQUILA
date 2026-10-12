@@ -61,7 +61,10 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                 </div>
             </Panel>
             <Panel title="Apariencia">
-                <p className="message">Se guarda en este navegador.</p>
+                <p className="message">
+                    Estas preferencias se guardan en este navegador, no en tu cuenta: en otro equipo
+                    o navegador tendrás que elegirlas de nuevo.
+                </p>
                 <div className="settings-row">
                     <span id="settings-theme">Tema</span>
                     <div className="segmented" role="group" aria-labelledby="settings-theme">
