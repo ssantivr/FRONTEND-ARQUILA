@@ -23,9 +23,12 @@ function seedOf(id: number, name: string): number {
 }
 
 /**
- * The API stores no cover image and no project type, so each cover is a building drawn from the
- * project's id and name: floors, width, roof and trees differ from one project to the next. It is
- * an emblem, not a picture of the project, and is hidden from assistive technology.
+ * Decorative cover. It varies by the project's id and name ONLY: the number of floors, the width,
+ * the roof and the trees come from a pseudo-random sequence seeded with those two values.
+ *
+ * It does NOT reflect a project type, because the API has no such field, nor anything about the
+ * real building: a one-storey house may get a three-storey drawing. Renaming a project changes
+ * its cover. It is an emblem to tell cards apart, hidden from assistive technology.
  */
 export function ProjectCover({ id, name }: ProjectCoverProps) {
     const random = seeded(seedOf(id, name));
