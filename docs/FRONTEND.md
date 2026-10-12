@@ -150,6 +150,10 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 - En Vercel, `vercel.json` reenvía `/api` al backend y cualquier otra ruta a `index.html`; los archivos estáticos se sirven antes que esas reglas.
 - La única dependencia añadida es `react-router`.
 
+### Sistema de diseño
+
+Los tokens (color, espaciado `--space-*`, radios, sombras, alturas de control y `--motion`) están en `src/styles/tokens.css` para los dos temas. Un tema se puede aplicar a cualquier contenedor con `data-theme`, no solo a la página. Los componentes compartidos viven en `src/components/ui/`: `Button` (primario, secundario, terciario, destructivo y estado de carga), `Field` (etiqueta, ayuda y error unidos al control), `Tabs`, `Menu` (menú contextual sobre `<details>`), `ProgressBar` y `EmptyState`. Junto con `Panel`, `Modal`, `Badge`, `MetricCard`, `AsyncStatus`, `Toasts` y `ProjectCard` se muestran, en claro y en oscuro, en `/design-system`. Esa página solo existe en desarrollo (`npm run dev`); la compilación de producción no la incluye.
+
 ### Identidad visual y navegación
 
 La identidad sigue `docs/DISENO_ARQUILA.md`: verde bosque (`#0B211A`, `#12382A`), verde de interacción (`#236B42`) y verde lima (`#B8F36B`) solo para lo seleccionado, lo activo y la acción principal. Todos los colores son variables de `src/styles/tokens.css`, definidas para el tema claro y el oscuro. Los estilos están en `src/styles/`, en archivos por área que `src/main.tsx` importa en orden; ese orden importa, porque los últimos (`hierarchy`, `states`, `media`) afinan lo que definen los primeros.

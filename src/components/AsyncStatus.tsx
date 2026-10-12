@@ -1,3 +1,5 @@
+import { EmptyState } from "./ui/EmptyState";
+
 interface AsyncStatusProps {
     loading: boolean;
     error: string | null;
@@ -37,14 +39,7 @@ export function AsyncStatus({ loading, error, isEmpty, emptyText, onRetry }: Asy
     }
 
     if (isEmpty && emptyText) {
-        return (
-            <div className="empty-state">
-                <svg className="empty-art" viewBox="0 0 64 48" aria-hidden="true">
-                    <path d="M4 44h56M12 44V20l20-14 20 14v24M26 44V30h12v14" />
-                </svg>
-                <p className="message">{emptyText}</p>
-            </div>
-        );
+        return <EmptyState text={emptyText} />;
     }
 
     return null;

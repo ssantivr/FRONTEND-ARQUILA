@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-theme="light"] {
     --bg: #f4f6f2;
     --bg-secondary: #ffffff;
     --panel: #ffffff;
@@ -32,6 +33,15 @@
     --radius: 12px;
     --radius-sm: 8px;
     --header-height: 60px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --control-height: 40px;
+    --control-height-sm: 32px;
+    --motion: 0.15s;
     --sidebar-width: 232px;
     --viewport: #e6ebe4;
 
@@ -51,7 +61,7 @@
 }
 
 /* The interior walkthrough is a dusk scene, so its overlays keep the dark tokens in both themes. */
-:root[data-theme="dark"],
+[data-theme="dark"],
 .interior-stage {
     --bg: #07140f;
     --bg-secondary: #0b211a;

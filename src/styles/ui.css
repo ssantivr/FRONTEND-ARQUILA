@@ -1,0 +1,175 @@
+/* Shared components of src/components/ui and the development-only design system page. */
+
+.button-tertiary {
+    color: var(--accent);
+    background: transparent;
+    border-color: transparent;
+}
+
+.button-tertiary:hover:not(:disabled) {
+    background: var(--accent-soft);
+}
+
+.field {
+    display: grid;
+    gap: var(--space-1);
+    align-content: start;
+}
+
+.field-note {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.field-invalid :is(input, select, textarea) {
+    border-color: var(--error);
+}
+
+.field-invalid .field-note {
+    color: var(--error);
+}
+
+.menu {
+    position: relative;
+    display: inline-block;
+}
+
+.menu > summary {
+    display: grid;
+    place-items: center;
+    width: var(--control-height-sm);
+    height: var(--control-height-sm);
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    line-height: 1;
+    list-style: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+        background-color var(--motion),
+        border-color var(--motion),
+        color var(--motion);
+}
+
+.menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.menu > summary:hover,
+.menu[open] > summary {
+    color: var(--text);
+    background: var(--hover);
+    border-color: var(--border);
+}
+
+.menu-items {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 30;
+    display: grid;
+    gap: 2px;
+    min-width: 168px;
+    padding: 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-float);
+}
+
+.menu-item {
+    padding: 7px 10px;
+    color: var(--text);
+    font-weight: 400;
+    text-align: left;
+    background: transparent;
+    border-color: transparent;
+}
+
+.menu-item:hover:not(:disabled) {
+    background: var(--hover);
+}
+
+.menu-item-danger {
+    color: var(--error);
+}
+
+/* ---- Design system page ---- */
+
+.ds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
+    gap: var(--space-5);
+}
+
+.ds-theme {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    padding: var(--space-5);
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.ds-title,
+.ds-h1 {
+    margin: 0;
+}
+
+.ds-h1 {
+    font-size: 1.6rem;
+}
+
+.ds-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.ds-row + .ds-row,
+.ds .tabs + .ds-row,
+.ds-grid + .ds-row,
+.ds-grid + label,
+.ds label + label {
+    margin-top: var(--space-4);
+}
+
+.ds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+}
+
+.ds-stack {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.ds-swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ds-swatches li {
+    display: grid;
+    gap: var(--space-1);
+}
+
+.ds-swatch {
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.ds .tabs {
+    position: static;
+}

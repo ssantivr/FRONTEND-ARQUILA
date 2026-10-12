@@ -9,6 +9,7 @@ import { FloorPlansPanel } from "../components/FloorPlansPanel";
 import { GeneratedElevationsPanel } from "../components/GeneratedElevationsPanel";
 import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Panel } from "../components/Panel";
+import { Tabs } from "../components/ui/Tabs";
 import { PlansPanel } from "../components/PlansPanel";
 import { ProjectEditForm } from "../components/ProjectEditForm";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
@@ -194,19 +195,12 @@ export function ProjectDetailPage({
                 )}
             </Panel>
 
-            <nav className="tabs" aria-label="Secciones del proyecto">
-                {SECTIONS.map((item) => (
-                    <button
-                        key={item.id}
-                        type="button"
-                        className="tab"
-                        aria-current={item.id === section ? "page" : undefined}
-                        onClick={() => setSection(item.id)}
-                    >
-                        {item.label}
-                    </button>
-                ))}
-            </nav>
+            <Tabs
+                label="Secciones del proyecto"
+                items={SECTIONS}
+                current={section}
+                onChange={setSection}
+            />
 
             <Fragment key={panelsVersion}>
                 {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}

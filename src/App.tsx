@@ -28,6 +28,15 @@ const InteriorPage = lazy(() =>
     import("./pages/InteriorPage").then((module) => ({ default: module.InteriorPage })),
 );
 
+// The design system page is a development tool: the production build leaves it out.
+const DesignSystemPage = import.meta.env.DEV
+    ? lazy(() =>
+          import("./pages/DesignSystemPage").then((module) => ({
+              default: module.DesignSystemPage,
+          })),
+      )
+    : null;
+
 const SIDEBAR_KEY = "arquila:sidebar";
 
 type Session =
@@ -145,6 +154,14 @@ export function App() {
             );
         }
 
+        if (route.kind === "design-system" && DesignSystemPage !== null) {
+            return (
+                <Suspense fallback={<p className="message">Cargando…</p>}>
+                    <DesignSystemPage />
+                </Suspense>
+            );
+        }
+
         if (view === null) {
             return (
                 <Panel title="Página no encontrada">
@@ -239,7 +256,12 @@ export function App() {
                     <header className="header">
                         <div>
                             <p className="header-eyebrow">ARQUILA</p>
-                            <h1>{current?.label ?? "ARQUILA"}</h1>
+                            <h1>
+                                {current?.label ??
+                                    (route.kind === "design-system"
+                                        ? "Sistema de diseño"
+                                        : "ARQUILA")}
+                            </h1>
                         </div>
                         <GlobalSearch onOpenProject={(id) => openProject(id)} />
                         <div className="user-menu">

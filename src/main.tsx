@@ -12,6 +12,7 @@ import "./styles/features.css";
 import "./styles/hierarchy.css";
 import "./styles/states.css";
 import "./styles/media.css";
+import "./styles/ui.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 
