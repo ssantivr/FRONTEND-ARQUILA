@@ -1,10 +1,5 @@
 import {
     ACESFilmicToneMapping,
-    InstancedMesh,
-    Material,
-    Mesh,
-    MeshBasicMaterial,
-    Object3D,
     PCFShadowMap,
     PMREMGenerator,
     PerspectiveCamera,
@@ -13,6 +8,7 @@ import {
 } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
+import { disposeObject } from "../dispose";
 import { createPostprocessing } from "../postprocessing";
 import { buildCityBackdrop } from "./cityBackdrop";
 import { createInteriorCamera, type Viewpoint } from "./interiorCamera";
@@ -39,35 +35,13 @@ export interface InteriorViewer {
     dispose: () => void;
 }
 
-function disposeObject(root: Object3D): void {
-    root.traverse((child) => {
-        if (child instanceof Mesh) {
-            const materials: Material[] = Array.isArray(child.material)
-                ? child.material
-                : [child.material];
-
-            child.geometry.dispose();
-
-            for (const material of materials) {
-                if (material instanceof MeshBasicMaterial) {
-                    material.map?.dispose();
-                }
-
-                material.dispose();
-            }
-        }
-
-        if (child instanceof InstancedMesh) {
-            child.dispose();
-        }
-    });
-}
-
 export function createInteriorViewer(container: HTMLElement): InteriorViewer {
     const renderer = new WebGLRenderer({ antialias: true });
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true;
     renderer.toneMapping = ACESFilmicToneMapping;
     renderer.toneMappingExposure = EXPOSURE;
     container.append(renderer.domElement);
@@ -95,6 +69,11 @@ export function createInteriorViewer(container: HTMLElement): InteriorViewer {
     let placed = false;
 
     function invalidate(): void {
+        dirty = true;
+    }
+
+    function invalidateScene(): void {
+        renderer.shadowMap.needsUpdate = true;
         dirty = true;
     }
 
@@ -132,7 +111,7 @@ export function createInteriorViewer(container: HTMLElement): InteriorViewer {
 
     observer.observe(container);
     window.addEventListener("resize", resize);
-    canvas.addEventListener("webglcontextrestored", invalidate);
+    canvas.addEventListener("webglcontextrestored", invalidateScene);
     setViewpoint("living");
     resize();
 
@@ -148,15 +127,15 @@ export function createInteriorViewer(container: HTMLElement): InteriorViewer {
         setViewpoint,
         setNeon: (visible) => {
             loft.neon.visible = visible;
-            invalidate();
+            invalidateScene();
         },
         dispose: () => {
             renderer.setAnimationLoop(null);
             observer.disconnect();
             window.removeEventListener("resize", resize);
-            canvas.removeEventListener("webglcontextrestored", invalidate);
+            canvas.removeEventListener("webglcontextrestored", invalidateScene);
             rig.dispose();
-            disposeObject(scene);
+            disposeObject(scene, { textures: true });
             loft.dispose();
             post.dispose();
             environmentMap.dispose();
