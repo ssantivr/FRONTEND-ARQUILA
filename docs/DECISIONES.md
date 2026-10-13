@@ -83,3 +83,15 @@ Dependencia de desarrollo fuera de la lista aprobada. La prueba que vigila las h
 ### Entrada del modelo 3D dentro del motor (fase 3b)
 
 Son siete líneas en `BuildingSceneManager.ts`: la primera vez que se muestra un modelo, el despiece arranca en 0,25 y la amortiguación que ya existía lo lleva a su sitio. No se añadió el pulso del contorno de selección ni el fundido del terreno: piden tocar los materiales del motor y se dejaron para la fase 6b.
+
+### Dónde toca el suelo a la casa en un terreno con pendiente (fase 4)
+
+Había que elegir una altura de referencia. Si el suelo tocara el nivel 0 en el frente del lote, subiría hacia atrás y enterraría la planta baja. Se eligió el muro posterior de la edificación: el suelo cae hacia el frente bajo la casa, donde un zócalo llena el hueco, y sube por detrás. Es como se construye en ladera y nunca tapa un cuarto. El corte usa la misma referencia.
+
+### Retiro redondeado en las esquinas entrantes (fase 4)
+
+Un retiro medido desde el lindero da una esquina redonda junto a un vértice entrante. El disco se aproxima con un polígono de 24 lados inscrito, así que ahí el resultado es generoso en unas centésimas de metro cuadrado. Se prefirió a la alternativa de esquinas cuadradas, que quita más suelo del que el retiro exige.
+
+### Los máximos de COS y CUS se guardan como texto (fase 4)
+
+Para que «0.60» vuelva como «0.60» y no como «0.6» mientras se escribe.

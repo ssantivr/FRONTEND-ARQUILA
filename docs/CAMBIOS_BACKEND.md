@@ -16,3 +16,26 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
 - **Ruta:** `GET /projects` (la misma), con dos campos más por proyecto.
 - **Respuesta:** `terrain_area_m2: number | null` y `levels: number`.
 - **Mientras tanto:** las tarjetas no muestran esas dos cifras. Pedir `GET /projects/{id}/structure` por cada tarjeta sería una petición por proyecto, justo lo que se quiere evitar.
+
+## 3. Vértices al deshacer la eliminación de un terreno
+
+- **Para qué:** que un lote no rectangular vuelva completo.
+- **Ruta:** `POST /projects/{id}/undo` (la misma).
+- **Cambio:** al restaurar un terreno, restaurar también sus filas de `terrain_points`.
+- **Mientras tanto:** la interfaz guarda los vértices al eliminar (en `sessionStorage`) y, después de deshacer, los reenvía con `PATCH /terrains/{id}` y cuerpo `{"points": [...]}`. No sirve si se deshace desde otro navegador o después de cerrar la pestaña.
+
+## 4. Retiro, norte y máximos de COS y CUS por proyecto
+
+- **Para qué:** que lo que se configura en los planos se vea igual en cualquier equipo.
+- **Rutas:**
+    - `PATCH /terrains/{id}` admitiría `setback_m: number | null` y `north_deg: number | null` (0 = hacia el fondo, en sentido horario), y `GET` los devolvería.
+    - `PATCH /projects/{id}` admitiría `max_cos: number | null` y `max_cus: number | null`.
+- **Respuesta:** los mismos objetos de hoy con esos campos.
+- **Mientras tanto:** `localStorage`, clave `arquila:site:{id del proyecto}`.
+
+## 5. Pendiente en el modelo
+
+- **Para qué:** dibujar el terreno inclinado sin una petición adicional.
+- **Ruta:** `GET /projects/{id}/structure` (la misma).
+- **Respuesta:** cada elemento de `terrains` añadiría `slope_percent: number | null`.
+- **Mientras tanto:** si el campo no viene, la interfaz pide `GET /projects/{id}/terrains` y lo toma de ahí; cuando venga, deja de pedirlo sola.

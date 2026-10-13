@@ -11,8 +11,8 @@ Memoria de trabajo de la rama `rediseno-ui`. Se actualiza al cerrar cada fase, p
 | 2. Navegación | Obligatorio | Hecha (punto de control 2 aprobado el 13 de octubre de 2026) |
 | 3. Pantallas | Obligatorio | Hecha |
 | 3b. Animaciones básicas (F1 y F2) | Obligatorio | Hecha y revisada |
-| 4. Correcciones | Obligatorio | En curso |
-| 5. Datos | Deseable | Pendiente |
+| 4. Correcciones | Obligatorio | Hecha |
+| 5. Datos | Deseable | En curso |
 | 6. Producto | Deseable | Pendiente |
 | 6b. Animaciones expresivas (F3) y selector de movimiento | Deseable | Pendiente |
 | 7. Calidad | Obligatorio | Pendiente |
@@ -180,6 +180,23 @@ No corregido, con su motivo:
 - `motion.test.ts` no ve duraciones escritas en TS ni exige una curva en cada transición.
 - Miniaturas: no se borran al cerrar sesión ni al eliminar un proyecto. Se resuelve con la portada en el backend.
 - Varios mensajes de error a la vez se anuncian todos (`role="alert"` en cada uno).
+
+## Fase 4. Correcciones (13 de octubre de 2026)
+
+| Limitación | Qué se hizo |
+|---|---|
+| Contorno que se cruza a sí mismo | `selfIntersection`: el formulario no deja guardar y dice qué lados se cortan |
+| Vértices al deshacer la eliminación de un terreno | La interfaz los recuerda y los reenvía tras deshacer; propuesto al backend |
+| Área edificable en lotes irregulares | `buildableArea` con `polygon-clipping`, para cualquier forma; avisa si el retiro parte el lote |
+| Cuartos solapados | El área de cada nivel es la unión de sus cuartos; aviso con los pares que se solapan |
+| Retiro, norte y máximos de COS y CUS | Recordados por proyecto en `localStorage`; propuesto al backend |
+| Pendiente en el 3D y en el corte | Terreno cizallado, zócalo bajo la planta baja, árboles y borde del lote sobre la pendiente; el corte dibuja el suelo inclinado |
+
+Visto en el navegador con los datos de muestra (lote de cinco vértices con pendiente del 4 %): el plano de implantación da 233,6 m² edificables de 480 m², el modelo muestra el zócalo y el corte el terreno inclinado, sin errores en la consola.
+
+Resultado: `format:check` y `lint` limpios, `Test Files 49 passed (49)`, `Tests 338 passed (338)`, build correcto.
+
+Sin regenerar: las capturas de `docs/capturas/` son de la fase 3b. Se rehacen todas en la fase 8, con los datos de Casa Mirador.
 
 ## Problemas abiertos
 

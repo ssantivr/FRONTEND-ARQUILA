@@ -18,12 +18,14 @@ import {
     GridHelper,
     Group,
     HemisphereLight,
+    InstancedMesh,
     LineBasicMaterial,
     LinearFilter,
     LinearMipmapLinearFilter,
     LineSegments,
     Material,
     MathUtils,
+    Matrix4,
     Mesh,
     MeshBasicMaterial,
     MeshPhysicalMaterial,
@@ -133,6 +135,8 @@ const OVERLAY_OPACITY: Record<WorkStatus, number> = {
 };
 const OVERLAY_GLOW = 0.7;
 const OVERLAY_RENDER_ORDER = 2;
+// A plinth thinner than this would only flicker against the floor slab.
+const PLINTH_MIN_M = 0.05;
 const EXPLODE_GAP_M = 3.5;
 const EXPLODE_RATE = 8;
 const EXPLODE_REST = 0.002;
@@ -495,7 +499,81 @@ function buildMaterial(element: StructureElement): MeshStandardMaterial {
     return standard(surface.color, surface.roughness, surface.metalness);
 }
 
-function buildTerrain(terrain: StructureTerrain, grass: Pattern): Mesh {
+/**
+ * Height of the ground of a terrain at a depth of the plan (`y`, in metres from the front of the
+ * lot). The terrain is a plane that slopes along its depth, as in the terrain diagrams, and it
+ * meets level 0 at `pivot`.
+ */
+function groundHeight(terrain: StructureTerrain, pivot: number, y: number): number {
+    return ((y - pivot) * (terrain.slope_percent ?? 0)) / 100;
+}
+
+/**
+ * The depth at which the ground meets level 0. With a building it is its back wall: the floor
+ * is level, the ground falls away under it towards the front (where a plinth fills the gap) and
+ * rises behind it, so the building is never buried. Without one it is the front of the lots.
+ */
+function slopePivot(structure: Structure): number {
+    const built = structure.rooms.map(rectOf);
+
+    if (built.length > 0) {
+        return unionOf(built).maxY;
+    }
+
+    const depths = structure.terrains.flatMap((terrain) =>
+        terrain.outline.map((point) => point.y_m),
+    );
+
+    return depths.length === 0 ? 0 : Math.min(...depths);
+}
+
+/** How far below level 0 the lowest corner of the lots is; 0 on flat ground. */
+function lowestGround(structure: Structure, pivot: number): number {
+    const heights = structure.terrains.flatMap((terrain) =>
+        terrain.outline.map((point) => groundHeight(terrain, pivot, point.y_m)),
+    );
+
+    return Math.max(0, -Math.min(0, ...heights));
+}
+
+/**
+ * The plinth that holds the ground floor level where the ground falls away under it: under each
+ * room of the lowest level, a block from the floor down to the ground at the front of that room.
+ * One block per room, so a floor plan that is not a rectangle gets no plinth where it has no
+ * room. `null` on flat ground.
+ */
+function buildPlinth(structure: Structure, pivot: number): Group | null {
+    const terrain = structure.terrains[0];
+    const lowest = Math.min(...structure.rooms.map((room) => room.base_m));
+    const plinth = new Group();
+
+    if (terrain === undefined) {
+        return null;
+    }
+
+    for (const area of structure.rooms.filter((room) => room.base_m === lowest).map(rectOf)) {
+        const depth = -groundHeight(terrain, pivot, area.minY);
+
+        if (depth >= PLINTH_MIN_M) {
+            const block = new Mesh(
+                new BoxGeometry(area.maxX - area.minX, depth, area.maxY - area.minY),
+                standard(SLAB_COLOR, 0.9),
+            );
+
+            block.position.set(
+                (area.minX + area.maxX) / 2,
+                -depth / 2,
+                -(area.minY + area.maxY) / 2,
+            );
+            block.castShadow = true;
+            block.receiveShadow = true;
+            plinth.add(block);
+        }
+    }
+
+    return plinth.children.length === 0 ? null : plinth;
+}
+function buildTerrain(terrain: StructureTerrain, grass: Pattern, pivot: number): Mesh {
     const shape = new Shape();
 
     terrain.outline.forEach((point, index) => {
@@ -509,6 +587,23 @@ function buildTerrain(terrain: StructureTerrain, grass: Pattern): Mesh {
     const geometry = new ExtrudeGeometry(shape, { depth: SLAB_THICKNESS_M, bevelEnabled: false });
     geometry.rotateX(-Math.PI / 2);
     geometry.translate(0, -SLAB_THICKNESS_M, 0);
+
+    // The slab is sheared, not rotated: every vertex keeps its place on the plan and only its
+    // height changes with its depth, so the outline still matches the plans.
+    if ((terrain.slope_percent ?? 0) !== 0) {
+        const position = geometry.getAttribute("position");
+
+        for (let index = 0; index < position.count; index += 1) {
+            position.setY(
+                index,
+                position.getY(index) + groundHeight(terrain, pivot, -position.getZ(index)),
+            );
+        }
+
+        position.needsUpdate = true;
+        geometry.computeVertexNormals();
+    }
+
     applyMetricUVs(geometry);
 
     const mesh = new Mesh(geometry, patterned(grass, 0.95));
@@ -726,8 +821,9 @@ function buildRoof(rooms: StructureRoom[], kind: RoofKind, tiles: Pattern): Mesh
     return mesh;
 }
 
-function buildEnvironment(structure: Structure): Group {
+function buildEnvironment(structure: Structure, pivot: number): Group {
     const planted: TreeSpot[] = [];
+    const heights: number[] = [];
     const blocked = [...structure.rooms, ...structure.components].map(rectOf);
 
     for (const terrain of structure.terrains) {
@@ -760,21 +856,49 @@ function buildEnvironment(structure: Structure): Group {
 
             if (clear && insidePolygon(x, y, terrain.outline)) {
                 planted.push({ x, y });
+                heights.push(groundHeight(terrain, pivot, y));
             }
         }
     }
 
-    return buildTrees(planted);
+    const trees = buildTrees(planted);
+
+    // The trees are planted on level ground by their builder; each one is then moved to the
+    // height of the slope where it stands.
+    if (heights.some((height) => height !== 0)) {
+        const placement = new Matrix4();
+
+        trees.traverse((child) => {
+            if (child instanceof InstancedMesh) {
+                heights.forEach((height, index) => {
+                    child.getMatrixAt(index, placement);
+                    placement.elements[13] += height;
+                    child.setMatrixAt(index, placement);
+                });
+                child.instanceMatrix.needsUpdate = true;
+            }
+        });
+    }
+
+    return trees;
 }
 
-function buildLotEdges(terrains: StructureTerrain[], material: LineMaterial): Group {
+function buildLotEdges(terrains: StructureTerrain[], material: LineMaterial, pivot: number): Group {
     const edges = new Group();
 
-    for (const { outline } of terrains) {
+    for (const terrain of terrains) {
+        const { outline } = terrain;
         const positions = outline.flatMap((point, index) => {
             const next = outline[(index + 1) % outline.length];
 
-            return [point.x_m, SURFACE_GAP_M, -point.y_m, next.x_m, SURFACE_GAP_M, -next.y_m];
+            return [
+                point.x_m,
+                SURFACE_GAP_M + groundHeight(terrain, pivot, point.y_m),
+                -point.y_m,
+                next.x_m,
+                SURFACE_GAP_M + groundHeight(terrain, pivot, next.y_m),
+                -next.y_m,
+            ];
         });
 
         edges.add(new LineSegments2(new LineSegmentsGeometry().setPositions(positions), material));
@@ -895,6 +1019,8 @@ export function createStructureViewer(
     let explodeTarget = 0;
     let explodeCurrent = 0;
     let entered = false;
+    // How far the lowest corner of the lots is under level 0: the ground plane goes below it.
+    let groundDrop = 0;
     let lastFrame = 0;
     let asset: Object3D | null = null;
     let assetRequest = 0;
@@ -1208,11 +1334,15 @@ export function createStructureViewer(
             standard(palette.ground, 1),
         );
         ground.rotation.x = -Math.PI / 2;
-        ground.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.08, bounds.center.z);
+        ground.position.set(
+            bounds.center.x,
+            -SLAB_THICKNESS_M - 0.08 - groundDrop,
+            bounds.center.z,
+        );
         ground.receiveShadow = true;
 
         grid = new GridHelper(bounds.radius * 6, 60, palette.axis, palette.grid);
-        grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05, bounds.center.z);
+        grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05 - groundDrop, bounds.center.z);
         grid.material.transparent = true;
         grid.material.opacity = palette.gridOpacity;
         grid.material.depthWrite = false;
@@ -1497,14 +1627,23 @@ export function createStructureViewer(
         elements = buildElements(structure);
         roofRooms = structure.rooms;
         roof = buildRoof(roofRooms, roofKind, patterns.roof);
-        environment = buildEnvironment(structure);
-        lotEdges = buildLotEdges(structure.terrains, lotEdgeMaterial);
+        // Every terrain slopes about the same line, so the ground is continuous between lots.
+        const pivot = slopePivot(structure);
+        const plinth = buildPlinth(structure, pivot);
+
+        groundDrop = lowestGround(structure, pivot);
+        environment = buildEnvironment(structure, pivot);
+        lotEdges = buildLotEdges(structure.terrains, lotEdgeMaterial, pivot);
         model = new Group();
         model.add(
-            ...structure.terrains.map((terrain) => buildTerrain(terrain, patterns.grass)),
+            ...structure.terrains.map((terrain) => buildTerrain(terrain, patterns.grass, pivot)),
             ...elements,
             environment,
         );
+
+        if (plinth !== null) {
+            model.add(plinth);
+        }
 
         for (const mesh of elements) {
             clip(mesh, cutPlanes);

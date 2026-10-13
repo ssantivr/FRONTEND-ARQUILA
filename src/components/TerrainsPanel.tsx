@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { terrainsApi } from "../services/api";
+import { rememberDeletedTerrain } from "../services/terrainUndo";
 import type { Terrain } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatNumber, optionalNumber, optionalText } from "../utils/format";
@@ -96,6 +97,9 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
         run(
             () => terrainsApi.remove(terrain.id),
             () => {
+                // Undoing brings the terrain back without its vertices: keep them to restore.
+                rememberDeletedTerrain(terrain);
+
                 if (editingId === terrain.id) {
                     resetForm();
                 }

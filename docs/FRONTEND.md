@@ -20,8 +20,8 @@ Un terreno puede tener una lista de vértices `x y` en metros, guardados en la t
 
 - Se aceptan entre 3 y 50 vértices, y deben encerrar un área mayor que cero.
 - El área se calcula con la fórmula del área de Gauss (o «del cordón»), recorriendo los vértices una vez: O(n). Está en `BACKEND-ARQUILA/app/services/geometry.py` y en `src/utils/geometry.ts`.
-- No se comprueba que el contorno no se cruce a sí mismo.
-- Al deshacer la eliminación de un terreno se recuperan sus datos, pero no sus vértices.
+- Al guardar se comprueba que el contorno no se cruce ni se toque a sí mismo (`selfIntersection` en `src/utils/geometry.ts`): se compara cada par de lados, O(n²) con 50 vértices como máximo. El mensaje dice qué dos lados se cortan y cómo arreglarlo («Escribe los vértices en el orden en que se recorre el borde del lote»). Sin esta comprobación, el área y el retiro de un contorno cruzado no significan nada.
+- Al deshacer la eliminación de un terreno la API devuelve sus datos sin sus vértices. La interfaz los recuerda al eliminarlo (en `sessionStorage`, mientras la pestaña siga abierta) y, tras deshacer, los vuelve a enviar con un `PATCH` (`src/services/terrainUndo.ts`). Busca el terreno restaurado por su identificador y, si la API le dio uno nuevo, por su nombre entre los que no tienen vértices. Si ese segundo envío falla, deshacer sigue contando como hecho. Lo correcto es que el backend los restaure (`CAMBIOS_BACKEND.md`).
 
 Simplificaciones: la superficie es un plano inclinado y se asume que la pendiente va en el sentido del largo (el eje `y`). El ancho y el largo son opcionales; si faltan, el esquema muestra qué dato falta. El área se guarda aparte porque un lote real puede no ser rectangular; el formulario la propone como ancho por largo si se deja vacía.
 
@@ -30,7 +30,7 @@ Simplificaciones: la superficie es un plano inclinado y se asume que la pendient
 La pestaña Planos dibuja, debajo de la lista de planos, un plano de implantación en SVG por cada terreno (`src/components/SitePlan.tsx`). Usa solo los datos del terreno:
 
 - **Límite del terreno**: el contorno del lote a escala, con una cota en cada lado. La longitud de cada lado y hacia dónde queda el exterior se calculan recorriendo los vértices una vez: O(n) (`edges` en `src/utils/geometry.ts`).
-- **Área edificable**: el rectángulo que queda al descontar un retiro igual en los cuatro lados. El retiro se elige con un control (de 0 a 10 m; al abrir vale 3 m, o menos si el lote es estrecho, para que siempre quede área edificable) y el plano muestra el área resultante.
+- **Área edificable**: lo que queda al retirarse la misma distancia de todos los lados, en un lote de cualquier forma (`buildableArea` en `src/utils/polygons.ts`). Al lote se le resta una banda a lo largo de cada lado y un disco en cada vértice, con `polygon-clipping`: una esquina saliente conserva su ángulo y una entrante queda redondeada, que es lo que da un retiro medido desde el lindero. Las formas se restan de una en una, porque restarlas todas a la vez hacía fallar a la librería con tangencias exactas. Si el retiro parte el lote en dos, el plano dibuja las dos zonas y lo dice. El retiro se elige con un control (de 0 a 10 m; al abrir vale 3 m, o menos si el lote es estrecho, para que siempre quede área edificable) y el plano muestra el área resultante.
 - **Acceso**: una marca en el frente del lote.
 - **Norte**: una flecha cuya dirección se elige con un control.
 - **Leyenda** y botón **Descargar plano (SVG)**. El archivo descargado lleva sus colores dentro, así que se ve igual fuera de la aplicación.
@@ -38,9 +38,9 @@ La pestaña Planos dibuja, debajo de la lista de planos, un plano de implantaci�
 
 Simplificaciones:
 
-- El retiro y el norte no se guardan: el proyecto no tiene esos datos y vuelven a su valor inicial al recargar.
+- El retiro y el norte se recuerdan por terreno en este navegador (`state/siteSettings.ts`, clave `arquila:site:{proyecto}`), a la espera de que el backend los guarde (`CAMBIOS_BACKEND.md`).
 - El acceso se asume por el frente, el lado más bajo, igual que en la vista frontal del terreno.
-- El área edificable solo se calcula en lotes rectangulares. En un lote con vértices se dibujan el contorno y las cotas, sin área edificable.
+- El retiro es el mismo en todos los lados; no hay retiro frontal, lateral y posterior por separado.
 - No se dibujan vivienda, áreas verdes, andenes ni parqueadero, porque el proyecto no guarda esos datos.
 
 ## Modelo 3D
@@ -101,7 +101,9 @@ En el frontend, `src/three/BuildingSceneManager.ts` arma la escena y no depende 
 - **Paneles que no tapan el modelo**: Niveles, Inspector y Color son `<details>` que se pliegan a su título; Color abre plegado y muestra el modo activo en el título. Inspector y Color comparten una columna a la derecha (`.hud-dock`) que nunca llega a la barra inferior. La barra inferior va centrada, en grupos (vista, corrida, corte y despiece con su porcentaje), y las casillas de capas y la cubierta se abren desde el botón «Capas». Las ayudas de la barra son `data-tip`, un texto que aparece sobre el control al pasar el cursor o al enfocarlo con el teclado. Los paneles son translúcidos con desenfoque en los dos temas (`--glass`).
 - Los paneles flotantes (vistas, niveles, inspector, color y barra inferior) usan los mismos colores que el resto de la aplicación (clases `.structure-stage` y `.hud` en `src/styles/viewer.css`). El cielo, la niebla, el suelo y la cuadrícula de la escena cambian con el modo claro u oscuro (`setPalette`); el elemento bajo el cursor se resalta en azul y el seleccionado lleva un contorno cian `#00F0FF` de 3 px (`LineSegments2`), en todos los modos de color y sin teñir el elemento, para que se vea su material o el color del dato. Ese contorno y las dos luces de acento del modo oscuro son el único neón de la aplicación. En pantallas estrechas los paneles pasan debajo del modelo.
 
-Simplificaciones: la pendiente del terreno no se representa. En un lote con vértices no se dibuja el volumen de un plano sin cuartos, igual que en el plano de implantación; los cuartos sí se dibujan siempre.
+- **Pendiente.** El terreno se dibuja inclinado según su pendiente, a lo largo de su fondo, igual que en los esquemas del terreno. La losa no se gira sino que se cizalla: cada vértice conserva su sitio en planta y solo cambia de altura, así el contorno sigue coincidiendo con los planos. El suelo toca el nivel 0 en el muro posterior de la edificación: cae hacia el frente, donde un zócalo bajo cada cuarto de la planta baja llena el hueco, y sube por detrás, de modo que la casa nunca queda enterrada. Los árboles y el borde del lote siguen la pendiente. La respuesta de `structure` todavía no trae la pendiente, así que `structureApi.get` la lee de la lista de terrenos (una petición más) y, si no puede, dibuja el modelo plano.
+
+Simplificaciones: la pendiente va siempre en el sentido del fondo del lote. En un lote con vértices no se dibuja el volumen de un plano sin cuartos, igual que en el plano de implantación; los cuartos sí se dibujan siempre.
 
 ## Plantas generadas y ocupación del lote
 
@@ -117,7 +119,8 @@ La pestaña Planos muestra, entre la lista de planos y el plano de implantación
   - COS = área de la planta baja ÷ área del lote. CUS = área de todos los niveles ÷ área del lote.
   - El área del lote es la del contorno del primer terreno del modelo, calculada con la fórmula de Gauss; es el mismo terreno sobre el que se colocan los cuartos.
   - Agrupar los cuartos por nivel y sumar sus áreas es un recorrido de la lista: O(n).
-  - Los máximos de COS y CUS se escriben en la pantalla, con 0,6 y 1,8 como valores iniciales, y no se guardan, igual que el retiro del plano de implantación: el proyecto no tiene la norma del municipio.
+  - Los máximos de COS y CUS se escriben en la pantalla, con 0,6 y 1,8 como valores iniciales, y se recuerdan por proyecto en este navegador, igual que el retiro del plano de implantación: el proyecto no tiene la norma del municipio.
+  - **Cuartos solapados.** El área de un nivel es el suelo que cubren sus cuartos, contando una sola vez lo que dos comparten (la unión de sus rectángulos, con `polygon-clipping`). Si dos cuartos del mismo nivel se solapan más de 0,01 m², un aviso sobre los indicadores dice cuáles y cuánto, del mayor al menor (`roomOverlaps` en `src/utils/building.ts`).
 
 La pestaña Elevaciones añade el panel **Fachadas y corte generados** (`src/components/ElevationDrawing.tsx`), con cinco dibujos: fachada frontal, posterior, lateral izquierda, lateral derecha y un corte esquemático.
 
@@ -128,7 +131,7 @@ La pestaña Elevaciones añade el panel **Fachadas y corte generados** (`src/com
 
 Las ventanas, la puerta y el techo se calculan en un solo lugar, `src/utils/openings.ts`, que usan el modelo 3D, las plantas y las fachadas. Por eso los tres dibujos coinciden: una ventana que se ve en el modelo está en el mismo sitio en la planta y en la fachada.
 
-Simplificaciones: el área de un nivel es la suma de las áreas de sus cuartos, así que dos cuartos solapados contarían dos veces. Las plantas no dibujan mobiliario ni puertas interiores, y solo hay una puerta, la de entrada. Los ejes pasan por los bordes de los cuartos, no por las columnas. El corte no dibuja el terreno inclinado ni la cimentación. Mientras el proyecto no tiene cuartos, los volúmenes de relleno cuentan como área construida.
+Simplificaciones: las plantas no dibujan mobiliario ni puertas interiores, y solo hay una puerta, la de entrada. Los ejes pasan por los bordes de los cuartos, no por las columnas. El corte dibuja el terreno con su pendiente y, bajo la edificación, lo que sostiene el piso donde el suelo baja; no dibuja la cimentación. Mientras el proyecto no tiene cuartos, los volúmenes de relleno cuentan como área construida.
 
 ## Organización de la interfaz
 

@@ -141,3 +141,50 @@ describe("flat roof", () => {
         expect(facade(flat, "front")?.height).toBe(6.5);
     });
 });
+
+describe("section on sloping ground", () => {
+    const rooms = [
+        { kind: "room", id: 1, plan_id: 1, plan_title: "Planta baja", name: "Sala", level: "0" },
+    ].map((room) => ({
+        ...room,
+        x_m: 0,
+        y_m: 0,
+        base_m: 0,
+        width_m: 6,
+        depth_m: 5,
+        height_m: 2.8,
+        surface: null,
+    })) as StructureRoom[];
+    const lot = {
+        id: 1,
+        name: "Lote",
+        outline: [
+            { x_m: 0, y_m: 0 },
+            { x_m: 10, y_m: 0 },
+            { x_m: 10, y_m: 20 },
+        ],
+    };
+
+    it("carries the slope of the first terrain, which the drawing uses for the ground", () => {
+        const drawing = section({
+            ...structure(rooms),
+            terrains: [{ ...lot, slope_percent: 6 }],
+        });
+
+        expect(drawing?.slopePercent).toBe(6);
+    });
+
+    it("is flat when the terrain has no slope recorded, or there is no terrain", () => {
+        expect(section({ ...structure(rooms), terrains: [lot] })?.slopePercent).toBe(0);
+        expect(section(structure(rooms))?.slopePercent).toBe(0);
+    });
+
+    it("leaves the facades without a slope: they are not cut along the depth of the lot", () => {
+        const drawing = facade(
+            { ...structure(rooms), terrains: [{ ...lot, slope_percent: 6 }] },
+            "front",
+        );
+
+        expect(drawing?.slopePercent).toBeUndefined();
+    });
+});

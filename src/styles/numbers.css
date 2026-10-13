@@ -1,8 +1,9 @@
 /*
  * Figures (areas, dimensions, costs, levels and counts) are set in JetBrains Mono with tabular
- * digits, so columns of numbers line up and a figure reads as data, not as prose.
+ * digits, so columns of numbers line up and a figure reads as data, not as prose. The list is
+ * inside :where(), which has no specificity: any rule that sets a font on purpose still wins.
  */
-:is(
+:where(
     :not(th).numeric,
     .figure,
     .metric-value,

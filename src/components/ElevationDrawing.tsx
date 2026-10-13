@@ -94,8 +94,8 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
                             strokeDasharray="4 3"
                         />
                         <text
-                            x={groundLeft + 4}
-                            y={groundY(groundLeft) - 6}
+                            x={groundLeft + 6}
+                            y={groundBottom - 8}
                             {...TEXT}
                             fill={COLORS.ground}
                         >

@@ -22,6 +22,7 @@ import { errorMessage, useAsync } from "../hooks/useAsync";
 import { SaveStatusProvider } from "../state/saveStatus";
 import { projectPath, viewPath } from "../routes";
 import { filesApi, projectsApi, undoApi } from "../services/api";
+import { undoLastDeletion } from "../services/terrainUndo";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
 import { formatDate } from "../utils/format";
 
@@ -176,7 +177,7 @@ export function ProjectDetailPage({
                             className="button-secondary"
                             onClick={() =>
                                 run(
-                                    () => undoApi.undoLast(projectId),
+                                    () => undoLastDeletion(projectId),
                                     () => setPanelsVersion((version) => version + 1),
                                 )
                             }
