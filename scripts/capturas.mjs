@@ -170,6 +170,8 @@ async function open(browser, { theme, size, signedIn = true }) {
 
 async function shoot(page, name) {
     await page.waitForLoadState("networkidle");
+    // A picture still decoding would be caught halfway through its fade-in.
+    await page.waitForFunction("[...document.images].every((image) => image.complete)");
     await page.waitForTimeout(900);
     await page.screenshot({
         path: fileURLToPath(new URL(`${name}.jpg`, OUT)),
