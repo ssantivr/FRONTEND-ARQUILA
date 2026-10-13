@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
-import { MetricCard } from "../components/MetricCard";
+import { PageBand } from "../components/PageBand";
 import { Panel } from "../components/Panel";
 import { SurfaceLibrary } from "../components/SurfaceLibrary";
 import { useAsync } from "../hooks/useAsync";
@@ -50,40 +50,51 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
 
     return (
         <>
-            <Panel title="Materiales">
-                <p className="message">
-                    Los materiales de todos tus proyectos, del más costoso al menos costoso. Para
-                    agregar o editar uno, ábrelo desde su proyecto.
-                </p>
-                <div className="metrics">
-                    <MetricCard label="Materiales" value={formatNumber(materials.length)} />
-                    <MetricCard label="Costo total" value={formatMoney(total)} />
-                    <MetricCard
-                        label="Categoría más costosa"
-                        value={categories[0]?.[0] ?? "—"}
-                        detail={categories.length > 0 ? formatMoney(highest) : undefined}
-                    />
-                </div>
-            </Panel>
-            {categories.length > 0 && (
-                <Panel title="Costo por categoría">
-                    <ul className="bar-list">
-                        {categories.map(([category, amount]) => (
-                            <li key={category}>
-                                <span>{category}</span>
-                                <span className="bar" aria-hidden="true">
-                                    <span
-                                        style={{
-                                            width: `${highest > 0 ? (amount / highest) * 100 : 0}%`,
-                                        }}
-                                    />
-                                </span>
-                                <span className="numeric">{formatMoney(amount)}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </Panel>
-            )}
+            <PageBand
+                title="Todos tus materiales"
+                text="Los materiales de todos tus proyectos, del más costoso al menos costoso. Para agregar o editar uno, ábrelo desde su proyecto."
+                stats={
+                    data.data === null
+                        ? undefined
+                        : [
+                              { label: "Materiales", value: formatNumber(materials.length) },
+                              { label: "Costo total", value: formatMoney(total) },
+                              {
+                                  label: "Categoría más costosa",
+                                  value: categories[0]?.[0] ?? "—",
+                                  detail: categories.length > 0 ? formatMoney(highest) : undefined,
+                              },
+                          ]
+                }
+                aside={
+                    categories.length > 0 && (
+                        <section className="band-chart" aria-label="Costo por categoría">
+                            <h3>Costo por categoría</h3>
+                            <ul className="bar-list">
+                                {categories.map(([category, amount]) => (
+                                    <li key={category}>
+                                        <span>{category}</span>
+                                        <span className="numeric">
+                                            {formatMoney(amount)} ·{" "}
+                                            {formatNumber(
+                                                total > 0 ? Math.round((amount / total) * 100) : 0,
+                                            )}{" "}
+                                            %
+                                        </span>
+                                        <span className="bar" aria-hidden="true">
+                                            <span
+                                                style={{
+                                                    width: `${highest > 0 ? (amount / highest) * 100 : 0}%`,
+                                                }}
+                                            />
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    )
+                }
+            />{" "}
             <Panel
                 title="Listado"
                 actions={
@@ -140,18 +151,26 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                         <tbody>
                             {shown.map((material) => (
                                 <tr key={material.id}>
-                                    <td data-label="Material">{material.name}</td>
+                                    <td data-label="Material" className="cell-lead">
+                                        {material.name}
+                                    </td>
                                     <td data-label="Proyecto">
                                         {projectNames.get(material.project_id) ?? "—"}
                                     </td>
-                                    <td data-label="Categoría">{material.category ?? "—"}</td>
+                                    <td data-label="Categoría">
+                                        {material.category === null ? (
+                                            "—"
+                                        ) : (
+                                            <span className="tag">{material.category}</span>
+                                        )}
+                                    </td>
                                     <td data-label="Cantidad" className="numeric">
                                         {formatNumber(material.quantity)} {material.unit}
                                     </td>
                                     <td data-label="Costo unitario" className="numeric">
                                         {formatMoney(material.unit_cost)}
                                     </td>
-                                    <td data-label="Subtotal" className="numeric">
+                                    <td data-label="Subtotal" className="numeric cell-total">
                                         {formatMoney(cost(material))}
                                     </td>
                                     <td>
