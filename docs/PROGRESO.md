@@ -10,8 +10,8 @@ Memoria de trabajo de la rama `rediseno-ui`. Se actualiza al cerrar cada fase, p
 | 1. Sistema de diseño | Obligatorio | Hecha |
 | 2. Navegación | Obligatorio | Hecha (punto de control 2 aprobado el 13 de octubre de 2026) |
 | 3. Pantallas | Obligatorio | Hecha |
-| 3b. Animaciones básicas (F1 y F2) | Obligatorio | En curso, detenida por la regla de parada |
-| 4. Correcciones | Obligatorio | Pendiente |
+| 3b. Animaciones básicas (F1 y F2) | Obligatorio | Hecha; revisión independiente en curso |
+| 4. Correcciones | Obligatorio | En curso |
 | 5. Datos | Deseable | Pendiente |
 | 6. Producto | Deseable | Pendiente |
 | 6b. Animaciones expresivas (F3) y selector de movimiento | Deseable | Pendiente |
@@ -121,28 +121,31 @@ No hecho: área y número de niveles en las tarjetas (necesita backend).
 
 Resultado: ver el commit de la fase; `Test Files 44 passed`, `Tests 277 passed`.
 
-## Fase 3b. Animaciones básicas (en curso, detenida el 13 de octubre de 2026)
-
-Hecho (sin cerrar; falta la revisión independiente, la documentación de «Movimiento» en `FRONTEND.md` y lo avanzado):
+## Fase 3b. Animaciones básicas (13 de octubre de 2026)
 
 - `styles/motion.css`: las tres curvas, los keyframes compartidos y el único interruptor de movimiento reducido. Ninguna otra hoja define curvas, keyframes ni duraciones a mano; lo vigila `styles/motion.test.ts`.
-- F2.1 cambio de ruta (View Transitions donde existen; si no, la pantalla sube 8 px), F2.2 ventanas, menús, ayudas y paleta con escala 0,96 y salida más rápida, F2.3 paneles del visor que se deslizan con `transform`, F2.4 listas escalonadas a 35 ms (ocho como máximo) y tarjetas que suben 2 px, F2.5 brillo de carga y fundido del contenido, F2.6 avisos con barra de tiempo, pausa y salida, F2.7 botón que pasa de «Guardando…» a «Guardado», F2.8 cambio de tema, F2.9 subrayado de pestañas solo con `transform`, F2.10 mensaje de error con fundido y sacudida del campo.
-- Demos en `/design-system` y `npm run movimiento` (comprobación en navegador).
+- F2.1 cambio de ruta (View Transitions donde existen; si no, la pantalla sube 8 px, también con el botón atrás), F2.2 ventanas, menús, ayudas y paleta con escala 0,96 y salida más rápida, F2.3 paneles del visor que se deslizan con `transform`, F2.4 listas escalonadas a 35 ms (ocho como máximo) y tarjetas que suben 2 px, F2.5 brillo de carga y fundido del contenido, F2.6 avisos con barra de tiempo, pausa y salida, F2.7 botón que pasa de «Guardando…» a «Guardado», F2.8 cambio de tema, F2.9 subrayado de pestañas solo con `transform`, F2.10 mensaje de error con fundido y sacudida del campo.
+- Avanzado: F2.11 conteo en «Ocupación del lote» (además del que ya tenía el inicio) y barras de gráficos y de progreso que se dibujan; F2.12 entrada del modelo 3D (los niveles se asientan); F2.13 cotas de las plantas que se trazan, solo en pantalla.
+- Demos en `/design-system`, sección «Movimiento» en `FRONTEND.md` y `npm run movimiento`.
 - Las pantallas reservan su forma final mientras cargan (Inicio, Proyectos, Terrenos, Materiales, Modelo 3D).
+- Capturas regeneradas con movimiento reducido (99 imágenes) y las ocho comprobaciones del visor en verde.
 
-Pendiente de lo avanzado (F2.11 a F2.13): conteo en las tarjetas métricas, entrada del modelo 3D y cotas que se dibujan. Ya existían el conteo del inicio y el dibujo de los gráficos.
+No hecho de lo avanzado: el pulso del contorno de selección y el fundido del terreno en el visor (piden tocar los materiales del motor; pasan a la fase 6b), y el trazado de cotas en el plano de implantación y en las fachadas (solo se hizo en las plantas).
 
-**Detenida por la regla de parada.** `npm run movimiento` falló tres veces seguidas:
+Sin ver en pantalla: la entrada del modelo 3D. Está en el motor y sus pruebas no lo ejecutan; en las capturas no aparece porque se toman con movimiento reducido. El trazado de las cotas sí se comprobó en el navegador (animación `draw-line` de 0,6 s activa).
+
+### La comprobación que detuvo la fase
+
+`npm run movimiento` falló tres veces seguidas y el trabajo se detuvo por la regla de parada; se reanudó con autorización.
 
 | Intento | Qué falló | Qué se hizo |
 |---|---|---|
 | 1 | Materiales (CLS 0,0148) y Terrenos (0,2240) | Reservar en Terrenos cifras, filtros, lista y detalle durante la carga; placeholders en la banda de Materiales |
-| 2 | Inicio (0,0635), Materiales (0,0909), Terrenos (0,0303), Configuración (0,0011) | Se vio que el resultado dependía de la velocidad de la ejecución. La API de muestra pasó a responder con 350 ms de retraso fijo para mostrar siempre la carga; se reservó el sitio en Inicio, Proyectos, Modelo 3D y Materiales |
-| 3 | Solo Inicio: CLS 0,0012 frente al límite de 0,001 | Nada todavía |
+| 2 | Inicio (0,0635), Materiales (0,0909), Terrenos (0,0303), Configuración (0,0011) | El resultado dependía de la velocidad de la ejecución: la API de muestra pasó a responder con 350 ms de retraso fijo; se reservó el sitio en Inicio, Proyectos, Modelo 3D y Materiales |
+| 3 | Solo Inicio: CLS 0,0012 | Diagnóstico: la franja de cifras de la portada medía 135 px con su marcador de carga y 123 px con las cifras, y como va anclada abajo se movía 12 px. Se le dio alto fijo |
+| 4 | Nada | Inicio, Proyectos, Modelo 3D, Terrenos y Configuración en 0,0000; Planos 0,0414 y Materiales 0,0131 |
 
-En el tercer intento el resto pasa: movimiento reducido sin ninguna animación en siete pantallas y en la paleta; Proyectos, Modelo 3D, Terrenos y Configuración con CLS 0,0000; Planos 0,0414 y Materiales 0,0131 (dentro del «bueno» de 0,1). Sin diagnosticar: de dónde salen las 0,0012 del inicio. Sospecha, no comprobada: el encabezado se mueve menos de un píxel al llegar la fuente (0,0006 a 0,0007 en todas las pantallas) y el bloque reservado de «Continuar» no mide exactamente lo que el real.
-
-Los cuatro comandos pasan con este estado: `format:check` y `lint` limpios, `Test Files 46 passed (46)`, `Tests 292 passed (292)`, `✓ built in 20.54s`.
+Resultado al cerrar: `format:check` y `lint` limpios, `Test Files 46 passed (46)`, `Tests 292 passed (292)`, `✓ built in 19.85s` (`index` 430,15 kB, 134,28 kB gzip).
 
 ## Problemas abiertos
 

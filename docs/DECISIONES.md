@@ -67,3 +67,19 @@ Recharts añade unos 107 kB comprimidos. Va en su propio archivo (`lazy`), que e
 ### Tarjetas sin área ni niveles (fase 3)
 
 El encargo original pedía área y número de niveles en cada tarjeta. La lista de proyectos de la API no trae esos datos y pedir el modelo de cada proyecto sería una petición por tarjeta. Queda propuesto en `CAMBIOS_BACKEND.md`.
+
+### Límite de CLS distinto para el inicio y para el resto (fase 3b)
+
+`npm run movimiento` exige 0,001 o menos en el inicio, que es donde el encargo pide CLS = 0, y 0,1 (el umbral «bueno» de web.dev) en las demás. Planos y Materiales quedan en 0,04 y 0,01: la tabla que llega es más alta que su marcador y empuja lo que tiene debajo. Igualarlo exige saber cuántas filas vendrán antes de pedirlas.
+
+### La API de muestra responde tarde en esa comprobación (fase 3b)
+
+Sin retraso, el resultado dependía de si los datos llegaban antes o después del primer dibujo: la misma pantalla daba 0,0007 en una ejecución y 0,0635 en la siguiente. Con 350 ms fijos la carga se ve siempre y la medida se repite.
+
+### `@types/node` (fase 3b)
+
+Dependencia de desarrollo fuera de la lista aprobada. La prueba que vigila las hojas de estilo las lee del disco, y Vitest no entrega el texto de un `.css` importado.
+
+### Entrada del modelo 3D dentro del motor (fase 3b)
+
+Son siete líneas en `BuildingSceneManager.ts`: la primera vez que se muestra un modelo, el despiece arranca en 0,25 y la amortiguación que ya existía lo lleva a su sitio. No se añadió el pulso del contorno de selección ni el fundido del terreno: piden tocar los materiales del motor y se dejaron para la fase 6b.

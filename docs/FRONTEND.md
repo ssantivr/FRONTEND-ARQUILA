@@ -288,6 +288,29 @@ La identidad sigue `docs/DISENO_ARQUILA.md`: verde bosque (`#0B211A`, `#12382A`)
 - **Proyectos.** Orden y vista de cuadrícula o lista en el cliente; archivar, reactivar y eliminar (con confirmación) usan `PATCH` y `DELETE /projects/{id}`. No hay «duplicar» porque la API no lo ofrece.
 - **Modelo 3D.** El panel «Objetos» agrupa por nivel en espacios y estructura, permite buscar y ocultar cada objeto (`setHidden` en `BuildingSceneManager.ts`). El tema oscuro es una escena nocturna y el claro una diurna; la oclusión ambiental (`GTAOPass` en `postprocessing.ts`) deja fuera vidrios, elementos atenuados, líneas y el cielo. El control «Sol» gira la luz alrededor del modelo (`setSun`) y «Guardar imagen» descarga la vista como PNG (`capture`); ninguno de los dos se guarda en el servidor. Mover, rotar o escalar objetos no existe: el modelo se genera a partir de los planos.
 
+### Movimiento
+
+El movimiento explica un cambio (qué apareció, qué se movió, qué se guardó); no decora. Todo sale de `src/styles/motion.css`.
+
+- **Qué se anima.** Solo `transform` y `opacity`, para que nada desplace la maquetación. Ejemplos: el subrayado de las pestañas ya no cambia de ancho, sino que se estira con `scaleX`; la barra de progreso se llena con `scaleX`; los paneles del visor se pliegan deslizándose y sus celdas conservan el tamaño. La única excepción es el plegado del menú lateral, que cambia la columna de la rejilla (`grid-template-columns`): ahí el contenido sí debe ganar el ancho que el menú suelta.
+- **Duraciones.** Tres, en `tokens.css`: 120 ms (pasar el cursor, foco, pulsar), 180 ms (paneles, menús, ayudas) y 240 ms (ventanas, cambios de pantalla). Nada de la interfaz dura más. Una presentación (un gráfico o el modelo que se arma) puede llegar a 600 ms (`--dur-show`). Los bucles que significan «trabajando» (el indicador de carga y el brillo de los marcadores) tienen su propio periodo.
+- **Curvas.** `--ease-out` para lo que entra, `--ease-in` para lo que sale y `--ease-in-out` para lo que pasa de un estado a otro. Lo que entra dura más que lo que sale.
+- **Un solo interruptor.** Si el sistema pide reducir el movimiento, o lo apagas en Configuración, todas las animaciones y transiciones terminan al instante en su estado final. Está en `motion.css` y ningún componente lo repite.
+- **Lo que hay.**
+    - Cambio de pantalla: donde el navegador tiene View Transitions, la pantalla anterior se desvanece y la nueva sube 8 px (`state/viewTransition.ts`); donde no, la nueva sube por su cuenta, que es también lo que pasa con el botón atrás.
+    - Ventanas, menús, ayudas y paleta: crecen desde el 96 % y salen más rápido. Para que una ventana pueda salir antes de desaparecer, `useAnimatedClose` retrasa el cierre hasta que termina su animación.
+    - Listas y tarjetas: llegan una tras otra con 35 ms de diferencia, solo las ocho primeras; una tarjeta sube 2 px al pasar el cursor.
+    - Avisos: entran desde el borde, muestran en una barra el tiempo que les queda, esperan mientras el cursor o el foco están encima y salen deslizándose (`state/toasts.ts`).
+    - Guardar: el botón del formulario que se envió pasa a «Guardando…» y luego a «Guardado» con un check (`FormActions`, que escucha `state/saveStatus.ts`).
+    - Tema: los colores se cruzan en 180 ms. El lienzo 3D queda fuera, y en la primera carga no se anima nada.
+    - Formularios: el mensaje de error aparece con fundido y el campo se sacude una vez.
+    - Cifras y gráficos: las cifras del inicio y de «Ocupación del lote» cuentan hasta su valor; las barras de los gráficos y de progreso se dibujan al aparecer.
+    - Modelo 3D: la primera vez que se muestra, los niveles parten un cuarto separados y se asientan (el mismo despiece amortiguado, unos 600 ms). El visor sigue dibujando solo mientras dura.
+    - Planos: los ejes aparecen con fundido y las cotas se trazan. Solo en pantalla: un plano descargado o impreso no lleva hoja de estilos y sale siempre completo.
+- **Sin saltos al cargar.** Inicio, Proyectos, Terrenos, Materiales y Modelo 3D ocupan su forma final desde el primer momento, con marcadores, y el contenido los sustituye sin mover lo demás.
+- **Cómo se comprueba.** `styles/motion.test.ts` lee todas las hojas de estilo y falla si alguna, fuera de `motion.css`, define una curva, un keyframe o una duración a mano, o anima el ancho, el alto o la posición. `npm run movimiento` (`scripts/movimiento.mjs`) abre siete pantallas en el navegador: con movimiento reducido no puede quedar ninguna animación en marcha, y con movimiento normal mide el desplazamiento de la maquetación (CLS) con la API respondiendo 350 ms tarde, para que la carga se vea siempre. Resultado del 13 de octubre de 2026: 0,0000 en Inicio, Proyectos, Modelo 3D, Terrenos y Configuración; 0,0131 en Materiales y 0,0414 en la pestaña Planos, donde la tabla que llega empuja su formulario.
+- **Demostración.** `/design-system` tiene una muestra de cada animación con un botón para repetirla.
+
 ### Miniaturas, gráficos, validación y fallos del visor
 
 - **Miniatura del modelo.** La portada de una tarjeta de proyecto es la imagen de su modelo 3D. El visor la toma dos segundos después de dibujar el modelo (`capture()`), la reduce a un JPEG de 480 × 270 px y la guarda en `localStorage` (`state/thumbnails.ts`). Solo se toma del modelo completo tal como abre: no de un cuarto aislado, de una selección ni de una luz de presentación. Se conservan las de los últimos 24 proyectos, para no llenar el almacenamiento, y si aun así está lleno la imagen simplemente no se guarda. Un proyecto que no se ha abierto en ese navegador sigue mostrando la portada dibujada. Guardarla en la cuenta necesita backend (`CAMBIOS_BACKEND.md`).

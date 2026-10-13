@@ -42,7 +42,12 @@ const SIZES = {
 };
 
 async function open(browser, { theme, size, signedIn = true }) {
-    const context = await browser.newContext({ viewport: SIZES[size], deviceScaleFactor: 1 });
+    // Reduced motion: every picture shows the settled screen, not a frame of an animation.
+    const context = await browser.newContext({
+        viewport: SIZES[size],
+        deviceScaleFactor: 1,
+        reducedMotion: "reduce",
+    });
 
     await context.addInitScript((value) => localStorage.setItem("arquila:theme", value), theme);
     await context.route("**/api/**", (route) => {

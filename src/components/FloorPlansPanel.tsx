@@ -19,6 +19,14 @@ interface FloorPlansPanelProps {
 const DEFAULT_MAX_COS = "0.6";
 const DEFAULT_MAX_CUS = "1.8";
 
+function ratio(value: number): string {
+    return value.toFixed(2);
+}
+
+function squareMeters(value: number): string {
+    return `${formatNumber(value)} m²`;
+}
+
 function compliance(value: number | null, limit: string): string {
     const max = Number(limit);
 
@@ -63,16 +71,27 @@ export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansP
                             <MetricCard
                                 label="COS"
                                 value={indicators.cos === null ? "—" : indicators.cos.toFixed(2)}
+                                count={
+                                    indicators.cos === null
+                                        ? undefined
+                                        : { to: indicators.cos, format: ratio, step: 0.01 }
+                                }
                                 detail={compliance(indicators.cos, maxCos)}
                             />
                             <MetricCard
                                 label="CUS"
                                 value={indicators.cus === null ? "—" : indicators.cus.toFixed(2)}
+                                count={
+                                    indicators.cus === null
+                                        ? undefined
+                                        : { to: indicators.cus, format: ratio, step: 0.01 }
+                                }
                                 detail={compliance(indicators.cus, maxCus)}
                             />
                             <MetricCard
                                 label="Huella construida"
                                 value={`${formatNumber(indicators.footprint)} m²`}
+                                count={{ to: indicators.footprint, format: squareMeters }}
                                 detail={
                                     indicators.freeArea === null
                                         ? undefined
@@ -82,6 +101,7 @@ export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansP
                             <MetricCard
                                 label="Área construida"
                                 value={`${formatNumber(indicators.builtArea)} m²`}
+                                count={{ to: indicators.builtArea, format: squareMeters }}
                                 detail={`${indicators.levels === 1 ? "1 nivel" : `${indicators.levels} niveles`} · ${formatNumber(indicators.height)} m de altura`}
                             />
                         </div>

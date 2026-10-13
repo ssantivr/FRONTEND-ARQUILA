@@ -165,6 +165,7 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                         strokeWidth={0.8}
                         strokeDasharray="6 4"
                         opacity={0.45}
+                        className="plan-axes"
                     >
                         {xs.map((x) => (
                             <line
@@ -230,10 +231,18 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                         </g>
                     ))}
 
-                    <g stroke={COLORS.muted} strokeWidth={1}>
-                        <line x1={left} y1={top - CHAIN_GAP} x2={right} y2={top - CHAIN_GAP} />
+                    {/* On screen the dimension lines trace themselves once (plan-dimensions in motion.css). */}
+                    <g className="plan-dimensions" stroke={COLORS.muted} strokeWidth={1}>
+                        <line
+                            pathLength={1}
+                            x1={left}
+                            y1={top - CHAIN_GAP}
+                            x2={right}
+                            y2={top - CHAIN_GAP}
+                        />
                         {xs.map((x) => (
                             <line
+                                pathLength={1}
                                 key={`tx${x}`}
                                 x1={toX(x) - 3}
                                 y1={top - CHAIN_GAP + 3}
@@ -241,9 +250,16 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                                 y2={top - CHAIN_GAP - 3}
                             />
                         ))}
-                        <line x1={left - CHAIN_GAP} y1={top} x2={left - CHAIN_GAP} y2={bottom} />
+                        <line
+                            pathLength={1}
+                            x1={left - CHAIN_GAP}
+                            y1={top}
+                            x2={left - CHAIN_GAP}
+                            y2={bottom}
+                        />
                         {ys.map((y) => (
                             <line
+                                pathLength={1}
                                 key={`ty${y}`}
                                 x1={left - CHAIN_GAP - 3}
                                 y1={toY(y) + 3}
@@ -252,10 +268,17 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                             />
                         ))}
                         {xs.length > 2 && (
-                            <line x1={left} y1={top - TOTAL_GAP} x2={right} y2={top - TOTAL_GAP} />
+                            <line
+                                pathLength={1}
+                                x1={left}
+                                y1={top - TOTAL_GAP}
+                                x2={right}
+                                y2={top - TOTAL_GAP}
+                            />
                         )}
                         {ys.length > 2 && (
                             <line
+                                pathLength={1}
                                 x1={left - TOTAL_GAP}
                                 y1={top}
                                 x2={left - TOTAL_GAP}

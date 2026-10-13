@@ -82,6 +82,7 @@ src/
 | `npm run lint` | Reglas de ESLint. |
 | `npm run format` / `npm run format:check` | Formato con Prettier. |
 | `npm run contraste` | Comprueba el contraste AA (4,5:1) de cada par texto/fondo de los tokens, en claro y oscuro. |
+| `npm run movimiento` | Con `npm run dev` en marcha, comprueba en el navegador que con movimiento reducido nada se anima y que ninguna pantalla salta al cargar. |
 | `npm run accesibilidad` | Con `npm run dev` en marcha, pasa axe-core por las pantallas principales. |
 | `npm run capturas` | Con `npm run dev` en marcha, guarda en `docs/capturas/` las pantallas principales (claro y oscuro, escritorio y móvil) y comprueba con clics reales el visor 3D. Usa datos de muestra, sin backend. |
 

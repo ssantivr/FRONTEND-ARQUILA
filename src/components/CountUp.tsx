@@ -1,26 +1,27 @@
 import { useEffect, useState } from "react";
 
+import { prefersReducedMotion } from "../state/motion";
+
 interface CountUpProps {
     value: number;
     format: (value: number) => string;
+    /** The smallest step shown on the way up: 1 for whole figures, 0.01 for a ratio. */
+    step?: number;
 }
 
-const DURATION_MS = 700;
+/** A figure is a presentation, so it may take the longest duration of the motion system. */
+const DURATION_MS = 600;
 
 /** True when neither the system nor the user's own switch asks for less motion. */
 function motionAllowed(): boolean {
-    return (
-        typeof window.matchMedia === "function" &&
-        !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-        document.documentElement.dataset.motion !== "reduced"
-    );
+    return !prefersReducedMotion();
 }
 
 /**
  * A figure that counts from zero up to its real value when it appears. The value is always the
  * one it was given: only the way it arrives is animated, and not at all with reduced motion.
  */
-export function CountUp({ value, format }: CountUpProps) {
+export function CountUp({ value, format, step = 1 }: CountUpProps) {
     const [shown, setShown] = useState(() => (motionAllowed() ? 0 : value));
 
     useEffect(() => {
@@ -45,5 +46,5 @@ export function CountUp({ value, format }: CountUpProps) {
     }, [value]);
 
     // Whole figures stay whole on the way up; money keeps its cents only at the end.
-    return <>{format(shown === value ? value : Math.round(shown))}</>;
+    return <>{format(shown === value ? value : Math.round(shown / step) * step)}</>;
 }

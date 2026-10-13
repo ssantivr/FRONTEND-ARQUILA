@@ -121,3 +121,19 @@
 .band-chart {
     min-height: 164px;
 }
+
+/*
+ * The strip of figures over the hero is anchored to its bottom edge, so it must measure the same
+ * with its loading placeholder as with the figures; otherwise it moves when they arrive.
+ */
+@media (min-width: 901px) {
+    .hero-stats {
+        height: 124px;
+    }
+
+    .hero-stats .skeleton {
+        max-height: 80px;
+        margin: 0;
+        overflow: hidden;
+    }
+}

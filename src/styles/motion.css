@@ -232,6 +232,25 @@ html[data-view-transition] .content > * {
     animation: pop-in var(--dur) var(--ease-out) both;
 }
 
+/*
+ * ---- Generated plans ----
+ * The first time a plan is on screen its axes fade in and its dimension lines trace themselves
+ * (each line has pathLength 1). Only on screen: a downloaded or printed plan carries no style
+ * sheet, so it is always complete.
+ */
+@media screen {
+    .plan-axes {
+        animation: fade-in var(--dur-show) var(--ease-out) backwards;
+    }
+
+    .plan-dimensions line {
+        --line-length: 1;
+
+        stroke-dasharray: 1;
+        animation: draw-line var(--dur-show) var(--ease-in-out) backwards;
+    }
+}
+
 /* ---- Change of route: the browser cross-fades the two screens where it can ---- */
 
 ::view-transition-old(root) {

@@ -136,6 +136,9 @@ const OVERLAY_RENDER_ORDER = 2;
 const EXPLODE_GAP_M = 3.5;
 const EXPLODE_RATE = 8;
 const EXPLODE_REST = 0.002;
+// The first time a model is shown its levels start a quarter apart and settle into place. With
+// the damping above that takes about 600 ms, the longest a presentation may last.
+const ENTRANCE_EXPLODE = 0.25;
 const MAX_FRAME_S = 0.1;
 const LEVEL_TOLERANCE_M = 0.05;
 const INSPECT_POLAR = 0.75;
@@ -891,6 +894,7 @@ export function createStructureViewer(
     let levelBases: number[] = [];
     let explodeTarget = 0;
     let explodeCurrent = 0;
+    let entered = false;
     let lastFrame = 0;
     let asset: Object3D | null = null;
     let assetRequest = 0;
@@ -1479,6 +1483,15 @@ export function createStructureViewer(
     }
 
     function show(structure: Structure): void {
+        // The entrance plays once per viewer, not each time a room is added and the model rebuilt.
+        if (!entered) {
+            entered = true;
+
+            if (!prefersReducedMotion()) {
+                explodeCurrent = Math.max(explodeCurrent, ENTRANCE_EXPLODE);
+            }
+        }
+
         clear();
 
         elements = buildElements(structure);
