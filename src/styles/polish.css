@@ -136,3 +136,82 @@ button {
 .skeleton-rows .skeleton-bar:last-child {
     border-bottom: 0;
 }
+
+/* ---- A drafting grid under the work area: barely there, but it reads as a drawing board ---- */
+
+.workspace {
+    --grid-line: rgba(23, 33, 27, 0.04);
+
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+:root[data-theme="dark"] .workspace {
+    --grid-line: rgba(255, 255, 255, 0.022);
+}
+
+/* ---- Panels, tables and forms of the project tabs, in the same language as the new pages ---- */
+
+.panel {
+    border-radius: var(--r-lg);
+}
+
+.panel-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+}
+
+:is(input, select, textarea) {
+    border-radius: var(--r-md);
+}
+
+.panel table {
+    font-size: 14px;
+}
+
+.panel th {
+    height: 36px;
+    padding: 0 12px;
+    font-size: var(--fs-label);
+    letter-spacing: 0.08em;
+}
+
+.panel td {
+    height: 44px;
+    padding: 4px 12px;
+}
+
+.panel tbody tr {
+    transition: background-color var(--dur-fast) var(--ease);
+}
+
+.panel td button {
+    min-height: 28px;
+    padding: 2px 10px;
+    font-size: 13px;
+    border-radius: var(--r-sm);
+}
+
+/* The form that adds a row sits under its table, set apart by a hairline and a quiet surface. */
+.panel :is(table, .empty-state, ul, .skeleton) + .form-row,
+.panel > .form-row:last-child {
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.form-row label {
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.message {
+    font-size: 14px;
+    line-height: 1.5;
+}
