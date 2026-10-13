@@ -136,57 +136,59 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                     </p>
                 )}
                 {shown.length > 0 && (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Material</th>
-                                <th>Proyecto</th>
-                                <th>Categoría</th>
-                                <th className="numeric">Cantidad</th>
-                                <th className="numeric">Costo unitario</th>
-                                <th className="numeric">Subtotal</th>
-                                <th />
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {shown.map((material) => (
-                                <tr key={material.id}>
-                                    <td data-label="Material" className="cell-lead">
-                                        {material.name}
-                                    </td>
-                                    <td data-label="Proyecto">
-                                        {projectNames.get(material.project_id) ?? "—"}
-                                    </td>
-                                    <td data-label="Categoría">
-                                        {material.category === null ? (
-                                            "—"
-                                        ) : (
-                                            <span className="tag">{material.category}</span>
-                                        )}
-                                    </td>
-                                    <td data-label="Cantidad" className="numeric">
-                                        {formatNumber(material.quantity)} {material.unit}
-                                    </td>
-                                    <td data-label="Costo unitario" className="numeric">
-                                        {formatMoney(material.unit_cost)}
-                                    </td>
-                                    <td data-label="Subtotal" className="numeric cell-total">
-                                        {formatMoney(cost(material))}
-                                    </td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            className="button-secondary"
-                                            aria-label={`Abrir el proyecto del material ${material.name}`}
-                                            onClick={() => onOpenProject(material.project_id)}
-                                        >
-                                            Abrir
-                                        </button>
-                                    </td>
+                    <div className="table-scroll">
+                        <table className="table-dense">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Proyecto</th>
+                                    <th>Categoría</th>
+                                    <th className="numeric">Cantidad</th>
+                                    <th className="numeric">Costo unitario</th>
+                                    <th className="numeric">Subtotal</th>
+                                    <th />
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {shown.map((material) => (
+                                    <tr key={material.id}>
+                                        <td data-label="Material" className="cell-lead">
+                                            {material.name}
+                                        </td>
+                                        <td data-label="Proyecto">
+                                            {projectNames.get(material.project_id) ?? "—"}
+                                        </td>
+                                        <td data-label="Categoría">
+                                            {material.category === null ? (
+                                                "—"
+                                            ) : (
+                                                <span className="tag">{material.category}</span>
+                                            )}
+                                        </td>
+                                        <td data-label="Cantidad" className="numeric">
+                                            {formatNumber(material.quantity)} {material.unit}
+                                        </td>
+                                        <td data-label="Costo unitario" className="numeric">
+                                            {formatMoney(material.unit_cost)}
+                                        </td>
+                                        <td data-label="Subtotal" className="numeric cell-total">
+                                            {formatMoney(cost(material))}
+                                        </td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                className="button-secondary"
+                                                aria-label={`Abrir el proyecto del material ${material.name}`}
+                                                onClick={() => onOpenProject(material.project_id)}
+                                            >
+                                                Abrir
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </Panel>
             <SurfaceLibrary />

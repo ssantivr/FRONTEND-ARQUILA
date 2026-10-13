@@ -27,6 +27,22 @@ function swatch(id: SurfaceMaterialId): React.CSSProperties {
     };
 }
 
+const GROUPS = ["Con relieve", "Lisas", "Metálicas", "Translúcidas"] as const;
+
+/** The group is read from the values the engine renders with; the API has no category for them. */
+function groupOf(id: SurfaceMaterialId): (typeof GROUPS)[number] {
+    const surface = SURFACE_MATERIALS[id];
+
+    if (surface.opacity < 1) {
+        return "Translúcidas";
+    }
+
+    if (surface.metalness >= 0.5) {
+        return "Metálicas";
+    }
+
+    return surface.grain > 0 ? "Con relieve" : "Lisas";
+}
 /**
  * The surface finishes the 3D viewer can put on a room or component. The figures are the ones the
  * engine renders with, not a catalogue of products.
@@ -62,41 +78,57 @@ export function SurfaceLibrary() {
                     Todavía no marcaste ninguna superficie como favorita.
                 </p>
             )}
-            <ul className="card-list surface-list">
-                {shown.map((id) => {
-                    const surface = SURFACE_MATERIALS[id];
-                    const favorite = favorites.isFavorite(id);
+            {GROUPS.map((group) => {
+                const ids = shown.filter((id) => groupOf(id) === group);
 
-                    return (
-                        <li key={id} className="surface-item">
-                            <button
-                                type="button"
-                                className="card surface-card"
-                                onClick={() => setPreviewId(id)}
-                            >
-                                <span
-                                    className="surface-swatch"
-                                    style={swatch(id)}
-                                    aria-hidden="true"
-                                />
-                                <span className="card-title">{surface.label}</span>
-                                <span className="card-subtitle numeric">
-                                    Rugosidad {surface.roughness} · Metal {surface.metalness}
-                                </span>
-                            </button>
-                            <button
-                                type="button"
-                                className="surface-favorite"
-                                aria-pressed={favorite}
-                                aria-label={`${favorite ? "Quitar de favoritas" : "Marcar como favorita"}: ${surface.label}`}
-                                onClick={() => favorites.toggle(id)}
-                            >
-                                {favorite ? "★" : "☆"}
-                            </button>
-                        </li>
-                    );
-                })}
-            </ul>
+                if (ids.length === 0) {
+                    return null;
+                }
+
+                return (
+                    <section key={group} className="surface-group" aria-label={group}>
+                        <h3>
+                            {group} <span>{ids.length}</span>
+                        </h3>
+                        <ul className="card-list surface-list">
+                            {ids.map((id) => {
+                                const surface = SURFACE_MATERIALS[id];
+                                const favorite = favorites.isFavorite(id);
+
+                                return (
+                                    <li key={id} className="surface-item">
+                                        <button
+                                            type="button"
+                                            className="card surface-card"
+                                            onClick={() => setPreviewId(id)}
+                                        >
+                                            <span
+                                                className="surface-swatch"
+                                                style={swatch(id)}
+                                                aria-hidden="true"
+                                            />
+                                            <span className="card-title">{surface.label}</span>
+                                            <span className="card-subtitle numeric">
+                                                Rugosidad {surface.roughness} · Metal{" "}
+                                                {surface.metalness}
+                                            </span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="surface-favorite"
+                                            aria-pressed={favorite}
+                                            aria-label={`${favorite ? "Quitar de favoritas" : "Marcar como favorita"}: ${surface.label}`}
+                                            onClick={() => favorites.toggle(id)}
+                                        >
+                                            {favorite ? "★" : "☆"}
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </section>
+                );
+            })}
             {preview !== null && previewId !== null && (
                 <Modal title={preview.label} onClose={() => setPreviewId(null)}>
                     <div className="surface-preview">
