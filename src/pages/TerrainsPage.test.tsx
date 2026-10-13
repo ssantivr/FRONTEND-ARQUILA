@@ -50,6 +50,16 @@ describe("TerrainsPage", () => {
         expect(screen.getByRole("button", { name: /Lote sur/ })).toBeInTheDocument();
     });
 
+    it("shows the first terrain in the detail panel until another is chosen, and its figures", async () => {
+        render(<TerrainsPage onOpenProject={() => undefined} />);
+
+        expect(
+            await screen.findByRole("complementary", { name: "Detalle de Lote norte" }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "2 terrenos" })).toBeInTheDocument();
+        expect(screen.getByText("960 m²")).toBeInTheDocument();
+    });
+
     it("opens the detail of a terrain without inventing what was not recorded", async () => {
         const onOpenProject = vi.fn();
 

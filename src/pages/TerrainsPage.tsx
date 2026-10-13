@@ -1,8 +1,6 @@
 import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
-import { PageBand } from "../components/PageBand";
-import { Panel } from "../components/Panel";
 import { Button } from "../components/ui/Button";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, terrainsApi } from "../services/api";
@@ -94,87 +92,123 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
     );
     const steepest = slopes.length === 0 ? null : Math.max(...slopes);
     const wanted = query.trim().toLowerCase();
+    const filtered = wanted !== "" || projectId !== "" || soil !== "";
     const shown = terrains.filter(
         (terrain) =>
             (wanted === "" || terrain.name.toLowerCase().includes(wanted)) &&
             (projectId === "" || terrain.project_id === Number(projectId)) &&
             (soil === "" || terrain.soil_type === soil),
     );
-    // There is always a terrain in the detail panel: the chosen one, or the first of the list.
-    const selected = shown.find((terrain) => terrain.id === selectedId) ?? shown[0] ?? null;
+    // On a wide screen the panel always shows a terrain: the chosen one, or the first of the list.
+    // On a narrow one it is a sheet that only opens for a terrain the user chose.
+    const chosen = shown.find((terrain) => terrain.id === selectedId) ?? null;
+    const selected = chosen ?? shown[0] ?? null;
 
     return (
         <>
-            <PageBand
-                title="Todos tus terrenos"
-                text="Los terrenos de todos tus proyectos. Son de consulta: para agregar o editar uno, ábrelo desde su proyecto."
-                stats={
-                    data.data === null
-                        ? undefined
-                        : [
-                              { label: "Terrenos", value: formatNumber(terrains.length) },
-                              { label: "Área total", value: `${formatNumber(totalArea)} m²` },
-                              {
-                                  label: "Pendiente máxima",
-                                  value: steepest === null ? "—" : `${formatNumber(steepest)} %`,
-                                  detail: `${slopes.length} con pendiente registrada`,
-                              },
-                          ]
-                }
-            />
-            <Panel
-                title="Fichas"
-                actions={
-                    terrains.length > 0 && (
-                        <div className="filters">
-                            <input
-                                type="search"
-                                placeholder="Buscar terreno"
-                                aria-label="Buscar terreno por nombre"
-                                value={query}
-                                onChange={(event) => setQuery(event.target.value)}
-                            />
+            <header className="page-head">
+                <div>
+                    <h2>
+                        {data.data === null
+                            ? "Terrenos"
+                            : terrains.length === 1
+                              ? "1 terreno"
+                              : `${formatNumber(terrains.length)} terrenos`}
+                    </h2>
+                    <p className="page-head-meta">
+                        De todos tus proyectos · se editan desde su proyecto
+                    </p>
+                </div>
+                {data.data !== null && terrains.length > 0 && (
+                    <dl className="stat-strip">
+                        <div>
+                            <dt>Área total</dt>
+                            <dd>{formatNumber(totalArea)} m²</dd>
+                        </div>
+                        <div>
+                            <dt>Pendiente máxima</dt>
+                            <dd>{steepest === null ? "—" : `${formatNumber(steepest)} %`}</dd>
+                        </div>
+                        <div>
+                            <dt>Con pendiente registrada</dt>
+                            <dd>
+                                {slopes.length} de {terrains.length}
+                            </dd>
+                        </div>
+                    </dl>
+                )}
+            </header>
+
+            <section className="list-section" aria-label="Fichas de terrenos">
+                {terrains.length > 0 && (
+                    <div className="list-toolbar">
+                        <input
+                            type="search"
+                            placeholder="Buscar terreno"
+                            aria-label="Buscar terreno por nombre"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                        />
+                        <select
+                            aria-label="Filtrar por proyecto"
+                            value={projectId}
+                            onChange={(event) => setProjectId(event.target.value)}
+                        >
+                            <option value="">Todos los proyectos</option>
+                            {projects.map((project) => (
+                                <option key={project.id} value={project.id}>
+                                    {project.name}
+                                </option>
+                            ))}
+                        </select>
+                        {soils.length > 0 && (
                             <select
-                                aria-label="Filtrar por proyecto"
-                                value={projectId}
-                                onChange={(event) => setProjectId(event.target.value)}
+                                aria-label="Filtrar por tipo de suelo"
+                                value={soil}
+                                onChange={(event) => setSoil(event.target.value)}
                             >
-                                <option value="">Todos los proyectos</option>
-                                {projects.map((project) => (
-                                    <option key={project.id} value={project.id}>
-                                        {project.name}
+                                <option value="">Todos los suelos</option>
+                                {soils.map((name) => (
+                                    <option key={name} value={name}>
+                                        {name}
                                     </option>
                                 ))}
                             </select>
-                            {soils.length > 0 && (
-                                <select
-                                    aria-label="Filtrar por tipo de suelo"
-                                    value={soil}
-                                    onChange={(event) => setSoil(event.target.value)}
-                                >
-                                    <option value="">Todos los suelos</option>
-                                    {soils.map((name) => (
-                                        <option key={name} value={name}>
-                                            {name}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
-                    )
-                }
-            >
+                        )}
+                        {filtered && (
+                            <span className="list-count" role="status">
+                                {shown.length === 1 ? "1 resultado" : `${shown.length} resultados`}
+                            </span>
+                        )}
+                    </div>
+                )}
                 <AsyncStatus
                     loading={data.loading}
                     error={data.error}
                     onRetry={data.reload}
                     isEmpty={terrains.length === 0}
-                    emptyText="Todavía no hay terrenos. Regístralos en la pestaña Terreno de un proyecto."
+                    skeleton="cards"
+                    emptyTitle="Todavía no hay terrenos"
+                    emptyText="Se registran en la pestaña Terreno de cada proyecto y aparecen aquí todos juntos."
                 />
                 {terrains.length > 0 && shown.length === 0 && (
-                    <p className="message" role="status">
-                        Ningún terreno coincide con el filtro.
-                    </p>
+                    <div className="empty-state">
+                        <p className="empty-title">Ningún terreno coincide</p>
+                        <p className="message" role="status">
+                            Ningún terreno coincide con el filtro.
+                        </p>
+                        <button
+                            type="button"
+                            className="button-secondary"
+                            onClick={() => {
+                                setQuery("");
+                                setProjectId("");
+                                setSoil("");
+                            }}
+                        >
+                            Quitar los filtros
+                        </button>
+                    </div>
                 )}
                 <div
                     className={
@@ -195,7 +229,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                     <span className="card-subtitle">
                                         {projectNames.get(terrain.project_id) ?? "—"}
                                     </span>
-                                    <span className="card-subtitle numeric">
+                                    <span className="card-subtitle terrain-card-figures">
                                         {formatNumber(terrain.area_m2)} m² ·{" "}
                                         {describeShape(terrain)}
                                     </span>
@@ -205,7 +239,11 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                     </ul>
                     {selected !== null && (
                         <aside
-                            className="terrain-detail"
+                            className={
+                                chosen === null
+                                    ? "terrain-detail"
+                                    : "terrain-detail terrain-detail-chosen"
+                            }
                             aria-label={`Detalle de ${selected.name}`}
                         >
                             <header className="terrain-detail-head">
@@ -213,9 +251,13 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                     <h3>{selected.name}</h3>
                                     <p>{projectNames.get(selected.project_id) ?? "—"}</p>
                                 </div>
-                                <Button onClick={() => onOpenProject(selected.project_id)}>
-                                    Abrir en su proyecto
-                                </Button>
+                                <button
+                                    type="button"
+                                    className="button-tertiary terrain-detail-close"
+                                    onClick={() => setSelectedId(null)}
+                                >
+                                    Cerrar
+                                </button>
                             </header>
                             <figure className="terrain-figure">
                                 <TerrainShape terrain={selected} />
@@ -253,10 +295,13 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                     </dd>
                                 </div>
                             </dl>
+                            <Button onClick={() => onOpenProject(selected.project_id)}>
+                                Abrir en su proyecto
+                            </Button>
                         </aside>
                     )}
                 </div>
-            </Panel>
+            </section>
         </>
     );
 }

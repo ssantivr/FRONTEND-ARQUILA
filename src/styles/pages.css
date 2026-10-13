@@ -526,16 +526,54 @@
 .project-saving {
     margin: 0;
 }
-/* ---- Terrains: the list on the left, the chosen terrain in full on the right ---- */
+/* ---- Figures of a page on one line, beside its title ---- */
+
+.stat-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 0;
+    margin: 0;
+}
+
+.stat-strip > div {
+    display: grid;
+    gap: 2px;
+    padding: 0 24px;
+    border-left: 1px solid var(--border);
+}
+
+.stat-strip > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.stat-strip dt {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.stat-strip dd {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+/* ---- Terrains: cards with the lot's outline, the chosen one in a panel fixed on the right ---- */
 
 .terrain-layout-open {
-    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 380px;
     gap: 24px;
 }
 
 .terrain-list {
     display: grid;
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -543,55 +581,80 @@
 
 .terrain-list .terrain-card {
     display: grid;
-    grid-template-columns: 64px minmax(0, 1fr);
-    align-items: center;
-    gap: 2px 14px;
+    gap: 4px;
     padding: 12px;
+    background: var(--panel);
+    border-radius: var(--r-lg);
+    transition:
+        border-color var(--dur-fast) var(--ease),
+        box-shadow var(--dur-fast) var(--ease),
+        transform var(--dur-fast) var(--ease);
+}
+
+.terrain-shape {
+    background:
+        linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 20px 20px,
+        linear-gradient(90deg, var(--border) 1px, transparent 1px) 0 0 / 20px 20px,
+        var(--panel-raised);
+    border-radius: var(--r-md);
 }
 
 .terrain-list .terrain-card .terrain-shape {
-    grid-row: span 3;
-    width: 64px;
-    height: 64px;
-}
-
-.terrain-list .terrain-card:hover {
-    transform: none;
-}
-
-.terrain-list .terrain-card .numeric {
-    text-align: left;
+    height: 160px;
+    margin-bottom: 8px;
 }
 
 .terrain-list .terrain-card[aria-pressed="true"] {
-    background: var(--accent-soft);
     border-color: var(--accent);
-    box-shadow: inset 4px 0 0 var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.terrain-card .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.terrain-card .card-subtitle {
+    font-size: 13px;
+}
+
+.terrain-card .terrain-card-figures {
+    font-size: var(--fs-label);
+    font-variant-numeric: tabular-nums;
 }
 
 .terrain-detail {
     gap: 20px;
     padding: 24px;
+    background: var(--panel);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
 }
 
 .terrain-detail-head {
     display: flex;
-    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
 }
 
 .terrain-detail h3 {
-    font-size: 1.6rem;
-    font-weight: 720;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
 }
 
 .terrain-detail-head p {
     margin: 4px 0 0;
     color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Only the sheet of a narrow screen can be closed. */
+.terrain-detail-close {
+    display: none;
 }
 
 .terrain-figure {
@@ -601,13 +664,8 @@
 }
 
 .terrain-detail .terrain-figure .terrain-shape {
-    height: 300px;
-    background:
-        linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 24px 24px,
-        linear-gradient(90deg, var(--border) 1px, transparent 1px) 0 0 / 24px 24px,
-        var(--panel);
+    height: 240px;
     border: 1px solid var(--border);
-    border-radius: 12px;
 }
 
 .terrain-figure .diagram-lot {
@@ -616,59 +674,178 @@
 
 .terrain-figure figcaption {
     color: var(--text-secondary);
-    font-size: 0.86rem;
+    font-size: var(--fs-label);
 }
 
+/* Facts separated by hairlines, not by boxes. */
 .fact-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
     margin: 0;
 }
 
 .fact-grid > div {
     display: grid;
     align-content: start;
-    gap: 4px;
-    padding: 14px 16px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    gap: 2px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
 }
 
 .fact-grid dt {
     color: var(--text-secondary);
-    font-size: 0.68rem;
-    font-weight: 650;
-    letter-spacing: 0.14em;
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
 .fact-grid dd {
     margin: 0;
-    font-size: 1.15rem;
-    font-weight: 620;
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
 }
 
-/* ---- Materials table ---- */
+@keyframes sheet-in {
+    from {
+        transform: translateY(100%);
+    }
+}
+
+/* Tablet and phone: the detail is a sheet that slides up for the terrain the user chose. */
+@media (max-width: 1024px) {
+    .terrain-layout-open {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .terrain-detail {
+        display: none;
+    }
+
+    .terrain-detail.terrain-detail-chosen {
+        position: fixed;
+        inset: auto 0 0;
+        z-index: 40;
+        display: grid;
+        max-height: 82vh;
+        overflow: auto;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -16px 48px rgba(6, 17, 12, 0.4);
+        animation: sheet-in var(--dur-slow) var(--ease) both;
+    }
+
+    .terrain-detail-close {
+        display: inline-flex;
+    }
+
+    .terrain-detail .terrain-figure .terrain-shape {
+        height: 200px;
+    }
+}
+
+/* ---- Materials: a dense table with a fixed header, and the surface catalogue ---- */
 
 .tag {
     padding: 2px 10px;
-    font-size: 0.8rem;
+    font-size: var(--fs-label);
     background: var(--hover);
     border: 1px solid var(--border);
     border-radius: 999px;
 }
 
 .cell-lead {
-    font-weight: 620;
+    font-weight: 600;
 }
 
 .cell-total {
-    font-weight: 680;
+    font-weight: 650;
 }
 
+.table-scroll {
+    max-height: 520px;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.table-dense th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--panel-raised);
+}
+
+.table-dense td {
+    height: 44px;
+    padding: 0 12px;
+    font-size: 14px;
+}
+
+.table-dense tr:last-child td {
+    border-bottom: 0;
+}
+
+.table-dense td button {
+    min-height: 28px;
+    padding: 2px 12px;
+}
+
+.surface-group + .surface-group {
+    margin-top: 28px;
+}
+
+.surface-group h3 {
+    margin: 0 0 12px;
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.surface-group h3 span {
+    margin-left: 4px;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+}
+
+.surface-group .surface-list {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 0;
+}
+
+.surface-card {
+    gap: 2px;
+    padding: 0 0 12px;
+    overflow: hidden;
+    border-radius: var(--r-lg);
+}
+
+.surface-card .surface-swatch {
+    height: 140px;
+    margin-bottom: 10px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+}
+
+.surface-card .card-title {
+    padding: 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.surface-card .card-subtitle {
+    padding: 0 12px;
+    font-size: var(--fs-label);
+    text-align: left;
+}
 /* ---- Settings: one row per preference, the control on the right ---- */
 
 .settings-grid {
@@ -774,6 +951,371 @@ input.switch:checked::before {
     transform: translateX(20px);
 }
 
+/* Settings is one 720px column: sections divided by a hairline, no boxes. */
+.settings {
+    display: grid;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.settings-account {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 20px;
+    padding: 12px 0 32px;
+}
+
+.settings-account h2 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.settings-account p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.settings-account button {
+    margin-left: auto;
+}
+
+.avatar.avatar-lg {
+    flex: none;
+    width: 64px;
+    height: 64px;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.settings-section {
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+}
+
+.settings-section-head {
+    margin-bottom: 12px;
+}
+
+.settings-section-head h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.settings-section-head p {
+    max-width: 62ch;
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.settings-section-head + .setting {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.settings-section .setting:last-child,
+.settings-section .setting-facts > .setting:last-child {
+    padding-bottom: 0;
+}
+
+.setting.setting-stacked {
+    display: grid;
+    justify-content: stretch;
+    gap: 12px;
+}
+
+.setting.setting-stacked > :first-child {
+    flex: none;
+}
+
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.theme-option {
+    display: grid;
+    justify-items: start;
+    gap: 2px;
+    padding: 8px 8px 10px;
+    color: var(--text);
+    text-align: left;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.theme-option:hover:not(:disabled) {
+    background: var(--hover);
+    border-color: var(--border-strong);
+}
+
+.theme-option[aria-pressed="true"] {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.theme-preview {
+    display: flex;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+}
+
+.theme-preview-side {
+    display: flex;
+    flex: 1;
+    background: var(--bg);
+}
+
+.theme-preview-nav {
+    width: 22%;
+    background: var(--forest);
+}
+
+.theme-preview-page {
+    display: grid;
+    flex: 1;
+    align-content: start;
+    gap: 6px;
+    padding: 8px;
+}
+
+.theme-preview-line {
+    width: 55%;
+    height: 6px;
+    background: var(--text);
+    border-radius: 3px;
+}
+
+.theme-preview-card {
+    height: 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.theme-option-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.theme-option-note {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+}
+
+/* Over the tinted surface of the chosen option the muted grey falls short of AA. */
+.theme-option[aria-pressed="true"] .theme-option-note {
+    color: var(--text);
+}
+
+/* ---- Home: pick up the last project, and how the projects are spread by state ---- */
+
+.eyebrow {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.home-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+    gap: 20px;
+}
+
+.continue-card,
+.status-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+.continue-card {
+    display: grid;
+    grid-template-columns: minmax(200px, 42%) minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.continue-cover {
+    display: block;
+    min-height: 220px;
+    background: var(--forest);
+}
+
+.continue-cover .project-cover-art {
+    width: 100%;
+    height: 100%;
+}
+
+.continue-body {
+    display: grid;
+    align-content: center;
+    gap: 12px;
+    padding: 28px;
+}
+
+.continue-body h3 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.continue-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.continue-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.status-card {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    padding: 28px;
+}
+
+.status-bar {
+    display: flex;
+    gap: 3px;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+}
+
+.status-bar span {
+    min-width: 8px;
+}
+
+.status-bar-active {
+    background: var(--success);
+}
+
+.status-bar-draft {
+    background: var(--warning);
+}
+
+.status-bar-archived {
+    background: var(--border-strong);
+}
+
+.status-legend {
+    display: grid;
+    margin: 0;
+}
+
+.status-legend > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+}
+
+.status-legend > div:first-child {
+    border-top: 0;
+}
+
+.status-legend dt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.status-legend dd {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-card > button {
+    justify-self: start;
+    margin: -4px 0 0 -12px;
+}
+
+/* In the dark theme the generated covers are toned down so they do not glare. */
+:root[data-theme="dark"] :is(.project-card, .continue-cover) .project-cover-art {
+    filter: brightness(0.88) saturate(0.95);
+}
+
+/* ---- Sign-in: what the product does, under the claim ---- */
+
+.auth-features {
+    display: grid;
+    gap: 14px;
+    max-width: 46ch;
+    margin: 28px 0 0;
+    padding: 20px 0 0;
+    list-style: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-features li {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.auth-features .icon {
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    color: var(--lime);
+}
+
+.auth-features strong {
+    display: block;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.auth-form .login-lead {
+    margin: -16px 0 4px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.5;
+}
 @media (max-width: 900px) {
     .page-band-lead {
         padding: 28px 24px 24px;
@@ -851,17 +1393,62 @@ input.switch:checked::before {
         width: auto;
     }
 
-    .terrain-layout-open,
     .settings-grid {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .terrain-detail {
-        position: static;
-        padding: 18px;
+    .stat-strip > div {
+        padding: 0 16px;
     }
 
-    .terrain-detail .terrain-figure .terrain-shape {
-        height: 220px;
+    .table-scroll {
+        max-height: none;
+        border: 0;
+    }
+
+    .table-dense td {
+        height: auto;
+        padding: 6px 0;
+    }
+
+    .home-row,
+    .continue-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .continue-cover {
+        min-height: 140px;
+        max-height: 160px;
+    }
+
+    .continue-body,
+    .status-card {
+        padding: 20px;
+    }
+
+    .theme-options {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .theme-option {
+        grid-template-columns: 96px minmax(0, 1fr);
+        column-gap: 12px;
+    }
+
+    .theme-preview {
+        grid-row: span 2;
+    }
+
+    .auth-features {
+        display: none;
+    }
+}
+
+/* Phone: every target of the navigation and the header is at least 44px. */
+@media (max-width: 720px) {
+    .sidebar-item,
+    .user-menu .icon-button {
+        min-width: 44px;
+        min-height: 44px;
     }
 }

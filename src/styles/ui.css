@@ -171,7 +171,8 @@
 }
 
 .ds .tabs {
-    position: static;
+    /* Relative, not static: the sliding underline is positioned against the row. */
+    position: relative;
 }
 
 /* A card with a menu lets it overflow; the cover keeps the rounded corners instead. */

@@ -114,8 +114,9 @@
     }
 }
 
+/* It fills backwards only: once it ends, no transform is left to trap a fixed child. */
 .content > * {
-    animation: rise-in 0.22s ease-out both;
+    animation: rise-in 0.22s ease-out backwards;
 }
 
 @media (max-width: 900px) {
