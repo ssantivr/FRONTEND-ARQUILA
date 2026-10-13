@@ -81,6 +81,7 @@ import {
 import { createCameraRig, type ViewName } from "./cameraRig";
 import { disposeObject } from "./dispose";
 import { createPostprocessing } from "./postprocessing";
+import { buildPatterns, disposePatterns, type Pattern } from "./patterns";
 import { buildFlatRoof, buildRoomShell, applyMetricUVs } from "./roomGeometry";
 import { buildTrees, type TreeSpot } from "./vegetation";
 
@@ -95,7 +96,8 @@ const FRAME_COLOR = 0x1c1f24;
 const DOOR_COLOR = 0x4a3526;
 const CYAN_ACCENT = 0x00f0ff;
 const MAGENTA_ACCENT = 0xff007f;
-const SHADOW_RADIUS = 3;
+const SHADOW_RADIUS = 4;
+const PATTERN_BUMP = 1.4;
 const GRAIN_SIZE_PX = 128;
 const GRAIN_TILE_M = 1.5;
 const GRAIN_BUMP = 2;
@@ -193,11 +195,11 @@ export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
         accent: 0,
         glow: 0,
         horizon: 0xf7eedf,
-        sun: 0xfff0d8,
-        sunPower: 3,
+        sun: 0xffeccf,
+        sunPower: 3.4,
         skyLight: 0xcfe2ff,
-        skyPower: 0.75,
-        reflections: 0.45,
+        skyPower: 0.62,
+        reflections: 0.5,
         windowGlow: 0,
         glassOpacity: 0.5,
         gridOpacity: 0.45,
@@ -420,6 +422,17 @@ function standard(color: number, roughness: number, metalness = 0): MeshStandard
     });
 }
 
+/** A white material that shows a generated pattern: its colours come from the map. */
+function patterned(pattern: Pattern, roughness: number): MeshStandardMaterial {
+    const material = standard(0xffffff, roughness);
+
+    material.map = pattern.map;
+    material.bumpMap = pattern.bump;
+    material.bumpScale = PATTERN_BUMP;
+
+    return material;
+}
+
 function buildMaterial(element: StructureElement): MeshStandardMaterial {
     const surface = SURFACE_MATERIALS[DEFAULT_SURFACE[element.kind]];
 
@@ -439,7 +452,7 @@ function buildMaterial(element: StructureElement): MeshStandardMaterial {
     return standard(surface.color, surface.roughness, surface.metalness);
 }
 
-function buildTerrain(terrain: StructureTerrain): Mesh {
+function buildTerrain(terrain: StructureTerrain, grass: Pattern): Mesh {
     const shape = new Shape();
 
     terrain.outline.forEach((point, index) => {
@@ -453,8 +466,9 @@ function buildTerrain(terrain: StructureTerrain): Mesh {
     const geometry = new ExtrudeGeometry(shape, { depth: SLAB_THICKNESS_M, bevelEnabled: false });
     geometry.rotateX(-Math.PI / 2);
     geometry.translate(0, -SLAB_THICKNESS_M, 0);
+    applyMetricUVs(geometry);
 
-    const mesh = new Mesh(geometry, standard(TERRAIN_COLOR, 0.95));
+    const mesh = new Mesh(geometry, patterned(grass, 0.95));
     mesh.receiveShadow = true;
 
     return mesh;
@@ -609,7 +623,7 @@ function buildOverlay(item: SpatialElement): OverlayMesh {
     return mesh;
 }
 
-function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
+function buildRoof(rooms: StructureRoom[], kind: RoofKind, tiles: Pattern): Mesh | null {
     const shape = roofShape(rooms, kind);
 
     if (shape === null) {
@@ -643,7 +657,19 @@ function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
         geometry.rotateY(Math.PI / 2);
     }
 
-    const mesh = new Mesh(geometry, standard(ROOF_COLOR, 0.8));
+    applyMetricUVs(geometry);
+
+    // The courses of tiles must run along the ridge. With the ridge along z they would run down
+    // the slope instead, so the two texture coordinates swap places.
+    if (!shape.alongX) {
+        const uv = geometry.getAttribute("uv");
+
+        for (let index = 0; index < uv.count; index += 1) {
+            uv.setXY(index, uv.getY(index), uv.getX(index));
+        }
+    }
+
+    const mesh = new Mesh(geometry, patterned(tiles, 0.82));
     mesh.position.set(...center);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -786,6 +812,7 @@ export function createStructureViewer(
     scene.add(ambient, skyLight, sun, sun.target, cyanAccent, magentaAccent);
 
     const grain = buildGrain();
+    const patterns = buildPatterns(ROOF_COLOR, TERRAIN_COLOR);
     const materials = buildSharedMaterials();
     const outlineMaterial = shared(new LineMaterial({ linewidth: OUTLINE_WIDTH_PX }));
     const lotEdgeMaterial = shared(new LineMaterial({ linewidth: LOT_EDGE_WIDTH_PX }));
@@ -932,33 +959,48 @@ export function createStructureViewer(
         for (const mesh of elements) {
             const key = mesh.userData.key as string;
 
-            const surface =
-                SURFACE_MATERIALS[
-                    surfaceOf(surfaces, key, mesh.userData.kind as StructureElement["kind"])
-                ];
+            const surfaceId = surfaceOf(
+                surfaces,
+                key,
+                mesh.userData.kind as StructureElement["kind"],
+            );
+            const surface = SURFACE_MATERIALS[surfaceId];
             const dimmed = highlight !== null && !highlight.has(key);
             const opacity = dimmed ? GHOST_OPACITY : colors === null ? surface.opacity : 1;
+            // Brick, wood and stone are drawn with their pattern; the map carries the colours,
+            // so the material goes white under it. Data colours and dimming use flat colour.
+            const pattern =
+                colors === null && !dimmed ? (patterns.surfaces[surfaceId] ?? null) : null;
 
             mesh.material.color.setHex(
                 dimmed
                     ? MUTED_COLOR
-                    : colors === null
-                      ? surface.color
-                      : (colors.get(key) ?? MUTED_COLOR),
+                    : colors !== null
+                      ? (colors.get(key) ?? MUTED_COLOR)
+                      : pattern !== null
+                        ? 0xffffff
+                        : surface.color,
             );
             mesh.material.roughness = surface.roughness;
             mesh.material.metalness = surface.metalness;
             mesh.material.opacity = opacity;
 
-            const relief = colors === null && surface.grain > 0 ? grain : null;
+            const relief =
+                pattern !== null
+                    ? pattern.bump
+                    : colors === null && surface.grain > 0
+                      ? grain
+                      : null;
+            const map = pattern === null ? null : pattern.map;
 
-            if (mesh.material.bumpMap !== relief) {
+            if (mesh.material.bumpMap !== relief || mesh.material.map !== map) {
+                mesh.material.map = map;
                 mesh.material.bumpMap = relief;
-                mesh.material.roughnessMap = relief;
+                mesh.material.roughnessMap = pattern === null ? relief : null;
                 mesh.material.needsUpdate = true;
             }
 
-            mesh.material.bumpScale = surface.grain * GRAIN_BUMP;
+            mesh.material.bumpScale = pattern === null ? surface.grain * GRAIN_BUMP : PATTERN_BUMP;
 
             if (mesh.material.transparent !== opacity < 1) {
                 mesh.material.transparent = opacity < 1;
@@ -1391,11 +1433,15 @@ export function createStructureViewer(
 
         elements = buildElements(structure);
         roofRooms = structure.rooms;
-        roof = buildRoof(roofRooms, roofKind);
+        roof = buildRoof(roofRooms, roofKind, patterns.roof);
         environment = buildEnvironment(structure);
         lotEdges = buildLotEdges(structure.terrains, lotEdgeMaterial);
         model = new Group();
-        model.add(...structure.terrains.map(buildTerrain), ...elements, environment);
+        model.add(
+            ...structure.terrains.map((terrain) => buildTerrain(terrain, patterns.grass)),
+            ...elements,
+            environment,
+        );
 
         for (const mesh of elements) {
             clip(mesh, cutPlanes);
@@ -1452,7 +1498,7 @@ export function createStructureViewer(
             disposeObject(roof);
         }
 
-        roof = buildRoof(roofRooms, roofKind);
+        roof = buildRoof(roofRooms, roofKind, patterns.roof);
         placeRoof();
         applyExplode();
         applyLayers();
@@ -1611,6 +1657,7 @@ export function createStructureViewer(
         outlineMaterial.dispose();
         environmentMap.dispose();
         grain.dispose();
+        disposePatterns(patterns);
         sun.shadow.map?.dispose();
         sun.dispose();
         renderer.dispose();
