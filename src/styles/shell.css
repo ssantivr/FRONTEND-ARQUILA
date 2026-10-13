@@ -554,17 +554,6 @@
     height: 100%;
 }
 
-.module-icon {
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-}
-
 .card-subtitle {
     line-height: 1.4;
 }

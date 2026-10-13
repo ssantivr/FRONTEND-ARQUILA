@@ -1,5 +1,38 @@
 /* 3D editor: the viewer takes the height of the window and its panels read as instruments. */
 
+/* ---- 3D viewer status ---- */
+
+.hud-status {
+    gap: var(--space-1) var(--space-3);
+    font-size: 0.78rem;
+}
+
+.hud-save::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+}
+
+.hud-save-saved::before {
+    background: var(--success);
+}
+
+.hud-save-saving::before {
+    background: var(--warning);
+}
+
+.hud-save-error {
+    color: var(--error);
+}
+
+.hud-save-error::before {
+    background: var(--error);
+}
+
 /* ---- The section around the viewer: a title line and a help popover, no box ---- */
 
 .viewer-section {

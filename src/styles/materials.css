@@ -1,0 +1,56 @@
+/* Materials: the surface library of the 3D model. */
+
+.surface-list {
+    margin-top: var(--space-3);
+}
+
+.surface-item {
+    position: relative;
+}
+
+.surface-swatch {
+    display: block;
+    width: 100%;
+    height: 84px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.surface-swatch-large {
+    width: min(100%, 320px);
+    height: 200px;
+}
+
+.surface-favorite {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: var(--control-height-sm);
+    height: var(--control-height-sm);
+    padding: 0;
+    color: var(--text);
+    font-size: 1.05rem;
+    line-height: 1;
+    background: var(--panel);
+    border-color: var(--border);
+    border-radius: 50%;
+}
+
+.surface-favorite[aria-pressed="true"] {
+    color: var(--lime-contrast);
+    background: var(--lime);
+    border-color: var(--lime);
+}
+
+.surface-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-5);
+    align-items: center;
+    width: 100%;
+}
+
+.surface-preview .bar {
+    display: block;
+    min-width: 140px;
+}

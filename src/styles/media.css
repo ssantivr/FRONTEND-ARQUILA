@@ -113,22 +113,9 @@ tfoot :is(th, td) {
     max-height: 40vh;
 }
 
-.project-cover,
-.project-cover-1,
-.project-cover-2,
-.project-cover-3 {
+.project-cover {
     background-position: center;
     background-size: cover;
-}
-
-.project-cover-2 {
-    background-position: 30% 40%;
-    background-size: 190%;
-}
-
-.project-cover-3 {
-    background-position: 70% 65%;
-    background-size: 190%;
 }
 
 .project-cover {

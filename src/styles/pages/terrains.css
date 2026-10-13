@@ -1,0 +1,221 @@
+/* The one-line figure strip and the terrains page. */
+
+/* ---- Figures of a page on one line, beside its title ---- */
+
+.stat-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 0;
+    margin: 0;
+}
+
+.stat-strip > div {
+    display: grid;
+    gap: 2px;
+    padding: 0 24px;
+    border-left: 1px solid var(--border);
+}
+
+.stat-strip > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.stat-strip dt {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.stat-strip dd {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+/* ---- Terrains: cards with the lot's outline, the chosen one in a panel fixed on the right ---- */
+
+.terrain-layout-open {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 24px;
+}
+
+.terrain-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.terrain-list .terrain-card {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    background: var(--panel);
+    border-radius: var(--r-lg);
+    transition:
+        border-color var(--dur-fast) var(--ease),
+        box-shadow var(--dur-fast) var(--ease),
+        transform var(--dur-fast) var(--ease);
+}
+
+.terrain-shape {
+    background:
+        linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 20px 20px,
+        linear-gradient(90deg, var(--border) 1px, transparent 1px) 0 0 / 20px 20px,
+        var(--panel-raised);
+    border-radius: var(--r-md);
+}
+
+.terrain-list .terrain-card .terrain-shape {
+    height: 160px;
+    margin-bottom: 8px;
+}
+
+.terrain-list .terrain-card[aria-pressed="true"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.terrain-card .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.terrain-card .card-subtitle {
+    font-size: 13px;
+}
+
+.terrain-card .terrain-card-figures {
+    font-size: var(--fs-label);
+    font-variant-numeric: tabular-nums;
+}
+
+.terrain-detail {
+    gap: 20px;
+    padding: 24px;
+    background: var(--panel);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+}
+
+.terrain-detail-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.terrain-detail h3 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+}
+
+.terrain-detail-head p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Only the sheet of a narrow screen can be closed. */
+.terrain-detail-close {
+    display: none;
+}
+
+.terrain-figure {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+}
+
+.terrain-detail .terrain-figure .terrain-shape {
+    height: 240px;
+    border: 1px solid var(--border);
+}
+
+.terrain-figure .diagram-lot {
+    stroke-width: 1;
+}
+
+.terrain-figure figcaption {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+}
+
+/* Facts separated by hairlines, not by boxes. */
+.fact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
+    margin: 0;
+}
+
+.fact-grid > div {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+}
+
+.fact-grid dt {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.fact-grid dd {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+@keyframes sheet-in {
+    from {
+        transform: translateY(100%);
+    }
+}
+
+/* Tablet and phone: the detail is a sheet that slides up for the terrain the user chose. */
+@media (max-width: 1024px) {
+    .terrain-layout-open {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .terrain-detail {
+        display: none;
+    }
+
+    .terrain-detail.terrain-detail-chosen {
+        position: fixed;
+        inset: auto 0 0;
+        z-index: 40;
+        display: grid;
+        max-height: 82vh;
+        overflow: auto;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -16px 48px rgba(6, 17, 12, 0.4);
+        animation: sheet-in var(--dur-slow) var(--ease) both;
+    }
+
+    .terrain-detail-close {
+        display: inline-flex;
+    }
+
+    .terrain-detail .terrain-figure .terrain-shape {
+        height: 200px;
+    }
+}

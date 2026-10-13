@@ -1,0 +1,153 @@
+/* Home: continue card and projects by state. */
+
+/* ---- Home: pick up the last project, and how the projects are spread by state ---- */
+
+.eyebrow {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.home-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+    gap: 20px;
+}
+
+.continue-card,
+.status-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+.continue-card {
+    display: grid;
+    grid-template-columns: minmax(260px, 50%) minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.continue-cover {
+    display: block;
+    min-height: 200px;
+    background: var(--forest);
+}
+
+.continue-cover .project-cover-art {
+    width: 100%;
+    height: 100%;
+}
+
+.continue-body {
+    display: grid;
+    align-content: center;
+    gap: 12px;
+    padding: 28px;
+}
+
+.continue-body h3 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.continue-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.continue-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.status-card {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    padding: 28px;
+}
+
+.status-bar {
+    display: flex;
+    gap: 3px;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+}
+
+.status-bar span {
+    min-width: 8px;
+}
+
+.status-bar-active {
+    background: var(--success);
+}
+
+.status-bar-draft {
+    background: var(--warning);
+}
+
+.status-bar-archived {
+    background: var(--border-strong);
+}
+
+.status-legend {
+    display: grid;
+    margin: 0;
+}
+
+.status-legend > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+}
+
+.status-legend > div:first-child {
+    border-top: 0;
+}
+
+.status-legend dt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.status-legend dd {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-card > button {
+    justify-self: start;
+    margin: -4px 0 0 -12px;
+}
+
+/* In the dark theme the generated covers are toned down so they do not glare. */
+:root[data-theme="dark"] :is(.project-card, .continue-cover) .project-cover-art {
+    filter: brightness(0.88) saturate(0.95);
+}
