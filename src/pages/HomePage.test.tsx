@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -96,6 +96,26 @@ describe("HomePage", () => {
         expect(
             await screen.findByText("2 activos · 1 en borrador · 1 archivados"),
         ).toBeInTheDocument();
+    });
+
+    it("offers to continue with the last project that is not archived", async () => {
+        const onOpenProject = vi.fn();
+
+        vi.mocked(projectsApi).list.mockResolvedValue([
+            project(1, "Casa Andina", "active"),
+            project(2, "Oficina", "draft"),
+            project(3, "Bodega", "archived"),
+        ]);
+        render(<HomePage user={user} onOpenProject={onOpenProject} onNavigate={() => undefined} />);
+
+        const card = await screen.findByRole("region", { name: "Continuar donde lo dejaste" });
+
+        expect(within(card).getByRole("heading", { name: "Oficina" })).toBeInTheDocument();
+
+        await userEvent.click(within(card).getByRole("button", { name: "Abrir el modelo 3D" }));
+
+        expect(onOpenProject).toHaveBeenCalledWith(2, "model");
+        expect(screen.getByRole("img", { name: /Activos: 2, En borrador: 1/ })).toBeInTheDocument();
     });
 
     it("takes the main actions of the hero to their modules", async () => {

@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { RenderImage } from "../components/RenderImage";
 import { AsyncStatus } from "../components/AsyncStatus";
+import { StatusBadge } from "../components/Badge";
+import { ProjectCover } from "../components/ProjectCover";
 import { Icon } from "../components/Icon";
 import { Panel } from "../components/Panel";
 import { ProjectCard } from "../components/ProjectCard";
@@ -13,7 +15,7 @@ import { projectsApi, summaryApi } from "../services/api";
 import { showToast } from "../state/toasts";
 import type { Project, ProjectStatus, User } from "../types/api";
 import type { SectionId } from "./ProjectDetailPage";
-import { formatMoney, formatNumber } from "../utils/format";
+import { formatDate, formatMoney, formatNumber } from "../utils/format";
 
 const RECENT_PROJECTS = 8;
 // The one shortcut that gets the large tile: the 3D viewer is what sets the product apart.
@@ -43,6 +45,19 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
         )
         .sort((first, second) => second.updated_at.localeCompare(first.updated_at))
         .slice(0, RECENT_PROJECTS);
+
+    // The project to pick up again: the last one touched that is not archived.
+    const latest =
+        [...all]
+            .filter((project) => project.status !== "archived")
+            .sort((first, second) => second.updated_at.localeCompare(first.updated_at))[0] ?? null;
+    const shares = summary.data
+        ? [
+              { id: "active", label: "Activos", count: summary.data.active_projects },
+              { id: "draft", label: "En borrador", count: summary.data.draft_projects },
+              { id: "archived", label: "Archivados", count: summary.data.archived_projects },
+          ]
+        : [];
 
     async function changeStatus(project: Project, next: ProjectStatus) {
         setActionError(null);
@@ -119,6 +134,93 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                     )}
                 </div>
             </section>
+
+            {latest !== null && (
+                <div className="home-row">
+                    <section className="continue-card" aria-label="Continuar donde lo dejaste">
+                        <span className="continue-cover" aria-hidden="true">
+                            <ProjectCover id={latest.id} name={latest.name} />
+                        </span>
+                        <div className="continue-body">
+                            <span className="eyebrow">Continuar donde lo dejaste</span>
+                            <h3>{latest.name}</h3>
+                            <p className="continue-meta">
+                                <StatusBadge status={latest.status} />
+                                <span>{latest.location ?? "Sin ubicación"}</span>
+                                <span>Actualizado {formatDate(latest.updated_at)}</span>
+                            </p>
+                            <div className="continue-actions">
+                                <button
+                                    type="button"
+                                    onClick={() => onOpenProject(latest.id, "model")}
+                                >
+                                    Abrir el modelo 3D
+                                </button>
+                                <button
+                                    type="button"
+                                    className="button-secondary"
+                                    onClick={() => onOpenProject(latest.id, "plans")}
+                                >
+                                    Planos
+                                </button>
+                                <button
+                                    type="button"
+                                    className="button-secondary"
+                                    onClick={() => onOpenProject(latest.id, "materials")}
+                                >
+                                    Materiales
+                                </button>
+                                <button
+                                    type="button"
+                                    className="button-tertiary"
+                                    onClick={() => onOpenProject(latest.id)}
+                                >
+                                    Abrir el proyecto
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                    {summary.data && summary.data.projects > 0 && (
+                        <section className="status-card" aria-label="Proyectos por estado">
+                            <span className="eyebrow">Proyectos por estado</span>
+                            <div
+                                className="status-bar"
+                                role="img"
+                                aria-label={shares
+                                    .map((share) => `${share.label}: ${share.count}`)
+                                    .join(", ")}
+                            >
+                                {shares
+                                    .filter((share) => share.count > 0)
+                                    .map((share) => (
+                                        <span
+                                            key={share.id}
+                                            className={`status-bar-${share.id}`}
+                                            style={{ flexGrow: share.count }}
+                                        />
+                                    ))}
+                            </div>
+                            <dl className="status-legend">
+                                {shares.map((share) => (
+                                    <div key={share.id}>
+                                        <dt>
+                                            <span
+                                                className={`status-dot status-bar-${share.id}`}
+                                                aria-hidden="true"
+                                            />
+                                            {share.label}
+                                        </dt>
+                                        <dd>{formatNumber(share.count)}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                            <Button variant="tertiary" onClick={() => onNavigate("projects")}>
+                                Ver todos los proyectos
+                            </Button>
+                        </section>
+                    )}
+                </div>
+            )}
 
             <Panel
                 title="Proyectos recientes"
