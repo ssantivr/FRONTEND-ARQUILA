@@ -11,6 +11,7 @@ import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 interface PlansPanelProps extends SectionProps {
     files: ProjectFile[];
@@ -33,7 +34,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
 
     function startEdit(plan: Plan) {
         setEditingId(plan.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setTitle(plan.title);
         setLevel(plan.level ?? "");
         setScale(plan.scale ?? "");

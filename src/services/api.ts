@@ -213,7 +213,33 @@ export const componentsApi = {
 };
 
 export const structureApi = {
-    get: (projectId: number) => request<Structure>(`/projects/${projectId}/structure`),
+    /**
+     * The model of a project. The slope of each terrain is needed to draw it inclined, and the
+     * route does not include it yet: when it is missing, it is read from the list of terrains
+     * and added. If that second call fails, the model is still returned, drawn flat.
+     */
+    get: async (projectId: number): Promise<Structure> => {
+        const structure = await request<Structure>(`/projects/${projectId}/structure`);
+
+        if (
+            structure.terrains.length === 0 ||
+            structure.terrains.every((terrain) => terrain.slope_percent !== undefined)
+        ) {
+            return structure;
+        }
+
+        const slopes = await request<Terrain[]>(`/projects/${projectId}/terrains`)
+            .then((terrains) => new Map(terrains.map((item) => [item.id, item.slope_percent])))
+            .catch(() => new Map<number, number | null>());
+
+        return {
+            ...structure,
+            terrains: structure.terrains.map((terrain) => ({
+                ...terrain,
+                slope_percent: terrain.slope_percent ?? slopes.get(terrain.id) ?? null,
+            })),
+        };
+    },
     setRoof: (projectId: number, roof: RoofKind) =>
         request<void>(`/projects/${projectId}/structure/roof`, { method: "PATCH", body: { roof } }),
     setSurface: (projectId: number, element: StructureElement, surface: SurfaceMaterialId) =>

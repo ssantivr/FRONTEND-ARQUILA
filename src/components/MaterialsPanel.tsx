@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { materialsApi } from "../services/api";
@@ -10,11 +10,10 @@ import { AsyncStatus } from "./AsyncStatus";
 import { FocusFormButton } from "./ui/EmptyState";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
-import { Skeleton } from "./ui/Skeleton";
+import { CostSummary } from "./CostSummary";
 import { costByCategory } from "../utils/materials";
 import { LiveForm } from "./ui/LiveForm";
-
-const CostChart = lazy(() => import("./CostChart"));
+import { scrollBehavior } from "../state/motion";
 
 export function MaterialsPanel({ projectId, run }: SectionProps) {
     const materials = useAsync(() => materialsApi.listByProject(projectId), [projectId]);
@@ -43,7 +42,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
 
     function startEdit(material: Material) {
         setEditingId(material.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setName(material.name);
         setCategory(material.category ?? "");
         setUnit(material.unit);
@@ -108,9 +107,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
             {totalCost > 0 && (
                 <section className="cost-chart" aria-labelledby="cost-chart-title">
                     <h3 id="cost-chart-title">Costo por categoría</h3>
-                    <Suspense fallback={<Skeleton shape="lines" count={categories.length} />}>
-                        <CostChart items={categories} label="Costo por categoría del proyecto" />
-                    </Suspense>
+                    <CostSummary items={categories} label="Costo por categoría del proyecto" />
                 </section>
             )}
             {items.length > 0 && (

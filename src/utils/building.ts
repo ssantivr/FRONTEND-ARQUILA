@@ -1,5 +1,6 @@
 import type { Structure, StructureComponent, StructureRoom } from "../types/api";
 import { polygonArea } from "./geometry";
+import { coveredArea, sharedArea, type Rectangle } from "./polygons";
 
 export interface PlanLevel {
     planId: number;
@@ -11,6 +12,15 @@ export interface PlanLevel {
     components: StructureComponent[];
 }
 
+/** Two rooms of the same level that occupy part of the same ground. */
+export interface RoomOverlap {
+    level: string;
+    first: string;
+    second: string;
+    /** The ground they share, in square metres. */
+    area: number;
+}
+
 export interface BuildingIndicators {
     lotArea: number | null;
     footprint: number;
@@ -20,6 +30,42 @@ export interface BuildingIndicators {
     cus: number | null;
     levels: number;
     height: number;
+    /** Rooms drawn one over another. Their shared ground is counted once in every figure. */
+    overlaps: RoomOverlap[];
+}
+
+/** A room below this overlap is two rooms sharing a wall drawn a hair too far, not a mistake. */
+const OVERLAP_TOLERANCE_M2 = 0.01;
+
+function groundOf(room: StructureRoom): Rectangle {
+    return { x: room.x_m, y: room.y_m, width: room.width_m, depth: room.depth_m };
+}
+
+/**
+ * The pairs of rooms of each level that overlap, the largest overlap first. Every pair of a
+ * level is compared: O(n²) per level, with the handful of rooms a level has.
+ */
+export function roomOverlaps(levels: PlanLevel[]): RoomOverlap[] {
+    const found: RoomOverlap[] = [];
+
+    for (const level of levels) {
+        level.rooms.forEach((first, index) => {
+            for (const second of level.rooms.slice(index + 1)) {
+                const area = sharedArea(groundOf(first), groundOf(second));
+
+                if (area > OVERLAP_TOLERANCE_M2) {
+                    found.push({
+                        level: level.title,
+                        first: first.name,
+                        second: second.name,
+                        area,
+                    });
+                }
+            }
+        });
+    }
+
+    return found.sort((first, second) => second.area - first.area);
 }
 
 export function planLevels(structure: Structure): PlanLevel[] {
@@ -48,7 +94,6 @@ export function planLevels(structure: Structure): PlanLevel[] {
         const level = levelOf(room);
 
         level.rooms.push(room);
-        level.area += room.width_m * room.depth_m;
     }
 
     for (const component of structure.components) {
@@ -56,6 +101,9 @@ export function planLevels(structure: Structure): PlanLevel[] {
     }
 
     for (const level of levels.values()) {
+        // The ground the level covers: two rooms that overlap do not count their shared part twice.
+        level.area = coveredArea(level.rooms.map(groundOf));
+
         const standing = [
             ...level.rooms,
             ...level.components.filter((component) => component.kind !== "beam"),
@@ -95,5 +143,6 @@ export function buildingIndicators(structure: Structure): BuildingIndicators | n
         cus: lotArea === null ? null : builtArea / lotArea,
         levels: levels.length,
         height: top.base + top.height,
+        overlaps: roomOverlaps(levels),
     };
 }

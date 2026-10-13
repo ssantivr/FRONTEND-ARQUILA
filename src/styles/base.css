@@ -133,8 +133,8 @@ textarea {
     border-color: var(--border-strong);
     min-width: 0;
     transition:
-        border-color var(--dur-fast),
-        box-shadow var(--dur-fast);
+        border-color var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-fast) var(--ease-out);
 }
 
 :is(input, select, textarea):hover:not(:disabled) {
@@ -179,7 +179,7 @@ input[type="range"]::-webkit-slider-thumb {
     border: 2px solid var(--bg-secondary);
     border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-    transition: transform var(--dur-fast);
+    transition: transform var(--dur-fast) var(--ease-out);
     -webkit-appearance: none;
     appearance: none;
 }
@@ -191,7 +191,7 @@ input[type="range"]::-moz-range-thumb {
     border: 2px solid var(--bg-secondary);
     border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-    transition: transform var(--dur-fast);
+    transition: transform var(--dur-fast) var(--ease-out);
 }
 
 input[type="range"]:is(:hover, :active)::-webkit-slider-thumb {
@@ -232,8 +232,8 @@ input[type="range"]:focus-visible {
     pointer-events: none;
     transform: translateY(4px);
     transition:
-        opacity var(--dur-fast),
-        transform var(--dur-fast);
+        opacity var(--dur-fast) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out);
 }
 
 [data-tip]:is(:hover, :focus-visible, :focus-within)::after {
@@ -249,11 +249,11 @@ button {
     border-color: var(--primary);
     cursor: pointer;
     transition:
-        border-color var(--dur-fast),
-        background-color var(--dur-fast),
-        color var(--dur-fast),
-        box-shadow var(--dur-fast),
-        transform var(--dur-fast);
+        border-color var(--dur-fast) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-fast) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out);
 }
 
 /* Zero specificity, so every button variant keeps its own hover surface. */

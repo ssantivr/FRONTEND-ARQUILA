@@ -10,7 +10,7 @@ Memoria de trabajo de la rama `rediseno-ui`. Se actualiza al cerrar cada fase, p
 | 1. Sistema de diseño | Obligatorio | Hecha |
 | 2. Navegación | Obligatorio | Hecha (punto de control 2 aprobado el 13 de octubre de 2026) |
 | 3. Pantallas | Obligatorio | Hecha |
-| 3b. Animaciones básicas (F1 y F2) | Obligatorio | Hecha; revisión independiente en curso |
+| 3b. Animaciones básicas (F1 y F2) | Obligatorio | Hecha y revisada |
 | 4. Correcciones | Obligatorio | En curso |
 | 5. Datos | Deseable | Pendiente |
 | 6. Producto | Deseable | Pendiente |
@@ -146,6 +146,40 @@ Sin ver en pantalla: la entrada del modelo 3D. Está en el motor y sus pruebas n
 | 4 | Nada | Inicio, Proyectos, Modelo 3D, Terrenos y Configuración en 0,0000; Planos 0,0414 y Materiales 0,0131 |
 
 Resultado al cerrar: `format:check` y `lint` limpios, `Test Files 46 passed (46)`, `Tests 292 passed (292)`, `✓ built in 19.85s` (`index` 430,15 kB, 134,28 kB gzip).
+
+### Revisión independiente de las fases 3 y 3b
+
+Segundo agente, que solo vio el diff `fda2338..a70fb50` y el encargo. Cuatro hallazgos graves, todos corregidos:
+
+| Hallazgo | Resultado |
+|---|---|
+| Con View Transitions el navegador capturaba la pantalla anterior como si fuera la nueva (el router aplazaba su actualización) | Corregido: `BrowserRouter useTransitions={false}`. Comprobado en Edge: al empezar la transición el título ya es el de la pantalla nueva |
+| El contenido se animaba dos veces al terminar cada transición | Corregido: se quitó el atributo que apagaba y volvía a encender la subida. Comprobado: no queda ninguna animación al acabar |
+| La transición movía toda la ventana, cabecera y menú incluidos | Corregido: solo cruza el área de contenido (`view-transition-name`) |
+| Un aviso cerrado dos veces se quedaba para siempre, invisible y tapando clics | Corregido y con prueba |
+
+De gravedad media:
+
+| Hallazgo | Resultado |
+|---|---|
+| Una ventana podía quedarse a medio cerrar si su animación no terminaba | Corregido: un límite de 400 ms la cierra de todos modos |
+| Mensajes de validación viejos al cancelar o cargar otra fila | Corregido y con prueba; además el campo ya no se valida al pasar a un botón de su formulario |
+| El cambio de tema se animaba con movimiento reducido | Corregido y con prueba |
+| «Guardando…/Guardado» dependía de dónde estaba el foco (falla en Safari) | Corregido: el formulario avisa cuando se envía. El resultado se anuncia a lectores de pantalla |
+| Pausa de avisos incoherente entre el reloj y la barra | Corregido: se guardan las causas (cursor, foco) y la barra dura lo mismo que el reloj |
+| El gráfico solo mostraba el porcentaje al pasar el cursor, y un fallo al cargarlo tumbaba la pantalla | Corregido: el porcentaje va junto al importe y, si el gráfico no carga, se ve una lista con las mismas cifras |
+
+Menores corregidos: el desplazamiento suave de seis paneles ahora respeta el interruptor de movimiento; el conteo de cifras continúa desde lo que muestra en vez de volver a cero; COS y CUS con coma decimal; el estado pulsado usa `scale` y no pisa otros `transform`; transiciones sin curva en `base.css` y `shell.css`.
+
+No corregido, con su motivo:
+
+- «Guardando…/Guardado» solo está en los formularios de las pestañas del proyecto. Crear proyecto, Tareas, Recomendaciones y «Agregar obra» usan otro mecanismo de envío; llevarlo allí pide unificar cómo se envían, que es trabajo de la fase 5 (TanStack Query).
+- CLS fuera del inicio: Planos 0,0414 y Materiales 0,0131. Con más de tres categorías el gráfico es más alto que su marcador.
+- Demos de `/design-system`: hay ocho; faltan las que necesitan una pantalla entera (cambio de ruta, paneles del visor, entrada del modelo, cotas).
+- La entrada del modelo hace bajar los niveles hasta su sitio en vez de subirlos, y un modelo de un solo nivel no muestra nada.
+- `motion.test.ts` no ve duraciones escritas en TS ni exige una curva en cada transición.
+- Miniaturas: no se borran al cerrar sesión ni al eliminar un proyecto. Se resuelve con la portada en el backend.
+- Varios mensajes de error a la vez se anuncian todos (`role="alert"` en cada uno).
 
 ## Problemas abiertos
 

@@ -1,8 +1,16 @@
 import type { CSSProperties } from "react";
 
-import { TOAST_LIFETIME_MS, leaveToast, pauseToast, resumeToast, useToasts } from "../state/toasts";
+import {
+    TOAST_EXIT_MS,
+    TOAST_LIFETIME_MS,
+    leaveToast,
+    pauseToast,
+    resumeToast,
+    useToasts,
+} from "../state/toasts";
 
-const LIFE = { "--toast-life": `${TOAST_LIFETIME_MS}ms` } as CSSProperties;
+// The bar empties in exactly the time the toast stays before it starts to leave.
+const LIFE = { "--toast-life": `${TOAST_LIFETIME_MS - TOAST_EXIT_MS}ms` } as CSSProperties;
 
 /**
  * Short confirmations at the bottom right. Each one slides in from the edge, shows the time it
@@ -18,10 +26,10 @@ export function Toasts() {
                     key={toast.id}
                     className={toast.leaving ? "toast toast-leaving" : "toast"}
                     style={LIFE}
-                    onPointerEnter={() => pauseToast(toast.id)}
-                    onPointerLeave={() => resumeToast(toast.id)}
-                    onFocus={() => pauseToast(toast.id)}
-                    onBlur={() => resumeToast(toast.id)}
+                    onPointerEnter={() => pauseToast(toast.id, "pointer")}
+                    onPointerLeave={() => resumeToast(toast.id, "pointer")}
+                    onFocus={() => pauseToast(toast.id, "focus")}
+                    onBlur={() => resumeToast(toast.id, "focus")}
                 >
                     <span>{toast.text}</span>
                     <button

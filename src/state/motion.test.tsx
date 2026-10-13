@@ -25,9 +25,11 @@ function Forms({ pending, failed = false }: { pending: boolean; failed?: boolean
     );
 }
 
-afterEach(() => {
+afterEach(async () => {
     vi.useRealTimers();
-    delete document.documentElement.dataset.motion;
+    // The motion switch and the theme mark are shared by the whole page: leave them as found.
+    (await import("./motion")).setReduceMotion(false);
+    delete document.documentElement.dataset.themeSwitching;
 });
 
 describe("saving feedback on the button that sent the form", () => {
@@ -73,6 +75,19 @@ describe("movement that does not shift the layout", () => {
 });
 
 describe("change of theme", () => {
+    it("changes at once, without the colour transition, when movement is reduced", async () => {
+        const { setReduceMotion } = await import("./motion");
+
+        setReduceMotion(true);
+        setTheme("light");
+        setTheme("dark");
+
+        expect(document.documentElement.dataset.theme).toBe("dark");
+        expect(document.documentElement).not.toHaveAttribute("data-theme-switching");
+
+        setReduceMotion(false);
+    });
+
     it("marks the page for one colour transition and then lets go", () => {
         vi.useFakeTimers();
         setTheme("light");
@@ -107,36 +122,18 @@ describe("change of screen", () => {
         withViewTransition(update);
 
         expect(update).toHaveBeenCalledTimes(1);
-        expect(document.documentElement).not.toHaveAttribute("data-view-transition");
     });
 
-    it("uses the browser's transition where there is one, and cleans up after it", async () => {
-        let finish: () => void = () => undefined;
-        const finished = new Promise<void>((resolve) => {
-            finish = resolve;
-        });
+    it("hands the change to the browser's transition where there is one", () => {
         const update = vi.fn();
+        const start = vi.fn((run: () => void) => run());
 
-        fakeTransitions(
-            vi.fn((run: () => void) => {
-                run();
-
-                return { finished };
-            }),
-        );
-
+        fakeTransitions(start);
         withViewTransition(update);
 
+        expect(start).toHaveBeenCalledTimes(1);
         expect(update).toHaveBeenCalledTimes(1);
-        expect(document.documentElement).toHaveAttribute("data-view-transition");
-
-        finish();
-        await finished;
-        await Promise.resolve();
-
-        expect(document.documentElement).not.toHaveAttribute("data-view-transition");
     });
-
     it("skips the transition when the user turned movement off", () => {
         const start = vi.fn();
         const update = vi.fn();

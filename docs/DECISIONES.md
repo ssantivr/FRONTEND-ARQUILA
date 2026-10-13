@@ -58,7 +58,7 @@ Es el único lugar con más de un nivel de profundidad. En las pantallas de prim
 
 ### Validación con nodos añadidos a mano (fase 3)
 
-`LiveForm` escribe el mensaje de error en un `span` que inserta tras el campo, fuera del control de React. La alternativa limpia, envolver cada campo en `Field`, obligaba a reescribir unos ochenta campos en catorce formularios y cambiaba su maquetación (hoy la etiqueta envuelve al control). El nodo se añade siempre al final del `label`, donde React no inserta nada, y desaparece con él.
+`LiveForm` escribe el mensaje de error en un `span` que inserta tras el campo, fuera del control de React. La alternativa limpia, envolver cada campo en `Field`, obligaba a reescribir unos ochenta campos en catorce formularios y cambiaba su maquetación (hoy la etiqueta envuelve al control). El nodo se añade justo después del campo. Como React no lo conoce, `LiveForm` lo cuida: tras cada dibujo quita el mensaje de un campo cuyo valor cambió sin que el usuario escribiera (al cancelar o al cargar otra fila para editar).
 
 ### Recharts cargado aparte (fase 3)
 

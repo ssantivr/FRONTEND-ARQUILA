@@ -1,6 +1,7 @@
-import { Suspense, lazy, useState } from "react";
+import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
+import { CostSummary } from "../components/CostSummary";
 import { PageBand } from "../components/PageBand";
 import { Panel } from "../components/ui/Panel";
 import { SurfaceLibrary } from "../components/SurfaceLibrary";
@@ -9,9 +10,6 @@ import { loadAcrossProjects, materialsApi } from "../services/api";
 import { Skeleton } from "../components/ui/Skeleton";
 import { formatMoney, formatNumber } from "../utils/format";
 import { NO_CATEGORY, costByCategory, materialCost as cost } from "../utils/materials";
-
-// Recharts is only needed once there is something to chart, so it loads apart from the app.
-const CostChart = lazy(() => import("../components/CostChart"));
 
 interface MaterialsPageProps {
     onOpenProject: (projectId: number) => void;
@@ -69,14 +67,10 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                         categories.length > 0 && (
                             <section className="band-chart" aria-label="Costo por categoría">
                                 <h3>Costo por categoría</h3>
-                                <Suspense
-                                    fallback={<Skeleton shape="lines" count={categories.length} />}
-                                >
-                                    <CostChart
-                                        items={categories}
-                                        label="Costo por categoría de todos tus proyectos"
-                                    />
-                                </Suspense>
+                                <CostSummary
+                                    items={categories}
+                                    label="Costo por categoría de todos tus proyectos"
+                                />
                             </section>
                         )
                     )

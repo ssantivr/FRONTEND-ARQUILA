@@ -54,16 +54,54 @@ describe("toasts", () => {
         const id = result.current[0].id;
 
         act(() => vi.advanceTimersByTime(3000));
-        act(() => pauseToast(id));
+        act(() => pauseToast(id, "pointer"));
         act(() => vi.advanceTimersByTime(10_000));
 
         expect(result.current.map((toast) => toast.text)).toEqual(["Material agregado."]);
 
-        act(() => resumeToast(id));
+        act(() => resumeToast(id, "pointer"));
         act(() => vi.advanceTimersByTime(999));
         expect(result.current).toHaveLength(1);
 
         act(() => vi.advanceTimersByTime(1));
         expect(result.current).toEqual([]);
+    });
+
+    it("still goes when it is asked to leave twice", () => {
+        const { result } = renderHook(() => useToasts());
+
+        act(() => showToast("Plano agregado."));
+        const id = result.current[0].id;
+
+        act(() => leaveToast(id));
+        act(() => vi.advanceTimersByTime(100));
+        act(() => leaveToast(id));
+        act(() => vi.advanceTimersByTime(80));
+
+        expect(result.current).toEqual([]);
+    });
+
+    it("stays while either the pointer or the focus holds it, and counts the time once", () => {
+        const { result } = renderHook(() => useToasts());
+
+        act(() => showToast("Cuarto agregado."));
+        const id = result.current[0].id;
+
+        act(() => vi.advanceTimersByTime(1000));
+        act(() => pauseToast(id, "pointer"));
+        act(() => vi.advanceTimersByTime(5000));
+        act(() => pauseToast(id, "focus"));
+        act(() => resumeToast(id, "pointer"));
+        act(() => vi.advanceTimersByTime(60_000));
+
+        expect(result.current).toHaveLength(1);
+
+        // 1000 ms had passed when it was first held: 2820 ms are left before it starts to leave.
+        act(() => resumeToast(id, "focus"));
+        act(() => vi.advanceTimersByTime(2819));
+        expect(result.current[0].leaving).toBe(false);
+
+        act(() => vi.advanceTimersByTime(1));
+        expect(result.current[0].leaving).toBe(true);
     });
 });

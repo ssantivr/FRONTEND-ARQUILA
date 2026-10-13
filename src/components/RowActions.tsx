@@ -5,6 +5,8 @@ import { Icon } from "./Icon";
 
 /** How long «Guardado» stays on the button after a change is saved. */
 const SAVED_MS = 1400;
+/** A saving that starts within this time of a form being sent is taken as that form's. */
+const SENT_WINDOW_MS = 1000;
 
 interface RowActionsProps {
     label: string;
@@ -53,11 +55,30 @@ export function FormActions({ editing, addLabel, disabled, onCancel }: FormActio
     const { pending, failed } = useSaveStatus();
     const button = useRef<HTMLButtonElement>(null);
     const [stage, setStage] = useState<Stage>("idle");
+    const sentAt = useRef(0);
+
+    // The form says when it is sent. Reading it from the keyboard focus would fail in the
+    // browsers that do not move the focus to a button when it is clicked.
+    useEffect(() => {
+        const form = button.current?.form;
+
+        if (form === null || form === undefined) {
+            return;
+        }
+
+        function remember() {
+            sentAt.current = Date.now();
+        }
+
+        form.addEventListener("submit", remember);
+
+        return () => form.removeEventListener("submit", remember);
+    }, []);
 
     useEffect(() => {
         if (pending) {
-            // The change came from this form if the cursor is still in it.
-            if (button.current?.form?.contains(document.activeElement) === true) {
+            // The change is this form's if it was sent a moment before the saving started.
+            if (Date.now() - sentAt.current < SENT_WINDOW_MS) {
                 setStage("saving");
             }
 
@@ -82,6 +103,7 @@ export function FormActions({ editing, addLabel, disabled, onCancel }: FormActio
             <button
                 ref={button}
                 type="submit"
+                className="button-saving"
                 disabled={disabled === true || stage === "saving"}
                 aria-busy={stage === "saving" || undefined}
             >
@@ -99,6 +121,9 @@ export function FormActions({ editing, addLabel, disabled, onCancel }: FormActio
                 )}
                 {stage === "idle" && (editing ? "Guardar cambios" : addLabel)}
             </button>
+            <span className="visually-hidden" role="status">
+                {stage === "saved" ? "Guardado." : ""}
+            </span>
             {editing && (
                 <button type="button" className="button-secondary" onClick={onCancel}>
                     Cancelar

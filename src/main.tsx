@@ -51,7 +51,9 @@ const container = document.querySelector<HTMLDivElement>("#app");
 if (container) {
     createRoot(container).render(
         <StrictMode>
-            <BrowserRouter>
+            {/* Without its own transitions the router updates at once, which a view transition
+                needs: the browser takes its picture of the new screen right after the update. */}
+            <BrowserRouter useTransitions={false}>
                 <App />
             </BrowserRouter>
         </StrictMode>,

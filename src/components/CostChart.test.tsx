@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import CostChart from "./CostChart";
 
@@ -22,5 +22,33 @@ describe("CostChart", () => {
         expect(first).toHaveTextContent("41 %");
         expect(second).toHaveTextContent("Acabados");
         expect(second).toHaveTextContent("38 %");
+    });
+});
+
+describe("CostSummary", () => {
+    it("shows the figures as a list when the chart cannot be drawn", async () => {
+        vi.resetModules();
+        vi.doMock("./CostChart", () => ({
+            default: () => {
+                throw new Error("sin gráfico");
+            },
+        }));
+        const silence = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const { CostSummary: Summary } = await import("./CostSummary");
+
+        render(
+            <Summary
+                label="Costo por categoría del proyecto"
+                items={[{ category: "Estructura", amount: 2806, share: 41 }]}
+            />,
+        );
+
+        const item = await screen.findByRole("listitem");
+
+        expect(item).toHaveTextContent("Estructura");
+        expect(item).toHaveTextContent("41 %");
+
+        silence.mockRestore();
+        vi.doUnmock("./CostChart");
     });
 });

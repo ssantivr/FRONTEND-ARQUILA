@@ -12,6 +12,7 @@ import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { TerrainDiagrams } from "./TerrainDiagrams";
 import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 export function TerrainsPanel({ projectId, run }: SectionProps) {
     const terrains = useAsync(() => terrainsApi.listByProject(projectId), [projectId]);
@@ -49,7 +50,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
 
     function startEdit(terrain: Terrain) {
         setEditingId(terrain.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setName(terrain.name);
         setWidth(String(terrain.width_m ?? ""));
         setLength(String(terrain.length_m ?? ""));

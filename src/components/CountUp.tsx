@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { prefersReducedMotion } from "../state/motion";
 
@@ -23,6 +23,10 @@ function motionAllowed(): boolean {
  */
 export function CountUp({ value, format, step = 1 }: CountUpProps) {
     const [shown, setShown] = useState(() => (motionAllowed() ? 0 : value));
+    // Where the count is now: a new value continues from here instead of starting at zero again.
+    const current = useRef(shown);
+
+    current.current = shown;
 
     useEffect(() => {
         if (!motionAllowed()) {
@@ -31,11 +35,12 @@ export function CountUp({ value, format, step = 1 }: CountUpProps) {
         }
 
         const start = performance.now();
+        const from = current.current;
         let frame = requestAnimationFrame(function tick(now) {
             const progress = Math.min(1, (now - start) / DURATION_MS);
             const eased = 1 - (1 - progress) ** 3;
 
-            setShown(progress === 1 ? value : value * eased);
+            setShown(progress === 1 ? value : from + (value - from) * eased);
 
             if (progress < 1) {
                 frame = requestAnimationFrame(tick);

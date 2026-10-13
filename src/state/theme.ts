@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from "react";
 
+import { prefersReducedMotion } from "./motion";
+
 export type Theme = "light" | "dark";
 /** What the user chose: a fixed theme, or "auto" to follow the system. */
 export type ThemePreference = Theme | "auto";
@@ -42,7 +44,7 @@ function apply(animate = false): void {
 
     theme = preference === "auto" ? systemTheme() : preference;
 
-    if (animate && previous !== theme) {
+    if (animate && previous !== theme && !prefersReducedMotion()) {
         document.documentElement.dataset[SWITCH_ATTRIBUTE] = "";
         window.clearTimeout(switchTimer);
         switchTimer = window.setTimeout(() => {

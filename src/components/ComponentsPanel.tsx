@@ -9,6 +9,7 @@ import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 interface ComponentsPanelProps extends SectionProps {
     onChanged: () => void;
@@ -66,7 +67,7 @@ export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelPr
 
     function startEdit(component: StructuralComponent) {
         setEditingId(component.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setPlanId(String(component.plan_id));
         setKind(component.kind);
         setName(component.name);

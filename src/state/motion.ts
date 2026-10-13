@@ -67,3 +67,8 @@ function subscribe(listener: () => void): () => void {
 export function useReduceMotion(): boolean {
     return useSyncExternalStore(subscribe, getReduceMotion);
 }
+
+/** How a scroll made by the app should move: smoothly, or at once when movement is reduced. */
+export function scrollBehavior(): ScrollBehavior {
+    return prefersReducedMotion() ? "auto" : "smooth";
+}

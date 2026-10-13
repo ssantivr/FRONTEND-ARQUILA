@@ -1,6 +1,7 @@
 import { useRef } from "react";
 
 import type { Drawing } from "../utils/elevations";
+import { formatNumber } from "../utils/format";
 import { downloadSvg } from "../utils/svg";
 import { SHEET_COLORS } from "../utils/drawingPalette";
 
@@ -39,6 +40,13 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
     const toX = (u: number) => left + (u - from) * scale;
     const toY = (height: number) => ground - height * scale;
     const roof = drawing.roof;
+    // The ground meets level 0 at the back of the building and falls towards the front.
+    const slope = drawing.slopePercent ?? 0;
+    const groundLeft = DRAW_LEFT - 30;
+    const groundRight = DRAW_LEFT + DRAW_WIDTH + 30;
+    const groundY = (x: number) =>
+        ground - ((x - toX(drawing.width)) / scale) * (slope / 100) * scale;
+    const groundBottom = Math.max(ground, groundY(groundLeft), groundY(groundRight)) + 26;
     const gridId = `elevation-grid-${fileName.replace(/\W+/g, "-")}`;
 
     return (
@@ -58,15 +66,43 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
                 <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={COLORS.background} />
                 <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={`url(#${gridId})`} />
 
-                <rect
-                    x={DRAW_LEFT - 30}
-                    y={ground}
-                    width={DRAW_WIDTH + 60}
-                    height={26}
-                    fill="rgba(47, 125, 79, 0.12)"
-                    stroke={COLORS.ground}
-                    strokeWidth={1}
-                />
+                {slope === 0 ? (
+                    <rect
+                        x={DRAW_LEFT - 30}
+                        y={ground}
+                        width={DRAW_WIDTH + 60}
+                        height={26}
+                        fill={COLORS.free}
+                        stroke={COLORS.ground}
+                        strokeWidth={1}
+                    />
+                ) : (
+                    <>
+                        {/* The ground as it really lies: rising towards the back of the lot. */}
+                        <polygon
+                            points={`${groundLeft},${groundY(groundLeft)} ${groundRight},${groundY(groundRight)} ${groundRight},${groundBottom} ${groundLeft},${groundBottom}`}
+                            fill={COLORS.free}
+                            stroke={COLORS.ground}
+                            strokeWidth={1}
+                        />
+                        {/* What holds the floor level where the ground falls away under it. */}
+                        <polygon
+                            points={`${toX(0)},${ground} ${toX(drawing.width)},${ground} ${toX(drawing.width)},${groundY(toX(drawing.width))} ${toX(0)},${groundY(toX(0))}`}
+                            fill={COLORS.facade}
+                            stroke={COLORS.wall}
+                            strokeWidth={1}
+                            strokeDasharray="4 3"
+                        />
+                        <text
+                            x={groundLeft + 4}
+                            y={groundY(groundLeft) - 6}
+                            {...TEXT}
+                            fill={COLORS.ground}
+                        >
+                            Terreno · pendiente {formatNumber(slope)} %
+                        </text>
+                    </>
+                )}
 
                 {roof.gable ? (
                     <polygon

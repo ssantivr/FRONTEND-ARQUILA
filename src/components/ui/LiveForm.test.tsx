@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { LiveForm } from "./LiveForm";
@@ -109,5 +110,62 @@ describe("LiveForm", () => {
         fireEvent.blur(name);
 
         expect(screen.getByRole("alert")).toHaveTextContent("Ya hay un terreno con ese nombre.");
+    });
+
+    it("drops a message about a value the screen itself replaced", async () => {
+        function Editable() {
+            const [name, setName] = useState("");
+
+            return (
+                <LiveForm onSubmit={(event) => event.preventDefault()}>
+                    <label>
+                        Correo
+                        <input
+                            type="email"
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                        />
+                    </label>
+                    <button type="button" onClick={() => setName("")}>
+                        Cancelar
+                    </button>
+                    <a href="/otra">Otra parte</a>
+                </LiveForm>
+            );
+        }
+
+        render(<Editable />);
+        const email = screen.getByRole("textbox", { name: /Correo/ });
+
+        await userEvent.type(email, "ana@");
+        await userEvent.click(screen.getByRole("link", { name: "Otra parte" }));
+
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(email).toHaveAccessibleDescription(
+            "Escribe el correo completo, como nombre@ejemplo.com.",
+        );
+
+        await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(email).not.toHaveAttribute("aria-invalid");
+        expect(email).not.toHaveAttribute("aria-describedby");
+    });
+
+    it("does not judge a field when the user goes from it straight to a button of the form", async () => {
+        render(
+            <LiveForm onSubmit={(event) => event.preventDefault()}>
+                <label>
+                    Correo
+                    <input type="email" />
+                </label>
+                <button type="button">Cancelar</button>
+            </LiveForm>,
+        );
+
+        await userEvent.type(screen.getByRole("textbox", { name: /Correo/ }), "ana@");
+        await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
 });

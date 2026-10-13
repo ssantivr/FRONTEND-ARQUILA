@@ -9,6 +9,7 @@ import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 interface RoomsPanelProps extends SectionProps {
     onChanged: () => void;
@@ -46,7 +47,7 @@ export function RoomsPanel({ projectId, run, onChanged }: RoomsPanelProps) {
 
     function startEdit(room: Room) {
         setEditingId(room.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setPlanId(String(room.plan_id));
         setName(room.name);
         setX(String(room.x_m));

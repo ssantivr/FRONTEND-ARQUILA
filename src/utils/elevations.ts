@@ -41,6 +41,12 @@ export interface Drawing {
     openings: DrawingOpening[];
     roof: DrawingRoof;
     marks: number[];
+    /**
+     * Slope of the ground along the width of the drawing, in percent, rising from left to right.
+     * Only the section has it: it cuts the building from the front of the lot to the back, which
+     * is the direction the terrain slopes in. Level 0 meets the ground at the back of the building.
+     */
+    slopePercent?: number;
 }
 
 function across(side: Side): boolean {
@@ -165,5 +171,6 @@ export function section(structure: Structure): Drawing | null {
             shape.eaves,
             shape.eaves + shape.rise,
         ]),
+        slopePercent: structure.terrains[0]?.slope_percent ?? 0,
     };
 }

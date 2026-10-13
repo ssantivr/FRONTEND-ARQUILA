@@ -173,15 +173,6 @@
 
 /* ---- Ready-made uses ---- */
 
-/*
- * A screen coming in after a change of route rises by its own (`.content > *` in features.css),
- * which also covers the back button. While the browser cross-fades the two screens itself, that
- * rise is switched off so the two do not add up.
- */
-html[data-view-transition] .content > * {
-    animation: none;
-}
-
 /* Items of a list arrive one after another. Only the first eight are delayed. */
 .motion-stagger > * {
     animation: rise-in var(--dur-slow) var(--ease-out) backwards;
@@ -251,16 +242,29 @@ html[data-view-transition] .content > * {
     }
 }
 
-/* ---- Change of route: the browser cross-fades the two screens where it can ---- */
+/*
+ * ---- Change of route ----
+ * Where the browser has view transitions, only the content area crosses over: the header, the
+ * navigation and the rest of the window stay still. The old content fades out quickly and the
+ * new one fades in; the 8 px rise of the new screen is its own animation (`.content > *` in
+ * features.css), which is also all the back button and the other browsers get.
+ */
+.content {
+    view-transition-name: content;
+}
 
-::view-transition-old(root) {
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
+
+::view-transition-old(content) {
     animation: fade-out var(--dur-fast) var(--ease-in) both;
 }
 
-::view-transition-new(root) {
-    animation: rise-in var(--dur-slow) var(--ease-out) both;
+::view-transition-new(content) {
+    animation: fade-in var(--dur) var(--ease-out) both;
 }
-
 /* ---- Change of theme: colours cross over instead of snapping; the 3D canvas is left alone ---- */
 
 html[data-theme-switching] *:not(canvas),
@@ -277,7 +281,7 @@ html[data-theme-switching] *:not(canvas)::after {
 /* ---- Pressing a control ---- */
 
 :is(button, .button, [role="button"]):active:not(:disabled, [aria-disabled="true"]) {
-    transform: scale(0.98);
+    scale: 0.98;
 }
 
 /*

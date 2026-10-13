@@ -2,7 +2,9 @@ import { useRef, useState } from "react";
 
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
-import { bounds, edges, footprint, insetBounds } from "../utils/geometry";
+import { readSiteSettings, saveTerrainSite } from "../state/siteSettings";
+import { bounds, edges, footprint, type Point } from "../utils/geometry";
+import { buildableArea } from "../utils/polygons";
 import { downloadSvg } from "../utils/svg";
 import { SHEET_COLORS } from "../utils/drawingPalette";
 
@@ -74,21 +76,43 @@ function print(svg: SVGSVGElement, name: string) {
     document.body.append(frame);
 }
 
-function initialSetback(terrain: Terrain): number {
-    if (terrain.width_m === null || terrain.length_m === null) {
+const SETBACK_STEP = 0.5;
+
+/**
+ * The setback a plan opens with: 3 m, or the widest one under it that still leaves ground to
+ * build on, so a narrow lot does not open with nothing buildable.
+ */
+function initialSetback(shape: Point[] | null): number {
+    if (shape === null) {
         return DEFAULT_SETBACK;
     }
 
-    const quarter = Math.min(terrain.width_m, terrain.length_m) / 4;
+    for (let setback = DEFAULT_SETBACK; setback > 0; setback -= SETBACK_STEP) {
+        if (buildableArea(shape, setback).area > 0) {
+            return setback;
+        }
+    }
 
-    return Math.min(DEFAULT_SETBACK, Math.floor(quarter * 2) / 2);
+    return 0;
 }
 
 export function SitePlan({ terrain }: { terrain: Terrain }) {
-    const [setback, setSetback] = useState(() => initialSetback(terrain));
-    const [north, setNorth] = useState(0);
-    const svg = useRef<SVGSVGElement>(null);
     const shape = footprint(terrain);
+    // The setback and north the user chose come back when the plan is opened again.
+    const [saved] = useState(() => readSiteSettings(terrain.project_id).terrains[terrain.id] ?? {});
+    const [setback, setSetback] = useState(() => saved.setback ?? initialSetback(shape));
+    const [north, setNorth] = useState(saved.north ?? 0);
+    const svg = useRef<SVGSVGElement>(null);
+
+    function changeSetback(next: number) {
+        setSetback(next);
+        saveTerrainSite(terrain.project_id, terrain.id, { setback: next });
+    }
+
+    function changeNorth(next: number) {
+        setNorth(next);
+        saveTerrainSite(terrain.project_id, terrain.id, { north: next });
+    }
 
     if (shape === null) {
         return (
@@ -111,12 +135,8 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
     const toX = (x: number) => left + (x - box.minX) * scale;
     const toY = (y: number) => top + (box.maxY - y) * scale;
 
-    const rectangular = terrain.points.length < 3;
-    const buildable = rectangular ? insetBounds(box, setback) : null;
-    const buildableArea =
-        buildable === null
-            ? null
-            : (buildable.maxX - buildable.minX) * (buildable.maxY - buildable.minY);
+    // The same calculation for a rectangle and for a lot drawn by its vertices.
+    const buildable = buildableArea(shape, setback);
 
     const front = shape.filter((point) => point.y === box.minY);
     const accessX = toX(front.reduce((sum, point) => sum + point.x, 0) / front.length);
@@ -128,10 +148,7 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
     const letterX = NORTH_X + Math.sin(radians) * (NORTH_SIZE + 10);
     const letterY = NORTH_Y - Math.cos(radians) * (NORTH_SIZE + 10);
 
-    const summary =
-        buildableArea === null
-            ? `Área del lote: ${formatNumber(terrain.area_m2)} m²`
-            : `Área del lote: ${formatNumber(terrain.area_m2)} m² · Área edificable: ${formatNumber(buildableArea)} m²`;
+    const summary = `Área del lote: ${formatNumber(terrain.area_m2)} m² · Área edificable: ${formatNumber(buildable.area)} m²`;
 
     return (
         <figure className="terrain-diagrams">
@@ -154,18 +171,18 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                         stroke={COLORS.boundary}
                         strokeWidth={1.5}
                     />
-                    {buildable !== null && (
-                        <rect
-                            x={toX(buildable.minX)}
-                            y={toY(buildable.maxY)}
-                            width={(buildable.maxX - buildable.minX) * scale}
-                            height={(buildable.maxY - buildable.minY) * scale}
+                    {buildable.pieces.map((piece, index) => (
+                        <polygon
+                            key={index}
+                            points={piece
+                                .map((point) => `${toX(point.x)},${toY(point.y)}`)
+                                .join(" ")}
                             fill={COLORS.buildable}
                             stroke={COLORS.buildableLine}
                             strokeWidth={1}
                             strokeDasharray="5 3"
                         />
-                    )}
+                    ))}
                     {edges(shape).map((edge, index) => (
                         <text
                             key={index}
@@ -278,15 +295,14 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                             max="10"
                             step="0.5"
                             value={setback}
-                            disabled={!rectangular}
-                            onChange={(event) => setSetback(Number(event.target.value))}
+                            onChange={(event) => changeSetback(Number(event.target.value))}
                         />
                     </label>
                     <label>
                         El norte está hacia
                         <select
                             value={north}
-                            onChange={(event) => setNorth(Number(event.target.value))}
+                            onChange={(event) => changeNorth(Number(event.target.value))}
                         >
                             {NORTH_OPTIONS.map((option) => (
                                 <option key={option.angle} value={option.angle}>
@@ -309,13 +325,16 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                         Imprimir o guardar como PDF
                     </button>
                 </div>
-                {!rectangular && (
-                    <p className="message">
-                        El área edificable solo se calcula en lotes rectangulares.
+                {buildable.pieces.length === 0 && (
+                    <p className="message" role="status">
+                        Con ese retiro no queda área edificable. Prueba con uno menor.
                     </p>
                 )}
-                {rectangular && buildable === null && (
-                    <p className="message">Con ese retiro no queda área edificable.</p>
+                {buildable.pieces.length > 1 && (
+                    <p className="message" role="status">
+                        Con ese retiro el área edificable queda partida en {buildable.pieces.length}{" "}
+                        zonas separadas.
+                    </p>
                 )}
             </div>
         </figure>

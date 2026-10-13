@@ -7,7 +7,7 @@ import styles from "./CostChart.module.css";
 
 const ROW_HEIGHT = 44;
 const LABEL_WIDTH = 116;
-const VALUE_WIDTH = 104;
+const VALUE_WIDTH = 148;
 const DRAW_MS = 500;
 
 interface CostChartProps {
@@ -21,6 +21,11 @@ interface TipProps {
     payload?: readonly { payload: CategoryCost }[];
 }
 
+/** What is written at the end of each bar: the amount and its part of the total. */
+function figureOf(item: CategoryCost): string {
+    return `${formatMoney(item.amount)} · ${formatNumber(item.share)} %`;
+}
+
 function ChartTip({ active, payload }: TipProps) {
     const item = payload?.[0]?.payload;
 
@@ -31,9 +36,7 @@ function ChartTip({ active, payload }: TipProps) {
     return (
         <div className={styles.tip}>
             <strong>{item.category}</strong>
-            <span>
-                {formatMoney(item.amount)} · {formatNumber(item.share)} % del total
-            </span>
+            <span>{figureOf(item)} del total</span>
         </div>
     );
 }
@@ -50,7 +53,7 @@ export default function CostChart({ items, label }: CostChartProps) {
             <div aria-hidden="true">
                 <ResponsiveContainer width="100%" height={items.length * ROW_HEIGHT}>
                     <BarChart
-                        data={items}
+                        data={items.map((item) => ({ ...item, figure: figureOf(item) }))}
                         layout="vertical"
                         margin={{ top: 0, right: VALUE_WIDTH, bottom: 0, left: 0 }}
                         barCategoryGap="28%"
@@ -79,12 +82,7 @@ export default function CostChart({ items, label }: CostChartProps) {
                             animationDuration={DRAW_MS}
                             animationEasing="ease-out"
                         >
-                            <LabelList
-                                dataKey="amount"
-                                position="right"
-                                className={styles.value}
-                                formatter={(value: unknown) => formatMoney(Number(value))}
-                            />
+                            <LabelList dataKey="figure" position="right" className={styles.value} />
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
