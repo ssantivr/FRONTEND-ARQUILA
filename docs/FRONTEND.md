@@ -198,6 +198,18 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 - **Inicio.** Hero a ancho completo con el saludo a 44–60 px y los indicadores reales de la API en una franja sobre la imagen; los accesos rápidos son una acción principal y una lista compacta. El velo oscuro sigue al texto y no al hero: sus paradas van en píxeles (opaco hasta 440 px, transparente a los 720 px), así que el resto de la escena queda a la vista. El contraste del texto se midió píxel a píxel sobre la imagen a 390, 820, 1024, 1366 y 1920 px: el peor punto del párrafo da 4,6:1 y el del saludo 5,6:1. La escena nocturna se usa también en el tema claro.
 - **Inicio de sesión.** Titular grande sobre la imagen y formulario sin tarjeta. No hay franja de datos porque sin sesión no hay ningún dato real que mostrar.
 
+### Pantallas interiores
+
+Proyectos, el detalle de un proyecto, Terrenos, Materiales y Configuración abren con una banda verde bosque (`PageBand.tsx`, estilos en `styles/pages.css`) que dice qué es la pantalla, muestra sus cifras y lleva su acción principal. La banda es verde en los dos temas, como el menú lateral, y por eso lleva `data-theme="dark"`: sus botones, campos e insignias usan los colores del tema oscuro.
+
+- **Proyectos.** Las cifras (total, activos, en borrador, archivados) salen de `GET /summary`, no de la lista, porque la lista puede estar filtrada. La lista va primero; «Crear proyecto» abre debajo de la banda el formulario, que se cierra al crear. Los ejemplos de `GET /templates` están dentro de ese mismo panel y solo aparecen si la API devuelve alguno. El botón «Nuevo proyecto» de la cabecera llega con el formulario ya abierto.
+- **Detalle de proyecto.** La cabecera muestra el nombre a 33–46 px, el estado, la ubicación y la fecha de actualización, sobre el dibujo de portada del proyecto. Las pestañas cuelgan de la cabecera como una barra que se queda fija al desplazarse. «Deshacer» solo aparece cuando hay algo que deshacer.
+- **Terrenos.** Lista a la izquierda y, a la derecha, el terreno elegido con su contorno a escala sobre una retícula y sus datos en fichas; al entrar se muestra el primero. Lo que no está registrado sigue diciendo «Sin registrar».
+- **Materiales.** El costo por categoría va dentro de la banda, con el importe y su parte del total.
+- **Configuración.** La banda lleva la cuenta y «Cerrar sesión»; cada preferencia es una fila con su explicación a la izquierda y su control a la derecha. «Reducir movimiento» es una casilla nativa dibujada como interruptor.
+
+El contraste del texto de las bandas se midió sobre la captura, píxel a píxel, igual que el del hero; ninguna pantalla se desborda a lo ancho a 390, 820, 1024 y 1366 px.
+
 ### Sistema de diseño
 
 Los tokens (color, espaciado `--space-*`, radios, sombras, alturas de control y `--motion`) están en `src/styles/tokens.css` para los dos temas. Un tema se puede aplicar a cualquier contenedor con `data-theme`, no solo a la página. Los componentes compartidos viven en `src/components/ui/`: `Button` (primario, secundario, terciario, destructivo y estado de carga), `Field` (etiqueta, ayuda y error unidos al control), `Tabs`, `Menu` (menú contextual sobre `<details>`), `ProgressBar` y `EmptyState`. Junto con `Panel`, `Modal`, `Badge`, `MetricCard`, `AsyncStatus`, `Toasts` y `ProjectCard` se muestran, en claro y en oscuro, en `/design-system`. Esa página solo existe en desarrollo (`npm run dev`); la compilación de producción no la incluye.
