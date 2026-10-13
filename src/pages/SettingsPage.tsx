@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { describeStatus } from "../components/AssistantPanel";
+import { PageBand } from "../components/PageBand";
 import { Panel } from "../components/Panel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { authApi, conversationsApi, healthApi } from "../services/api";
@@ -45,93 +46,127 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
 
     return (
         <>
-            <Panel title="Cuenta">
-                <dl className="definition-list">
-                    <dt>Nombre</dt>
-                    <dd>{user.name}</dd>
-                    <dt>Correo</dt>
-                    <dd>{user.email}</dd>
-                    <dt>Cuenta creada</dt>
-                    <dd>{dateFormat.format(new Date(user.created_at))}</dd>
-                </dl>
-                <div className="filters">
+            <PageBand
+                title={user.name}
+                text={`${user.email} · Cuenta creada el ${dateFormat.format(new Date(user.created_at))}`}
+                aside={
                     <button type="button" className="button-secondary" onClick={onLogout}>
                         Cerrar sesión
                     </button>
-                </div>
-            </Panel>
-            <Panel title="Apariencia">
-                <p className="message">
-                    Estas preferencias se guardan en este navegador, no en tu cuenta: en otro equipo
-                    o navegador tendrás que elegirlas de nuevo.
-                </p>
-                <div className="settings-row">
-                    <span id="settings-theme">Tema</span>
-                    <div className="segmented" role="group" aria-labelledby="settings-theme">
-                        {THEMES.map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                aria-pressed={themePreference === item.id}
-                                onClick={() => setThemePreference(item.id)}
-                            >
-                                {item.label}
-                            </button>
-                        ))}
+                }
+            />
+            <div className="settings-grid">
+                <Panel title="Apariencia">
+                    <div className="setting">
+                        <div>
+                            <span id="settings-theme" className="setting-title">
+                                Tema
+                            </span>
+                            <span className="setting-text">
+                                Automático sigue al sistema y cambia con él.
+                            </span>
+                        </div>
+                        <div className="segmented" role="group" aria-labelledby="settings-theme">
+                            {THEMES.map((item) => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    aria-pressed={themePreference === item.id}
+                                    onClick={() => setThemePreference(item.id)}
+                                >
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
-                <label className="checkbox">
-                    <input
-                        type="checkbox"
-                        checked={reduceMotion}
-                        onChange={(event) => setReduceMotion(event.target.checked)}
-                    />
-                    Reducir movimiento: sin transiciones ni movimientos animados de cámara
-                </label>
-            </Panel>
-            <Panel title="Contraseña">
-                <p className="message">
-                    Se envía a tu correo un enlace para elegir una contraseña nueva. Si el servidor
-                    no tiene correo configurado, el enlace se escribe en su consola.
-                </p>
-                <button type="button" disabled={resetState === "sending"} onClick={requestReset}>
-                    Enviarme el enlace
-                </button>
-                {resetState === "sent" && (
-                    <p className="message" role="status">
-                        Enlace solicitado para {user.email}.
+                    <label className="setting">
+                        <span>
+                            <span className="setting-title">Reducir movimiento</span>
+                            <span className="setting-text">
+                                Sin transiciones ni movimientos animados de cámara.
+                            </span>
+                        </span>
+                        <input
+                            type="checkbox"
+                            className="switch"
+                            checked={reduceMotion}
+                            onChange={(event) => setReduceMotion(event.target.checked)}
+                        />
+                    </label>
+                    <p className="setting-note">
+                        Estas preferencias se guardan en este navegador, no en tu cuenta: en otro
+                        equipo o navegador tendrás que elegirlas de nuevo.
                     </p>
-                )}
-                {resetError && (
-                    <p className="message message-error" role="alert">
-                        {resetError}
+                </Panel>
+                <Panel title="Contraseña">
+                    <div className="setting">
+                        <div>
+                            <span className="setting-title">Cambiar la contraseña</span>
+                            <span className="setting-text">
+                                Se envía a tu correo un enlace para elegir una contraseña nueva. Si
+                                el servidor no tiene correo configurado, el enlace se escribe en su
+                                consola.
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            disabled={resetState === "sending"}
+                            onClick={requestReset}
+                        >
+                            Enviarme el enlace
+                        </button>
+                    </div>
+                    {resetState === "sent" && (
+                        <p className="message" role="status">
+                            Enlace solicitado para {user.email}.
+                        </p>
+                    )}
+                    {resetError && (
+                        <p className="message message-error" role="alert">
+                            {resetError}
+                        </p>
+                    )}
+                </Panel>
+                <Panel title="Sistema">
+                    <dl className="setting-facts">
+                        <div className="setting">
+                            <dt className="setting-title">API</dt>
+                            <dd>
+                                {health.data ? (
+                                    <span className="badge badge-active">Conectada</span>
+                                ) : health.error ? (
+                                    <>
+                                        <span className="badge badge-priority-high">
+                                            Sin conexión
+                                        </span>{" "}
+                                        {health.error}
+                                    </>
+                                ) : (
+                                    "Consultando…"
+                                )}
+                            </dd>
+                        </div>
+                        <div className="setting">
+                            <dt className="setting-title">Dirección de la API</dt>
+                            <dd>
+                                <code>{BASE_URL}</code>
+                            </dd>
+                        </div>
+                        <div className="setting">
+                            <dt className="setting-title">Asistente de IA</dt>
+                            <dd>
+                                {assistant.data
+                                    ? describeStatus(assistant.data)
+                                    : (assistant.error ?? "Consultando…")}
+                            </dd>
+                        </div>
+                    </dl>
+                    <p className="setting-note">
+                        El proveedor de IA y el correo se configuran en el archivo <code>.env</code>{" "}
+                        del servidor, no desde aquí.
                     </p>
-                )}
-            </Panel>
-            <Panel title="Sistema">
-                <dl className="definition-list">
-                    <dt>Asistente de IA</dt>
-                    <dd>
-                        {assistant.data
-                            ? describeStatus(assistant.data)
-                            : (assistant.error ?? "Consultando…")}
-                    </dd>
-                    <dt>API</dt>
-                    <dd>
-                        {health.data
-                            ? "Conectada"
-                            : health.error
-                              ? `Sin conexión: ${health.error}`
-                              : "Consultando…"}
-                    </dd>
-                    <dt>Dirección de la API</dt>
-                    <dd>{BASE_URL}</dd>
-                </dl>
-                <p className="message">
-                    El proveedor de IA y el correo se configuran en el archivo <code>.env</code> del
-                    servidor, no desde aquí.
-                </p>
-            </Panel>
+                </Panel>
+            </div>
         </>
     );
 }
