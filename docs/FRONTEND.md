@@ -195,7 +195,7 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 - **Un foco de lima por zona.** El lima queda para la acción principal y el elemento activo; el avatar, los puntos de los indicadores y los monogramas ya no lo usan.
 - **Navegación.** Los módulos se agrupan en «Trabajo», «Visualización» y «Asistencia y cuenta».
 - **Imagen protagonista.** La portada y el inicio de sesión muestran, rotulada como «Escena de muestra», la escena del recorrido interior (`sample-loft.jpg`, `sample-stairs.jpg`). Para sustituirla basta copiar `house-day.jpg` y/o `house-night.jpg` en `src/assets/renders/`: `RenderImage.tsx` las prefiere si existen (día en tema claro, noche en oscuro) y entonces quita el rótulo. No hay que tocar código.
-- **Inicio.** Hero a ancho completo con el saludo a 44–60 px y los indicadores reales de la API en una franja sobre la imagen; los accesos rápidos son una acción principal y una lista compacta.
+- **Inicio.** Hero a ancho completo con el saludo a 44–60 px y los indicadores reales de la API en una franja sobre la imagen; los accesos rápidos son una acción principal y una lista compacta. El velo oscuro sigue al texto y no al hero: sus paradas van en píxeles (opaco hasta 440 px, transparente a los 720 px), así que el resto de la escena queda a la vista. El contraste del texto se midió píxel a píxel sobre la imagen a 390, 820, 1024, 1366 y 1920 px: el peor punto del párrafo da 4,6:1 y el del saludo 5,6:1. La escena nocturna se usa también en el tema claro.
 - **Inicio de sesión.** Titular grande sobre la imagen y formulario sin tarjeta. No hay franja de datos porque sin sesión no hay ningún dato real que mostrar.
 
 ### Sistema de diseño

@@ -21,6 +21,8 @@
     mask-image: none;
 }
 
+/* The veil follows the copy, not the hero: its stops are in px because the copy has a fixed
+   width, so on a wide screen the rest of the scene stays clear. */
 .hero-home::before {
     content: "";
     position: absolute;
@@ -29,16 +31,16 @@
     background:
         linear-gradient(
             90deg,
-            rgba(6, 17, 12, 0.92) 0%,
-            rgba(6, 17, 12, 0.7) 36%,
-            rgba(6, 17, 12, 0.08) 72%
+            rgba(6, 17, 12, 0.8) 0,
+            rgba(6, 17, 12, 0.66) 440px,
+            rgba(6, 17, 12, 0) 720px
         ),
-        linear-gradient(0deg, rgba(6, 17, 12, 0.7) 0%, transparent 42%);
+        linear-gradient(0deg, rgba(6, 17, 12, 0.5) 0, rgba(6, 17, 12, 0) 200px);
 }
 
 .hero-home .hero-copy {
     gap: 18px;
-    max-width: 660px;
+    max-width: 600px;
     padding: 60px 52px 172px;
 }
 
@@ -55,7 +57,7 @@
 
 .hero-home .hero-copy p {
     max-width: 44ch;
-    color: rgba(255, 255, 255, 0.84);
+    color: rgba(255, 255, 255, 0.92);
     font-size: 1.1rem;
     line-height: 1.5;
 }
@@ -79,10 +81,10 @@
     bottom: 0;
     left: 0;
     padding: 20px 52px 22px;
-    background: rgba(6, 17, 12, 0.6);
+    background: rgba(6, 17, 12, 0.44);
     border-top: 1px solid rgba(255, 255, 255, 0.14);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
 }
 
 .hero-stats dl {
@@ -234,7 +236,7 @@
 @media (max-width: 900px) {
     /* On a narrow screen the copy covers the whole picture, so the veil is even. */
     .hero-home::before {
-        background: rgba(6, 17, 12, 0.74);
+        background: rgba(6, 17, 12, 0.62);
     }
 
     .hero-home .hero-copy {
