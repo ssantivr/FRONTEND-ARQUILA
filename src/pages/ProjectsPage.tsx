@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
+import { Icon } from "../components/Icon";
+import { PageBand } from "../components/PageBand";
 import { Panel } from "../components/Panel";
 import { ProjectCard } from "../components/ProjectCard";
 import { errorMessage, useAsync } from "../hooks/useAsync";
-import { projectsApi, templatesApi } from "../services/api";
+import { projectsApi, summaryApi, templatesApi } from "../services/api";
 import { showToast } from "../state/toasts";
 import type { ProjectStatus } from "../types/api";
 import { formatNumber, optionalText } from "../utils/format";
@@ -14,7 +16,7 @@ type Order = "recent" | "name";
 interface ProjectsPageProps {
     onOpenProject: (projectId: number) => void;
     onOpenModel: (projectId: number) => void;
-    /** Puts the cursor in the name field, for when the user arrives through "Nuevo proyecto". */
+    /** Opens the creation form with the cursor in its name, for arrivals through "Nuevo proyecto". */
     focusCreate?: boolean;
 }
 
@@ -35,6 +37,8 @@ export function ProjectsPage({
     const [description, setDescription] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const [creating, setCreating] = useState(focusCreate);
+    const summary = useAsync(() => summaryApi.get(), []);
     const templates = useAsync(() => templatesApi.list(), []);
     const [templateError, setTemplateError] = useState<string | null>(null);
     const [creatingTemplate, setCreatingTemplate] = useState<string | null>(null);
@@ -75,7 +79,9 @@ export function ProjectsPage({
             setName("");
             setLocation("");
             setDescription("");
+            setCreating(false);
             projects.reload();
+            summary.reload();
             showToast("Proyecto creado.");
         } catch (reason) {
             setFormError(errorMessage(reason));
@@ -91,6 +97,7 @@ export function ProjectsPage({
         try {
             await action();
             projects.reload();
+            summary.reload();
             showToast(done);
         } catch (reason) {
             setActionError(errorMessage(reason));
@@ -118,90 +125,164 @@ export function ProjectsPage({
             : second.updated_at.localeCompare(first.updated_at),
     );
 
+    const examples = templates.data ?? [];
+
     return (
         <>
-            <Panel title="Nuevo proyecto">
-                <form className="form-row" onSubmit={handleCreate}>
-                    <label>
-                        Nombre
-                        <input
-                            autoFocus={focusCreate}
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            maxLength={160}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Ubicación
-                        <input
-                            value={location}
-                            onChange={(event) => setLocation(event.target.value)}
-                            maxLength={255}
-                        />
-                    </label>
-                    <label className="field-wide">
-                        Descripción
-                        <input
-                            value={description}
-                            onChange={(event) => setDescription(event.target.value)}
-                        />
-                    </label>
-                    <button type="submit" disabled={saving || name.trim() === ""}>
-                        Crear
+            <PageBand
+                title="Tus proyectos"
+                text="Cada proyecto reúne su terreno, sus planos, el modelo 3D, los materiales y los archivos."
+                stats={
+                    summary.data
+                        ? [
+                              { label: "Proyectos", value: formatNumber(summary.data.projects) },
+                              {
+                                  label: "Activos",
+                                  value: formatNumber(summary.data.active_projects),
+                              },
+                              {
+                                  label: "En borrador",
+                                  value: formatNumber(summary.data.draft_projects),
+                              },
+                              {
+                                  label: "Archivados",
+                                  value: formatNumber(summary.data.archived_projects),
+                              },
+                          ]
+                        : undefined
+                }
+                aside={
+                    <button
+                        type="button"
+                        className="button-lime icon-button"
+                        aria-expanded={creating}
+                        aria-controls="project-create"
+                        onClick={() => setCreating((open) => !open)}
+                    >
+                        <Icon name="plus" />
+                        Crear proyecto
                     </button>
-                </form>
-                {formError && (
-                    <p className="message message-error" role="alert">
-                        {formError}
-                    </p>
+                }
+            >
+                {summary.error && (
+                    <AsyncStatus
+                        loading={false}
+                        error={summary.error}
+                        onRetry={summary.reload}
+                        isEmpty={false}
+                        emptyText=""
+                    />
                 )}
-            </Panel>
+            </PageBand>
 
-            <Panel title="Ejemplos">
-                <p className="message">
-                    Crea un proyecto ya armado, con su terreno, planos, cuartos y columnas, y ábrelo
-                    en el modelo 3D. Después se puede editar como cualquier otro.
-                </p>
-                <AsyncStatus
-                    loading={templates.loading}
-                    error={templates.error}
-                    onRetry={templates.reload}
-                    isEmpty={(templates.data ?? []).length === 0}
-                    emptyText="No hay ejemplos disponibles."
-                />
-                <ul className="card-list">
-                    {(templates.data ?? []).map((template) => (
-                        <li key={template.id}>
-                            <button
-                                type="button"
-                                className="card module-card"
-                                disabled={creatingTemplate !== null}
-                                onClick={() => handleTemplate(template.id)}
-                            >
-                                <span className="badge badge-source-system">{template.kind}</span>
-                                <span className="card-title">{template.name}</span>
-                                <span className="card-subtitle">{template.description}</span>
-                                <span className="card-subtitle">
-                                    {template.levels === 1
-                                        ? "1 nivel"
-                                        : `${template.levels} niveles`}{" "}
-                                    · {formatNumber(template.built_area_m2)} m² construidos · lote
-                                    de {formatNumber(template.lot_area_m2)} m²
-                                </span>
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-                {templateError && (
-                    <p className="message message-error" role="alert">
-                        {templateError}
-                    </p>
-                )}
-            </Panel>
-
+            {creating && (
+                <section id="project-create" className="panel create-panel">
+                    <header className="panel-header">
+                        <h2>Nuevo proyecto</h2>
+                        <button
+                            type="button"
+                            className="button-tertiary"
+                            onClick={() => setCreating(false)}
+                        >
+                            Cancelar
+                        </button>
+                    </header>
+                    <form className="form-row" onSubmit={handleCreate}>
+                        <label>
+                            Nombre
+                            <input
+                                autoFocus
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                maxLength={160}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Ubicación
+                            <input
+                                value={location}
+                                onChange={(event) => setLocation(event.target.value)}
+                                maxLength={255}
+                            />
+                        </label>
+                        <label className="field-wide">
+                            Descripción
+                            <input
+                                value={description}
+                                onChange={(event) => setDescription(event.target.value)}
+                            />
+                        </label>
+                        <button type="submit" disabled={saving || name.trim() === ""}>
+                            Crear
+                        </button>
+                    </form>
+                    {formError && (
+                        <p className="message message-error" role="alert">
+                            {formError}
+                        </p>
+                    )}
+                    {templates.error && (
+                        <AsyncStatus
+                            loading={false}
+                            error={templates.error}
+                            onRetry={templates.reload}
+                            isEmpty={false}
+                            emptyText=""
+                        />
+                    )}
+                    {examples.length > 0 && (
+                        <div className="create-examples">
+                            <h3>O empieza con un ejemplo</h3>
+                            <p className="message">
+                                Un proyecto ya armado, con su terreno, planos, cuartos y columnas,
+                                que se abre en el modelo 3D. Después se edita como cualquier otro.
+                            </p>
+                            <ul className="card-list">
+                                {examples.map((template) => (
+                                    <li key={template.id}>
+                                        <button
+                                            type="button"
+                                            className="card module-card"
+                                            disabled={creatingTemplate !== null}
+                                            onClick={() => handleTemplate(template.id)}
+                                        >
+                                            <span className="badge badge-source-system">
+                                                {template.kind}
+                                            </span>
+                                            <span className="card-title">{template.name}</span>
+                                            <span className="card-subtitle">
+                                                {template.description}
+                                            </span>
+                                            <span className="card-subtitle">
+                                                {template.levels === 1
+                                                    ? "1 nivel"
+                                                    : `${template.levels} niveles`}{" "}
+                                                · {formatNumber(template.built_area_m2)} m²
+                                                construidos · lote de{" "}
+                                                {formatNumber(template.lot_area_m2)} m²
+                                            </span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    {templateError && (
+                        <p className="message message-error" role="alert">
+                            {templateError}
+                        </p>
+                    )}
+                </section>
+            )}
             <Panel
-                title="Proyectos"
+                title={
+                    projects.data === null
+                        ? "Proyectos"
+                        : items.length === 1
+                          ? "1 proyecto"
+                          : `${items.length} proyectos`
+                }
                 actions={
                     <div className="filters">
                         <input
@@ -262,7 +343,13 @@ export function ProjectsPage({
                         {actionError}
                     </p>
                 )}
-                <ul className={layout === "grid" ? "card-list" : "card-list card-list-rows"}>
+                <ul
+                    className={
+                        layout === "grid"
+                            ? "card-list project-grid"
+                            : "card-list card-list-rows project-grid"
+                    }
+                >
                     {items.map((project) => (
                         <li key={project.id} className="project-item">
                             <ProjectCard project={project} onOpen={onOpenProject} />
