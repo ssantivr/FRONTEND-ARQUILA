@@ -18,6 +18,7 @@ import "./styles/ui.css";
 import "./styles/identity.css";
 import "./styles/auth.css";
 import "./styles/home.css";
+import "./styles/pages.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 
