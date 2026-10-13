@@ -29,9 +29,7 @@ const SECTION_SLUGS: Record<SectionId, string> = {
 };
 
 /** Slugs of earlier versions. A link saved with one of them still opens, and is rewritten. */
-const LEGACY_SLUGS: Record<string, SectionId> = {
-    modelo: "model",
-};
+const LEGACY_SLUGS = new Map<string, SectionId>([["modelo", "model"]]);
 
 export const DESIGN_SYSTEM_PATH = "/design-system";
 
@@ -58,7 +56,7 @@ function sectionOf(slug: string | undefined): SectionId | null {
         (section) => SECTION_SLUGS[section] === slug,
     );
 
-    return found ?? LEGACY_SLUGS[slug] ?? null;
+    return found ?? LEGACY_SLUGS.get(slug) ?? null;
 }
 
 export function parsePath(pathname: string): Route {

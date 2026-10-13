@@ -300,6 +300,8 @@ export interface ViewerEvents {
     /** Where the camera looks, in whole degrees: around the vertical axis, and above the horizon. */
     onOrbit: (azimuth: number, elevation: number) => void;
     onAsset: (state: "ready" | "error") => void;
+    /** The browser took the graphics context away (driver reset, too many contexts, sleep). */
+    onContextLost?: () => void;
 }
 
 export { elementKey };
@@ -1647,10 +1649,19 @@ export function createStructureViewer(
         reportOrbit();
     }
 
+    // Without preventDefault the browser never offers the context back. The screen is told, so it
+    // can explain what happened and rebuild the viewer; disposing removes this listener first,
+    // because releasing the context on purpose fires the same event.
+    function handleContextLost(event: Event): void {
+        event.preventDefault();
+        events.onContextLost?.();
+    }
+
     const observer = new ResizeObserver(resize);
     observer.observe(container);
     window.addEventListener("resize", resize);
     canvas.addEventListener("webglcontextrestored", invalidate);
+    canvas.addEventListener("webglcontextlost", handleContextLost);
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointermove", handlePointerMove);
@@ -1696,6 +1707,7 @@ export function createStructureViewer(
         observer.disconnect();
         window.removeEventListener("resize", resize);
         canvas.removeEventListener("webglcontextrestored", invalidate);
+        canvas.removeEventListener("webglcontextlost", handleContextLost);
         canvas.removeEventListener("pointerdown", handlePointerDown);
         canvas.removeEventListener("pointerup", handlePointerUp);
         canvas.removeEventListener("pointermove", handlePointerMove);

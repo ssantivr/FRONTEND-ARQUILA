@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { appState } from "../state/appState";
 import type { Structure, StructureRoom } from "../types/api";
 import { StructureViewer } from "./StructureViewer";
 
@@ -89,6 +90,8 @@ function lastCall(name: string): unknown[] {
 
 beforeEach(() => {
     engine.calls.clear();
+    // The selection lives in a shared store, so one test must not leave it set for the next.
+    appState.select(1, null);
 });
 
 describe("StructureViewer", () => {
@@ -175,6 +178,57 @@ describe("StructureViewer", () => {
             await userEvent.click(isolate);
 
             expect(engine.calls.get("isolate")).not.toHaveBeenCalledWith("room-1");
+            // Pressing it says why out loud, which is what a touch screen has instead of hover.
+            expect(
+                screen
+                    .getAllByRole("status")
+                    .some((region) =>
+                        region.textContent?.includes("Selecciona un cuarto para aislarlo"),
+                    ),
+            ).toBe(true);
+            // A tool that applies is not described again with its own name.
+            expect(screen.getByRole("button", { name: "Corte" })).not.toHaveAccessibleDescription();
+        });
+
+        it("keeps answering after a layer is ticked, and stays quiet when the focus is elsewhere", async () => {
+            render(
+                <>
+                    <button type="button">Fuera del visor</button>
+                    <StructureViewer structure={structure} />
+                </>,
+            );
+
+            await userEvent.click(screen.getByRole("checkbox", { name: "Cuadrícula" }));
+            await userEvent.keyboard("3");
+
+            expect(lastCall("setView")).toEqual(["side"]);
+
+            await userEvent.click(screen.getByRole("button", { name: "Fuera del visor" }));
+            await userEvent.keyboard("4");
+
+            expect(lastCall("setView")).toEqual(["side"]);
+        });
+
+        it("switches the isolated room when another one is selected", async () => {
+            render(<StructureViewer structure={structure} />);
+
+            await userEvent.click(screen.getByRole("button", { name: "Sala" }));
+            await userEvent.keyboard("i");
+            await userEvent.click(screen.getByRole("button", { name: "Aislar cuarto" }));
+
+            expect(lastCall("isolate")).toEqual([null]);
+        });
+
+        it("confirms that the picture was saved", async () => {
+            const click = vi
+                .spyOn(HTMLAnchorElement.prototype, "click")
+                .mockImplementation(() => undefined);
+
+            render(<StructureViewer structure={structure} />);
+            await userEvent.click(screen.getByRole("button", { name: "Guardar imagen" }));
+
+            expect(click).toHaveBeenCalledTimes(1);
+            click.mockRestore();
         });
 
         it("changes the view with 1 to 4", async () => {
@@ -208,9 +262,7 @@ describe("StructureViewer", () => {
                 "aria-pressed",
                 "true",
             );
-            expect(screen.getByRole("status", { name: "Estado del modelo" })).toHaveTextContent(
-                "Esc vuelve un paso atrás",
-            );
+            expect(screen.getByText("Esc vuelve un paso atrás")).toBeInTheDocument();
 
             await userEvent.keyboard("{Escape}");
 

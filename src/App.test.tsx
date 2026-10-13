@@ -149,7 +149,7 @@ describe("App routing", () => {
 
         expect(trail).toHaveTextContent("ProyectosCasa AndinaMateriales");
 
-        await userEvent.click(within(trail).getByRole("button", { name: "Proyectos" }));
+        await userEvent.click(within(trail).getByRole("link", { name: "Proyectos" }));
 
         expect(screen.getByTestId("path")).toHaveTextContent("/proyectos");
     });

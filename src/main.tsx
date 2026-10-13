@@ -5,7 +5,6 @@ import { BrowserRouter } from "react-router";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
 
-import { App } from "./App";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/viewer.css";
@@ -41,6 +40,10 @@ import "./styles/editor.css";
 import "./styles/rich.css";
 import "./styles/numbers.css";
 import "./styles/navigation.css";
+
+// The app is imported after the global sheets: the CSS Modules of its components then come later
+// in the bundle, so at equal specificity a component's own rule wins over a global one.
+import { App } from "./App";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 

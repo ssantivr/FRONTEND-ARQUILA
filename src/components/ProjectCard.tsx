@@ -1,3 +1,4 @@
+import { useThumbnail } from "../state/thumbnails";
 import type { Project } from "../types/api";
 import { formatDate } from "../utils/format";
 import { StatusBadge } from "./ui/Badge";
@@ -19,10 +20,14 @@ function initials(name: string): string {
         .join("");
 }
 
-/** Projects have no cover image in the API, so the cover is a drawing generated per project. */
+/**
+ * The cover is the picture of the project's 3D model, taken the last time it was opened in this
+ * browser. Until then it is a drawing generated per project, because the API has no cover image.
+ */
 export function ProjectCard({ project, onOpen, layout = "grid" }: ProjectCardProps) {
     const place = project.location ?? "Sin ubicación";
     const updated = `Actualizado ${formatDate(project.updated_at)}`;
+    const thumbnail = useThumbnail(project.id);
 
     return (
         <button
@@ -31,8 +36,14 @@ export function ProjectCard({ project, onOpen, layout = "grid" }: ProjectCardPro
             onClick={() => onOpen(project.id)}
         >
             <span className="project-cover" aria-hidden="true">
-                <ProjectCover id={project.id} name={project.name} />
-                <span className="project-monogram">{initials(project.name)}</span>
+                {thumbnail === null ? (
+                    <>
+                        <ProjectCover id={project.id} name={project.name} />
+                        <span className="project-monogram">{initials(project.name)}</span>
+                    </>
+                ) : (
+                    <img className="project-thumbnail" src={thumbnail} alt="" loading="lazy" />
+                )}
             </span>
             {layout === "grid" ? (
                 <>

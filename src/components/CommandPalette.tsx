@@ -1,5 +1,5 @@
 import * as RadixDialog from "@radix-ui/react-dialog";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { useProjectSearch } from "../hooks/useProjectSearch";
 import { Icon, type IconName } from "./Icon";
@@ -52,6 +52,14 @@ export function CommandPalette({ commands, onOpenProject, onClose }: CommandPale
     const options = [...matching, ...found];
     const groups = [...new Set(options.map((option) => option.group))];
     const current = Math.min(active, Math.max(options.length - 1, 0));
+    const activeId = options.length === 0 ? undefined : `${listId}-${options[current].id}`;
+
+    // The list scrolls: the option the arrows land on is brought into view.
+    useEffect(() => {
+        if (activeId !== undefined) {
+            document.getElementById(activeId)?.scrollIntoView?.({ block: "nearest" });
+        }
+    }, [activeId]);
 
     function run(command: Command) {
         onClose();
@@ -67,7 +75,7 @@ export function CommandPalette({ commands, onOpenProject, onClose }: CommandPale
                 }
             }}
         >
-            <RadixDialog.Portal>
+            <RadixDialog.Portal container={document.fullscreenElement as HTMLElement | null}>
                 <RadixDialog.Overlay className={styles.overlay} />
                 <RadixDialog.Content className={styles.palette} aria-describedby={undefined}>
                     <RadixDialog.Title className={styles.title}>
@@ -79,13 +87,9 @@ export function CommandPalette({ commands, onOpenProject, onClose }: CommandPale
                             type="text"
                             role="combobox"
                             aria-label="Buscar una pantalla, un proyecto o una acción"
-                            aria-expanded="true"
+                            aria-expanded={options.length > 0}
                             aria-controls={listId}
-                            aria-activedescendant={
-                                options.length === 0
-                                    ? undefined
-                                    : `${listId}-${options[current].id}`
-                            }
+                            aria-activedescendant={activeId}
                             aria-autocomplete="list"
                             placeholder="Escribe una pantalla, un proyecto o una acción"
                             autoComplete="off"
@@ -143,21 +147,21 @@ export function CommandPalette({ commands, onOpenProject, onClose }: CommandPale
                         ))}
                     </div>
                     {search.state === "loading" && (
-                        <p className={styles.note} role="status">
-                            Buscando proyectos…
-                        </p>
+                        <p className={styles.note}>Buscando proyectos…</p>
                     )}
                     {search.state === "error" && (
                         <p className={`${styles.note} message-error`} role="alert">
                             No se pudieron buscar los proyectos: {search.message}
                         </p>
                     )}
-                    {options.length === 0 && search.state !== "loading" && (
-                        <p className={styles.note} role="status">
-                            Nada coincide con «{query.trim()}». Prueba con el nombre de una pantalla
-                            o de un proyecto.
-                        </p>
-                    )}
+                    {options.length === 0 &&
+                        search.state !== "loading" &&
+                        search.state !== "error" && (
+                            <p className={styles.note} role="status">
+                                Nada coincide con «{query.trim()}». Prueba con el nombre de una
+                                pantalla o de un proyecto.
+                            </p>
+                        )}
                     <p className={styles.foot} aria-hidden="true">
                         <span>
                             <kbd className={styles.key}>↑</kbd>

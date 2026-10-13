@@ -3,7 +3,9 @@ import styles from "./Breadcrumbs.module.css";
 
 export interface Crumb {
     label: string;
-    /** Where the crumb leads. The last one is the current page and has no action. */
+    /** Address of the crumb, so it can be opened in another tab. The last one has none. */
+    href?: string;
+    /** Navigates inside the app on a plain click. */
     onSelect?: () => void;
 }
 
@@ -17,14 +19,25 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
 
                     return (
                         <li key={`${index}-${item.label}`}>
-                            {item.onSelect !== undefined && !last ? (
-                                <button
-                                    type="button"
+                            {item.href !== undefined && !last ? (
+                                <a
                                     className={styles.link}
-                                    onClick={item.onSelect}
+                                    href={item.href}
+                                    onClick={(event) => {
+                                        // A modified click (new tab, new window) is left to the browser.
+                                        if (
+                                            item.onSelect !== undefined &&
+                                            !event.ctrlKey &&
+                                            !event.metaKey &&
+                                            !event.shiftKey
+                                        ) {
+                                            event.preventDefault();
+                                            item.onSelect();
+                                        }
+                                    }}
                                 >
                                     {item.label}
-                                </button>
+                                </a>
                             ) : (
                                 <span
                                     className={styles.current}

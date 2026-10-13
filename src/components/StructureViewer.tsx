@@ -4,6 +4,8 @@ import { errorMessage, useAsync } from "../hooks/useAsync";
 import { spatialApi, structureApi, walkthroughApi } from "../services/api";
 import { apiUrl } from "../services/http";
 import { appState, useProjectState } from "../state/appState";
+import { saveThumbnail, shrinkCapture } from "../state/thumbnails";
+import { showToast } from "../state/toasts";
 import { useTheme } from "../state/theme";
 import {
     SCENE_PALETTES,
@@ -60,12 +62,13 @@ import {
 } from "./RoomWorksPanel";
 import { ObjectTree } from "./viewer/ObjectTree";
 import { ShortcutsDialog } from "./viewer/ShortcutsDialog";
-import { shortcutsBlocked } from "./viewer/shortcuts";
+import { focusAllowsShortcuts, shortcutsBlocked } from "./viewer/shortcuts";
 import { ToolRail, type RailTool } from "./viewer/ToolRail";
 import { ScenePanel } from "./viewer/ScenePanel";
 import { StatusBar } from "./viewer/StatusBar";
 import { Toolbar } from "./viewer/Toolbar";
 import { ViewBar } from "./viewer/ViewBar";
+import { ViewerBoundary, ViewerProblem } from "./viewer/ViewerBoundary";
 import { ViewGizmo, type OrbitListener } from "./viewer/ViewGizmo";
 import { KIND_LABELS, VIEWS, itemLabel, type SaveState } from "./viewer/labels";
 
@@ -74,7 +77,7 @@ const TABLET_QUERY = "(min-width: 721px) and (max-width: 1024px)";
 const COLOR_MODES: { id: ColorMode; label: string }[] = [
     { id: "realistic", label: "Realista" },
     { id: "kind", label: "Tipo" },
-    { id: "cost", label: "Coste" },
+    { id: "cost", label: "Costo" },
     { id: "alerts", label: "Alertas" },
 ];
 
@@ -91,7 +94,7 @@ const KIND_LEGEND = (Object.keys(KIND_LABELS) as StructureElement["kind"][]).map
 
 const COST_LEGEND = [
     {
-        label: "De menor a mayor coste estimado",
+        label: "De menor a mayor costo estimado",
         swatch: `linear-gradient(90deg, ${cssColor(LOW_COLOR)}, ${cssColor(HIGH_COLOR)})`,
     },
 ];
@@ -171,6 +174,8 @@ const TOUR_START_AZIMUTH = 0.6;
 const TOUR_TURN = 0.7;
 const ISOLATION_CUT_PERCENT = 80;
 const TOOL_CUT_PERCENT = 60;
+// The model needs a moment to settle (shadows, textures) before its picture is taken.
+const THUMBNAIL_DELAY_MS = 2000;
 const ALL_LAYERS: Layers = { rooms: true, roof: true, environment: true, grid: true };
 
 interface StructureViewerProps {
@@ -184,13 +189,46 @@ interface StructureViewerProps {
     onEngine?: (engine: Viewer | null) => void;
 }
 
-export function StructureViewer({
+/**
+ * The 3D viewer with its own safety net: if drawing the model fails, or the browser takes the
+ * graphics context away, the scene is replaced by an explanation and a button that rebuilds it.
+ */
+export function StructureViewer(props: StructureViewerProps) {
+    const [attempt, setAttempt] = useState(0);
+    const [lost, setLost] = useState(false);
+
+    function retry() {
+        setLost(false);
+        setAttempt((current) => current + 1);
+    }
+
+    if (lost) {
+        return props.preview === true ? null : (
+            <ViewerProblem
+                title="El modelo 3D se detuvo"
+                text="El navegador liberó la memoria gráfica, algo que pasa al suspender el equipo o con muchas pestañas abiertas. Tus datos están a salvo."
+                onRetry={retry}
+            />
+        );
+    }
+
+    return (
+        <ViewerBoundary key={attempt} silent={props.preview} onRetry={retry}>
+            <ViewerScene {...props} onContextLost={() => setLost(true)} />
+        </ViewerBoundary>
+    );
+}
+
+function ViewerScene({
     structure,
     walkthrough: startInside = false,
     preview = false,
     lighting,
     onEngine,
-}: StructureViewerProps) {
+    onContextLost,
+}: StructureViewerProps & { onContextLost: () => void }) {
+    const reportLost = useRef(onContextLost);
+    reportLost.current = onContextLost;
     const reportEngine = useRef(onEngine);
     reportEngine.current = onEngine;
     const lit = useMemo(
@@ -241,6 +279,7 @@ export function StructureViewer({
     const [inside, setInside] = useState(false);
     const [assetState, setAssetState] = useState<AssetState | null>(null);
     const [help, setHelp] = useState(false);
+    const [reason, setReason] = useState<string | null>(null);
     const projectId = structure.project_id;
     const theme = useTheme();
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
@@ -442,8 +481,16 @@ export function StructureViewer({
         setTouring(!touring);
     }
 
+    /** Isolates the selected room; pressed again on the isolated one, shows the whole model. */
+    const roomSelected = selected !== null && selected.kind === "room";
+    const somethingSelected = selected !== null || picked !== null;
+
     function toggleIsolation() {
-        visit(selectedKey === isolatedKey ? null : selectedKey);
+        visit(roomSelected && selectedKey !== isolatedKey ? selectedKey : null);
+    }
+
+    function focusSelection() {
+        viewer.current?.focus(picked === null ? selectedKey : overlayKey(picked.id));
     }
 
     function toggleCut() {
@@ -462,27 +509,26 @@ export function StructureViewer({
         }
     }
 
-    const roomSelected = selected !== null && selected.kind === "room";
     const tools: RailTool[] = [
         {
             id: "focus",
             label: "Enfocar",
             icon: "focus",
             shortcut: "F",
-            unavailable: selected === null ? "Selecciona un elemento para enfocarlo" : undefined,
-            onUse: () => viewer.current?.focus(selectedKey),
+            unavailable: somethingSelected ? undefined : "Selecciona un elemento para enfocarlo",
+            onUse: focusSelection,
         },
         {
             id: "isolate",
             label: "Aislar cuarto",
             icon: "isolate",
             shortcut: "I",
-            pressed: isolatedKey !== null,
+            pressed: isolatedKey !== null && (!roomSelected || selectedKey === isolatedKey),
             unavailable:
                 roomSelected || isolatedKey !== null
                     ? undefined
                     : "Selecciona un cuarto para aislarlo",
-            onUse: () => (roomSelected ? toggleIsolation() : visit(null)),
+            onUse: toggleIsolation,
         },
         {
             id: "cut",
@@ -519,17 +565,19 @@ export function StructureViewer({
     ];
 
     const tip =
-        inside || isolatedKey !== null
-            ? "Esc vuelve un paso atrás"
-            : roomSelected
-              ? "I aísla el cuarto · F lo enfoca"
-              : selected !== null
-                ? "F enfoca lo seleccionado · Esc lo suelta"
-                : "Clic para seleccionar · 1 a 4 cambian la vista · ? muestra los atajos";
+        reason !== null
+            ? reason
+            : inside || isolatedKey !== null
+              ? "Esc vuelve un paso atrás"
+              : roomSelected
+                ? "I aísla el cuarto · F lo enfoca"
+                : somethingSelected
+                  ? "F enfoca lo seleccionado · Esc lo suelta"
+                  : "Clic para seleccionar · 1 a 4 cambian la vista · ? muestra los atajos";
 
     const handleKey = useRef<(event: KeyboardEvent) => void>(() => undefined);
     handleKey.current = (event) => {
-        if (shortcutsBlocked(event)) {
+        if (unsupported || shortcutsBlocked(event) || !focusAllowsShortcuts(stage.current)) {
             return;
         }
 
@@ -538,14 +586,12 @@ export function StructureViewer({
         if (viewIndex !== -1) {
             chooseView(VIEWS[viewIndex].id);
         } else if (event.key === "f" || event.key === "F") {
-            if (selected !== null) {
-                viewer.current?.focus(selectedKey);
+            if (somethingSelected) {
+                focusSelection();
             }
         } else if (event.key === "i" || event.key === "I") {
-            if (roomSelected) {
+            if (roomSelected || isolatedKey !== null) {
                 toggleIsolation();
-            } else if (isolatedKey !== null) {
-                visit(null);
             }
         } else if (event.key === "Escape") {
             stepBack();
@@ -599,7 +645,7 @@ export function StructureViewer({
         colorMode === "kind" ? KIND_LEGEND : colorMode === "cost" ? COST_LEGEND : ALERT_LEGEND;
     const colorNote =
         colorMode === "cost" && costs.size === 0
-            ? "Registra materiales con cantidad y coste para ver el reparto."
+            ? "Registra materiales con cantidad y costo para ver el reparto."
             : colorMode === "alerts" && alerts.size === 0
               ? "Ninguna recomendación menciona un elemento por su nombre."
               : null;
@@ -615,6 +661,7 @@ export function StructureViewer({
                 onZoom: setZoom,
                 onOrbit: (azimuth, elevation) => orbitListener.current?.(azimuth, elevation),
                 onAsset: setAssetState,
+                onContextLost: () => reportLost.current(),
             });
         } catch {
             setUnsupported(true);
@@ -638,6 +685,28 @@ export function StructureViewer({
         viewer.current?.show(structure);
     }, [structure]);
 
+    const untouched = isolation === null && selectedKey === null && lighting === undefined;
+    const canPicture = useRef(untouched);
+    canPicture.current = untouched;
+
+    // Once the model is on screen its picture is kept for the project cards. It is taken only of
+    // the whole model as it opens: not of an isolated room, a selection or a presentation light.
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            const image = canPicture.current ? viewer.current?.capture() : undefined;
+
+            if (typeof image === "string") {
+                void shrinkCapture(image).then((thumbnail) => {
+                    if (thumbnail !== null) {
+                        saveThumbnail(projectId, thumbnail);
+                    }
+                });
+            }
+        }, THUMBNAIL_DELAY_MS);
+
+        return () => window.clearTimeout(timer);
+    }, [structure, projectId]);
+
     useEffect(() => {
         appState.setSurfaces(projectId, savedSurfaces(elements));
         appState.setRoof(projectId, structure.roof);
@@ -649,7 +718,8 @@ export function StructureViewer({
 
     useEffect(() => {
         setSaveError(null);
-    }, [selectedKey]);
+        setReason(null);
+    }, [selectedKey, isolatedKey, pickedId]);
 
     useEffect(() => {
         viewer.current?.select(selectedKey);
@@ -748,7 +818,9 @@ export function StructureViewer({
     function downloadCapture() {
         const image = viewer.current?.capture();
 
-        if (image === undefined) {
+        if (typeof image !== "string" || !image.startsWith("data:image/")) {
+            showToast("No se pudo guardar la imagen del modelo. Inténtalo de nuevo.");
+
             return;
         }
 
@@ -757,6 +829,7 @@ export function StructureViewer({
         link.href = image;
         link.download = `arquila-proyecto-${projectId}.png`;
         link.click();
+        showToast("Imagen del modelo guardada en tus descargas.");
     }
 
     function toggleFullscreen() {
@@ -815,6 +888,10 @@ export function StructureViewer({
                         panels={panels}
                         onTogglePanels={() => setPanels((visible) => !visible)}
                     />
+                    <ToolRail tools={tools} onUnavailable={setReason} />
+                    <p className="visually-hidden" role="status">
+                        {reason}
+                    </p>
                     {isolatedRoom === null ? (
                         <ObjectTree
                             elements={elements}
@@ -869,13 +946,15 @@ export function StructureViewer({
                                         <dt>Estado</dt>
                                         <dd>{WORK_STATUS_LABELS[picked.work_status]}</dd>
                                         <dt>Medidas</dt>
-                                        <dd>
+                                        <dd className="numeric">
                                             {formatNumber(picked.max_x_m - picked.min_x_m)} ×{" "}
                                             {formatNumber(picked.max_y_m - picked.min_y_m)} ×{" "}
                                             {formatNumber(picked.max_z_m - picked.min_z_m)} m
                                         </dd>
                                         <dt>Altura de la base</dt>
-                                        <dd>+{formatNumber(picked.min_z_m)} m</dd>
+                                        <dd className="numeric">
+                                            +{formatNumber(picked.min_z_m)} m
+                                        </dd>
                                     </dl>
                                 )}
                                 {selected === null ? (
@@ -920,9 +999,9 @@ export function StructureViewer({
                                         <dt>Plano</dt>
                                         <dd>{selected.plan_title}</dd>
                                         <dt>Nivel</dt>
-                                        <dd>{selected.level ?? "—"}</dd>
+                                        <dd className="numeric">{selected.level ?? "—"}</dd>
                                         <dt>Medidas</dt>
-                                        <dd>
+                                        <dd className="numeric">
                                             {formatNumber(selected.width_m)} ×{" "}
                                             {formatNumber(selected.depth_m)} ×{" "}
                                             {formatNumber(selected.height_m)} m
@@ -930,7 +1009,7 @@ export function StructureViewer({
                                         {isSpace(selected) && (
                                             <>
                                                 <dt>Área</dt>
-                                                <dd>
+                                                <dd className="numeric">
                                                     {formatNumber(
                                                         selected.width_m * selected.depth_m,
                                                     )}{" "}
@@ -939,7 +1018,7 @@ export function StructureViewer({
                                             </>
                                         )}
                                         <dt>Volumen</dt>
-                                        <dd>
+                                        <dd className="numeric">
                                             {formatNumber(
                                                 selected.width_m *
                                                     selected.depth_m *
@@ -948,11 +1027,15 @@ export function StructureViewer({
                                             m³
                                         </dd>
                                         <dt>Altura de la base</dt>
-                                        <dd>+{formatNumber(selected.base_m)} m</dd>
+                                        <dd className="numeric">
+                                            +{formatNumber(selected.base_m)} m
+                                        </dd>
                                         {selectedCost !== undefined && (
                                             <>
-                                                <dt>Coste estimado</dt>
-                                                <dd>{formatMoney(selectedCost)}</dd>
+                                                <dt>Costo estimado</dt>
+                                                <dd className="numeric">
+                                                    {formatMoney(selectedCost)}
+                                                </dd>
                                             </>
                                         )}
                                     </dl>
@@ -1087,7 +1170,6 @@ export function StructureViewer({
                             </details>
                         </aside>
                     </div>
-                    <ToolRail tools={tools} />
                     <ViewGizmo listener={orbitListener} />
                     <Toolbar
                         onReset={() => chooseView(view)}

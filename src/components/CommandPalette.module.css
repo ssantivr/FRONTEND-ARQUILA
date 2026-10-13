@@ -1,7 +1,7 @@
 .overlay {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: var(--z-overlay);
     background: var(--scrim);
     animation: fade var(--dur) var(--ease);
 }
@@ -10,7 +10,7 @@
     position: fixed;
     top: 14vh;
     left: 50%;
-    z-index: 100;
+    z-index: var(--z-overlay);
     display: flex;
     flex-direction: column;
     width: min(620px, 94vw);
@@ -169,11 +169,11 @@
 @media (max-width: 720px) {
     .palette {
         top: var(--space-4);
-        max-height: calc(100vh - var(--space-6));
+        max-height: calc(100dvh - var(--space-6));
     }
 
     .option {
-        min-height: 44px;
+        min-height: var(--touch-target);
     }
 
     .foot {

@@ -3,7 +3,7 @@
  *
  * They are literal values and not CSS variables on purpose: a drawing is downloaded as an SVG and
  * printed, and it must look the same outside the application, on white paper and in both themes.
- * This is the only place outside `styles/tokens.css` where colours are written.
+ * This is the only place outside `styles/tokens.css` where colours are written by hand.
  */
 export const SHEET_COLORS = {
     background: "#fbfaf7",

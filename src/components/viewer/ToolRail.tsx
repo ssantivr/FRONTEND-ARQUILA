@@ -17,13 +17,15 @@ export interface RailTool {
 
 interface ToolRailProps {
     tools: RailTool[];
+    /** Told why a tool that does not apply was pressed, so the screen can say it out loud. */
+    onUnavailable: (reason: string) => void;
 }
 
 /**
  * The fixed vertical bar at the left of the scene. A tool that does not apply to what is selected
  * is not hidden: it stays in its place, dimmed, and its tooltip says what to do to use it.
  */
-export function ToolRail({ tools }: ToolRailProps) {
+export function ToolRail({ tools, onUnavailable }: ToolRailProps) {
     return (
         <div
             className={`hud ${styles.rail}`}
@@ -37,6 +39,7 @@ export function ToolRail({ tools }: ToolRailProps) {
                     side="right"
                     text={tool.unavailable ?? tool.label}
                     shortcut={tool.unavailable === undefined ? tool.shortcut : undefined}
+                    describes={tool.unavailable !== undefined}
                 >
                     <button
                         type="button"
@@ -48,6 +51,8 @@ export function ToolRail({ tools }: ToolRailProps) {
                         onClick={() => {
                             if (tool.unavailable === undefined) {
                                 tool.onUse();
+                            } else {
+                                onUnavailable(tool.unavailable);
                             }
                         }}
                     >

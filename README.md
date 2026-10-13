@@ -11,7 +11,7 @@ ARQUILA
 
 ## Tecnología
 
-TypeScript, React 18 y Vite, con React Router para las direcciones y Three.js para el modelo 3D. Vitest y Testing Library para las pruebas; ESLint y Prettier para el estilo. Playwright (`playwright-core`, solo en desarrollo) genera las capturas con el navegador ya instalado.
+TypeScript, React 18 y Vite, con React Router para las direcciones, Three.js para el modelo 3D, lucide-react para los iconos y Radix Dialog para las ventanas. Vitest y Testing Library para las pruebas; ESLint y Prettier para el estilo. Playwright (`playwright-core`, solo en desarrollo) genera las capturas con el navegador ya instalado.
 
 ## Requisitos
 
@@ -25,7 +25,19 @@ npm install
 npm run dev
 ```
 
-La interfaz queda en `http://localhost:5173`. Cada pantalla tiene su dirección (`/proyectos`, `/proyectos/7/modelo`, `/terrenos`…), así que se puede enlazar a un proyecto o a una de sus pestañas.
+La interfaz queda en `http://localhost:5173`. Cada pantalla tiene su dirección (`/proyectos`, `/proyectos/7/modelo-3d`, `/terrenos`…), así que se puede enlazar a un proyecto o a una de sus pestañas.
+
+## Atajos de teclado
+
+| Tecla | Qué hace |
+|---|---|
+| `Ctrl+K` o `⌘K` | Abre la paleta de comandos: pantallas, proyectos y acciones. |
+| `/` | Lleva el cursor al buscador de proyectos. |
+| `1` a `4` | En el modelo 3D: vista isométrica, frontal, lateral y superior. |
+| `F` | Enfoca lo seleccionado. |
+| `I` | Aísla el cuarto seleccionado, o vuelve a mostrar todo. |
+| `Esc` | Retrocede un paso: vista interior, cuarto aislado, selección. |
+| `?` | Muestra esta lista dentro del visor. |
 
 ## Conexión con el backend
 
@@ -69,6 +81,8 @@ src/
 | `npm test` | Pruebas. |
 | `npm run lint` | Reglas de ESLint. |
 | `npm run format` / `npm run format:check` | Formato con Prettier. |
+| `npm run contraste` | Comprueba el contraste AA (4,5:1) de cada par texto/fondo de los tokens, en claro y oscuro. |
+| `npm run accesibilidad` | Con `npm run dev` en marcha, pasa axe-core por las pantallas principales. |
 | `npm run capturas` | Con `npm run dev` en marcha, guarda en `docs/capturas/` las pantallas principales (claro y oscuro, escritorio y móvil) y comprueba con clics reales el visor 3D. Usa datos de muestra, sin backend. |
 
 Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar con `demo@example.com`, contraseña `arquila-demo` (credencial pública, solo para desarrollo).

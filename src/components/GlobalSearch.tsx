@@ -3,11 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useProjectSearch } from "../hooks/useProjectSearch";
 import { StatusBadge } from "./ui/Badge";
 import { Icon } from "./Icon";
-
-/** «⌘K» on a Mac and «Ctrl K» everywhere else. */
-export const COMMANDS_KEY = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? "")
-    ? "⌘K"
-    : "Ctrl K";
+import { COMMANDS_KEY } from "./viewer/shortcuts";
 
 interface GlobalSearchProps {
     onOpenProject: (projectId: number) => void;
@@ -28,9 +24,10 @@ export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProp
             const typing =
                 event.target instanceof HTMLElement &&
                 (event.target.isContentEditable ||
-                    ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName));
+                    ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName) ||
+                    event.target.closest("[role='dialog']") !== null);
 
-            if (event.key === "/" && !typing && !event.ctrlKey && !event.metaKey) {
+            if (event.key === "/" && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
                 event.preventDefault();
                 input.current?.focus();
             }

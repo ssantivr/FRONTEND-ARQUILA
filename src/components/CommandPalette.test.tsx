@@ -125,6 +125,7 @@ describe("CommandPalette", () => {
         expect(await screen.findByRole("alert")).toHaveTextContent(
             "No se pudieron buscar los proyectos",
         );
+        expect(screen.queryByText(/Nada coincide/)).not.toBeInTheDocument();
     });
 
     it("closes with Escape", async () => {

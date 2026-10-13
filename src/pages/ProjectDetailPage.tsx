@@ -19,6 +19,7 @@ import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
+import { projectPath, viewPath } from "../routes";
 import { filesApi, projectsApi, undoApi } from "../services/api";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
 import { formatDate } from "../utils/format";
@@ -122,8 +123,12 @@ export function ProjectDetailPage({
                 <div className="project-head-main">
                     <Breadcrumbs
                         items={[
-                            { label: "Proyectos", onSelect: onBack },
-                            { label: current.name, onSelect: () => setSection("terrain") },
+                            { label: "Proyectos", href: viewPath("projects"), onSelect: onBack },
+                            {
+                                label: current.name,
+                                href: projectPath(current.id),
+                                onSelect: () => setSection("terrain"),
+                            },
                             { label: SECTIONS.find((item) => item.id === section)?.label ?? "" },
                         ]}
                     />

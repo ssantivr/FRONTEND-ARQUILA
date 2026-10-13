@@ -3,22 +3,30 @@
  * digits, so columns of numbers line up and a figure reads as data, not as prose.
  */
 :is(
-    .numeric,
+    :not(th).numeric,
     .metric-value,
     output,
     .hud-readout,
     .hud-count,
     .hero-stats dd:not(.hero-stat-detail),
-    .band-stats dd,
     .status-legend dd,
     .stat-strip dd,
     .range-value,
-    .list-count,
     .task-count,
-    .task-progress,
     .terrain-card-figures
 ) {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
+}
+
+/* The status bar of the 3D viewer is mostly words (selection, camera, tip): it stays in Inter. */
+.hud-status .hud-readout {
+    font-family: var(--font-sans);
+    letter-spacing: 0;
+}
+
+/* A long figure in a metric card wraps instead of being cut off. */
+.metric-value {
+    overflow-wrap: anywhere;
 }

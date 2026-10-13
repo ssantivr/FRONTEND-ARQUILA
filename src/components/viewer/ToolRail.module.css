@@ -52,8 +52,8 @@
 }
 
 .tool :global(.icon) {
-    width: 18px;
-    height: 18px;
+    width: var(--icon-md);
+    height: var(--icon-md);
 }
 
 /* On a phone the panels stack under the scene and the bar becomes a row of 44 px targets. */
@@ -65,7 +65,15 @@
     }
 
     .tool {
-        width: 44px;
-        min-height: 44px;
+        width: var(--touch-target);
+        min-height: var(--touch-target);
+    }
+}
+
+/* Any touch screen, tablets included, gets the full-size targets. */
+@media (pointer: coarse) {
+    .tool {
+        width: var(--touch-target);
+        min-height: var(--touch-target);
     }
 }

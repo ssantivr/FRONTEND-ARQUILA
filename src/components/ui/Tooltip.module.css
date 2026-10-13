@@ -5,7 +5,7 @@
 
 .tip {
     position: absolute;
-    z-index: 60;
+    z-index: var(--z-tooltip);
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -21,7 +21,6 @@
     box-shadow: var(--shadow-float);
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
     transition:
         opacity var(--dur-fast) var(--ease),
         visibility var(--dur-fast);
@@ -64,6 +63,21 @@
     font-size: var(--fs-12);
     border: 1px solid var(--glass-border);
     border-radius: var(--r-sm);
+}
+
+/* On a phone a hint at the side would run off the screen: it goes above, and wraps. */
+@media (max-width: 720px) {
+    .tip {
+        max-width: min(240px, 70vw);
+        white-space: normal;
+    }
+
+    .right {
+        top: auto;
+        bottom: calc(100% + var(--space-2));
+        left: 50%;
+        transform: translateX(-50%);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

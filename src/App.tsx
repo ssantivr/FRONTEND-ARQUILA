@@ -64,15 +64,18 @@ export function App() {
     const [loginNotice, setLoginNotice] = useState<string | undefined>(undefined);
     const theme = useTheme();
     const [commandsOpen, setCommandsOpen] = useState(false);
-    const signedIn = session.state === "authenticated";
+    const signedIn = session.state === "authenticated" && resetToken === null;
     const canonical = canonicalPath(location.pathname);
 
     // An address of an earlier version, such as /proyectos/7/modelo, is replaced by the current one.
     useEffect(() => {
         if (canonical !== null) {
-            go(canonical, { replace: true });
+            go(`${canonical}${location.search}${location.hash}`, {
+                replace: true,
+                state: location.state,
+            });
         }
-    }, [canonical, go]);
+    }, [canonical, go, location.search, location.hash, location.state]);
 
     useEffect(() => {
         if (!signedIn) {
@@ -80,7 +83,12 @@ export function App() {
         }
 
         function handleShortcut(event: KeyboardEvent) {
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+            if (
+                (event.ctrlKey || event.metaKey) &&
+                !event.altKey &&
+                !event.shiftKey &&
+                event.key?.toLowerCase() === "k"
+            ) {
                 event.preventDefault();
                 setCommandsOpen((open) => !open);
             }

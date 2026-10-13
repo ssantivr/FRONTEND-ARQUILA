@@ -18,15 +18,17 @@
 }
 
 .trail :global(.icon) {
-    width: 14px;
-    height: 14px;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
     opacity: 0.7;
 }
 
 .link {
-    min-height: 0;
+    display: inline-flex;
+    align-items: center;
     padding: 2px var(--space-1);
     color: var(--text-secondary);
+    text-decoration: none;
     font-size: inherit;
     font-weight: 500;
     background: transparent;
@@ -56,6 +58,6 @@
 /* On a phone every target is at least 44 px tall. */
 @media (max-width: 720px) {
     .link {
-        min-height: 44px;
+        min-height: var(--touch-target);
     }
 }

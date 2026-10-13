@@ -201,6 +201,37 @@ describe("Tooltip", () => {
         expect(button).toHaveAccessibleDescription("Enfocar la selecciónF");
         expect(screen.getByRole("tooltip")).toHaveTextContent("F");
     });
+
+    it("is shown but not announced when it only repeats the name of its control", () => {
+        render(
+            <Tooltip text="Enfocar" describes={false}>
+                <button type="button" aria-label="Enfocar" />
+            </Tooltip>,
+        );
+
+        expect(screen.getByRole("button", { name: "Enfocar" })).not.toHaveAccessibleDescription();
+        expect(screen.getByText("Enfocar")).toHaveAttribute("aria-hidden", "true");
+    });
+
+    it("closes with Escape without letting the key reach the screen behind", async () => {
+        const onWindowKey = vi.fn();
+
+        window.addEventListener("keydown", onWindowKey);
+        render(
+            <Tooltip text="Selecciona un cuarto para aislarlo">
+                <button type="button">Aislar cuarto</button>
+            </Tooltip>,
+        );
+
+        await userEvent.tab();
+        onWindowKey.mockClear();
+        await userEvent.keyboard("{Escape}");
+
+        expect(onWindowKey).not.toHaveBeenCalled();
+        expect(screen.getByRole("tooltip").parentElement).toHaveAttribute("data-dismissed");
+
+        window.removeEventListener("keydown", onWindowKey);
+    });
 });
 
 describe("Skeleton", () => {
@@ -268,8 +299,8 @@ describe("Breadcrumbs", () => {
         render(
             <Breadcrumbs
                 items={[
-                    { label: "Proyectos", onSelect: toProjects },
-                    { label: "Casa Mirador", onSelect: () => undefined },
+                    { label: "Proyectos", href: "/proyectos", onSelect: toProjects },
+                    { label: "Casa Mirador", href: "/proyectos/3/terreno" },
                     { label: "Modelo 3D" },
                 ]}
             />,
@@ -279,9 +310,13 @@ describe("Breadcrumbs", () => {
 
         expect(trail).toHaveTextContent("ProyectosCasa MiradorModelo 3D");
         expect(screen.getByText("Modelo 3D")).toHaveAttribute("aria-current", "page");
-        expect(screen.queryByRole("button", { name: "Modelo 3D" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "Modelo 3D" })).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Casa Mirador" })).toHaveAttribute(
+            "href",
+            "/proyectos/3/terreno",
+        );
 
-        await userEvent.click(screen.getByRole("button", { name: "Proyectos" }));
+        await userEvent.click(screen.getByRole("link", { name: "Proyectos" }));
 
         expect(toProjects).toHaveBeenCalledTimes(1);
     });

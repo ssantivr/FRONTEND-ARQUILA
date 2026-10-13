@@ -39,5 +39,8 @@ describe("routes", () => {
         expect(parsePath("/proyectos/7/inventada")).toEqual({ kind: "unknown" });
         expect(parsePath("/proyectos/7/modelo/extra")).toEqual({ kind: "unknown" });
         expect(parsePath("/no-existe")).toEqual({ kind: "unknown" });
+        expect(parsePath("/proyectos/7/constructor")).toEqual({ kind: "unknown" });
+        expect(parsePath("/proyectos/7/toString")).toEqual({ kind: "unknown" });
+        expect(canonicalPath("/proyectos/7/__proto__")).toBeNull();
     });
 });

@@ -106,6 +106,10 @@
     --neon-cyan: #00f0ff;
     --neon-magenta: #ff007f;
 
+    /* Work layers drawn over the 3D model; structure and installations use the two neons. */
+    --work-finishes: #ffc857;
+    --work-demolition: #ff5c7a;
+
     /* Illustrations (empty states and the vector house). */
     --art-ink: #0f2e22;
     --art-paper: #e9eee6;
@@ -157,6 +161,11 @@
     --radius: var(--r-md);
     --radius-sm: var(--r-sm);
 
+    --touch-target: 44px;
+    --icon-sm: 14px;
+    --icon-md: 18px;
+    --z-tooltip: 60;
+    --z-overlay: 100;
     --control-sm: 32px;
     --control-md: 40px;
     --control-lg: 48px;

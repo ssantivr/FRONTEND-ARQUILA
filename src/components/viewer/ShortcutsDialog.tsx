@@ -38,7 +38,7 @@ export function ShortcutsDialog({ container, onClose }: ShortcutsDialogProps) {
                 <ShortcutList title="En el modelo 3D" items={VIEWER_SHORTCUTS} />
                 <ShortcutList title="En toda la aplicación" items={GLOBAL_SHORTCUTS} />
                 <p className={styles.note}>
-                    Con el ratón: un clic selecciona, doble clic acerca la cámara, arrastrar gira el
+                    Con el mouse: un clic selecciona, doble clic acerca la cámara, arrastrar gira el
                     modelo y la rueda acerca o aleja. En pantallas táctiles, un dedo gira y dos
                     acercan o desplazan.
                 </p>
