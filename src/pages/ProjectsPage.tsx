@@ -8,6 +8,7 @@ import { projectsApi, summaryApi, templatesApi } from "../services/api";
 import { showToast } from "../state/toasts";
 import type { ProjectStatus, Summary } from "../types/api";
 import { formatNumber, optionalText } from "../utils/format";
+import { LiveForm } from "../components/ui/LiveForm";
 
 type Order = "recent" | "name";
 /** What the panel under the page head shows: nothing, the form or the ready-made examples. */
@@ -198,7 +199,7 @@ export function ProjectsPage({
                     </header>
                     {creating === "form" ? (
                         <>
-                            <form className="form-row" onSubmit={handleCreate}>
+                            <LiveForm className="form-row" onSubmit={handleCreate}>
                                 <label>
                                     Nombre
                                     <input
@@ -227,7 +228,7 @@ export function ProjectsPage({
                                 <button type="submit" disabled={saving || name.trim() === ""}>
                                     Crear
                                 </button>
-                            </form>
+                            </LiveForm>
                             {formError && (
                                 <p className="message message-error" role="alert">
                                     {formError}

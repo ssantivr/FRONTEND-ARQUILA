@@ -4,6 +4,7 @@
  */
 :is(
     :not(th).numeric,
+    .figure,
     .metric-value,
     output,
     .hud-readout,

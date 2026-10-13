@@ -7,6 +7,7 @@ import type { RecommendationPriority, RecommendationSource } from "../types/api"
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./ui/Panel";
+import { LiveForm } from "./ui/LiveForm";
 
 const SOURCE_LABELS: Record<RecommendationSource, string> = {
     system: "Automática",
@@ -129,7 +130,7 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                     </li>
                 ))}
             </ul>
-            <form className="form-row" onSubmit={handleCreate}>
+            <LiveForm className="form-row" onSubmit={handleCreate}>
                 <label>
                     Categoría
                     <input
@@ -166,7 +167,7 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                 <button type="submit" disabled={category.trim() === "" || content.trim() === ""}>
                     Agregar
                 </button>
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

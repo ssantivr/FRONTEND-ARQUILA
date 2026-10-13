@@ -10,6 +10,7 @@ import type {
     WorkStatus,
 } from "../types/api";
 import { formatMoney } from "../utils/format";
+import { LiveForm } from "./ui/LiveForm";
 
 export const WORK_LAYERS: { id: SpatialLayer; label: string; swatch: string }[] = [
     { id: "structure", label: "Estructura", swatch: "var(--neon-cyan)" },
@@ -201,7 +202,7 @@ export function RoomWorksPanel({
                     );
                 })}
             </ul>
-            <form className="hud-works-form" onSubmit={addLog}>
+            <LiveForm className="hud-works-form" onSubmit={addLog}>
                 <input
                     aria-label="Nueva obra"
                     placeholder="Nueva obra…"
@@ -227,7 +228,7 @@ export function RoomWorksPanel({
                 >
                     Agregar obra
                 </button>
-            </form>
+            </LiveForm>
             {error !== null && (
                 <p className="message message-error" role="alert">
                     {error}

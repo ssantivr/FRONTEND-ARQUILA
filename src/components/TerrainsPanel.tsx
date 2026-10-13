@@ -11,6 +11,7 @@ import { FocusFormButton } from "./ui/EmptyState";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { TerrainDiagrams } from "./TerrainDiagrams";
+import { LiveForm } from "./ui/LiveForm";
 
 export function TerrainsPanel({ projectId, run }: SectionProps) {
     const terrains = useAsync(() => terrainsApi.listByProject(projectId), [projectId]);
@@ -161,7 +162,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
             {items.map((terrain) => (
                 <TerrainDiagrams key={terrain.id} terrain={terrain} />
             ))}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Nombre
                     <input
@@ -244,7 +245,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                     disabled={"error" in parsed}
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

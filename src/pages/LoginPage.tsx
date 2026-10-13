@@ -4,6 +4,7 @@ import { Panel } from "../components/ui/Panel";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
 import type { User } from "../types/api";
+import { LiveForm } from "../components/ui/LiveForm";
 
 interface LoginPageProps {
     notice?: string;
@@ -71,7 +72,7 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     return (
         <div className="login">
             <Panel title={TITLES[mode]}>
-                <form className="form-column" onSubmit={handleSubmit}>
+                <LiveForm className="form-column" onSubmit={handleSubmit}>
                     <p className="login-lead">{LEADS[mode]}</p>
                     {mode === "register" && (
                         <label>
@@ -169,7 +170,7 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                             Volver a iniciar sesión
                         </button>
                     )}
-                </form>
+                </LiveForm>
             </Panel>
         </div>
     );

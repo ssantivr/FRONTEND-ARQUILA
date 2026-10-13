@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { appState } from "../state/appState";
 import type { Structure, StructureRoom } from "../types/api";
+import * as sceneManager from "../three/BuildingSceneManager";
 import { StructureViewer } from "./StructureViewer";
 
 /** Stands in for the WebGL engine, which jsdom cannot run; the real one is checked in a browser. */
@@ -311,6 +312,41 @@ describe("StructureViewer", () => {
             await userEvent.keyboard("4");
 
             expect(engine.calls.get("setView")).toBeUndefined();
+        });
+    });
+
+    describe("when the scene cannot be drawn", () => {
+        it("explains a lost graphics context and rebuilds the viewer on request", async () => {
+            const created = vi.spyOn(sceneManager, "createStructureViewer");
+
+            render(<StructureViewer structure={structure} />);
+
+            const events = created.mock.calls[0][1];
+
+            act(() => events.onContextLost?.());
+
+            expect(screen.getByRole("alert")).toHaveTextContent("El modelo 3D se detuvo");
+            expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
+
+            await userEvent.click(
+                screen.getByRole("button", { name: "Volver a cargar el modelo" }),
+            );
+
+            expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+            expect(created).toHaveBeenCalledTimes(2);
+            expect(screen.getByRole("button", { name: "Sala" })).toBeInTheDocument();
+
+            created.mockRestore();
+        });
+
+        it("shows nothing in place of a preview that lost its context", () => {
+            const created = vi.spyOn(sceneManager, "createStructureViewer");
+            const { container } = render(<StructureViewer structure={structure} preview />);
+
+            act(() => created.mock.calls[0][1].onContextLost?.());
+
+            expect(container).toBeEmptyDOMElement();
+            created.mockRestore();
         });
     });
 });

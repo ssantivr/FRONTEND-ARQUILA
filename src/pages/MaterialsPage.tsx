@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { PageBand } from "../components/PageBand";
@@ -6,28 +6,15 @@ import { Panel } from "../components/ui/Panel";
 import { SurfaceLibrary } from "../components/SurfaceLibrary";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, materialsApi } from "../services/api";
-import type { Material } from "../types/api";
+import { Skeleton } from "../components/ui/Skeleton";
 import { formatMoney, formatNumber } from "../utils/format";
+import { NO_CATEGORY, costByCategory, materialCost as cost } from "../utils/materials";
+
+// Recharts is only needed once there is something to chart, so it loads apart from the app.
+const CostChart = lazy(() => import("../components/CostChart"));
 
 interface MaterialsPageProps {
     onOpenProject: (projectId: number) => void;
-}
-
-const NO_CATEGORY = "Sin categoría";
-
-function cost(material: Material): number {
-    return material.quantity * material.unit_cost;
-}
-
-function costByCategory(materials: Material[]): [string, number][] {
-    const totals = new Map<string, number>();
-
-    for (const material of materials) {
-        const category = material.category ?? NO_CATEGORY;
-        totals.set(category, (totals.get(category) ?? 0) + cost(material));
-    }
-
-    return [...totals.entries()].sort((first, second) => second[1] - first[1]);
 }
 
 export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
@@ -40,7 +27,7 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
     const projectNames = new Map((data.data?.projects ?? []).map((item) => [item.id, item.name]));
     const total = materials.reduce((sum, material) => sum + cost(material), 0);
     const categories = costByCategory(materials);
-    const highest = categories[0]?.[1] ?? 0;
+    const highest = categories[0]?.amount ?? 0;
     const wanted = search.trim().toLowerCase();
     const shown = materials.filter(
         (material) =>
@@ -61,7 +48,7 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                               { label: "Costo total", value: formatMoney(total) },
                               {
                                   label: "Categoría más costosa",
-                                  value: categories[0]?.[0] ?? "—",
+                                  value: categories[0]?.category ?? "—",
                                   detail: categories.length > 0 ? formatMoney(highest) : undefined,
                               },
                           ]
@@ -70,27 +57,14 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                     categories.length > 0 && (
                         <section className="band-chart" aria-label="Costo por categoría">
                             <h3>Costo por categoría</h3>
-                            <ul className="bar-list">
-                                {categories.map(([category, amount]) => (
-                                    <li key={category}>
-                                        <span>{category}</span>
-                                        <span className="numeric">
-                                            {formatMoney(amount)} ·{" "}
-                                            {formatNumber(
-                                                total > 0 ? Math.round((amount / total) * 100) : 0,
-                                            )}{" "}
-                                            %
-                                        </span>
-                                        <span className="bar" aria-hidden="true">
-                                            <span
-                                                style={{
-                                                    width: `${highest > 0 ? (amount / highest) * 100 : 0}%`,
-                                                }}
-                                            />
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
+                            <Suspense
+                                fallback={<Skeleton shape="lines" count={categories.length} />}
+                            >
+                                <CostChart
+                                    items={categories}
+                                    label="Costo por categoría de todos tus proyectos"
+                                />
+                            </Suspense>
                         </section>
                     )
                 }
@@ -113,9 +87,9 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                                 onChange={(event) => setCategory(event.target.value)}
                             >
                                 <option value="">Todas las categorías</option>
-                                {categories.map(([name]) => (
-                                    <option key={name} value={name}>
-                                        {name}
+                                {categories.map((item) => (
+                                    <option key={item.category} value={item.category}>
+                                        {item.category}
                                     </option>
                                 ))}
                             </select>

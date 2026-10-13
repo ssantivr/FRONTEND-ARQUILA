@@ -8,6 +8,7 @@ import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
+import { LiveForm } from "./ui/LiveForm";
 
 interface ComponentsPanelProps extends SectionProps {
     onChanged: () => void;
@@ -191,7 +192,7 @@ export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelPr
                 </table>
             )}
             {planItems.length > 0 && (
-                <form className="form-row" ref={form} onSubmit={handleSubmit}>
+                <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                     <label>
                         Plano
                         <select
@@ -293,7 +294,7 @@ export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelPr
                         disabled={name.trim() === ""}
                         onCancel={resetForm}
                     />
-                </form>
+                </LiveForm>
             )}
         </Panel>
     );

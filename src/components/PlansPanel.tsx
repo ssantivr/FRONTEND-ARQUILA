@@ -10,6 +10,7 @@ import { FocusFormButton } from "./ui/EmptyState";
 import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
+import { LiveForm } from "./ui/LiveForm";
 
 interface PlansPanelProps extends SectionProps {
     files: ProjectFile[];
@@ -132,7 +133,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                     </tbody>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input
@@ -166,7 +167,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                     disabled={title.trim() === ""}
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

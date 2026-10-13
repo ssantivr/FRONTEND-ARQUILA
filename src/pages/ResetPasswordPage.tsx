@@ -4,6 +4,7 @@ import { Panel } from "../components/ui/Panel";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
 import { MIN_PASSWORD_LENGTH } from "./LoginPage";
+import { LiveForm } from "../components/ui/LiveForm";
 
 interface ResetPasswordPageProps {
     token: string;
@@ -40,7 +41,7 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
     return (
         <div className="login">
             <Panel title="Elegir contraseña nueva">
-                <form className="form-column" onSubmit={handleSubmit}>
+                <LiveForm className="form-column" onSubmit={handleSubmit}>
                     <label>
                         Contraseña nueva
                         <input
@@ -80,7 +81,7 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
                     >
                         Cancelar
                     </button>
-                </form>
+                </LiveForm>
             </Panel>
         </div>
     );

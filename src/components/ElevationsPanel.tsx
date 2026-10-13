@@ -8,6 +8,7 @@ import { AsyncStatus } from "./AsyncStatus";
 import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
+import { LiveForm } from "./ui/LiveForm";
 
 const ORIENTATION_LABELS: Record<Orientation, string> = {
     north: "Norte",
@@ -153,7 +154,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                     </tbody>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input
@@ -182,7 +183,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                     disabled={title.trim() === ""}
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

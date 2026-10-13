@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { materialsApi } from "../services/api";
@@ -10,6 +10,11 @@ import { AsyncStatus } from "./AsyncStatus";
 import { FocusFormButton } from "./ui/EmptyState";
 import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
+import { Skeleton } from "./ui/Skeleton";
+import { costByCategory } from "../utils/materials";
+import { LiveForm } from "./ui/LiveForm";
+
+const CostChart = lazy(() => import("./CostChart"));
 
 export function MaterialsPanel({ projectId, run }: SectionProps) {
     const materials = useAsync(() => materialsApi.listByProject(projectId), [projectId]);
@@ -87,6 +92,8 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
         0,
     );
 
+    const categories = costByCategory(items);
+
     return (
         <Panel title="Materiales">
             <AsyncStatus
@@ -98,6 +105,14 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                 emptyText="Este proyecto no tiene materiales."
                 emptyAction={<FocusFormButton>Agregar el primer material</FocusFormButton>}
             />
+            {totalCost > 0 && (
+                <section className="cost-chart" aria-labelledby="cost-chart-title">
+                    <h3 id="cost-chart-title">Costo por categoría</h3>
+                    <Suspense fallback={<Skeleton shape="lines" count={categories.length} />}>
+                        <CostChart items={categories} label="Costo por categoría del proyecto" />
+                    </Suspense>
+                </section>
+            )}
             {items.length > 0 && (
                 <table>
                     <thead>
@@ -146,7 +161,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                     </tfoot>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Nombre
                     <input
@@ -198,7 +213,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                     addLabel="Agregar material"
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

@@ -55,3 +55,15 @@ Es el único lugar con más de un nivel de profundidad. En las pantallas de prim
 ### Capas de obra en cian y magenta (pendiente de decidir)
 
 `BuildingSceneManager.ts` dibuja las capas de obra del visor (estructura en cian `#00F0FF`, instalaciones en magenta `#FF007F`) y `RoomWorksPanel.tsx` repite esos colores en sus muestras. La regla del neón solo los admite en el contorno de selección y en las luces de acento. No se cambió porque está en `src/three/`, que en este encargo solo se puede tocar para la pendiente y la pérdida de contexto WebGL. Hace falta una decisión: cambiar esos dos colores o aceptar la excepción.
+
+### Validación con nodos añadidos a mano (fase 3)
+
+`LiveForm` escribe el mensaje de error en un `span` que inserta tras el campo, fuera del control de React. La alternativa limpia, envolver cada campo en `Field`, obligaba a reescribir unos ochenta campos en catorce formularios y cambiaba su maquetación (hoy la etiqueta envuelve al control). El nodo se añade siempre al final del `label`, donde React no inserta nada, y desaparece con él.
+
+### Recharts cargado aparte (fase 3)
+
+Recharts añade unos 107 kB comprimidos. Va en su propio archivo (`lazy`), que el navegador solo pide en Materiales y cuando hay costos que dibujar.
+
+### Tarjetas sin área ni niveles (fase 3)
+
+El encargo original pedía área y número de niveles en cada tarjeta. La lista de proyectos de la API no trae esos datos y pedir el modelo de cada proyecto sería una petición por tarjeta. Queda propuesto en `CAMBIOS_BACKEND.md`.

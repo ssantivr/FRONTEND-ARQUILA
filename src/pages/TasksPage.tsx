@@ -10,6 +10,7 @@ import { showToast } from "../state/toasts";
 import type { RenovationLog, RenovationStatus, SpatialLayer } from "../types/api";
 import { formatMoney, formatNumber } from "../utils/format";
 import { TASK_STATUSES, isOverdue, taskProgress } from "../utils/tasks";
+import { LiveForm } from "../components/ui/LiveForm";
 
 // Kept outside the component: the cache of `loadAcrossProjects` is keyed by this function.
 const loadTasks = (projectId: number) =>
@@ -180,7 +181,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
 
             {creating && (
                 <section className="panel create-panel" aria-label="Nueva tarea">
-                    <form className="form-row" onSubmit={handleCreate}>
+                    <LiveForm className="form-row" onSubmit={handleCreate}>
                         <label className="field-wide">
                             Tarea
                             <input
@@ -243,7 +244,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                         <Button variant="tertiary" onClick={() => setCreating(false)}>
                             Cancelar
                         </Button>
-                    </form>
+                    </LiveForm>
                     {formError !== null && (
                         <p className="message message-error" role="alert">
                             {formError}

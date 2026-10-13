@@ -7,6 +7,7 @@ import type { AssistantStatus, ConversationMessage, StructureElement } from "../
 import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./ui/Panel";
+import { LiveForm } from "./ui/LiveForm";
 
 const MAX_MESSAGE_LENGTH = 4000;
 
@@ -251,7 +252,7 @@ export function AssistantPanel({
                     </button>
                 ))}
             </div>
-            <form className="form-row" onSubmit={handleSend}>
+            <LiveForm className="form-row" onSubmit={handleSend}>
                 <label className="field-wide">
                     Pregunta
                     <textarea
@@ -267,7 +268,7 @@ export function AssistantPanel({
                 <button type="submit" disabled={sending || draft.trim() === ""}>
                     Enviar
                 </button>
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

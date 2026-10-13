@@ -9,8 +9,8 @@ Memoria de trabajo de la rama `rediseno-ui`. Se actualiza al cerrar cada fase, p
 | 0. Desbloqueo | Obligatorio | Hecha |
 | 1. Sistema de diseño | Obligatorio | Hecha |
 | 2. Navegación | Obligatorio | Hecha (punto de control 2 aprobado el 13 de octubre de 2026) |
-| 3. Pantallas | Obligatorio | En curso |
-| 3b. Animaciones básicas (F1 y F2) | Obligatorio | Pendiente |
+| 3. Pantallas | Obligatorio | Hecha |
+| 3b. Animaciones básicas (F1 y F2) | Obligatorio | En curso |
 | 4. Correcciones | Obligatorio | Pendiente |
 | 5. Datos | Deseable | Pendiente |
 | 6. Producto | Deseable | Pendiente |
@@ -108,6 +108,18 @@ No corregido, con su motivo:
 - La paleta no se puede abrir en el móvil (su botón se oculta por debajo de 720 px). Allí no hay teclado y la navegación ya está en la fila superior.
 - El `role="toolbar"` de la barra vertical no tiene navegación con flechas: son seis paradas de tabulación.
 - El icono de una herramienta que no aplica tiene un contraste de unos 3,4:1. WCAG no exige 4,5:1 a un control inactivo, y el motivo sí se lee con contraste completo.
+
+## Fase 3. Pantallas (13 de octubre de 2026)
+
+- Miniatura real del modelo 3D en las tarjetas de proyecto, guardada en este navegador.
+- Costo por categoría con Recharts en Materiales (pantalla general y pestaña del proyecto), con tabla equivalente para lectores de pantalla.
+- Validación en vivo por campo en los catorce formularios (`LiveForm`).
+- Red de seguridad propia del visor: fallo al dibujar y pérdida de contexto WebGL, con «Volver a cargar el modelo».
+- `docs/CAMBIOS_BACKEND.md` creado con las dos primeras propuestas (portada y cifras de la lista de proyectos).
+
+No hecho: área y número de niveles en las tarjetas (necesita backend).
+
+Resultado: ver el commit de la fase; `Test Files 44 passed`, `Tests 277 passed`.
 
 ## Problemas abiertos
 

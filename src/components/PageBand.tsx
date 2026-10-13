@@ -36,7 +36,7 @@ export function PageBand({ title, text, stats, aside, children }: PageBandProps)
                     {stats.map((stat) => (
                         <div key={stat.label}>
                             <dt>{stat.label}</dt>
-                            <dd className={/^\d/.test(stat.value) ? "numeric" : undefined}>
+                            <dd className={/^\d/.test(stat.value) ? "figure" : undefined}>
                                 {stat.value}
                             </dd>
                             {stat.detail && <dd className="band-stat-detail">{stat.detail}</dd>}
