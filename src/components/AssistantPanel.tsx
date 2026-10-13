@@ -46,9 +46,19 @@ export function describeStatus(status: AssistantStatus): string {
 
 interface AssistantPanelProps {
     projectId: number;
+    /** Questions about what the user is looking at; they go before the general ones. */
+    contextQuestions?: readonly string[];
+    /** When given, the panel is a drawer over another screen and shows a way to close it. */
+    onClose?: () => void;
 }
 
-export function AssistantPanel({ projectId }: AssistantPanelProps) {
+const NO_QUESTIONS: readonly string[] = [];
+
+export function AssistantPanel({
+    projectId,
+    contextQuestions = NO_QUESTIONS,
+    onClose,
+}: AssistantPanelProps) {
     const conversations = useAsync(() => conversationsApi.listByProject(projectId), [projectId]);
     const status = useAsync(() => conversationsApi.status(), []);
     const [conversationId, setConversationId] = useState<number | null>(null);
@@ -58,11 +68,15 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
     const [error, setError] = useState<string | null>(null);
     const list = useRef<HTMLOListElement>(null);
     const didAutoOpen = useRef(false);
+    // A conversation created by the first question has nothing to load: loading it would race
+    // with the answer and could replace it with the empty conversation.
+    const createdHere = useRef<number | null>(null);
     const selection = useProjectState(projectId, (state) => state.selection);
-    const questions =
-        selection === null
-            ? SUGGESTED_QUESTIONS
-            : [elementQuestion(selection), ...SUGGESTED_QUESTIONS];
+    const questions = [
+        ...(selection === null ? [] : [elementQuestion(selection)]),
+        ...contextQuestions,
+        ...SUGGESTED_QUESTIONS.filter((question) => !contextQuestions.includes(question)),
+    ];
 
     const items = conversations.data ?? [];
 
@@ -76,6 +90,10 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
     useEffect(() => {
         if (conversationId === null) {
             setMessages([]);
+            return;
+        }
+
+        if (createdHere.current === conversationId) {
             return;
         }
 
@@ -124,6 +142,7 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
             if (id === null) {
                 didAutoOpen.current = true;
                 id = (await conversationsApi.create(projectId)).id;
+                createdHere.current = id;
                 setConversationId(id);
             }
 
@@ -164,6 +183,11 @@ export function AssistantPanel({ projectId }: AssistantPanelProps) {
                                 </option>
                             ))}
                         </select>
+                    )}
+                    {onClose && (
+                        <button type="button" className="button-tertiary" onClick={onClose}>
+                            Cerrar
+                        </button>
                     )}
                 </div>
             }

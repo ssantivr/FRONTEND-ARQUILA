@@ -7,6 +7,7 @@ import { ElevationsPanel } from "../components/ElevationsPanel";
 import { FilesPanel } from "../components/FilesPanel";
 import { FloorPlansPanel } from "../components/FloorPlansPanel";
 import { GeneratedElevationsPanel } from "../components/GeneratedElevationsPanel";
+import { Icon } from "../components/Icon";
 import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Panel } from "../components/Panel";
 import { Tabs } from "../components/ui/Tabs";
@@ -55,6 +56,7 @@ export function ProjectDetailPage({
         onSectionChange?.(next);
     }
     const [editingProject, setEditingProject] = useState(false);
+    const [assistantOpen, setAssistantOpen] = useState(false);
     const projectFiles = files.data ?? [];
 
     function handleFilesChanged() {
@@ -258,6 +260,38 @@ export function ProjectDetailPage({
                 />
             )}
             {section === "assistant" && <AssistantPanel projectId={projectId} />}
+
+            {section !== "assistant" && (
+                <>
+                    <button
+                        type="button"
+                        className={
+                            section === "model"
+                                ? "assistant-launcher assistant-launcher-raised icon-button"
+                                : "assistant-launcher icon-button"
+                        }
+                        aria-expanded={assistantOpen}
+                        aria-controls="assistant-drawer"
+                        onClick={() => setAssistantOpen((open) => !open)}
+                    >
+                        <Icon name="assistant" />
+                        Asistente
+                    </button>
+                    {assistantOpen && (
+                        <aside
+                            id="assistant-drawer"
+                            className="assistant-drawer"
+                            aria-label="Asistente del proyecto"
+                        >
+                            <AssistantPanel
+                                projectId={projectId}
+                                contextQuestions={SECTION_QUESTIONS[section]}
+                                onClose={() => setAssistantOpen(false)}
+                            />
+                        </aside>
+                    )}
+                </>
+            )}
         </>
     );
 }
@@ -275,6 +309,17 @@ const SECTIONS: { id: SectionId; label: string }[] = [
     { id: "files", label: "Archivos" },
     { id: "assistant", label: "Asistente IA" },
 ];
+
+/** What the assistant is asked first from each tab: it is about what is on screen. */
+const SECTION_QUESTIONS: Record<Exclude<SectionId, "assistant">, readonly string[]> = {
+    terrain: ["¿Qué debo considerar por la pendiente y el suelo de este terreno?"],
+    plans: ["¿Qué planos o niveles le faltan a este proyecto?"],
+    model: ["¿Cómo podría mejorar la distribución de los cuartos?"],
+    elevations: ["¿Qué debería revisar en las fachadas y elevaciones?"],
+    materials: ["¿Qué materiales pesan más en el costo?", "¿Dónde podría reducir el costo?"],
+    analysis: ["¿Cuáles recomendaciones debería atender primero?"],
+    files: ["¿Qué documentos le faltan a este proyecto?"],
+};
 
 const KIND_LABELS: Record<DeletedItemKind, string> = {
     terrain: "terreno",

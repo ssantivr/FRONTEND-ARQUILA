@@ -1,0 +1,97 @@
+/* The assistant, reachable from every tab of a project: a launcher and a drawer on the right. */
+
+.assistant-launcher {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 30;
+    min-height: var(--control-lg);
+    padding: 0 18px;
+    color: #ffffff;
+    font-weight: 600;
+    background: var(--forest);
+    border-color: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    box-shadow: var(--shadow-float);
+}
+
+/* On the 3D tab it sits above the viewer's status bar instead of covering it. */
+.assistant-launcher.assistant-launcher-raised {
+    bottom: 72px;
+}
+
+.assistant-launcher:hover:not(:disabled) {
+    background: var(--forest-raised);
+    border-color: var(--lime);
+}
+
+.assistant-launcher .icon {
+    color: var(--lime);
+}
+
+@keyframes drawer-in {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+}
+
+.assistant-drawer {
+    position: fixed;
+    top: calc(var(--header-height) + 12px);
+    right: 12px;
+    bottom: 84px;
+    z-index: 30;
+    display: flex;
+    width: min(440px, calc(100vw - 24px));
+    animation: drawer-in var(--dur-slow) var(--ease) backwards;
+}
+
+.assistant-drawer > .panel {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden auto;
+    box-shadow: var(--shadow-float);
+}
+
+.assistant-drawer .chat {
+    flex: 1;
+    min-height: 120px;
+    max-height: none;
+}
+
+.assistant-drawer .suggestions {
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.assistant-drawer .suggestion {
+    flex: none;
+    max-width: 280px;
+    font-size: 13px;
+    text-align: left;
+    white-space: normal;
+}
+
+@media (max-width: 720px) {
+    .assistant-launcher {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .assistant-drawer {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 86vh;
+    }
+
+    .assistant-drawer > .panel {
+        border-radius: 20px 20px 0 0;
+    }
+}

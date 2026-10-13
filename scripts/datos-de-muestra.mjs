@@ -121,7 +121,7 @@ export function answer(path) {
         return { project_id: 1, steps: [], renovation_logs: [] };
     }
     if (path === "/health") return { status: "ok" };
-    if (path === "/assistant/status") return { provider: "demo", available: true };
+    if (path === "/assistant/status") return { provider: "rules", model: null };
 
     return [];
 }
