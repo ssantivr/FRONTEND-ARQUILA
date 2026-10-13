@@ -36,6 +36,7 @@ import "./styles/pages/assistant.css";
 import "./styles/pages/responsive.css";
 import "./styles/polish.css";
 import "./styles/editor.css";
+import "./styles/rich.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 

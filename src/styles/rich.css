@@ -1,0 +1,324 @@
+/* Depth and movement across the whole app: the shell, the cards, the home and the empty states. */
+
+/* ---- Shell: the sidebar has light in it, the header floats over the content ---- */
+
+.sidebar {
+    background:
+        radial-gradient(130% 55% at 0% 0%, rgba(35, 107, 66, 0.55) 0%, rgba(35, 107, 66, 0) 62%),
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(180deg, #0c261d 0%, #06150f 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-item {
+    transition:
+        background-color var(--dur-fast) var(--ease),
+        color var(--dur-fast) var(--ease),
+        transform var(--dur-fast) var(--ease);
+}
+
+.sidebar-item:hover:not([aria-current="page"]) {
+    transform: translateX(2px);
+}
+
+.sidebar-item[aria-current="page"] {
+    background: linear-gradient(90deg, rgba(184, 243, 107, 0.2), rgba(184, 243, 107, 0.06));
+    box-shadow:
+        inset 0 0 0 1px rgba(184, 243, 107, 0.2),
+        0 8px 22px -14px rgba(184, 243, 107, 0.7);
+}
+
+.sidebar-item[aria-current="page"] .icon {
+    color: var(--lime);
+}
+
+.header {
+    background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+}
+
+/* ---- Buttons: the main actions catch a little light ---- */
+
+.button-lime,
+button:not([class]) {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.28),
+        0 6px 16px -10px color-mix(in srgb, var(--primary) 80%, transparent);
+}
+
+.button-lime {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 10px 24px -12px rgba(184, 243, 107, 0.9);
+}
+
+.button-lime:hover:not(:disabled),
+button:not([class]):hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+/* ---- Lists arrive one after another ---- */
+
+@keyframes item-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+    }
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li {
+    animation: item-in 360ms var(--ease) backwards;
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(2) {
+    animation-delay: 45ms;
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(3) {
+    animation-delay: 90ms;
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(4) {
+    animation-delay: 135ms;
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(5) {
+    animation-delay: 180ms;
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(n + 6) {
+    animation-delay: 225ms;
+}
+
+/* ---- Cards: layered shadow, the drawing moves closer and a lime line draws itself ---- */
+
+.project-item {
+    box-shadow:
+        0 1px 2px rgba(11, 33, 26, 0.06),
+        0 12px 28px -18px rgba(11, 33, 26, 0.35);
+}
+
+.project-grid:not(.card-list-rows) .project-item:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    box-shadow:
+        0 2px 4px rgba(11, 33, 26, 0.08),
+        0 28px 48px -22px rgba(11, 33, 26, 0.5);
+    transform: translateY(-4px);
+}
+
+.project-card .project-cover {
+    overflow: hidden;
+}
+
+.project-card .project-cover-art {
+    transition: transform 420ms var(--ease);
+}
+
+.project-item:hover .project-cover-art {
+    transform: scale(1.06);
+}
+
+.project-card:not(.project-row) .project-cover::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    height: 2px;
+    background: var(--lime);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 320ms var(--ease);
+}
+
+.project-item:hover .project-cover::before {
+    transform: scaleX(1);
+}
+
+.terrain-list .terrain-card:hover,
+.surface-card:hover {
+    box-shadow: 0 22px 40px -24px rgba(11, 33, 26, 0.5);
+    transform: translateY(-3px);
+}
+
+.panel {
+    box-shadow:
+        0 1px 2px rgba(11, 33, 26, 0.04),
+        0 18px 40px -28px rgba(11, 33, 26, 0.3);
+}
+
+/* ---- Page titles: a lime mark draws under the figure ---- */
+
+@keyframes mark-in {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+.page-head h2::after {
+    content: "";
+    display: block;
+    width: 56px;
+    height: 4px;
+    margin-top: 12px;
+    background: var(--lime);
+    border-radius: 2px;
+    transform-origin: left;
+    animation: mark-in 520ms var(--ease) 120ms backwards;
+}
+
+/* ---- Home: a glowing edge on the hero, the live model in the continue card ---- */
+
+.hero-home {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.08) inset,
+        0 40px 80px -40px rgba(11, 33, 26, 0.7);
+}
+
+.hero-home::after {
+    content: "";
+    position: absolute;
+    inset: auto 52px 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--lime), rgba(184, 243, 107, 0));
+    border-radius: 2px;
+}
+
+.hero-stats dd {
+    font-variant-numeric: tabular-nums;
+}
+
+.continue-card {
+    position: relative;
+    border-color: transparent;
+    background:
+        linear-gradient(var(--panel), var(--panel)) padding-box,
+        linear-gradient(120deg, var(--lime) 0%, var(--border) 38%) border-box;
+    box-shadow: 0 30px 60px -36px rgba(11, 33, 26, 0.55);
+}
+
+.continue-cover {
+    position: relative;
+    overflow: hidden;
+}
+
+/* The real model, drawn over the cover; it can be turned with the pointer. */
+.structure-stage.structure-stage-preview {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: item-in 480ms var(--ease) backwards;
+}
+
+.structure-stage-preview .structure-viewer {
+    height: 100%;
+    min-height: 0;
+}
+
+.continue-cover:has(.structure-stage-preview)::after {
+    content: "Modelo 3D en vivo";
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 3px 10px;
+    color: var(--lime-contrast);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--lime);
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.status-card {
+    background:
+        radial-gradient(120% 80% at 100% 0%, var(--accent-soft) 0%, transparent 60%), var(--panel);
+}
+
+.status-bar span {
+    transform-origin: left;
+    animation: mark-in 620ms var(--ease) backwards;
+}
+
+.quick-main {
+    box-shadow: 0 30px 60px -34px rgba(11, 33, 26, 0.7);
+}
+
+/* ---- Empty states: a larger drawing on a drafting disc ---- */
+
+.empty-state {
+    position: relative;
+    padding: 48px 20px;
+    overflow: hidden;
+    background:
+        radial-gradient(60% 70% at 50% 0%, var(--accent-soft) 0%, transparent 70%),
+        linear-gradient(var(--hover) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg, var(--hover) 1px, transparent 1px) 0 0 / 24px 24px;
+    background-color: var(--panel);
+}
+
+.empty-art {
+    width: 132px;
+    height: 88px;
+}
+
+.empty-title {
+    font-size: 18px;
+}
+
+:is(.hud, .modal, td) .empty-state {
+    background: none;
+}
+
+/* ---- Sign-in: the form side gets the drafting grid and a lime mark over its title ---- */
+
+.auth-form {
+    background:
+        radial-gradient(70% 50% at 100% 0%, var(--accent-soft) 0%, transparent 70%),
+        linear-gradient(var(--grid-line, rgba(23, 33, 27, 0.04)) 1px, transparent 1px) 0 0 / 32px
+            32px,
+        linear-gradient(90deg, var(--grid-line, rgba(23, 33, 27, 0.04)) 1px, transparent 1px) 0 0 /
+            32px 32px,
+        var(--panel);
+}
+
+.auth-form .login .panel-header h2::before {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin-bottom: 0;
+    background: var(--lime);
+}
+
+.auth-form .login .panel-header h2 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .hero-home::after {
+        inset: auto 24px 0;
+    }
+}
+
+/* Muted text set straight on the drafting grid is a step darker than on a panel. */
+:root:not([data-theme="dark"])
+    :is(
+        .page-head-meta,
+        .stat-strip dt,
+        .list-count,
+        .settings-account p,
+        .settings-section-head p,
+        .setting-text,
+        .theme-option-note,
+        .project-rows-head
+    ) {
+    color: #4d5850;
+}

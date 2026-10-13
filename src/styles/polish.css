@@ -140,7 +140,8 @@ button {
 /* ---- A drafting grid under the work area: barely there, but it reads as a drawing board ---- */
 
 .workspace {
-    --grid-line: rgba(23, 33, 27, 0.04);
+    /* Faint enough that muted text over a line still meets AA. */
+    --grid-line: rgba(23, 33, 27, 0.022);
 
     background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
