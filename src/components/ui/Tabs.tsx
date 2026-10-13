@@ -32,7 +32,7 @@ export function Tabs<Id extends string>({ label, items, current, onChange }: Tab
 
             if (element && open) {
                 element.style.setProperty("--tab-left", `${open.offsetLeft}px`);
-                element.style.setProperty("--tab-width", `${open.offsetWidth}px`);
+                element.style.setProperty("--tab-scale", String(open.offsetWidth));
 
                 // On a narrow screen the row scrolls sideways: keep the open tab in view.
                 const end = open.offsetLeft + open.offsetWidth;

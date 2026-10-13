@@ -31,6 +31,10 @@ function show(control: FormControl): boolean {
         message.id = `field-error-${(nextId += 1)}`;
         message.setAttribute("role", "alert");
         control.after(message);
+        // A field that has just been found wrong shakes once; correcting it does not replay it.
+        control.classList.remove("motion-shake");
+        void control.offsetWidth;
+        control.classList.add("motion-shake");
     }
 
     if (message.textContent !== error) {

@@ -5,7 +5,7 @@
     background: var(--scrim);
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
-    animation: fade var(--dur) var(--ease);
+    animation: fade-in var(--dur-slow) var(--ease-out);
 }
 
 .dialog {
@@ -23,7 +23,7 @@
     box-shadow: var(--shadow-float);
     transform: translate(-50%, -50%);
     overflow: hidden;
-    animation: rise var(--dur-slow) var(--ease);
+    animation: dialog-in var(--dur-slow) var(--ease-out);
 }
 
 .viewer {
@@ -77,22 +77,11 @@
     padding: var(--space-4);
 }
 
-@keyframes fade {
-    from {
-        opacity: 0;
-    }
+/* Leaving is quicker than arriving. Radix keeps both mounted until this ends. */
+.overlay[data-state="closed"] {
+    animation: fade-out var(--dur-fast) var(--ease-in) both;
 }
 
-@keyframes rise {
-    from {
-        opacity: 0;
-        transform: translate(-50%, calc(-50% + 8px));
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .overlay,
-    .dialog {
-        animation: none;
-    }
+.dialog[data-state="closed"] {
+    animation: dialog-out var(--dur-fast) var(--ease-in) both;
 }

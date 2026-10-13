@@ -239,7 +239,7 @@ input[type="range"]:focus-visible {
 [data-tip]:is(:hover, :focus-visible, :focus-within)::after {
     opacity: 1;
     transform: none;
-    transition-delay: 0.35s;
+    transition-delay: var(--dur-slow);
 }
 
 button {
@@ -260,10 +260,6 @@ button {
 button:where(:hover:not(:disabled)) {
     background: color-mix(in srgb, var(--primary) 84%, var(--bg-secondary));
     border-color: color-mix(in srgb, var(--primary) 84%, var(--bg-secondary));
-}
-
-button:active:not(:disabled) {
-    transform: translateY(1px) scale(0.99);
 }
 
 button:disabled {
@@ -301,17 +297,6 @@ main:focus {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px 12px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-    }
 }
 
 .button-secondary {

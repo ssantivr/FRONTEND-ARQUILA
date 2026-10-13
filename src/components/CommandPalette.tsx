@@ -1,6 +1,7 @@
 import * as RadixDialog from "@radix-ui/react-dialog";
 import { useEffect, useId, useState } from "react";
 
+import { useAnimatedClose } from "../hooks/useAnimatedClose";
 import { useProjectSearch } from "../hooks/useProjectSearch";
 import { Icon, type IconName } from "./Icon";
 import styles from "./CommandPalette.module.css";
@@ -32,6 +33,7 @@ function plain(text: string): string {
  * or to a project by name, and to run an action, without leaving the keyboard.
  */
 export function CommandPalette({ commands, onOpenProject, onClose }: CommandPaletteProps) {
+    const closing = useAnimatedClose<HTMLDivElement>(onClose);
     const [query, setQuery] = useState("");
     const [active, setActive] = useState(0);
     const listId = useId();
@@ -68,16 +70,21 @@ export function CommandPalette({ commands, onOpenProject, onClose }: CommandPale
 
     return (
         <RadixDialog.Root
-            open
+            open={closing.open}
             onOpenChange={(open) => {
                 if (!open) {
-                    onClose();
+                    closing.requestClose();
                 }
             }}
         >
             <RadixDialog.Portal container={document.fullscreenElement as HTMLElement | null}>
                 <RadixDialog.Overlay className={styles.overlay} />
-                <RadixDialog.Content className={styles.palette} aria-describedby={undefined}>
+                <RadixDialog.Content
+                    ref={closing.ref}
+                    onAnimationEnd={closing.onAnimationEnd}
+                    className={styles.palette}
+                    aria-describedby={undefined}
+                >
                     <RadixDialog.Title className={styles.title}>
                         Paleta de comandos
                     </RadixDialog.Title>

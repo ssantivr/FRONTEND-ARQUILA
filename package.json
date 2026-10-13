@@ -15,6 +15,7 @@
         "capturas": "node scripts/capturas.mjs",
         "accesibilidad": "node scripts/accesibilidad.mjs",
         "contraste": "node scripts/contraste.mjs",
+        "movimiento": "node scripts/movimiento.mjs",
         "renders": "node scripts/renders.mjs"
     },
     "dependencies": {
@@ -33,6 +34,7 @@
         "@testing-library/jest-dom": "7.0.1",
         "@testing-library/react": "16.3.3",
         "@testing-library/user-event": "14.6.7",
+        "@types/node": "24.19.2",
         "@types/react": "18.3.31",
         "@types/react-dom": "18.3.7",
         "@types/three": "0.186.0",

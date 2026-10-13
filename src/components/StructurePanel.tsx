@@ -15,6 +15,8 @@ export function StructurePanel({ projectId, run }: SectionProps) {
             structure.data.rooms.length === 0 &&
             structure.data.components.length === 0);
 
+    const arriving = structure.loading && structure.data === null && structure.error === null;
+
     return (
         <>
             <section className="viewer-section" aria-labelledby="viewer-title">
@@ -34,11 +36,19 @@ export function StructurePanel({ projectId, run }: SectionProps) {
                         </p>
                     </details>
                 </header>
+                {/* The scene keeps its place while the model loads: the panels under it stay put. */}
+                {arriving && (
+                    <div className="structure-stage structure-stage-arriving" role="status">
+                        <div className="structure-viewer">
+                            <p className="message">Cargando el modelo 3D…</p>
+                        </div>
+                    </div>
+                )}
                 <AsyncStatus
                     loading={structure.loading}
                     error={structure.error}
                     onRetry={structure.reload}
-                    isEmpty={isEmpty}
+                    isEmpty={isEmpty && !arriving}
                     emptyTitle="Todavía no hay nada que dibujar"
                     emptyText="Registra un terreno con medidas, un cuarto o un componente para ver el modelo."
                 />

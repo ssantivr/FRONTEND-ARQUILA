@@ -64,7 +64,7 @@ tfoot :is(th, td) {
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity var(--dur-slow) ease-out;
+    transition: opacity var(--dur-slow) var(--ease-out);
 }
 
 .render-ready {

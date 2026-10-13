@@ -16,7 +16,7 @@
     background: linear-gradient(90deg, var(--hover) 25%, var(--accent-soft) 50%, var(--hover) 75%) 0
         0 / 200% 100%;
     border-radius: var(--r-sm);
-    animation: shimmer 1.4s linear infinite;
+    animation: shimmer var(--dur-shimmer) linear infinite;
 }
 
 .skeleton-bar:nth-child(3) {
@@ -25,12 +25,6 @@
 
 .skeleton-bar:nth-child(4) {
     width: 58%;
-}
-
-@keyframes shimmer {
-    to {
-        background-position: -200% 0;
-    }
 }
 
 .empty-state {
@@ -100,14 +94,12 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    width: var(--tab-width, 0);
+    width: 1px;
     height: 2px;
     background: var(--accent);
-    border-radius: 2px 2px 0 0;
-    transform: translateX(var(--tab-left, 0));
-    transition:
-        transform var(--dur-slow) var(--ease),
-        width var(--dur-slow) var(--ease);
+    transform: translateX(var(--tab-left, 0)) scaleX(var(--tab-scale, 0));
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-in-out);
 }
 
 .tab {
@@ -119,7 +111,7 @@
     background: transparent;
     border: 0;
     border-radius: var(--r-sm) var(--r-sm) 0 0;
-    transition: color var(--dur-fast) var(--ease);
+    transition: color var(--dur-fast) var(--ease-out);
 }
 
 .tab[aria-current="page"],
@@ -237,10 +229,30 @@ label :is(input, select, textarea) {
     background: var(--forest);
     border: 1px solid var(--forest-raised);
     border-left: 3px solid var(--lime);
+    position: relative;
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-float);
     pointer-events: auto;
-    animation: rise-in 0.2s ease-out both;
+    overflow: hidden;
+    animation: slide-in-right var(--dur-slow) var(--ease-out) both;
+}
+
+.toast-leaving {
+    animation: slide-out-right var(--dur) var(--ease-in) both;
+}
+
+/* The time the toast has left. It stops while the pointer or the focus is on the toast. */
+.toast-timer {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: var(--lime);
+    transform-origin: left;
+    animation: run-out var(--toast-life) linear both;
+}
+
+.toast:is(:hover, :focus-within) .toast-timer {
+    animation-play-state: paused;
 }
 
 .toast-close {

@@ -3,6 +3,7 @@
     display: inline-flex;
 }
 
+/* Hidden: it leaves quickly, and only then stops being reachable. */
 .tip {
     position: absolute;
     z-index: var(--z-tooltip);
@@ -20,22 +21,31 @@
     border-radius: var(--r-sm);
     box-shadow: var(--shadow-float);
     opacity: 0;
+    scale: 0.96;
     visibility: hidden;
     transition:
-        opacity var(--dur-fast) var(--ease),
-        visibility var(--dur-fast);
+        opacity var(--dur-fast) var(--ease-in),
+        scale var(--dur-fast) var(--ease-in),
+        visibility 0s var(--dur-fast);
 }
 
+/* Shown after a short wait, so it does not flash while the pointer only passes over. */
 .anchor:hover > .tip,
 .anchor:focus-within > .tip {
     opacity: 1;
+    scale: 1;
     visibility: visible;
-    transition-delay: var(--dur-slow);
+    transition:
+        opacity var(--dur) var(--ease-out) var(--dur-slow),
+        scale var(--dur) var(--ease-out) var(--dur-slow),
+        visibility 0s var(--dur-slow);
 }
 
 .anchor[data-dismissed] > .tip {
     opacity: 0;
+    scale: 0.96;
     visibility: hidden;
+    transition: none;
 }
 
 .top {
@@ -77,11 +87,5 @@
         bottom: calc(100% + var(--space-2));
         left: 50%;
         transform: translateX(-50%);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .tip {
-        transition: none;
     }
 }

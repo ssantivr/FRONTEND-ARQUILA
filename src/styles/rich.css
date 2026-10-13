@@ -13,9 +13,9 @@
 
 .sidebar-item {
     transition:
-        background-color var(--dur-fast) var(--ease),
-        color var(--dur-fast) var(--ease),
-        transform var(--dur-fast) var(--ease);
+        background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out);
 }
 
 .sidebar-item:hover:not([aria-current="page"]) {
@@ -62,35 +62,41 @@ button:not([class]):hover:not(:disabled) {
 
 /* ---- Lists arrive one after another ---- */
 
-@keyframes item-in {
-    from {
-        opacity: 0;
-        transform: translateY(12px) scale(0.985);
-    }
-}
-
 :is(.project-grid, .terrain-list, .surface-list, .quick-list) > li {
-    animation: item-in 360ms var(--ease) backwards;
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
 
 :is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(2) {
-    animation-delay: 45ms;
+    animation-delay: calc(var(--stagger) * 1);
 }
 
 :is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(3) {
-    animation-delay: 90ms;
+    animation-delay: calc(var(--stagger) * 2);
 }
 
 :is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(4) {
-    animation-delay: 135ms;
+    animation-delay: calc(var(--stagger) * 3);
 }
 
 :is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(5) {
-    animation-delay: 180ms;
+    animation-delay: calc(var(--stagger) * 4);
 }
 
-:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(n + 6) {
-    animation-delay: 225ms;
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(6) {
+    animation-delay: calc(var(--stagger) * 5);
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(7) {
+    animation-delay: calc(var(--stagger) * 6);
+}
+
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(8) {
+    animation-delay: calc(var(--stagger) * 7);
+}
+
+/* From the ninth on, items are simply there: a long list does not make the user wait. */
+:is(.project-grid, .terrain-list, .surface-list, .quick-list) > li:nth-child(n + 9) {
+    animation: none;
 }
 
 /* ---- Cards: layered shadow, the drawing moves closer and a lime line draws itself ---- */
@@ -106,7 +112,7 @@ button:not([class]):hover:not(:disabled) {
     box-shadow:
         0 2px 4px rgba(11, 33, 26, 0.08),
         0 28px 48px -22px rgba(11, 33, 26, 0.5);
-    transform: translateY(-4px);
+    transform: translateY(-2px);
 }
 
 .project-card .project-cover {
@@ -114,7 +120,7 @@ button:not([class]):hover:not(:disabled) {
 }
 
 .project-card .project-cover-art {
-    transition: transform var(--dur-slow) var(--ease);
+    transition: transform var(--dur-slow) var(--ease-out);
 }
 
 .project-item:hover .project-cover-art {
@@ -130,7 +136,7 @@ button:not([class]):hover:not(:disabled) {
     background: var(--lime);
     transform: scaleX(0);
     transform-origin: left;
-    transition: transform var(--dur-slow) var(--ease);
+    transition: transform var(--dur-slow) var(--ease-out);
 }
 
 .project-item:hover .project-cover::before {
@@ -140,7 +146,7 @@ button:not([class]):hover:not(:disabled) {
 .terrain-list .terrain-card:hover,
 .surface-card:hover {
     box-shadow: 0 22px 40px -24px rgba(11, 33, 26, 0.5);
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .panel {
@@ -151,12 +157,6 @@ button:not([class]):hover:not(:disabled) {
 
 /* ---- Page titles: a lime mark draws under the figure ---- */
 
-@keyframes mark-in {
-    from {
-        transform: scaleX(0);
-    }
-}
-
 .page-head h2::after {
     content: "";
     display: block;
@@ -166,7 +166,7 @@ button:not([class]):hover:not(:disabled) {
     background: var(--lime);
     border-radius: 2px;
     transform-origin: left;
-    animation: mark-in 520ms var(--ease) 120ms backwards;
+    animation: grow-in var(--dur-slow) var(--ease-out) var(--dur-fast) backwards;
 }
 
 /* ---- Home: a glowing edge on the hero, the live model in the continue card ---- */
@@ -212,7 +212,7 @@ button:not([class]):hover:not(:disabled) {
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    animation: item-in 480ms var(--ease) backwards;
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
 
 .structure-stage-preview .structure-viewer {
@@ -243,7 +243,7 @@ button:not([class]):hover:not(:disabled) {
 
 .status-bar span {
     transform-origin: left;
-    animation: mark-in 620ms var(--ease) backwards;
+    animation: grow-in var(--dur-show) var(--ease-out) backwards;
 }
 
 .quick-main {

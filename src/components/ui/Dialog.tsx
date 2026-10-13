@@ -1,6 +1,8 @@
 import * as RadixDialog from "@radix-ui/react-dialog";
 import type { ReactNode } from "react";
 
+import { useAnimatedClose } from "../../hooks/useAnimatedClose";
+
 import styles from "./Dialog.module.css";
 
 interface DialogProps {
@@ -27,18 +29,22 @@ export function Dialog({
     onClose,
     children,
 }: DialogProps) {
+    const closing = useAnimatedClose<HTMLDivElement>(onClose);
+
     return (
         <RadixDialog.Root
-            open
+            open={closing.open}
             onOpenChange={(open) => {
                 if (!open) {
-                    onClose();
+                    closing.requestClose();
                 }
             }}
         >
             <RadixDialog.Portal container={container}>
                 <RadixDialog.Overlay className={styles.overlay} />
                 <RadixDialog.Content
+                    ref={closing.ref}
+                    onAnimationEnd={closing.onAnimationEnd}
                     className={`${styles.dialog} ${styles[size]} modal`}
                     aria-describedby={undefined}
                 >

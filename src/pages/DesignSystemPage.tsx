@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
+import { MotionDemos } from "../components/MotionDemos";
 import { StatusBadge } from "../components/ui/Badge";
 import { MetricCard } from "../components/ui/MetricCard";
 import { Dialog } from "../components/ui/Dialog";
@@ -188,6 +189,14 @@ function Showcase() {
                     </Select>
                     <Skeleton shape="rows" count={3} />
                 </div>
+            </Panel>
+
+            <Panel title="Movimiento">
+                <p className="message">
+                    Todas las animaciones salen de <code>styles/motion.css</code>. Cambia de tema,
+                    abre la ventana o el aviso de arriba para ver las demás.
+                </p>
+                <MotionDemos />
             </Panel>
 
             <Panel title="Progreso y estados">

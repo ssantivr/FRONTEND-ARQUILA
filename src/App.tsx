@@ -1,5 +1,11 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import {
+    useLocation,
+    useNavigate,
+    type NavigateFunction,
+    type NavigateOptions,
+    type To,
+} from "react-router";
 
 import { CommandPalette, type Command } from "./components/CommandPalette";
 import { RenderImage } from "./components/RenderImage";
@@ -26,6 +32,7 @@ import { TerrainsPage } from "./pages/TerrainsPage";
 import { canonicalPath, parsePath, projectPath, viewPath } from "./routes";
 import { authApi } from "./services/api";
 import { setTheme, useTheme } from "./state/theme";
+import { withViewTransition } from "./state/viewTransition";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
 
@@ -53,7 +60,20 @@ type Session =
 export function App() {
     const [session, setSession] = useState<Session>({ state: "loading" });
     const location = useLocation();
-    const go = useNavigate();
+    const navigateTo = useNavigate();
+    // Every change of screen made from the app goes through a view transition where it exists.
+    const go = useCallback<NavigateFunction>(
+        ((to: To | number, options?: NavigateOptions) => {
+            withViewTransition(() => {
+                if (typeof to === "number") {
+                    void navigateTo(to);
+                } else {
+                    void navigateTo(to, options);
+                }
+            });
+        }) as NavigateFunction,
+        [navigateTo],
+    );
     const route = parsePath(location.pathname);
     const project = route.kind === "project" ? route : null;
     const view: View | null =

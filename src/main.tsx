@@ -6,6 +6,7 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
 
 import "./styles/tokens.css";
+import "./styles/motion.css";
 import "./styles/base.css";
 import "./styles/viewer.css";
 import "./styles/shell.css";

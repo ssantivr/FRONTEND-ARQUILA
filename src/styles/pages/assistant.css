@@ -29,13 +29,6 @@
     color: var(--lime);
 }
 
-@keyframes drawer-in {
-    from {
-        opacity: 0;
-        transform: translateX(24px);
-    }
-}
-
 .assistant-drawer {
     position: fixed;
     top: calc(var(--header-height) + 12px);
@@ -44,7 +37,7 @@
     z-index: 30;
     display: flex;
     width: min(440px, calc(100vw - 24px));
-    animation: drawer-in var(--dur-slow) var(--ease) backwards;
+    animation: slide-in-right var(--dur-slow) var(--ease-out) backwards;
 }
 
 .assistant-drawer > .panel {

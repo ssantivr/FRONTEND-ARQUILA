@@ -147,7 +147,8 @@ export function ProjectsPage({
                                 : `${formatNumber(summary.data.projects)} proyectos`
                             : "Proyectos"}
                     </h2>
-                    {summary.data && <p className="page-head-meta">{countsOf(summary.data)}</p>}
+                    {/* The line is there from the start, so the list does not move down when it fills. */}
+                    <p className="page-head-meta">{summary.data ? countsOf(summary.data) : " "}</p>
                     {summary.error && (
                         <AsyncStatus
                             loading={false}

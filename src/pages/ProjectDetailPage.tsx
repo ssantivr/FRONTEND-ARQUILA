@@ -19,6 +19,7 @@ import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
+import { SaveStatusProvider } from "../state/saveStatus";
 import { projectPath, viewPath } from "../routes";
 import { filesApi, projectsApi, undoApi } from "../services/api";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
@@ -115,7 +116,7 @@ export function ProjectDetailPage({
     const current = project.data;
 
     return (
-        <>
+        <SaveStatusProvider value={{ pending: actionPending, failed: actionError !== null }}>
             <section className="project-head" data-theme="dark">
                 <div className="project-head-art" aria-hidden="true">
                     <ProjectCover id={current.id} name={current.name} />
@@ -304,7 +305,7 @@ export function ProjectDetailPage({
                     )}
                 </>
             )}
-        </>
+        </SaveStatusProvider>
     );
 }
 

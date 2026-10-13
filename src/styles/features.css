@@ -50,7 +50,7 @@
 .auth-form .login {
     max-width: 400px;
     margin: 0;
-    animation: rise-in 0.3s ease-out both;
+    animation: rise-in var(--dur-slow) var(--ease-out) both;
 }
 
 .auth-form .login .panel {
@@ -98,25 +98,12 @@
     border: 2px solid currentColor;
     border-right-color: transparent;
     border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes rise-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
+    animation: spin var(--dur-spin) linear infinite;
 }
 
 /* It fills backwards only: once it ends, no transform is left to trap a fixed child. */
 .content > * {
-    animation: rise-in 0.22s ease-out backwards;
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
 
 @media (max-width: 900px) {

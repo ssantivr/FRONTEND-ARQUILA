@@ -3,7 +3,7 @@
     inset: 0;
     z-index: var(--z-overlay);
     background: var(--scrim);
-    animation: fade var(--dur) var(--ease);
+    animation: fade-in var(--dur-slow) var(--ease-out);
 }
 
 .palette {
@@ -22,7 +22,15 @@
     box-shadow: var(--shadow-float);
     transform: translateX(-50%);
     overflow: hidden;
-    animation: drop var(--dur-slow) var(--ease);
+    animation: palette-in var(--dur-slow) var(--ease-out);
+}
+
+.overlay[data-state="closed"] {
+    animation: fade-out var(--dur-fast) var(--ease-in) both;
+}
+
+.palette[data-state="closed"] {
+    animation: palette-out var(--dur-fast) var(--ease-in) both;
 }
 
 .title {
@@ -144,26 +152,6 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-}
-
-@keyframes fade {
-    from {
-        opacity: 0;
-    }
-}
-
-@keyframes drop {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -8px);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .overlay,
-    .palette {
-        animation: none;
-    }
 }
 
 @media (max-width: 720px) {

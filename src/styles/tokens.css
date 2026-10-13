@@ -174,8 +174,7 @@
     --header-height: 68px;
     --sidebar-width: 248px;
 
-    /* Motion: three durations and one curve. */
-    --ease: cubic-bezier(0.2, 0, 0, 1);
+    /* Motion: three durations. The curves and keyframes are in motion.css. */
     --dur-fast: 120ms;
     --dur: 180ms;
     --dur-slow: 240ms;

@@ -8,4 +8,5 @@
     line-height: 1.4;
     letter-spacing: 0;
     text-transform: none;
+    animation: fade-in var(--dur) var(--ease-out) both;
 }

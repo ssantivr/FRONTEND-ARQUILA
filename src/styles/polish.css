@@ -20,7 +20,7 @@
 
 button {
     transition-duration: var(--dur-fast);
-    transition-timing-function: var(--ease);
+    transition-timing-function: var(--ease-out);
 }
 
 /* ---- Status badge: an icon and a word ---- */
@@ -186,7 +186,7 @@ button {
 }
 
 .panel tbody tr {
-    transition: background-color var(--dur-fast) var(--ease);
+    transition: background-color var(--dur-fast) var(--ease-out);
 }
 
 .panel td button {

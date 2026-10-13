@@ -150,6 +150,14 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                 </div>
             </section>
 
+            {/* While the projects are on their way the row already takes its place, so the blocks
+                under it do not jump when it arrives. */}
+            {projects.loading && projects.data === null && (
+                <div className="home-row home-row-arriving" aria-hidden="true">
+                    <div className="continue-card" />
+                    <div className="status-card" />
+                </div>
+            )}
             {latest !== null && (
                 <div className="home-row">
                     <section className="continue-card" aria-label="Continuar donde lo dejaste">

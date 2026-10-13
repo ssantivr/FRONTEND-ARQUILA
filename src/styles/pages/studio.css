@@ -200,7 +200,7 @@
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     box-shadow: var(--shadow);
-    animation: panel-in var(--dur-slow) var(--ease) both;
+    animation: rise-in var(--dur-slow) var(--ease-out) both;
 }
 
 .render-result img {
@@ -242,7 +242,7 @@
     text-decoration: none;
     background: var(--lime);
     border-radius: var(--r-md);
-    transition: filter var(--dur-fast) var(--ease);
+    transition: filter var(--dur-fast) var(--ease-out);
 }
 
 .render-result-foot a:hover {

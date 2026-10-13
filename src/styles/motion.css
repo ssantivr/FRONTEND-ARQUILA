@@ -1,0 +1,304 @@
+/*
+ * Motion. Every curve, keyframe and timing rule of the interface lives here; the other style
+ * sheets and the components only name them. Movement explains a change (what appeared, what
+ * moved, what was saved): it animates `transform` and `opacity` only, so nothing shifts the layout.
+ *
+ * Durations are in tokens.css: --dur-fast 120 ms (hover, focus, press), --dur 180 ms (panels,
+ * menus, tooltips) and --dur-slow 240 ms (dialogs, screen changes). Nothing of the interface runs
+ * longer; only a presentation (--dur-show: a chart or a model drawing itself in) may.
+ */
+
+:root {
+    /* Entrances decelerate, exits accelerate, and moves between two states do both. */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+    /* Presentations, loops that mean «working», and the delay between the items of a list. */
+    --dur-show: 600ms;
+    --dur-spin: 700ms;
+    --dur-shimmer: 1400ms;
+    --stagger: 35ms;
+    --shift: 8px;
+}
+
+/* ---- Keyframes shared by the whole app ---- */
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+/* A screen, a panel or an item arriving: it fades in while rising 8 px. */
+@keyframes rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--shift));
+    }
+}
+
+/* Dialogs, menus and tooltips: they grow from 96 % while fading in, and leave faster. */
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+@keyframes scale-out {
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+/* The same for a window centred with translate(-50%, -50%), which must keep that offset. */
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+}
+
+@keyframes dialog-out {
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+}
+
+/* And for the command palette, centred on one axis only. */
+@keyframes palette-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.96);
+    }
+}
+
+@keyframes palette-out {
+    to {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.96);
+    }
+}
+
+/* Toasts and side sheets come in from their edge and leave through it. */
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+}
+
+@keyframes slide-out-right {
+    to {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+}
+
+@keyframes slide-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+}
+
+/* A bar that grows from its left end (progress, the mark under a title, a chart bar). */
+@keyframes grow-in {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/* The time a toast has left: its bar empties towards the left. */
+@keyframes run-out {
+    to {
+        transform: scaleX(0);
+    }
+}
+
+/* A field that was not accepted shakes once. */
+@keyframes shake {
+    20% {
+        transform: translateX(-4px);
+    }
+
+    40% {
+        transform: translateX(4px);
+    }
+
+    60% {
+        transform: translateX(-3px);
+    }
+
+    80% {
+        transform: translateX(2px);
+    }
+}
+
+/* The check that replaces «Guardando…» pops in. */
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+}
+
+/* A line of a drawing traces itself; the element sets --line-length to its own length. */
+@keyframes draw-line {
+    from {
+        stroke-dashoffset: var(--line-length, 100);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+/* ---- Ready-made uses ---- */
+
+/*
+ * A screen coming in after a change of route rises by its own (`.content > *` in features.css),
+ * which also covers the back button. While the browser cross-fades the two screens itself, that
+ * rise is switched off so the two do not add up.
+ */
+html[data-view-transition] .content > * {
+    animation: none;
+}
+
+/* Items of a list arrive one after another. Only the first eight are delayed. */
+.motion-stagger > * {
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+}
+
+.motion-stagger > :nth-child(2) {
+    animation-delay: calc(var(--stagger) * 1);
+}
+
+.motion-stagger > :nth-child(3) {
+    animation-delay: calc(var(--stagger) * 2);
+}
+
+.motion-stagger > :nth-child(4) {
+    animation-delay: calc(var(--stagger) * 3);
+}
+
+.motion-stagger > :nth-child(5) {
+    animation-delay: calc(var(--stagger) * 4);
+}
+
+.motion-stagger > :nth-child(6) {
+    animation-delay: calc(var(--stagger) * 5);
+}
+
+.motion-stagger > :nth-child(7) {
+    animation-delay: calc(var(--stagger) * 6);
+}
+
+.motion-stagger > :nth-child(8) {
+    animation-delay: calc(var(--stagger) * 7);
+}
+
+.motion-stagger > :nth-child(n + 9) {
+    animation: none;
+}
+
+/* Content that replaces its loading placeholder fades in. */
+.motion-fade {
+    animation: fade-in var(--dur) var(--ease-out) both;
+}
+
+.motion-shake {
+    animation: shake var(--dur-slow) var(--ease-in-out) 1;
+}
+
+.motion-pop {
+    animation: pop-in var(--dur) var(--ease-out) both;
+}
+
+/* ---- Change of route: the browser cross-fades the two screens where it can ---- */
+
+::view-transition-old(root) {
+    animation: fade-out var(--dur-fast) var(--ease-in) both;
+}
+
+::view-transition-new(root) {
+    animation: rise-in var(--dur-slow) var(--ease-out) both;
+}
+
+/* ---- Change of theme: colours cross over instead of snapping; the 3D canvas is left alone ---- */
+
+html[data-theme-switching] *:not(canvas),
+html[data-theme-switching] *:not(canvas)::before,
+html[data-theme-switching] *:not(canvas)::after {
+    transition:
+        background-color var(--dur) var(--ease-in-out),
+        border-color var(--dur) var(--ease-in-out),
+        color var(--dur) var(--ease-in-out),
+        fill var(--dur) var(--ease-in-out),
+        stroke var(--dur) var(--ease-in-out) !important;
+}
+
+/* ---- Pressing a control ---- */
+
+:is(button, .button, [role="button"]):active:not(:disabled, [aria-disabled="true"]) {
+    transform: scale(0.98);
+}
+
+/*
+ * ---- Less movement ----
+ * When the system asks for it, or the user turns movement off in Configuración, nothing moves:
+ * animations and transitions end at once, in their final state. Loops that only mean «working»
+ * stop too. This is the single switch; no component needs its own.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+        scroll-behavior: auto !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
+:is([data-motion="reduced"], [data-motion="off"]) *,
+:is([data-motion="reduced"], [data-motion="off"]) *::before,
+:is([data-motion="reduced"], [data-motion="off"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+}
+
+:is([data-motion="reduced"], [data-motion="off"])::view-transition-group(*),
+:is([data-motion="reduced"], [data-motion="off"])::view-transition-old(*),
+:is([data-motion="reduced"], [data-motion="off"])::view-transition-new(*) {
+    animation: none !important;
+}

@@ -9,14 +9,14 @@ export function ProgressBar({ label, value }: ProgressBarProps) {
 
     return (
         <span
-            className="bar"
+            className="bar bar-progress"
             role="progressbar"
             aria-label={label}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={percent}
         >
-            <span style={{ width: `${percent}%` }} />
+            <span style={{ transform: `scaleX(${percent / 100})` }} />
         </span>
     );
 }

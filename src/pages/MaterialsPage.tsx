@@ -42,7 +42,13 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                 text="Los materiales de todos tus proyectos, del más costoso al menos costoso. Para agregar o editar uno, ábrelo desde su proyecto."
                 stats={
                     data.data === null
-                        ? undefined
+                        ? data.error === null
+                            ? [
+                                  { label: "Materiales", value: "—" },
+                                  { label: "Costo total", value: "—" },
+                                  { label: "Categoría más costosa", value: "—", detail: " " },
+                              ]
+                            : undefined
                         : [
                               { label: "Materiales", value: formatNumber(materials.length) },
                               { label: "Costo total", value: formatMoney(total) },
@@ -54,18 +60,25 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                           ]
                 }
                 aside={
-                    categories.length > 0 && (
-                        <section className="band-chart" aria-label="Costo por categoría">
+                    data.data === null && data.error === null ? (
+                        <section className="band-chart" aria-hidden="true">
                             <h3>Costo por categoría</h3>
-                            <Suspense
-                                fallback={<Skeleton shape="lines" count={categories.length} />}
-                            >
-                                <CostChart
-                                    items={categories}
-                                    label="Costo por categoría de todos tus proyectos"
-                                />
-                            </Suspense>
+                            <Skeleton shape="lines" count={3} label="" />
                         </section>
+                    ) : (
+                        categories.length > 0 && (
+                            <section className="band-chart" aria-label="Costo por categoría">
+                                <h3>Costo por categoría</h3>
+                                <Suspense
+                                    fallback={<Skeleton shape="lines" count={categories.length} />}
+                                >
+                                    <CostChart
+                                        items={categories}
+                                        label="Costo por categoría de todos tus proyectos"
+                                    />
+                                </Suspense>
+                            </section>
+                        )
                     )
                 }
             />{" "}

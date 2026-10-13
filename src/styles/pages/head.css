@@ -44,12 +44,5 @@
 .create-panel {
     border-color: var(--accent);
     box-shadow: var(--ring), var(--shadow);
-    animation: panel-in var(--dur-slow) var(--ease) both;
-}
-
-@keyframes panel-in {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
+    animation: rise-in var(--dur-slow) var(--ease-out) both;
 }

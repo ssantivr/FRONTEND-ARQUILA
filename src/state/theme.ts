@@ -6,7 +6,11 @@ export type ThemePreference = Theme | "auto";
 
 const STORAGE_KEY = "arquila:theme";
 const SYSTEM_QUERY = "(prefers-color-scheme: light)";
+const SWITCH_ATTRIBUTE = "themeSwitching";
+/** A little longer than `--dur` (180 ms), the colour transition it leaves room for. */
+const SWITCH_MS = 220;
 const listeners = new Set<() => void>();
+let switchTimer = 0;
 
 function readStored(): ThemePreference | null {
     try {
@@ -29,8 +33,23 @@ function systemTheme(): Theme {
 let preference: ThemePreference = readStored() ?? "auto";
 let theme: Theme = preference === "auto" ? systemTheme() : preference;
 
-function apply(): void {
+/**
+ * Sets the theme on the page. When it changes while the app is in use, the page is marked for a
+ * moment so `motion.css` can cross the colours over; on the first paint nothing is animated.
+ */
+function apply(animate = false): void {
+    const previous = theme;
+
     theme = preference === "auto" ? systemTheme() : preference;
+
+    if (animate && previous !== theme) {
+        document.documentElement.dataset[SWITCH_ATTRIBUTE] = "";
+        window.clearTimeout(switchTimer);
+        switchTimer = window.setTimeout(() => {
+            delete document.documentElement.dataset[SWITCH_ATTRIBUTE];
+        }, SWITCH_MS);
+    }
+
     document.documentElement.dataset.theme = theme;
 
     for (const listener of listeners) {
@@ -44,7 +63,7 @@ try {
     // While the preference is "auto", the app follows the system when it changes.
     window.matchMedia(SYSTEM_QUERY).addEventListener("change", () => {
         if (preference === "auto") {
-            apply();
+            apply(true);
         }
     });
 } catch {}
@@ -64,7 +83,7 @@ export function setThemePreference(next: ThemePreference): void {
         window.localStorage.setItem(STORAGE_KEY, next);
     } catch {}
 
-    apply();
+    apply(true);
 }
 
 export function setTheme(next: Theme): void {

@@ -8,8 +8,8 @@
     cursor: pointer;
     pointer-events: auto;
     transition:
-        color var(--dur-fast) var(--ease),
-        border-color var(--dur-fast) var(--ease);
+        color var(--dur-fast) var(--ease-out),
+        border-color var(--dur-fast) var(--ease-out);
 }
 
 .global-search-commands:hover {
@@ -74,4 +74,50 @@
 /* A field whose value is not right, marked by LiveForm or by Field. */
 :is(input, select, textarea)[aria-invalid="true"] {
     border-color: var(--error);
+}
+
+/* ---- Movement of pieces that keep their global classes ---- */
+
+/* A progress bar fills with transform, never by changing its width. */
+.bar-progress > span {
+    width: 100%;
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-in-out);
+    animation: grow-in var(--dur-show) var(--ease-out) backwards;
+}
+
+/* A menu opens from its button. */
+.menu[open] > .menu-items {
+    transform-origin: top right;
+    animation: scale-in var(--dur) var(--ease-out) both;
+}
+
+/* What replaces a loading placeholder fades in. */
+.panel > :is(table, ul, ol, dl, .card-list),
+.skeleton {
+    animation: fade-in var(--dur) var(--ease-out) both;
+}
+
+/* The check and the word that confirm a saved change. */
+.button-saved {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* ---- Places kept while content loads, so nothing jumps when it arrives ---- */
+
+.home-row-arriving > :is(.continue-card, .status-card) {
+    min-height: 290px;
+    animation: fade-in var(--dur) var(--ease-out) both;
+}
+
+.structure-stage-arriving .structure-viewer {
+    display: grid;
+    place-items: center;
+}
+
+/* Three categories is the usual: the chart keeps that height for its placeholder too. */
+.band-chart {
+    min-height: 164px;
 }

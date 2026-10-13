@@ -47,10 +47,6 @@ td,
     letter-spacing: -0.015em;
 }
 
-.content > * {
-    animation-duration: 0.26s;
-}
-
 /* ---- One lime focus per zone ---- */
 
 .avatar,

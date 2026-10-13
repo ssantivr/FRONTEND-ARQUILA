@@ -60,9 +60,9 @@
     background: var(--panel);
     border-radius: var(--r-lg);
     transition:
-        border-color var(--dur-fast) var(--ease),
-        box-shadow var(--dur-fast) var(--ease),
-        transform var(--dur-fast) var(--ease);
+        border-color var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-fast) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out);
 }
 
 .terrain-shape {
@@ -183,12 +183,6 @@
     overflow-wrap: anywhere;
 }
 
-@keyframes sheet-in {
-    from {
-        transform: translateY(100%);
-    }
-}
-
 /* Tablet and phone: the detail is a sheet that slides up for the terrain the user chose. */
 @media (max-width: 1024px) {
     .terrain-layout-open {
@@ -208,7 +202,7 @@
         overflow: auto;
         border-radius: var(--r-lg) var(--r-lg) 0 0;
         box-shadow: 0 -16px 48px rgba(6, 17, 12, 0.4);
-        animation: sheet-in var(--dur-slow) var(--ease) both;
+        animation: slide-in-up var(--dur-slow) var(--ease-out) both;
     }
 
     .terrain-detail-close {

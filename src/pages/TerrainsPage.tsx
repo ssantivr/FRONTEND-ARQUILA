@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { Button } from "../components/ui/Button";
+import { Skeleton } from "../components/ui/Skeleton";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, terrainsApi } from "../services/api";
 import type { Terrain } from "../types/api";
@@ -103,6 +104,9 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
     // On a narrow one it is a sheet that only opens for a terrain the user chose.
     const chosen = shown.find((terrain) => terrain.id === selectedId) ?? null;
     const selected = chosen ?? shown[0] ?? null;
+    // While the first answer is on its way the screen already has its final shape (figures,
+    // filters, list and detail), with placeholders, so nothing jumps when the terrains arrive.
+    const arriving = data.loading && data.data === null && data.error === null;
 
     return (
         <>
@@ -119,11 +123,11 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                         De todos tus proyectos · se editan desde su proyecto
                     </p>
                 </div>
-                {data.data !== null && terrains.length > 0 && (
-                    <dl className="stat-strip">
+                {(arriving || terrains.length > 0) && (
+                    <dl className="stat-strip" aria-busy={arriving || undefined}>
                         <div>
                             <dt>Área total</dt>
-                            <dd>{formatNumber(totalArea)} m²</dd>
+                            <dd>{arriving ? "—" : `${formatNumber(totalArea)} m²`}</dd>
                         </div>
                         <div>
                             <dt>Pendiente máxima</dt>
@@ -131,26 +135,26 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                         </div>
                         <div>
                             <dt>Con pendiente registrada</dt>
-                            <dd>
-                                {slopes.length} de {terrains.length}
-                            </dd>
+                            <dd>{arriving ? "—" : `${slopes.length} de ${terrains.length}`}</dd>
                         </div>
                     </dl>
                 )}
             </header>
 
             <section className="list-section" aria-label="Fichas de terrenos">
-                {terrains.length > 0 && (
+                {(arriving || terrains.length > 0) && (
                     <div className="list-toolbar">
                         <input
                             type="search"
                             placeholder="Buscar terreno"
                             aria-label="Buscar terreno por nombre"
+                            disabled={arriving}
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                         />
                         <select
                             aria-label="Filtrar por proyecto"
+                            disabled={arriving}
                             value={projectId}
                             onChange={(event) => setProjectId(event.target.value)}
                         >
@@ -182,11 +186,19 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                         )}
                     </div>
                 )}
+                {arriving && (
+                    <div className="terrain-layout terrain-layout-open">
+                        <Skeleton shape="cards" label="Cargando los terrenos…" />
+                        <aside className="terrain-detail" aria-hidden="true">
+                            <Skeleton shape="lines" count={6} label="" />
+                        </aside>
+                    </div>
+                )}
                 <AsyncStatus
                     loading={data.loading}
                     error={data.error}
                     onRetry={data.reload}
-                    isEmpty={terrains.length === 0}
+                    isEmpty={terrains.length === 0 && !arriving}
                     skeleton="cards"
                     emptyTitle="Todavía no hay terrenos"
                     emptyText="Se registran en la pestaña Terreno de cada proyecto y aparecen aquí todos juntos."
