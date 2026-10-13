@@ -107,7 +107,10 @@ export function answer(path) {
     }
     if (path === "/projects") return projects;
     if (/^\/projects\/\d+$/.test(path)) return projects[0];
-    if (path.endsWith("/structure")) return structure;
+    // Every sample project draws the same sample building, under its own id.
+    if (path.endsWith("/structure")) {
+        return { ...structure, project_id: Number(path.split("/")[2]) };
+    }
     if (path.endsWith("/terrains")) return path.startsWith("/projects/1/") ? terrains : [];
     if (path.endsWith("/materials")) return path.startsWith("/projects/1/") ? materials : [];
     if (path.includes("spatial-data")) {

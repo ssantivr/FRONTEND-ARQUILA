@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 
 import { RenderImage } from "../components/RenderImage";
 import { AsyncStatus } from "../components/AsyncStatus";
+import { CountUp } from "../components/CountUp";
 import { StatusBadge } from "../components/Badge";
 import { ProjectCover } from "../components/ProjectCover";
 import { Icon } from "../components/Icon";
@@ -18,6 +19,11 @@ import type { SectionId } from "./ProjectDetailPage";
 import { formatDate, formatMoney, formatNumber } from "../utils/format";
 
 const RECENT_PROJECTS = 8;
+// The live model only where the browser can draw it; three.js loads when it is first needed.
+const ProjectPreview = lazy(() =>
+    import("../components/ProjectPreview").then((module) => ({ default: module.ProjectPreview })),
+);
+const CAN_DRAW_3D = typeof window !== "undefined" && "WebGL2RenderingContext" in window;
 // The one shortcut that gets the large tile: the 3D viewer is what sets the product apart.
 const MAIN_MODULE = MODULES.find((module) => module.id === "viewer") ?? MODULES[0];
 
@@ -113,21 +119,30 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                         <dl>
                             <div>
                                 <dt>Proyectos</dt>
-                                <dd>{formatNumber(summary.data.projects)}</dd>
+                                <dd>
+                                    <CountUp value={summary.data.projects} format={formatNumber} />
+                                </dd>
                                 <dd className="hero-stat-detail">
                                     {`${summary.data.active_projects} activos · ${summary.data.draft_projects} en borrador · ${summary.data.archived_projects} archivados`}
                                 </dd>
                             </div>
                             <div>
                                 <dt>Terrenos</dt>
-                                <dd>{formatNumber(summary.data.terrains)}</dd>
+                                <dd>
+                                    <CountUp value={summary.data.terrains} format={formatNumber} />
+                                </dd>
                                 <dd className="hero-stat-detail">
                                     {formatNumber(summary.data.total_area_m2)} m² en total
                                 </dd>
                             </div>
                             <div>
                                 <dt>Costo de materiales</dt>
-                                <dd>{formatMoney(summary.data.materials_total_cost)}</dd>
+                                <dd>
+                                    <CountUp
+                                        value={summary.data.materials_total_cost}
+                                        format={formatMoney}
+                                    />
+                                </dd>
                                 <dd className="hero-stat-detail">Suma de todos los proyectos</dd>
                             </div>
                         </dl>
@@ -138,9 +153,14 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
             {latest !== null && (
                 <div className="home-row">
                     <section className="continue-card" aria-label="Continuar donde lo dejaste">
-                        <span className="continue-cover" aria-hidden="true">
+                        <div className="continue-cover">
                             <ProjectCover id={latest.id} name={latest.name} />
-                        </span>
+                            {CAN_DRAW_3D && (
+                                <Suspense fallback={null}>
+                                    <ProjectPreview key={latest.id} projectId={latest.id} />
+                                </Suspense>
+                            )}
+                        </div>
                         <div className="continue-body">
                             <span className="eyebrow">Continuar donde lo dejaste</span>
                             <h3>{latest.name}</h3>

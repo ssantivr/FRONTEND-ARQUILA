@@ -170,11 +170,14 @@ const ALL_LAYERS: Layers = { rooms: true, roof: true, environment: true, grid: t
 interface StructureViewerProps {
     structure: Structure;
     walkthrough?: boolean;
+    /** Only the scene, without panels: to show the model on another screen. */
+    preview?: boolean;
 }
 
 export function StructureViewer({
     structure,
     walkthrough: startInside = false,
+    preview = false,
 }: StructureViewerProps) {
     const entered = useRef(false);
     const stage = useRef<HTMLDivElement>(null);
@@ -616,6 +619,10 @@ export function StructureViewer({
             : elements.filter((element) => itemLabel(element).toLowerCase().includes(wanted));
 
     if (unsupported) {
+        if (preview) {
+            return null;
+        }
+
         return (
             <p className="message message-error" role="alert">
                 Este navegador no puede mostrar gráficos 3D (WebGL no está disponible).
@@ -624,7 +631,10 @@ export function StructureViewer({
     }
 
     return (
-        <div className="structure-stage" ref={stage}>
+        <div
+            className={preview ? "structure-stage structure-stage-preview" : "structure-stage"}
+            ref={stage}
+        >
             <div
                 ref={container}
                 className="structure-viewer"
@@ -632,328 +642,342 @@ export function StructureViewer({
                 aria-label={`Modelo 3D con ${structure.terrains.length} terrenos, ${structure.rooms.length} espacios y ${structure.components.length} componentes estructurales`}
             />
             {/* The panels over the scene are dark in both themes, like an instrument panel. */}
-            <div className={panels ? "hud-layer" : "hud-layer hud-layer-min"} data-theme="dark">
-                <ViewBar
-                    view={view}
-                    onView={chooseView}
-                    zoom={zoom}
-                    onZoom={(factor) => viewer.current?.zoomBy(factor)}
-                    projection={projection}
-                    onProjection={setProjection}
-                    panels={panels}
-                    onTogglePanels={() => setPanels((visible) => !visible)}
-                />
-                {isolatedRoom === null ? (
-                    <ObjectTree
-                        elements={elements}
-                        visibleElements={visibleElements}
-                        query={objectQuery}
-                        onQuery={setObjectQuery}
-                        selectedKey={selectedKey}
-                        onSelect={setSelectedKey}
-                        hiddenKeys={hiddenKeys}
-                        onToggleHidden={toggleHidden}
-                        roofHiddenWithRooms={roofHiddenWithRooms}
+            {!preview && (
+                <div className={panels ? "hud-layer" : "hud-layer hud-layer-min"} data-theme="dark">
+                    <ViewBar
+                        view={view}
+                        onView={chooseView}
+                        zoom={zoom}
+                        onZoom={(factor) => viewer.current?.zoomBy(factor)}
+                        projection={projection}
+                        onProjection={setProjection}
+                        panels={panels}
+                        onTogglePanels={() => setPanels((visible) => !visible)}
                     />
-                ) : (
-                    <RoomWorksPanel
-                        projectId={projectId}
-                        roomId={isolatedRoom.id}
-                        title={currentStop?.title ?? isolatedRoom.name}
-                        description={currentStop?.description ?? null}
-                        elements={works.filter((item) => item.room_id === isolatedRoom.id)}
-                        logs={(walkthrough.data?.renovation_logs ?? []).filter(
-                            (log) => log.room_id === isolatedRoom.id,
-                        )}
-                        unavailable={spatial.error ?? walkthrough.error}
-                        assetNote={assetState === null ? null : ASSET_NOTES[assetState]}
-                        onChanged={walkthrough.reload}
-                        onFocus={(item) => {
-                            setPickedId(item.id);
-                            viewer.current?.focus(overlayKey(item.id));
-                        }}
-                    />
-                )}
-                <div className="hud-dock">
-                    <aside className="hud hud-inspector" aria-live="polite" aria-label="Inspector">
-                        <details open>
-                            <summary>Inspector</summary>
-                            {picked !== null && (
-                                <dl className="hud-picked">
-                                    <dt>Elemento</dt>
-                                    <dd>{picked.name}</dd>
-                                    <dt>Capa</dt>
-                                    <dd>
-                                        <span
-                                            className="hud-swatch"
-                                            style={{ background: workSwatch(picked) }}
-                                        />
-                                        {layerLabel(picked.layer)}
-                                    </dd>
-                                    <dt>Estado</dt>
-                                    <dd>{WORK_STATUS_LABELS[picked.work_status]}</dd>
-                                    <dt>Medidas</dt>
-                                    <dd>
-                                        {formatNumber(picked.max_x_m - picked.min_x_m)} ×{" "}
-                                        {formatNumber(picked.max_y_m - picked.min_y_m)} ×{" "}
-                                        {formatNumber(picked.max_z_m - picked.min_z_m)} m
-                                    </dd>
-                                    <dt>Altura de la base</dt>
-                                    <dd>+{formatNumber(picked.min_z_m)} m</dd>
-                                </dl>
+                    {isolatedRoom === null ? (
+                        <ObjectTree
+                            elements={elements}
+                            visibleElements={visibleElements}
+                            query={objectQuery}
+                            onQuery={setObjectQuery}
+                            selectedKey={selectedKey}
+                            onSelect={setSelectedKey}
+                            hiddenKeys={hiddenKeys}
+                            onToggleHidden={toggleHidden}
+                            roofHiddenWithRooms={roofHiddenWithRooms}
+                        />
+                    ) : (
+                        <RoomWorksPanel
+                            projectId={projectId}
+                            roomId={isolatedRoom.id}
+                            title={currentStop?.title ?? isolatedRoom.name}
+                            description={currentStop?.description ?? null}
+                            elements={works.filter((item) => item.room_id === isolatedRoom.id)}
+                            logs={(walkthrough.data?.renovation_logs ?? []).filter(
+                                (log) => log.room_id === isolatedRoom.id,
                             )}
-                            {selected === null ? (
-                                picked === null && (
-                                    <p>
-                                        Haz clic en un cuarto, un componente o una instalación para
-                                        inspeccionarlo, o doble clic para acercar la cámara a él.
-                                    </p>
-                                )
-                            ) : (
-                                <dl>
-                                    <dt>Nombre</dt>
-                                    <dd>{selected.name}</dd>
-                                    <dt>Tipo</dt>
-                                    <dd>{KIND_LABELS[selected.kind]}</dd>
-                                    <dt className="hud-wide">
-                                        <label htmlFor="inspector-surface">Material</label>
-                                    </dt>
-                                    <dd className="hud-wide">
-                                        <select
-                                            id="inspector-surface"
-                                            value={surfaceOf(
-                                                surfaces,
-                                                elementKey(selected),
-                                                selected.kind,
-                                            )}
-                                            onChange={(event) =>
-                                                changeSurface(
-                                                    selected,
-                                                    event.target.value as SurfaceMaterialId,
-                                                )
-                                            }
-                                        >
-                                            {SURFACE_MATERIAL_IDS.map((id) => (
-                                                <option key={id} value={id}>
-                                                    {SURFACE_MATERIALS[id].label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </dd>
-                                    <dt>Plano</dt>
-                                    <dd>{selected.plan_title}</dd>
-                                    <dt>Nivel</dt>
-                                    <dd>{selected.level ?? "—"}</dd>
-                                    <dt>Medidas</dt>
-                                    <dd>
-                                        {formatNumber(selected.width_m)} ×{" "}
-                                        {formatNumber(selected.depth_m)} ×{" "}
-                                        {formatNumber(selected.height_m)} m
-                                    </dd>
-                                    {isSpace(selected) && (
-                                        <>
-                                            <dt>Área</dt>
-                                            <dd>
-                                                {formatNumber(selected.width_m * selected.depth_m)}{" "}
-                                                m²
-                                            </dd>
-                                        </>
-                                    )}
-                                    <dt>Volumen</dt>
-                                    <dd>
-                                        {formatNumber(
-                                            selected.width_m * selected.depth_m * selected.height_m,
-                                        )}{" "}
-                                        m³
-                                    </dd>
-                                    <dt>Altura de la base</dt>
-                                    <dd>+{formatNumber(selected.base_m)} m</dd>
-                                    {selectedCost !== undefined && (
-                                        <>
-                                            <dt>Coste estimado</dt>
-                                            <dd>{formatMoney(selectedCost)}</dd>
-                                        </>
-                                    )}
-                                </dl>
-                            )}
-                            {selected !== null && (
-                                <button
-                                    type="button"
-                                    className="hud-item"
-                                    title="Acerca la cámara al elemento seleccionado"
-                                    onClick={() => viewer.current?.focus(selectedKey)}
-                                >
-                                    Enfocar
-                                </button>
-                            )}
-                            {selected !== null && selected.kind === "room" && (
-                                <button
-                                    type="button"
-                                    className="hud-item"
-                                    aria-pressed={selectedKey === isolatedKey}
-                                    title="Oculta el resto del modelo y deja solo este cuarto con su estructura"
-                                    onClick={() =>
-                                        visit(selectedKey === isolatedKey ? null : selectedKey)
-                                    }
-                                >
-                                    Aislar cuarto
-                                </button>
-                            )}
-                            {saveError !== null && (
-                                <p className="message message-error" role="alert">
-                                    {saveError}
-                                </p>
-                            )}
-                            {selectedAlerts.length > 0 && (
-                                <ul className="hud-alerts">
-                                    {selectedAlerts.map((alert) => (
-                                        <li key={alert.id}>
+                            unavailable={spatial.error ?? walkthrough.error}
+                            assetNote={assetState === null ? null : ASSET_NOTES[assetState]}
+                            onChanged={walkthrough.reload}
+                            onFocus={(item) => {
+                                setPickedId(item.id);
+                                viewer.current?.focus(overlayKey(item.id));
+                            }}
+                        />
+                    )}
+                    <div className="hud-dock">
+                        <aside
+                            className="hud hud-inspector"
+                            aria-live="polite"
+                            aria-label="Inspector"
+                        >
+                            <details open>
+                                <summary>Inspector</summary>
+                                {picked !== null && (
+                                    <dl className="hud-picked">
+                                        <dt>Elemento</dt>
+                                        <dd>{picked.name}</dd>
+                                        <dt>Capa</dt>
+                                        <dd>
                                             <span
                                                 className="hud-swatch"
-                                                style={{
-                                                    background: cssColor(
-                                                        PRIORITY_COLORS[alert.priority],
-                                                    ),
-                                                }}
+                                                style={{ background: workSwatch(picked) }}
                                             />
-                                            {alert.content}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </details>
-                    </aside>
-                    <ScenePanel
-                        layers={layers}
-                        onLayers={setLayers}
-                        cut={cut}
-                        onCut={setCut}
-                        explode={explode}
-                        onExplode={setExplode}
-                        sun={sun}
-                        onSun={setSun}
-                        roof={roof}
-                        onRoof={changeRoof}
-                    />
-                    <aside className="hud hud-colors" aria-label="Color del modelo">
-                        <details>
-                            <summary>
-                                Color · {COLOR_MODES.find((mode) => mode.id === colorMode)?.label}
-                            </summary>
-                            <div className="hud-modes" role="group" aria-label="Modo de color">
-                                {COLOR_MODES.map((mode) => (
+                                            {layerLabel(picked.layer)}
+                                        </dd>
+                                        <dt>Estado</dt>
+                                        <dd>{WORK_STATUS_LABELS[picked.work_status]}</dd>
+                                        <dt>Medidas</dt>
+                                        <dd>
+                                            {formatNumber(picked.max_x_m - picked.min_x_m)} ×{" "}
+                                            {formatNumber(picked.max_y_m - picked.min_y_m)} ×{" "}
+                                            {formatNumber(picked.max_z_m - picked.min_z_m)} m
+                                        </dd>
+                                        <dt>Altura de la base</dt>
+                                        <dd>+{formatNumber(picked.min_z_m)} m</dd>
+                                    </dl>
+                                )}
+                                {selected === null ? (
+                                    picked === null && (
+                                        <p>
+                                            Haz clic en un cuarto, un componente o una instalación
+                                            para inspeccionarlo, o doble clic para acercar la cámara
+                                            a él.
+                                        </p>
+                                    )
+                                ) : (
+                                    <dl>
+                                        <dt>Nombre</dt>
+                                        <dd>{selected.name}</dd>
+                                        <dt>Tipo</dt>
+                                        <dd>{KIND_LABELS[selected.kind]}</dd>
+                                        <dt className="hud-wide">
+                                            <label htmlFor="inspector-surface">Material</label>
+                                        </dt>
+                                        <dd className="hud-wide">
+                                            <select
+                                                id="inspector-surface"
+                                                value={surfaceOf(
+                                                    surfaces,
+                                                    elementKey(selected),
+                                                    selected.kind,
+                                                )}
+                                                onChange={(event) =>
+                                                    changeSurface(
+                                                        selected,
+                                                        event.target.value as SurfaceMaterialId,
+                                                    )
+                                                }
+                                            >
+                                                {SURFACE_MATERIAL_IDS.map((id) => (
+                                                    <option key={id} value={id}>
+                                                        {SURFACE_MATERIALS[id].label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </dd>
+                                        <dt>Plano</dt>
+                                        <dd>{selected.plan_title}</dd>
+                                        <dt>Nivel</dt>
+                                        <dd>{selected.level ?? "—"}</dd>
+                                        <dt>Medidas</dt>
+                                        <dd>
+                                            {formatNumber(selected.width_m)} ×{" "}
+                                            {formatNumber(selected.depth_m)} ×{" "}
+                                            {formatNumber(selected.height_m)} m
+                                        </dd>
+                                        {isSpace(selected) && (
+                                            <>
+                                                <dt>Área</dt>
+                                                <dd>
+                                                    {formatNumber(
+                                                        selected.width_m * selected.depth_m,
+                                                    )}{" "}
+                                                    m²
+                                                </dd>
+                                            </>
+                                        )}
+                                        <dt>Volumen</dt>
+                                        <dd>
+                                            {formatNumber(
+                                                selected.width_m *
+                                                    selected.depth_m *
+                                                    selected.height_m,
+                                            )}{" "}
+                                            m³
+                                        </dd>
+                                        <dt>Altura de la base</dt>
+                                        <dd>+{formatNumber(selected.base_m)} m</dd>
+                                        {selectedCost !== undefined && (
+                                            <>
+                                                <dt>Coste estimado</dt>
+                                                <dd>{formatMoney(selectedCost)}</dd>
+                                            </>
+                                        )}
+                                    </dl>
+                                )}
+                                {selected !== null && (
                                     <button
-                                        key={mode.id}
                                         type="button"
                                         className="hud-item"
-                                        aria-pressed={mode.id === colorMode}
-                                        onClick={() => appState.setColorMode(projectId, mode.id)}
+                                        title="Acerca la cámara al elemento seleccionado"
+                                        onClick={() => viewer.current?.focus(selectedKey)}
                                     >
-                                        {mode.label}
+                                        Enfocar
                                     </button>
-                                ))}
-                            </div>
-                            {colorMode !== "realistic" && (
-                                <ul className="hud-legend">
-                                    {legend.map((item) => (
-                                        <li key={item.label}>
-                                            <span
-                                                className="hud-swatch"
-                                                style={{ background: item.swatch }}
-                                            />
-                                            {item.label}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            {colorMode === "cost" && costs.size > 0 && (
-                                <p>
-                                    Reparto del presupuesto de materiales según el volumen de cada
-                                    elemento.
-                                </p>
-                            )}
-                            {colorNote !== null && <p>{colorNote}</p>}
-                            <h4>Capas de obra</h4>
-                            <div
-                                className="hud-work-layers"
-                                role="group"
-                                aria-label="Capas de obra"
-                            >
-                                {WORK_LAYERS.map((layer) => (
-                                    <div key={layer.id}>
-                                        <label
-                                            className="checkbox"
-                                            title={`Muestra u oculta los elementos de ${layer.label.toLowerCase()} registrados`}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={workLayers[layer.id]}
-                                                onChange={(event) =>
-                                                    setWorkLayers({
-                                                        ...workLayers,
-                                                        [layer.id]: event.target.checked,
-                                                    })
-                                                }
-                                            />
-                                            <span
-                                                className="hud-swatch"
-                                                style={{ background: layer.swatch }}
-                                            />
-                                            {layer.label}
-                                            <span className="hud-count">
-                                                {spatial.data?.counts[layer.id] ?? 0}
-                                            </span>
-                                        </label>
+                                )}
+                                {selected !== null && selected.kind === "room" && (
+                                    <button
+                                        type="button"
+                                        className="hud-item"
+                                        aria-pressed={selectedKey === isolatedKey}
+                                        title="Oculta el resto del modelo y deja solo este cuarto con su estructura"
+                                        onClick={() =>
+                                            visit(selectedKey === isolatedKey ? null : selectedKey)
+                                        }
+                                    >
+                                        Aislar cuarto
+                                    </button>
+                                )}
+                                {saveError !== null && (
+                                    <p className="message message-error" role="alert">
+                                        {saveError}
+                                    </p>
+                                )}
+                                {selectedAlerts.length > 0 && (
+                                    <ul className="hud-alerts">
+                                        {selectedAlerts.map((alert) => (
+                                            <li key={alert.id}>
+                                                <span
+                                                    className="hud-swatch"
+                                                    style={{
+                                                        background: cssColor(
+                                                            PRIORITY_COLORS[alert.priority],
+                                                        ),
+                                                    }}
+                                                />
+                                                {alert.content}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </details>
+                        </aside>
+                        <ScenePanel
+                            layers={layers}
+                            onLayers={setLayers}
+                            cut={cut}
+                            onCut={setCut}
+                            explode={explode}
+                            onExplode={setExplode}
+                            sun={sun}
+                            onSun={setSun}
+                            roof={roof}
+                            onRoof={changeRoof}
+                        />
+                        <aside className="hud hud-colors" aria-label="Color del modelo">
+                            <details>
+                                <summary>
+                                    Color ·{" "}
+                                    {COLOR_MODES.find((mode) => mode.id === colorMode)?.label}
+                                </summary>
+                                <div className="hud-modes" role="group" aria-label="Modo de color">
+                                    {COLOR_MODES.map((mode) => (
                                         <button
+                                            key={mode.id}
                                             type="button"
                                             className="hud-item"
-                                            aria-pressed={layer.id === highlight}
-                                            title={HIGHLIGHTS[layer.id].title}
+                                            aria-pressed={mode.id === colorMode}
                                             onClick={() =>
-                                                setHighlight(
-                                                    layer.id === highlight ? null : layer.id,
-                                                )
+                                                appState.setColorMode(projectId, mode.id)
                                             }
                                         >
-                                            Resaltar
+                                            {mode.label}
                                         </button>
-                                    </div>
-                                ))}
-                            </div>
-                            {highlight !== null && nothingToHighlight && (
-                                <p>{HIGHLIGHTS[highlight].empty}</p>
-                            )}
-                        </details>
-                    </aside>
+                                    ))}
+                                </div>
+                                {colorMode !== "realistic" && (
+                                    <ul className="hud-legend">
+                                        {legend.map((item) => (
+                                            <li key={item.label}>
+                                                <span
+                                                    className="hud-swatch"
+                                                    style={{ background: item.swatch }}
+                                                />
+                                                {item.label}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                {colorMode === "cost" && costs.size > 0 && (
+                                    <p>
+                                        Reparto del presupuesto de materiales según el volumen de
+                                        cada elemento.
+                                    </p>
+                                )}
+                                {colorNote !== null && <p>{colorNote}</p>}
+                                <h4>Capas de obra</h4>
+                                <div
+                                    className="hud-work-layers"
+                                    role="group"
+                                    aria-label="Capas de obra"
+                                >
+                                    {WORK_LAYERS.map((layer) => (
+                                        <div key={layer.id}>
+                                            <label
+                                                className="checkbox"
+                                                title={`Muestra u oculta los elementos de ${layer.label.toLowerCase()} registrados`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={workLayers[layer.id]}
+                                                    onChange={(event) =>
+                                                        setWorkLayers({
+                                                            ...workLayers,
+                                                            [layer.id]: event.target.checked,
+                                                        })
+                                                    }
+                                                />
+                                                <span
+                                                    className="hud-swatch"
+                                                    style={{ background: layer.swatch }}
+                                                />
+                                                {layer.label}
+                                                <span className="hud-count">
+                                                    {spatial.data?.counts[layer.id] ?? 0}
+                                                </span>
+                                            </label>
+                                            <button
+                                                type="button"
+                                                className="hud-item"
+                                                aria-pressed={layer.id === highlight}
+                                                title={HIGHLIGHTS[layer.id].title}
+                                                onClick={() =>
+                                                    setHighlight(
+                                                        layer.id === highlight ? null : layer.id,
+                                                    )
+                                                }
+                                            >
+                                                Resaltar
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                {highlight !== null && nothingToHighlight && (
+                                    <p>{HIGHLIGHTS[highlight].empty}</p>
+                                )}
+                            </details>
+                        </aside>
+                    </div>
+                    <ViewGizmo listener={orbitListener} />
+                    <Toolbar
+                        onReset={() => chooseView(view)}
+                        onFullscreen={toggleFullscreen}
+                        onDownload={downloadCapture}
+                        hasStops={stops.length > 0}
+                        touring={touring}
+                        onToggleTour={toggleTour}
+                        onStep={step}
+                        roomLabel={
+                            isolatedRoom === null
+                                ? null
+                                : currentStop === null
+                                  ? isolatedRoom.name
+                                  : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`
+                        }
+                        inside={inside}
+                        onToggleInside={toggleInside}
+                        onShowAll={() => visit(null)}
+                    />
+                    <StatusBar
+                        selection={selected === null ? "Sin selección" : itemLabel(selected)}
+                        camera={VIEWS.find((item) => item.id === view)?.label ?? ""}
+                        projection={projection}
+                        zoom={zoom}
+                        saving={saving}
+                    />
                 </div>
-                <ViewGizmo listener={orbitListener} />
-                <Toolbar
-                    onReset={() => chooseView(view)}
-                    onFullscreen={toggleFullscreen}
-                    onDownload={downloadCapture}
-                    hasStops={stops.length > 0}
-                    touring={touring}
-                    onToggleTour={toggleTour}
-                    onStep={step}
-                    roomLabel={
-                        isolatedRoom === null
-                            ? null
-                            : currentStop === null
-                              ? isolatedRoom.name
-                              : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`
-                    }
-                    inside={inside}
-                    onToggleInside={toggleInside}
-                    onShowAll={() => visit(null)}
-                />
-                <StatusBar
-                    selection={selected === null ? "Sin selección" : itemLabel(selected)}
-                    camera={VIEWS.find((item) => item.id === view)?.label ?? ""}
-                    projection={projection}
-                    zoom={zoom}
-                    saving={saving}
-                />
-            </div>
+            )}
         </div>
     );
 }
