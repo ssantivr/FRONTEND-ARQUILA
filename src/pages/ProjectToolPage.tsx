@@ -2,7 +2,7 @@ import { Suspense, lazy, useState } from "react";
 
 import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
-import { Panel } from "../components/Panel";
+import { Panel } from "../components/ui/Panel";
 import { ProjectPicker } from "../components/ProjectPicker";
 import { useAsync } from "../hooks/useAsync";
 import { projectsApi } from "../services/api";

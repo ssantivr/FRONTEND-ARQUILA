@@ -1,12 +1,16 @@
 import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
-import { StatusBadge } from "../components/Badge";
-import { MetricCard } from "../components/MetricCard";
-import { Modal } from "../components/Modal";
-import { Panel } from "../components/Panel";
+import { StatusBadge } from "../components/ui/Badge";
+import { MetricCard } from "../components/ui/MetricCard";
+import { Dialog } from "../components/ui/Dialog";
+import { Panel } from "../components/ui/Panel";
 import { ProjectCard } from "../components/ProjectCard";
 import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { Input, Select } from "../components/ui/Input";
+import { Skeleton } from "../components/ui/Skeleton";
+import { Tooltip } from "../components/ui/Tooltip";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Field } from "../components/ui/Field";
 import { Menu } from "../components/ui/Menu";
@@ -146,9 +150,9 @@ function Showcase() {
                         ]}
                     />
                     <span role="status">Opción elegida: {picked}</span>
-                    <Button variant="secondary" data-tip="Texto de ayuda al pasar el cursor">
-                        Con tooltip
-                    </Button>
+                    <Tooltip text="Texto de ayuda" shortcut="F">
+                        <Button variant="secondary">Con tooltip</Button>
+                    </Tooltip>
                 </div>
             </Panel>
 
@@ -162,10 +166,28 @@ function Showcase() {
                     </Button>
                 </div>
                 {open && (
-                    <Modal title="Ventana modal" onClose={() => setOpen(false)}>
+                    <Dialog title="Ventana modal" size="compact" onClose={() => setOpen(false)}>
                         <p>Contenido de la ventana. Se cierra con Escape o con el botón.</p>
-                    </Modal>
+                    </Dialog>
                 )}
+            </Panel>
+
+            <Panel title="Tarjeta, campos y carga">
+                <div className="ds-stack">
+                    <Card as="article">
+                        <strong>Tarjeta</strong>
+                        <p className="message">
+                            Superficie con el radio, el borde y la sombra de reposo.
+                        </p>
+                    </Card>
+                    <Input label="Nombre del lote" hint="Como aparece en la escritura." />
+                    <Select label="Escala" defaultValue="100">
+                        <option value="50">1:50</option>
+                        <option value="100">1:100</option>
+                        <option value="200">1:200</option>
+                    </Select>
+                    <Skeleton shape="rows" count={3} />
+                </div>
             </Panel>
 
             <Panel title="Progreso y estados">

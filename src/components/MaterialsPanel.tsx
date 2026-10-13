@@ -8,7 +8,7 @@ import type { SectionProps } from "../types/ui";
 import { formatMoney, formatNumber, optionalNumber, optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { FocusFormButton } from "./ui/EmptyState";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 
 export function MaterialsPanel({ projectId, run }: SectionProps) {

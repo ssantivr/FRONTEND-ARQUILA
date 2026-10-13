@@ -6,7 +6,7 @@ import { facade, section } from "../utils/elevations";
 import type { Side } from "../utils/openings";
 import { AsyncStatus } from "./AsyncStatus";
 import { ElevationDrawing } from "./ElevationDrawing";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 
 interface GeneratedElevationsPanelProps {
     projectId: number;

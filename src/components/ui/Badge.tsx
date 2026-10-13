@@ -1,5 +1,5 @@
-import type { ProjectStatus } from "../types/api";
-import { Icon, type IconName } from "./Icon";
+import type { ProjectStatus } from "../../types/api";
+import { Icon, type IconName } from "../Icon";
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
     draft: "Borrador",

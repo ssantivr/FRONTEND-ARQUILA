@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 
-import { Panel } from "../components/Panel";
+import { Panel } from "../components/ui/Panel";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
 import { MIN_PASSWORD_LENGTH } from "./LoginPage";

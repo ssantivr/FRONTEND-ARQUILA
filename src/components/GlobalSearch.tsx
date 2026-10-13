@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { errorMessage } from "../hooks/useAsync";
 import { projectsApi } from "../services/api";
 import type { Project } from "../types/api";
-import { StatusBadge } from "./Badge";
+import { StatusBadge } from "./ui/Badge";
 import { Icon } from "./Icon";
 
 const SEARCH_DELAY_MS = 250;

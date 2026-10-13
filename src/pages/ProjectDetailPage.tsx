@@ -2,14 +2,14 @@ import { Fragment, Suspense, lazy, useRef, useState } from "react";
 
 import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
-import { StatusBadge } from "../components/Badge";
+import { StatusBadge } from "../components/ui/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
 import { FilesPanel } from "../components/FilesPanel";
 import { FloorPlansPanel } from "../components/FloorPlansPanel";
 import { GeneratedElevationsPanel } from "../components/GeneratedElevationsPanel";
 import { Icon } from "../components/Icon";
 import { MaterialsPanel } from "../components/MaterialsPanel";
-import { Panel } from "../components/Panel";
+import { Panel } from "../components/ui/Panel";
 import { Tabs } from "../components/ui/Tabs";
 import { PlansPanel } from "../components/PlansPanel";
 import { ProjectCover } from "../components/ProjectCover";

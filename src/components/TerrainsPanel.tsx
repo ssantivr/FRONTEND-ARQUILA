@@ -8,7 +8,7 @@ import { formatNumber, optionalNumber, optionalText } from "../utils/format";
 import { formatPoints, parsePoints, polygonArea } from "../utils/geometry";
 import { AsyncStatus } from "./AsyncStatus";
 import { FocusFormButton } from "./ui/EmptyState";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { TerrainDiagrams } from "./TerrainDiagrams";
 

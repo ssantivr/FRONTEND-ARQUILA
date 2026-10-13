@@ -6,7 +6,7 @@ import { appState } from "../state/appState";
 import type { RecommendationPriority, RecommendationSource } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 
 const SOURCE_LABELS: Record<RecommendationSource, string> = {
     system: "Automática",

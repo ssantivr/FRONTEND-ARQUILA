@@ -6,7 +6,7 @@ import type { Elevation, Orientation, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
 import { FileAttachment } from "./FileAttachment";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 
 const ORIENTATION_LABELS: Record<Orientation, string> = {

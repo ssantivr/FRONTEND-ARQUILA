@@ -2,12 +2,18 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+import { Icon } from "../Icon";
 import { Button } from "./Button";
+import { Card } from "./Card";
+import { Dialog } from "./Dialog";
 import { EmptyState } from "./EmptyState";
 import { Field } from "./Field";
+import { Input, Select } from "./Input";
 import { Menu } from "./Menu";
 import { ProgressBar } from "./ProgressBar";
+import { Skeleton } from "./Skeleton";
 import { Tabs } from "./Tabs";
+import { Tooltip } from "./Tooltip";
 
 describe("Button", () => {
     it("does not submit a form unless asked to and carries its variant", () => {
@@ -143,5 +149,113 @@ describe("EmptyState", () => {
 
         expect(screen.getByText("Sin proyectos.")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Crear" })).toBeInTheDocument();
+    });
+});
+
+describe("Dialog", () => {
+    it("is a named dialog that closes with its button and with Escape", async () => {
+        const onClose = vi.fn();
+
+        render(
+            <Dialog title="Atajos del visor" size="compact" onClose={onClose}>
+                <p>Contenido</p>
+            </Dialog>,
+        );
+
+        expect(screen.getByRole("dialog", { name: "Atajos del visor" })).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Cerrar" }));
+        await userEvent.keyboard("{Escape}");
+
+        expect(onClose).toHaveBeenCalledTimes(2);
+    });
+
+    it("keeps the focus inside while it is open", async () => {
+        render(
+            <Dialog title="Vista previa" onClose={() => undefined} actions={<a href="/x">Abrir</a>}>
+                <p>Contenido</p>
+            </Dialog>,
+        );
+
+        const dialog = screen.getByRole("dialog");
+
+        await userEvent.tab();
+        await userEvent.tab();
+        await userEvent.tab();
+
+        expect(dialog).toContainElement(document.activeElement as HTMLElement);
+    });
+});
+
+describe("Tooltip", () => {
+    it("describes its control and shows the shortcut", () => {
+        render(
+            <Tooltip text="Enfocar la selección" shortcut="F">
+                <button type="button" aria-label="Enfocar" />
+            </Tooltip>,
+        );
+
+        const button = screen.getByRole("button", { name: "Enfocar" });
+
+        expect(button).toHaveAccessibleDescription("Enfocar la selecciónF");
+        expect(screen.getByRole("tooltip")).toHaveTextContent("F");
+    });
+});
+
+describe("Skeleton", () => {
+    it("announces the loading as a status and draws the bars asked for", () => {
+        const { container } = render(<Skeleton shape="rows" count={2} />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("Cargando…");
+        expect(container.querySelectorAll(".skeleton-bar")).toHaveLength(2);
+    });
+});
+
+describe("Card", () => {
+    it("renders the element it is asked for and keeps extra attributes", () => {
+        render(
+            <Card as="article" aria-label="Casa Mirador">
+                Contenido
+            </Card>,
+        );
+
+        expect(screen.getByRole("article", { name: "Casa Mirador" })).toHaveTextContent(
+            "Contenido",
+        );
+    });
+});
+
+describe("Input and Select", () => {
+    it("label the control and announce its error", () => {
+        render(
+            <>
+                <Input label="Retiro" error="Escribe un número mayor que cero." />
+                <Select label="Escala">
+                    <option>1:100</option>
+                </Select>
+            </>,
+        );
+
+        expect(screen.getByRole("textbox", { name: "Retiro" })).toBeInvalid();
+        expect(screen.getByRole("alert")).toHaveTextContent("Escribe un número mayor que cero.");
+        expect(screen.getByRole("combobox", { name: "Escala" })).toBeInTheDocument();
+    });
+});
+
+describe("Icon", () => {
+    it("draws every icon from the same set, hidden from screen readers", () => {
+        const { container } = render(
+            <>
+                <Icon name="home" />
+                <Icon name="viewTop" />
+            </>,
+        );
+        const icons = container.querySelectorAll("svg.icon");
+
+        expect(icons).toHaveLength(2);
+        icons.forEach((icon) => {
+            expect(icon).toHaveAttribute("aria-hidden", "true");
+            expect(icon).toHaveAttribute("stroke-width", "1.5");
+        });
     });
 });

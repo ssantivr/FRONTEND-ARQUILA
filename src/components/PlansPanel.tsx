@@ -8,7 +8,7 @@ import { optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { FocusFormButton } from "./ui/EmptyState";
 import { FileAttachment } from "./FileAttachment";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 
 interface PlansPanelProps extends SectionProps {

@@ -7,8 +7,8 @@ import { formatNumber } from "../utils/format";
 import { placeOpenings } from "../utils/openings";
 import { AsyncStatus } from "./AsyncStatus";
 import { FloorPlan } from "./FloorPlan";
-import { MetricCard } from "./MetricCard";
-import { Panel } from "./Panel";
+import { MetricCard } from "./ui/MetricCard";
+import { Panel } from "./ui/Panel";
 
 interface FloorPlansPanelProps {
     projectId: number;

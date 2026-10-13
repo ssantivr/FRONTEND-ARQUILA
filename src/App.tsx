@@ -5,7 +5,7 @@ import { RenderImage } from "./components/RenderImage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GlobalSearch } from "./components/GlobalSearch";
 import { Icon } from "./components/Icon";
-import { Panel } from "./components/Panel";
+import { Panel } from "./components/ui/Panel";
 import { Toasts } from "./components/Toasts";
 import { MODULES, Sidebar, type View } from "./components/Sidebar";
 import { errorMessage } from "./hooks/useAsync";

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { EmptyState } from "./ui/EmptyState";
+import { Skeleton, type SkeletonShape } from "./ui/Skeleton";
 
 interface AsyncStatusProps {
     loading: boolean;
@@ -10,15 +11,9 @@ interface AsyncStatusProps {
     emptyTitle?: string;
     emptyAction?: ReactNode;
     /** Shape of the placeholder shown while loading, so it matches what is about to appear. */
-    skeleton?: "lines" | "cards" | "rows";
+    skeleton?: SkeletonShape;
     onRetry?: () => void;
 }
-
-const PLACEHOLDERS: Record<NonNullable<AsyncStatusProps["skeleton"]>, number> = {
-    lines: 3,
-    cards: 4,
-    rows: 5,
-};
 
 export function AsyncStatus({
     loading,
@@ -49,14 +44,7 @@ export function AsyncStatus({
     }
 
     if (loading && isEmpty) {
-        return (
-            <div className={`skeleton skeleton-${skeleton}`} role="status">
-                <span className="skeleton-text">Cargando…</span>
-                {Array.from({ length: PLACEHOLDERS[skeleton] }, (_, index) => (
-                    <span key={index} className="skeleton-bar" aria-hidden="true" />
-                ))}
-            </div>
-        );
+        return <Skeleton shape={skeleton} />;
     }
 
     if (isEmpty && emptyText) {

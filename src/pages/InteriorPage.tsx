@@ -1,5 +1,5 @@
 import { InteriorViewer } from "../components/InteriorViewer";
-import { Panel } from "../components/Panel";
+import { Panel } from "../components/ui/Panel";
 
 export function InteriorPage() {
     return (

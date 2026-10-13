@@ -1,6 +1,6 @@
 import type { Project } from "../types/api";
 import { formatDate } from "../utils/format";
-import { StatusBadge } from "./Badge";
+import { StatusBadge } from "./ui/Badge";
 import { ProjectCover } from "./ProjectCover";
 
 interface ProjectCardProps {

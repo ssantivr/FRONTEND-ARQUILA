@@ -6,7 +6,7 @@ import { useProjectState } from "../state/appState";
 import type { AssistantStatus, ConversationMessage, StructureElement } from "../types/api";
 import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 
 const MAX_MESSAGE_LENGTH = 4000;
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { PageBand } from "../components/PageBand";
-import { Panel } from "../components/Panel";
+import { Panel } from "../components/ui/Panel";
 import { SurfaceLibrary } from "../components/SurfaceLibrary";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, materialsApi } from "../services/api";

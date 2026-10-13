@@ -6,8 +6,8 @@ import {
     SURFACE_MATERIALS,
     type SurfaceMaterialId,
 } from "../utils/surfaceMaterials";
-import { Modal } from "./Modal";
-import { Panel } from "./Panel";
+import { Dialog } from "./ui/Dialog";
+import { Panel } from "./ui/Panel";
 import { ProgressBar } from "./ui/ProgressBar";
 
 const FAVORITES_KEY = "arquila:favorite-surfaces";
@@ -130,7 +130,7 @@ export function SurfaceLibrary() {
                 );
             })}
             {preview !== null && previewId !== null && (
-                <Modal title={preview.label} onClose={() => setPreviewId(null)}>
+                <Dialog title={preview.label} onClose={() => setPreviewId(null)}>
                     <div className="surface-preview">
                         <span
                             className="surface-swatch surface-swatch-large"
@@ -158,7 +158,7 @@ export function SurfaceLibrary() {
                             <dd>{preview.grain > 0 ? "Con grano" : "Liso"}</dd>
                         </dl>
                     </div>
-                </Modal>
+                </Dialog>
             )}
         </Panel>
     );

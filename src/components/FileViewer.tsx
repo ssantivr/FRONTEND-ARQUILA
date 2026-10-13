@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { filesApi } from "../services/api";
 import type { ProjectFile } from "../types/api";
-import { Modal } from "./Modal";
+import { Dialog } from "./ui/Dialog";
 
 export function isImage(file: ProjectFile): boolean {
     return file.mime_type.startsWith("image/");
@@ -23,7 +23,7 @@ export function FileViewer({ file }: { file: ProjectFile }) {
                 Ver
             </button>
             {open && (
-                <Modal
+                <Dialog
                     title={file.filename}
                     onClose={() => setOpen(false)}
                     actions={
@@ -37,7 +37,7 @@ export function FileViewer({ file }: { file: ProjectFile }) {
                     ) : (
                         <iframe className="viewer-frame" src={url} title={file.filename} />
                     )}
-                </Modal>
+                </Dialog>
             )}
         </>
     );

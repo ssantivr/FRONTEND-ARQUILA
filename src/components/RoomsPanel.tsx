@@ -6,7 +6,7 @@ import type { Room } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 
 interface RoomsPanelProps extends SectionProps {
