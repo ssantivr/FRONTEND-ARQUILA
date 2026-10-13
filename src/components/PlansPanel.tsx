@@ -6,6 +6,7 @@ import type { Plan, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
+import { FocusFormButton } from "./ui/EmptyState";
 import { FileAttachment } from "./FileAttachment";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
@@ -79,7 +80,9 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                 error={plans.error}
                 onRetry={plans.reload}
                 isEmpty={items.length === 0}
+                emptyTitle="Sin planos todavía"
                 emptyText="Este proyecto no tiene planos."
+                emptyAction={<FocusFormButton>Agregar el primer plano</FocusFormButton>}
             />
             {items.length > 0 && (
                 <table>

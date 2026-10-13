@@ -82,37 +82,52 @@
     border-radius: var(--radius-sm);
 }
 
+/* Underlined, without a box. One line slides to the open tab: Tabs.tsx measures it. */
 .tabs {
     position: sticky;
     top: var(--header-height);
     z-index: 10;
     gap: 4px;
-    padding: 6px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    min-width: 0;
+    padding: 0 4px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+}
+
+.tabs::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: var(--tab-width, 0);
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px 2px 0 0;
+    transform: translateX(var(--tab-left, 0));
+    transition:
+        transform var(--dur-slow) var(--ease),
+        width var(--dur-slow) var(--ease);
 }
 
 .tab {
-    padding: 8px 16px;
+    min-height: 44px;
+    padding: 10px 14px;
+    color: var(--text-secondary);
+    font-size: 14px;
     font-weight: 500;
+    background: transparent;
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+    transition: color var(--dur-fast) var(--ease);
 }
 
 .tab[aria-current="page"],
-:root[data-theme="dark"] .tab[aria-current="page"] {
-    color: var(--lime-contrast);
-    font-weight: 600;
-    background: var(--lime);
-}
-
 .tab[aria-current="page"]:hover:not(:disabled) {
-    color: var(--lime-contrast);
-    background: var(--lime);
+    color: var(--text);
+    font-weight: 600;
+    background: transparent;
 }
-
 /* ---- Forms ---- */
 
 label {

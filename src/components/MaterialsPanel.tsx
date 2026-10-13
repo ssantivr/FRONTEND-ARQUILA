@@ -7,6 +7,7 @@ import type { Material } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatMoney, formatNumber, optionalNumber, optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
+import { FocusFormButton } from "./ui/EmptyState";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
 
@@ -93,7 +94,9 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                 error={materials.error}
                 onRetry={materials.reload}
                 isEmpty={items.length === 0}
+                emptyTitle="Sin materiales todavía"
                 emptyText="Este proyecto no tiene materiales."
+                emptyAction={<FocusFormButton>Agregar el primer material</FocusFormButton>}
             />
             {items.length > 0 && (
                 <table>

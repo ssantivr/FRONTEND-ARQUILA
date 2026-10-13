@@ -112,50 +112,48 @@ export function ProjectDetailPage({
 
     return (
         <>
-            <section className="page-band project-head" data-theme="dark">
+            <section className="project-head" data-theme="dark">
                 <div className="project-head-art" aria-hidden="true">
                     <ProjectCover id={current.id} name={current.name} />
                 </div>
-                <BackButton onBack={onBack} />
                 <div className="project-head-main">
+                    <BackButton onBack={onBack} />
                     <h2>{current.name}</h2>
                     <p className="project-head-meta">
                         <StatusBadge status={current.status} />
                         <span>{current.location ?? "Sin ubicación"}</span>
+                        <span>Creado {formatDate(current.created_at)}</span>
                         <span>Actualizado {formatDate(current.updated_at)}</span>
                     </p>
-                    {current.description && !editingProject && (
+                    {current.description && (
                         <p className="project-head-text">{current.description}</p>
                     )}
                 </div>
-                <div className="project-summary">
-                    <label className="project-status">
-                        Estado
-                        <select
-                            aria-label="Cambiar estado"
-                            value={current.status}
-                            onChange={(event) =>
-                                run(
-                                    () =>
-                                        projectsApi.update(projectId, {
-                                            status: event.target.value as ProjectStatus,
-                                        }),
-                                    project.reload,
-                                )
-                            }
-                        >
-                            <option value="draft">Borrador</option>
-                            <option value="active">Activo</option>
-                            <option value="archived">Archivado</option>
-                        </select>
-                    </label>
+                <div className="project-summary" role="group" aria-label="Acciones del proyecto">
+                    <select
+                        aria-label="Cambiar estado"
+                        value={current.status}
+                        onChange={(event) =>
+                            run(
+                                () =>
+                                    projectsApi.update(projectId, {
+                                        status: event.target.value as ProjectStatus,
+                                    }),
+                                project.reload,
+                            )
+                        }
+                    >
+                        <option value="draft">Borrador</option>
+                        <option value="active">Activo</option>
+                        <option value="archived">Archivado</option>
+                    </select>
                     <button
                         type="button"
                         className="button-secondary"
                         aria-expanded={editingProject}
                         onClick={() => setEditingProject((editing) => !editing)}
                     >
-                        Editar proyecto
+                        Editar
                     </button>
                     {lastDeleted !== undefined && (
                         <button
@@ -173,17 +171,27 @@ export function ProjectDetailPage({
                     )}
                     <button
                         type="button"
-                        className="button-danger project-remove"
+                        className="button-danger"
                         onClick={() => {
                             if (window.confirm(`¿Eliminar el proyecto "${current.name}"?`)) {
                                 run(() => projectsApi.remove(projectId), onBack);
                             }
                         }}
                     >
-                        Eliminar proyecto
+                        Eliminar
                     </button>
                 </div>
-                {editingProject && (
+            </section>
+
+            <Tabs
+                label="Secciones del proyecto"
+                items={SECTIONS}
+                current={section}
+                onChange={setSection}
+            />
+
+            {editingProject && (
+                <Panel title="Editar proyecto">
                     <ProjectEditForm
                         project={current}
                         onCancel={() => setEditingProject(false)}
@@ -197,27 +205,18 @@ export function ProjectDetailPage({
                             )
                         }
                     />
-                )}
-                {actionPending && (
-                    <p className="message" role="status">
-                        Guardando…
-                    </p>
-                )}
-                {actionError && (
-                    <p className="message message-error" role="alert">
-                        {actionError}
-                    </p>
-                )}
-            </section>
-
-            <div className="project-tabs" data-theme="dark">
-                <Tabs
-                    label="Secciones del proyecto"
-                    items={SECTIONS}
-                    current={section}
-                    onChange={setSection}
-                />
-            </div>
+                </Panel>
+            )}
+            {actionPending && (
+                <p className="message project-saving" role="status">
+                    Guardando…
+                </p>
+            )}
+            {actionError && (
+                <p className="message message-error" role="alert">
+                    {actionError}
+                </p>
+            )}
             <Fragment key={panelsVersion}>
                 {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}
                 {section === "plans" && (
@@ -288,7 +287,7 @@ const KIND_LABELS: Record<DeletedItemKind, string> = {
 
 function BackButton({ onBack }: { onBack: () => void }) {
     return (
-        <button type="button" className="button-secondary" onClick={onBack}>
+        <button type="button" className="button-tertiary back-link" onClick={onBack}>
             ← Proyectos
         </button>
     );

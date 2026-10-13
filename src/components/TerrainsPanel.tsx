@@ -7,6 +7,7 @@ import type { SectionProps } from "../types/ui";
 import { formatNumber, optionalNumber, optionalText } from "../utils/format";
 import { formatPoints, parsePoints, polygonArea } from "../utils/geometry";
 import { AsyncStatus } from "./AsyncStatus";
+import { FocusFormButton } from "./ui/EmptyState";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { TerrainDiagrams } from "./TerrainDiagrams";
@@ -110,7 +111,9 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                 error={terrains.error}
                 onRetry={terrains.reload}
                 isEmpty={items.length === 0}
+                emptyTitle="Sin terrenos todavía"
                 emptyText="Este proyecto no tiene terrenos."
+                emptyAction={<FocusFormButton>Agregar el primer terreno</FocusFormButton>}
             />
             {items.length > 0 && (
                 <table>
