@@ -195,6 +195,7 @@ label {
     .tabs {
         /* Relative, not static: the sliding underline is positioned against the row. */
         position: relative;
+        top: auto;
     }
 
     .content {
