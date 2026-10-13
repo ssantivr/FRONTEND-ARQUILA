@@ -149,7 +149,8 @@ const SCREENS = [
     ["configuracion", "/configuracion"],
 ];
 const SIZES = {
-    escritorio: { width: 1366, height: 900 },
+    escritorio: { width: 1440, height: 900 },
+    tablet: { width: 1024, height: 768 },
     movil: { width: 390, height: 844 },
 };
 
