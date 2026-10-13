@@ -425,11 +425,14 @@
     border-radius: var(--r-lg);
 }
 
+/* The project's cover runs across the head as a faint drawing, clearer towards the right. */
 .project-head-art {
     position: absolute;
-    inset: -24px;
+    inset: 0;
     z-index: -2;
-    filter: blur(14px) saturate(1.2);
+    opacity: 0.6;
+    -webkit-mask-image: linear-gradient(90deg, transparent 25%, #000 80%);
+    mask-image: linear-gradient(90deg, transparent 25%, #000 80%);
 }
 
 .project-head-art .project-cover-art {
@@ -442,16 +445,8 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background:
-        linear-gradient(
-            90deg,
-            rgba(6, 17, 12, 0.86) 0%,
-            rgba(6, 17, 12, 0.5) 55%,
-            rgba(6, 17, 12, 0.3) 100%
-        ),
-        linear-gradient(0deg, rgba(6, 17, 12, 0.5) 0%, rgba(6, 17, 12, 0) 60%);
+    background: linear-gradient(0deg, rgba(6, 17, 12, 0.55) 0%, rgba(6, 17, 12, 0) 70%);
 }
-
 .project-head-main {
     display: grid;
     flex: 1 1 320px;
@@ -1150,13 +1145,13 @@ input.switch:checked::before {
 
 .continue-card {
     display: grid;
-    grid-template-columns: minmax(200px, 42%) minmax(0, 1fr);
+    grid-template-columns: minmax(260px, 50%) minmax(0, 1fr);
     overflow: hidden;
 }
 
 .continue-cover {
     display: block;
-    min-height: 220px;
+    min-height: 200px;
     background: var(--forest);
 }
 
@@ -1351,6 +1346,11 @@ input.switch:checked::before {
 
     .project-head-text {
         white-space: normal;
+    }
+
+    /* On a narrow head the text runs over the whole drawing, so the drawing steps back. */
+    .project-head-art {
+        opacity: 0.2;
     }
 
     .list-toolbar .segmented {
