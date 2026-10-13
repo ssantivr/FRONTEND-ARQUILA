@@ -132,7 +132,26 @@ Simplificaciones: el área de un nivel es la suma de las áreas de sus cuartos, 
 
 ## Organización de la interfaz
 
-El menú lateral tiene ocho módulos (`MODULES` en `src/components/Sidebar.tsx`); la página de Inicio muestra los mismos como tarjetas, a partir de esa misma lista.
+El menú lateral tiene doce módulos (`MODULES` en `src/components/Sidebar.tsx`): los once de `docs/DISENO_ARQUILA.md` más el Asistente IA. La página de Inicio muestra los mismos como accesos rápidos, a partir de esa misma lista.
+
+### Planos 2D, Iluminación y clima, Renderizado y Gestión de tareas
+
+Las cuatro pantallas trabajan sobre un proyecto que se elige arriba (`ToolHead.tsx`); la elección se recuerda mientras la pestaña del navegador siga abierta (`useProjectChoice`, en `sessionStorage`), así que al pasar de Iluminación a Renderizado se sigue en el mismo proyecto.
+
+- **Planos 2D** (`/planos`, `PlansPage.tsx`). Reúne en pestañas los dibujos que ya se generaban dentro del proyecto: plantas con ocupación del lote, fachadas y corte, e implantación. Son los mismos componentes, así que se miden y se descargan igual. No es un editor de dibujo: los planos salen de los terrenos y los cuartos, y se cambian editando esos datos en el proyecto.
+- **Iluminación y clima** (`/iluminacion`, `LightingPage.tsx`). Hora del día, orientación solar, intensidad, temperatura de color, cielo (según la hora, día, atardecer o noche), nubosidad, exposición y sombras. Cada control cambia la escena real: `src/three/lightingPalette.ts` convierte los ajustes en la paleta, la posición del sol, la exposición y las sombras que recibe el motor (`setPalette`, `setSun` con elevación, `setExposure`, `setShadows`).
+    - El recorrido del sol es un arco de 6:00 a 18:00 (`sunPosition` en `src/utils/lighting.ts`). **No es un cálculo solar**: el proyecto no guarda latitud ni fecha, y por eso no hay control de fecha.
+    - La nubosidad quita luz al sol, se la da al cielo y agrisa el cielo y el horizonte. No se dibujan nubes ni hay entorno HDRI.
+    - Es la luz **de presentación**. El editor 3D del proyecto conserva su luz de trabajo, que sigue al tema. Los ajustes se guardan por proyecto en `localStorage` (`arquila:lighting:<id>`), porque la API no tiene dónde guardarlos.
+- **Renderizado** (`/renderizado`, `RenderPage.tsx`). Se elige la vista, la proyección, la relación de aspecto, la resolución (hasta 3840 px de lado mayor), la calidad y el formato (PNG, JPEG o WebP); el encuadre se ajusta girando el modelo dentro de un marco con las proporciones de la imagen.
+    - La imagen la dibuja el mismo motor del visor (`renderStill` en `BuildingSceneManager.ts`) al tamaño pedido. Con más de una pasada, cada una desplaza la cámara una fracción de píxel y el sol una fracción de grado, y se promedian en un lienzo: los bordes salen suaves y las sombras con penumbra. «Alta» usa además un mapa de sombras de 4096 px.
+    - El progreso es real: cuenta las pasadas terminadas. «Cancelar» corta entre dos pasadas y no deja ninguna imagen.
+    - **No es trazado de rayos** y la pantalla lo dice: no hay profundidad de campo ni reflejos trazados. El archivo se genera en el navegador; no se guarda en el servidor.
+- **Gestión de tareas** (`/tareas`, `TasksPage.tsx`). Las tareas son las obras del registro (`renovation_logs`) de todos los proyectos, las mismas que se ven al aislar un cuarto en el modelo. Se muestran en un tablero por estado, con búsqueda y filtros por proyecto y capa; el estado se cambia con `PATCH /api/v1/interior-walkthrough/logs/{id}` y una tarea nueva se crea con `POST /api/v1/interior-walkthrough/logs`, sin cuarto asignado.
+    - El avance es terminadas ÷ (total − canceladas), y «atrasada» es una tarea sin terminar cuya fecha de fin ya pasó (`src/utils/tasks.ts`).
+    - No hay responsables: el registro guarda quién creó la tarea, no a quién se asigna.
+
+Comprobación: `npm run capturas` cambia la hora a las 18:00, comprueba que el cielo pasa a atardecer, abre Renderizado con esa luz, genera una imagen de 1920 × 1080 px y la descarga; `npm run accesibilidad` pasa axe por las cuatro pantallas.
 
 - **Terrenos** y **Materiales** reúnen los datos de todos los proyectos del usuario, con métricas y, en Materiales, el costo por categoría. Son de consulta: el botón «Abrir» lleva a la pestaña correspondiente del proyecto, donde se editan. La API no tiene una ruta que liste terrenos o materiales de todos los proyectos, así que el frontend pide la lista de proyectos y luego la de cada uno en paralelo (`loadAcrossProjects` en `services/api.ts`). Es una petición por proyecto; con muchos proyectos convendría una ruta propia en el backend.
 - **Visualización 3D** y **Asistente IA** piden elegir un proyecto y muestran su modelo o su asistente, los mismos componentes de las pestañas del proyecto. Three.js sigue cargándose solo al abrir el modelo.
@@ -173,7 +192,8 @@ Lo que la interfaz no puede ofrecer hasta que la API lo soporte:
 
 - Rutas globales `GET /terrains` y `GET /materials`: hoy es una petición por proyecto.
 - Imagen de portada y tipo de proyecto.
-- Duplicar proyecto, versiones, tareas e historial de cambios.
+- Duplicar proyecto, versiones e historial de cambios. Responsable de una tarea.
+- Luz de presentación guardada en la cuenta (hoy vive en el navegador) y renders guardados en el proyecto.
 - Avance o progreso de un proyecto: no hay ningún campo que lo mida, así que las tarjetas muestran solo la insignia de estado (borrador, activo, archivado) y no una barra de progreso.
 - Notificaciones.
 - Favoritos y preferencias guardados en la cuenta.
@@ -181,7 +201,7 @@ Lo que la interfaz no puede ofrecer hasta que la API lo soporte:
 
 ### Direcciones
 
-Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/materiales`, `/visor`, `/recorrido`, `/asistente` y `/configuracion`. Un proyecto se abre en `/proyectos/:id/:pestaña` (`terreno`, `planos`, `modelo`, `elevaciones`, `materiales`, `analisis`, `archivos`, `asistente`), así que se puede enlazar a una pestaña concreta y el botón atrás del navegador funciona. `App.tsx` no guarda la pantalla actual: la lee de la dirección.
+Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/materiales`, `/planos`, `/visor`, `/iluminacion`, `/recorrido`, `/renderizado`, `/tareas`, `/asistente` y `/configuracion`. Un proyecto se abre en `/proyectos/:id/:pestaña` (`terreno`, `planos`, `modelo`, `elevaciones`, `materiales`, `analisis`, `archivos`, `asistente`), así que se puede enlazar a una pestaña concreta y el botón atrás del navegador funciona. `App.tsx` no guarda la pantalla actual: la lee de la dirección.
 
 - Si la sesión no existe o caduca (401), se muestra el inicio de sesión **sin cambiar la dirección**; al entrar, el usuario queda en la pantalla que pidió. Cerrar sesión sí vuelve a `/`.
 - Una dirección desconocida muestra «Página no encontrada» con un botón al inicio.
@@ -243,7 +263,7 @@ Los tokens (color, espaciado `--space-*`, radios, sombras, alturas de control y 
 La identidad sigue `docs/DISENO_ARQUILA.md`: verde bosque (`#0B211A`, `#12382A`), verde de interacción (`#236B42`) y verde lima (`#B8F36B`) solo para lo seleccionado, lo activo y la acción principal. Todos los colores son variables de `src/styles/tokens.css`, definidas para el tema claro y el oscuro. Los estilos están en `src/styles/`, en archivos por área que `src/main.tsx` importa en orden; ese orden importa, porque los últimos (`hierarchy`, `states`, `media`) afinan lo que definen los primeros.
 
 - **Sin Tailwind.** El documento pide no añadir dependencias sin justificarlas; la interfaz sigue en una sola hoja de estilos con variables.
-- **Menú lateral.** Mantiene el verde bosque en los dos temas, se contrae a una columna de iconos (se recuerda en `localStorage`, clave `arquila:sidebar`) y entre 721 y 1024 px se contrae solo. Los módulos son los que tienen pantalla real; Planos 2D como módulo, Iluminación y clima, Renderizado y Tareas no están porque la API no los soporta.
+- **Menú lateral.** Mantiene el verde bosque en los dos temas, se contrae a una columna de iconos (se recuerda en `localStorage`, clave `arquila:sidebar`) y entre 721 y 1024 px se contrae solo. Con doce módulos, en una ventana baja la lista se desplaza sola y la cuenta queda siempre a la vista. Todos los módulos tienen pantalla real.
 - **Cabecera.** Título del módulo, buscador global (`GlobalSearch.tsx`, busca proyectos por nombre con `GET /projects?search=`), selector de tema y acceso a la cuenta.
 - **Avisos.** Crear, archivar, reactivar o eliminar un proyecto confirma con un aviso breve abajo a la derecha (`state/toasts.ts`, `Toasts.tsx`); los errores siguen junto al control que falló. La tecla `/` lleva el foco al buscador.
 - **Tema inicial.** Mientras el usuario no elija uno, se usa el que pide el sistema (`prefers-color-scheme`).

@@ -19,7 +19,7 @@ describe("Sidebar", () => {
     it("marks only the current module", () => {
         render(<Sidebar current="materials" onNavigate={() => undefined} />);
 
-        expect(screen.getByRole("button", { name: "Materiales" })).toHaveAttribute(
+        expect(screen.getByRole("button", { name: "Biblioteca de materiales" })).toHaveAttribute(
             "aria-current",
             "page",
         );

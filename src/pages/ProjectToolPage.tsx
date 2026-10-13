@@ -18,12 +18,12 @@ interface ProjectToolPageProps {
 
 const TEXT = {
     viewer: {
-        title: "Visualización 3D",
+        title: "Editor y modelos 3D",
         intro: "Elige un proyecto para ver su modelo. Los cuartos y componentes se editan en la pestaña Modelo 3D del proyecto.",
         open: "Editar en el proyecto",
     },
     interior: {
-        title: "Recorrido interior",
+        title: "Recorridos virtuales",
         intro: "Elige un proyecto para recorrerlo por dentro, cuarto por cuarto. El recorrido empieza dentro del primer cuarto; con «Vista interior» sales a verlo desde fuera y con «Ver todo» vuelves al modelo completo.",
         open: "Editar en el proyecto",
     },

@@ -26,7 +26,11 @@ export type IconName =
     | "viewTop"
     | "parallel"
     | "panels"
-    | "help";
+    | "help"
+    | "plans"
+    | "lighting"
+    | "render"
+    | "tasks";
 
 const PATHS: Record<IconName, string> = {
     home: "M3 11l9-8 9 8M5 10v10h14V10",
@@ -57,6 +61,10 @@ const PATHS: Record<IconName, string> = {
     parallel: "M4 7l8-3 8 3v10l-8 3-8-3zM12 4v16",
     panels: "M3 5h18v14H3zM8 5v14M16 5v14",
     help: "M12 21a9 9 0 100-18 9 9 0 000 18zM9.5 9.5a2.5 2.5 0 114.2 1.8c-.9.8-1.7 1.2-1.7 2.4M12 17h.01",
+    plans: "M4 4h16v16H4zM4 10h8v10M12 14h4M12 4v3M16 10h4",
+    lighting: "M3 18h18M6 18a6 6 0 0112 0M12 5v3M4.5 9.5l2 2M19.5 9.5l-2 2M8 21h8",
+    render: "M3 7h4l2-3h6l2 3h4v13H3zM12 10a3.5 3.5 0 100 7 3.5 3.5 0 000-7z",
+    tasks: "M4 6l2 2 3-3M4 12l2 2 3-3M4 18l2 2 3-3M12 7h8M12 13h8M12 19h8",
 };
 
 export function Icon({ name }: { name: IconName }) {

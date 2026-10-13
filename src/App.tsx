@@ -10,13 +10,17 @@ import { Toasts } from "./components/Toasts";
 import { MODULES, Sidebar, type View } from "./components/Sidebar";
 import { errorMessage } from "./hooks/useAsync";
 import { HomePage } from "./pages/HomePage";
+import { LightingPage } from "./pages/LightingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MaterialsPage } from "./pages/MaterialsPage";
+import { PlansPage } from "./pages/PlansPage";
 import { ProjectDetailPage, type SectionId } from "./pages/ProjectDetailPage";
 import { ProjectToolPage } from "./pages/ProjectToolPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
+import { RenderPage } from "./pages/RenderPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { TasksPage } from "./pages/TasksPage";
 import { TerrainsPage } from "./pages/TerrainsPage";
 import { parsePath, projectPath, viewPath } from "./routes";
 import { authApi } from "./services/api";
@@ -205,6 +209,14 @@ export function App() {
                 return <TerrainsPage onOpenProject={(id) => openProject(id, "terrain")} />;
             case "materials":
                 return <MaterialsPage onOpenProject={(id) => openProject(id, "materials")} />;
+            case "plans":
+                return <PlansPage onOpenProject={(id) => openProject(id, "plans")} />;
+            case "lighting":
+                return <LightingPage onRender={() => navigate("render")} />;
+            case "render":
+                return <RenderPage onLighting={() => navigate("lighting")} />;
+            case "tasks":
+                return <TasksPage onOpenProject={(id) => openProject(id, "model")} />;
             case "viewer":
                 return (
                     <ProjectToolPage

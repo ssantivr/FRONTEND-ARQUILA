@@ -92,7 +92,37 @@ const structure = {
     components: [],
 };
 
-export function answer(path) {
+const tasks = [
+    ["Replanteo y excavación", "structure", "completed", "2026-09-01", "2026-09-12", 1800],
+    ["Fundir la losa de entrepiso", "structure", "in_progress", "2026-09-20", "2026-10-02", 5200],
+    ["Tubería de agua potable", "installations", "in_progress", "2026-10-01", "2026-10-20", 940],
+    ["Cableado eléctrico", "installations", "planned", "2026-10-15", "2026-11-05", 1300],
+    ["Porcelanato de la sala", "finishes", "planned", null, null, null],
+    ["Cielo raso de yeso", "finishes", "cancelled", null, null, null],
+].map(([title, layer, status, planned_start, planned_end, estimated_cost], index) => ({
+    id: index + 1,
+    project_id: 1,
+    room_id: null,
+    spatial_element_id: null,
+    created_by: 1,
+    layer,
+    title,
+    description: null,
+    status,
+    planned_start,
+    planned_end,
+    completed_at: status === "completed" ? NOW : null,
+    estimated_cost,
+    created_at: NOW,
+    updated_at: NOW,
+}));
+
+// The project's own screens ask without a query; only the first sample project has tasks.
+function tasksOf(projectId) {
+    return projectId === null || projectId === "1" ? tasks : [];
+}
+
+export function answer(path, query = new URLSearchParams()) {
     if (path === "/auth/me") return user;
     if (path === "/summary") {
         return {
@@ -121,7 +151,7 @@ export function answer(path) {
         };
     }
     if (path.includes("interior-walkthrough")) {
-        return { project_id: 1, steps: [], renovation_logs: [] };
+        return { project_id: 1, steps: [], renovation_logs: tasksOf(query.get("project_id")) };
     }
     if (path === "/health") return { status: "ok" };
     if (path === "/assistant/status") return { provider: "rules", model: null };

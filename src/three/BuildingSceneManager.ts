@@ -152,6 +152,20 @@ const SURFACE_GAP_M = 0.02;
 const TREE_SPACING_M = 4.5;
 const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
 const UP_AXIS = new Vector3(0, 1, 0);
+const STILL_SUN_SPREAD = 0.024;
+
+/** Low-discrepancy sequence: spreads the samples of a still evenly inside the pixel. */
+function halton(index: number, base: number): number {
+    let result = 0;
+    let fraction = 1 / base;
+
+    for (let rest = index; rest > 0; rest = Math.floor(rest / base)) {
+        result += fraction * (rest % base);
+        fraction /= base;
+    }
+
+    return result;
+}
 
 export type { ViewName };
 export type Projection = "perspective" | "orthographic";
@@ -247,13 +261,37 @@ export interface StructureViewer {
     setAsset: (url: string | null) => void;
     focus: (key: string | null, azimuth?: number) => void;
     zoomBy: (factor: number) => void;
-    /** Turns the sun around the model; 0 is its default bearing. */
-    setSun: (degrees: number) => void;
+    /**
+     * Turns the sun around the model; 0 is its default bearing. With an elevation, in degrees
+     * above the horizon, it also raises or lowers it.
+     */
+    setSun: (degrees: number, elevation?: number) => void;
+    /** Tone mapping exposure; 1 is the default. */
+    setExposure: (exposure: number) => void;
+    setShadows: (enabled: boolean) => void;
     /** Draws the current view and returns it as a PNG data URL. */
     capture: () => string;
+    /**
+     * Draws the current view at another size, as the average of several frames, and returns it
+     * on a canvas; `null` if it was cancelled.
+     */
+    renderStill: (job: StillJob) => Promise<HTMLCanvasElement | null>;
     /** Switches between the perspective camera and a real orthographic one, keeping the framing. */
     setProjection: (projection: Projection) => void;
     dispose: () => void;
+}
+
+export interface StillJob {
+    width: number;
+    height: number;
+    /**
+     * Frames averaged into the image: each one shifts the camera a fraction of a pixel and the
+     * sun a fraction of a degree, which smooths the edges and softens the shadows.
+     */
+    samples: number;
+    shadowMapSize: number;
+    onProgress: (done: number, total: number) => void;
+    signal?: AbortSignal;
 }
 
 export interface ViewerEvents {
@@ -860,6 +898,7 @@ export function createStructureViewer(
     let lastZoom = 0;
     let viewport = "";
     let dirty = true;
+    let stillRunning = false;
 
     function invalidate(): void {
         renderer.shadowMap.needsUpdate = true;
@@ -876,17 +915,7 @@ export function createStructureViewer(
         post.render();
     }
 
-    function resize(): void {
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        const pixelRatio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
-        const next = `${width}x${height}@${pixelRatio}`;
-
-        if (width === 0 || height === 0 || next === viewport) {
-            return;
-        }
-
-        viewport = next;
+    function applySize(width: number, height: number, pixelRatio: number): void {
         renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height, false);
         post.setSize(width, height, pixelRatio);
@@ -894,6 +923,21 @@ export function createStructureViewer(
         lotEdgeMaterial.resolution.set(width, height);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+    }
+
+    function resize(): void {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const pixelRatio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
+        const next = `${width}x${height}@${pixelRatio}`;
+
+        // A still owns the drawing buffer until it ends; it calls this again when it does.
+        if (stillRunning || width === 0 || height === 0 || next === viewport) {
+            return;
+        }
+
+        viewport = next;
+        applySize(width, height, pixelRatio);
 
         if (model !== null) {
             fitLimits();
@@ -915,7 +959,7 @@ export function createStructureViewer(
     function fitLimits(): void {
         rig.fit(bounds);
 
-        sun.position.copy(bounds.center).addScaledVector(lightDirection, bounds.radius * 2);
+        placeSun();
         sun.target.position.copy(bounds.center);
         sun.shadow.camera.left = -bounds.radius;
         sun.shadow.camera.right = bounds.radius;
@@ -931,6 +975,10 @@ export function createStructureViewer(
         magentaAccent.position
             .copy(bounds.center)
             .add(new Vector3(1.2, 0.35, -1).multiplyScalar(bounds.radius));
+    }
+
+    function placeSun(): void {
+        sun.position.copy(bounds.center).addScaledVector(lightDirection, bounds.radius * 2);
     }
 
     function setView(view: ViewName): void {
@@ -1615,6 +1663,11 @@ export function createStructureViewer(
         const elapsed = Math.min((time - lastFrame) / 1000, MAX_FRAME_S);
 
         lastFrame = time;
+
+        if (stillRunning) {
+            return;
+        }
+
         rig.update(time);
 
         if (explodeCurrent !== explodeTarget) {
@@ -1665,12 +1718,124 @@ export function createStructureViewer(
         canvas.remove();
     }
 
-    function setSun(degrees: number): void {
-        lightDirection.copy(LIGHT_DIRECTION).applyAxisAngle(UP_AXIS, MathUtils.degToRad(degrees));
+    function setSun(degrees: number, elevation?: number): void {
+        lightDirection.copy(LIGHT_DIRECTION);
+
+        if (elevation !== undefined) {
+            const angle = MathUtils.degToRad(elevation);
+
+            lightDirection
+                .setY(0)
+                .normalize()
+                .multiplyScalar(Math.cos(angle))
+                .setY(Math.sin(angle));
+        }
+
+        lightDirection.applyAxisAngle(UP_AXIS, MathUtils.degToRad(degrees));
 
         if (model !== null) {
             fitLimits();
         }
+    }
+
+    function setExposure(exposure: number): void {
+        renderer.toneMappingExposure = exposure;
+    }
+
+    function setShadows(enabled: boolean): void {
+        sun.castShadow = enabled;
+    }
+
+    function setShadowMapSize(size: number): void {
+        if (sun.shadow.mapSize.x !== size) {
+            sun.shadow.mapSize.set(size, size);
+            sun.shadow.map?.dispose();
+            sun.shadow.map = null;
+        }
+    }
+
+    async function renderStill(job: StillJob): Promise<HTMLCanvasElement | null> {
+        if (stillRunning) {
+            throw new Error("A still is already being rendered");
+        }
+
+        const limit = renderer.capabilities.maxTextureSize;
+
+        if (job.width > limit || job.height > limit) {
+            throw new Error("Image larger than this device can draw");
+        }
+
+        const output = document.createElement("canvas");
+        const context = output.getContext("2d");
+
+        if (context === null) {
+            throw new Error("Canvas 2D is not available");
+        }
+
+        output.width = job.width;
+        output.height = job.height;
+
+        const total = Math.max(1, Math.round(job.samples));
+        const restingDirection = lightDirection.clone();
+        const active = projection === "orthographic" ? orthographic : camera;
+        const offset = new Vector3();
+        let cancelled = false;
+
+        stillRunning = true;
+
+        try {
+            applySize(job.width, job.height, 1);
+            setShadowMapSize(job.shadowMapSize);
+
+            for (let index = 0; index < total; index += 1) {
+                if (job.signal?.aborted === true) {
+                    cancelled = true;
+                    break;
+                }
+
+                if (total > 1) {
+                    active.setViewOffset(
+                        job.width,
+                        job.height,
+                        halton(index + 1, 2) - 0.5,
+                        halton(index + 1, 3) - 0.5,
+                        job.width,
+                        job.height,
+                    );
+                    offset
+                        .set(halton(index + 1, 5) - 0.5, 0, halton(index + 1, 7) - 0.5)
+                        .multiplyScalar(STILL_SUN_SPREAD);
+                    lightDirection.copy(restingDirection).add(offset).normalize();
+                    placeSun();
+                }
+
+                renderer.shadowMap.needsUpdate = true;
+                render();
+
+                if (renderer.getContext().isContextLost()) {
+                    throw new Error("The graphics context was lost while rendering");
+                }
+
+                // Running average: the n-th frame weighs 1/n. The buffer is only readable now.
+                context.globalAlpha = 1 / (index + 1);
+                context.drawImage(canvas, 0, 0);
+                job.onProgress(index + 1, total);
+
+                await new Promise((resolve) => window.setTimeout(resolve, 0));
+            }
+        } finally {
+            camera.clearViewOffset();
+            orthographic.clearViewOffset();
+            lightDirection.copy(restingDirection);
+            placeSun();
+            setShadowMapSize(SHADOW_MAP_SIZE);
+            stillRunning = false;
+            viewport = "";
+            renderer.shadowMap.needsUpdate = true;
+            resize();
+        }
+
+        return cancelled ? null : output;
     }
 
     /**
@@ -1739,7 +1904,10 @@ export function createStructureViewer(
         focus: changing(focus),
         zoomBy: changing(zoomBy),
         setSun: changing(setSun),
+        setExposure: changing(setExposure),
+        setShadows: changing(setShadows),
         capture,
+        renderStill,
         setProjection: changing(setProjection),
         dispose,
     };

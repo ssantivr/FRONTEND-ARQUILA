@@ -18,6 +18,8 @@ import {
     type StructureViewer as Viewer,
     type ViewName,
 } from "../three/BuildingSceneManager";
+import { sceneLighting } from "../three/lightingPalette";
+import type { LightingSettings } from "../utils/lighting";
 import type {
     RecommendationPriority,
     RoofKind,
@@ -172,13 +174,25 @@ interface StructureViewerProps {
     walkthrough?: boolean;
     /** Only the scene, without panels: to show the model on another screen. */
     preview?: boolean;
+    /** Presentation light chosen on another screen; without it the scene follows the theme. */
+    lighting?: LightingSettings;
+    /** Hands the engine to the screen that shows the viewer, and `null` when it is gone. */
+    onEngine?: (engine: Viewer | null) => void;
 }
 
 export function StructureViewer({
     structure,
     walkthrough: startInside = false,
     preview = false,
+    lighting,
+    onEngine,
 }: StructureViewerProps) {
+    const reportEngine = useRef(onEngine);
+    reportEngine.current = onEngine;
+    const lit = useMemo(
+        () => (lighting === undefined ? null : sceneLighting(lighting)),
+        [lighting],
+    );
     const entered = useRef(false);
     const stage = useRef<HTMLDivElement>(null);
     const container = useRef<HTMLDivElement>(null);
@@ -202,7 +216,10 @@ export function StructureViewer({
             return next;
         });
     }
-    const [layers, setLayers] = useState(ALL_LAYERS);
+    // A presentation shows the building, not the drawing aids.
+    const [layers, setLayers] = useState(
+        lighting === undefined ? ALL_LAYERS : { ...ALL_LAYERS, grid: false },
+    );
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
     const orbitListener = useRef<OrbitListener | null>(null);
@@ -469,7 +486,10 @@ export function StructureViewer({
             return;
         }
 
+        reportEngine.current?.(viewer.current);
+
         return () => {
+            reportEngine.current?.(null);
             viewer.current?.dispose();
             viewer.current = null;
         };
@@ -517,8 +537,14 @@ export function StructureViewer({
     }, [hiddenKeys, structure]);
 
     useEffect(() => {
-        viewer.current?.setSun(sun);
-    }, [sun, structure]);
+        if (lit === null) {
+            viewer.current?.setSun(sun);
+        } else {
+            viewer.current?.setSun(lit.azimuth, lit.elevation);
+            viewer.current?.setExposure(lit.exposure);
+            viewer.current?.setShadows(lit.shadows);
+        }
+    }, [sun, lit, structure]);
 
     useEffect(() => {
         viewer.current?.setProjection(projection);
@@ -576,8 +602,8 @@ export function StructureViewer({
     }, [touring, isolatedKey, stopDuration]);
 
     useEffect(() => {
-        viewer.current?.setPalette(SCENE_PALETTES[theme]);
-    }, [theme, structure]);
+        viewer.current?.setPalette(lit?.palette ?? SCENE_PALETTES[theme]);
+    }, [theme, lit, structure]);
 
     function chooseView(next: ViewName) {
         setView(next);

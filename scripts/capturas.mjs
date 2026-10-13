@@ -24,6 +24,10 @@ const SCREENS = [
     ["terrenos", "/terrenos"],
     ["materiales", "/materiales"],
     ["recorrido", "/recorrido"],
+    ["planos", "/planos"],
+    ["iluminacion", "/iluminacion"],
+    ["renderizado", "/renderizado"],
+    ["tareas", "/tareas"],
     ["configuracion", "/configuracion"],
 ];
 const SIZES = {
@@ -37,10 +41,11 @@ async function open(browser, { theme, size, signedIn = true }) {
 
     await context.addInitScript((value) => localStorage.setItem("arquila:theme", value), theme);
     await context.route("**/api/**", (route) => {
-        const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+        const url = new URL(route.request().url());
+        const path = url.pathname.replace(/^\/api/, "");
 
         return signedIn
-            ? route.fulfill({ json: answer(path) })
+            ? route.fulfill({ json: answer(path, url.searchParams) })
             : route.fulfill({ status: 401, json: { detail: "Not authenticated" } });
     });
 
@@ -116,6 +121,59 @@ async function checkViewer(browser) {
     return results;
 }
 
+/** Changes the light and renders a still, and checks the file that comes out. */
+async function checkStudio(browser) {
+    const context = await open(browser, { theme: "light", size: "escritorio" });
+    const page = await context.newPage();
+    const results = [];
+
+    await page.goto(`${BASE}/iluminacion`);
+    await page.locator(".structure-viewer canvas").waitFor();
+    await page.getByRole("slider", { name: /Hora del día/ }).fill("18");
+    await page.getByRole("slider", { name: /Nubosidad/ }).fill("40");
+    results.push([
+        "iluminación: a las 18:00 el cielo pasa a atardecer",
+        await page.locator(".studio-caption").getByText("Atardecer").isVisible(),
+    ]);
+    await page.waitForTimeout(900);
+    await shoot(page, "comprobacion-atardecer");
+
+    // The light is kept per project, so the render screen must open with it.
+    await page.getByRole("button", { name: "Renderizar con esta luz" }).click();
+    await page.locator(".structure-viewer canvas").waitFor();
+    results.push([
+        "render: usa la luz elegida en iluminación",
+        await page.getByText("Luz de las 18:00, atardecer").isVisible(),
+    ]);
+    await page.getByRole("button", { name: "Iniciar render" }).click();
+
+    const image = page.getByRole("img", { name: /Render del proyecto/ });
+
+    await image.waitFor({ timeout: 180_000 });
+    const drawn = await image.evaluate(async (element) => {
+        await element.decode();
+
+        return `${element.naturalWidth}x${element.naturalHeight}`;
+    });
+
+    results.push([`render: imagen de ${drawn} px`, drawn === "1920x1080"]);
+
+    const [download] = await Promise.all([
+        page.waitForEvent("download"),
+        page.getByRole("link", { name: "Descargar" }).click(),
+    ]);
+
+    await download.saveAs(fileURLToPath(new URL("comprobacion-render.png", OUT)));
+    results.push([
+        `render: descarga ${download.suggestedFilename()}`,
+        download.suggestedFilename() === "arquila-Casa-Andina-1920x1080.png",
+    ]);
+    await shoot(page, "comprobacion-render-pantalla");
+    await context.close();
+
+    return results;
+}
+
 const browser = await chromium.launch({
     channel: process.env.CAPTURAS_NAVEGADOR ?? "msedge",
     args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--ignore-gpu-blocklist"],
@@ -156,7 +214,11 @@ for (const theme of ["light", "dark"]) {
 
 console.log("comprobación del visor 3D:");
 
-const results = ONLY.length === 0 ? await checkViewer(browser) : [];
+// CAPTURAS_SOLO=estudio runs only the lighting and render check.
+const results = [
+    ...(ONLY.length === 0 ? await checkViewer(browser) : []),
+    ...(ONLY.length === 0 || ONLY.includes("estudio") ? await checkStudio(browser) : []),
+];
 
 for (const [label, ok] of results) {
     console.log(`  ${ok ? "ok   " : "FALLA"} ${label}`);

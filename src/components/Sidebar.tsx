@@ -6,8 +6,12 @@ export type View =
     | "projects"
     | "terrains"
     | "materials"
+    | "plans"
     | "viewer"
+    | "lighting"
     | "interior"
+    | "render"
+    | "tasks"
     | "assistant"
     | "settings";
 
@@ -19,12 +23,13 @@ export interface Module {
     group: GroupId;
 }
 
-type GroupId = "work" | "view" | "account";
+type GroupId = "work" | "design" | "view" | "account";
 
 const GROUPS: { id: GroupId; label: string }[] = [
     { id: "work", label: "Trabajo" },
+    { id: "design", label: "Diseño" },
     { id: "view", label: "Visualización" },
-    { id: "account", label: "Asistencia y cuenta" },
+    { id: "account", label: "Gestión y cuenta" },
 ];
 
 export const MODULES: Module[] = [
@@ -52,24 +57,52 @@ export const MODULES: Module[] = [
     {
         id: "materials",
         group: "work",
-        label: "Materiales",
+        label: "Biblioteca de materiales",
         icon: "materials",
-        description: "Materiales de todos los proyectos y su costo por categoría.",
+        description: "Materiales de todos los proyectos, su costo y las superficies del modelo.",
+    },
+    {
+        id: "plans",
+        group: "design",
+        label: "Planos 2D",
+        icon: "plans",
+        description: "Plantas con cotas, fachadas, corte e implantación de un proyecto.",
     },
     {
         id: "viewer",
-        group: "view",
-        label: "Visualización 3D",
+        group: "design",
+        label: "Editor y modelos 3D",
         icon: "viewer",
         description: "Modelo 3D de un proyecto: terrenos, niveles, cuartos y estructura.",
     },
     {
+        id: "lighting",
+        group: "view",
+        label: "Iluminación y clima",
+        icon: "lighting",
+        description: "Hora, sol, cielo, nubes y exposición, vistos sobre el modelo.",
+    },
+    {
         id: "interior",
         group: "view",
-        label: "Recorrido interior",
+        label: "Recorridos virtuales",
         icon: "interior",
         description:
             "Recorre tu proyecto por dentro, cuarto por cuarto, con lo que se va a hacer en cada uno.",
+    },
+    {
+        id: "render",
+        group: "view",
+        label: "Renderizado",
+        icon: "render",
+        description: "Genera y descarga una imagen del modelo con la luz elegida.",
+    },
+    {
+        id: "tasks",
+        group: "account",
+        label: "Gestión de tareas",
+        icon: "tasks",
+        description: "Las obras de todos tus proyectos por estado, con su avance real.",
     },
     {
         id: "assistant",

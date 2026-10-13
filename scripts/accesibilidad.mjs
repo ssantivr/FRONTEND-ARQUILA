@@ -19,6 +19,10 @@ const SCREENS = [
     ["proyecto: modelo 3D", "/proyectos/1/modelo", true],
     ["terrenos", "/terrenos", true],
     ["materiales", "/materiales", true],
+    ["planos", "/planos", true],
+    ["iluminación", "/iluminacion", true],
+    ["renderizado", "/renderizado", true],
+    ["tareas", "/tareas", true],
     ["configuración", "/configuracion", true],
 ];
 const BLOCKING = ["serious", "critical"];
@@ -35,10 +39,11 @@ for (const theme of ["light", "dark"]) {
 
         await context.addInitScript((value) => localStorage.setItem("arquila:theme", value), theme);
         await context.route("**/api/**", (route) => {
-            const apiPath = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+            const url = new URL(route.request().url());
+            const apiPath = url.pathname.replace(/^\/api/, "");
 
             return signedIn
-                ? route.fulfill({ json: answer(apiPath) })
+                ? route.fulfill({ json: answer(apiPath, url.searchParams) })
                 : route.fulfill({ status: 401, json: { detail: "Not authenticated" } });
         });
 

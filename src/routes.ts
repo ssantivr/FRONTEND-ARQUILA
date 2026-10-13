@@ -7,8 +7,12 @@ const VIEW_PATHS: Record<View, string> = {
     projects: "/proyectos",
     terrains: "/terrenos",
     materials: "/materiales",
+    plans: "/planos",
     viewer: "/visor",
+    lighting: "/iluminacion",
     interior: "/recorrido",
+    render: "/renderizado",
+    tasks: "/tareas",
     assistant: "/asistente",
     settings: "/configuracion",
 };

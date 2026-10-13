@@ -33,6 +33,7 @@ import "./styles/pages/settings.css";
 import "./styles/pages/home.css";
 import "./styles/pages/auth.css";
 import "./styles/pages/assistant.css";
+import "./styles/pages/studio.css";
 import "./styles/pages/responsive.css";
 import "./styles/polish.css";
 import "./styles/editor.css";
