@@ -11,6 +11,7 @@ import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Panel } from "../components/Panel";
 import { Tabs } from "../components/ui/Tabs";
 import { PlansPanel } from "../components/PlansPanel";
+import { ProjectCover } from "../components/ProjectCover";
 import { ProjectEditForm } from "../components/ProjectEditForm";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { SitePlanPanel } from "../components/SitePlanPanel";
@@ -18,6 +19,7 @@ import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { filesApi, projectsApi, undoApi } from "../services/api";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
+import { formatDate } from "../utils/format";
 
 const StructurePanel = lazy(() =>
     import("../components/StructurePanel").then((module) => ({ default: module.StructurePanel })),
@@ -110,52 +112,68 @@ export function ProjectDetailPage({
 
     return (
         <>
-            <Panel title={current.name} actions={<BackButton onBack={onBack} />}>
+            <section className="page-band project-head" data-theme="dark">
+                <div className="project-head-art" aria-hidden="true">
+                    <ProjectCover id={current.id} name={current.name} />
+                </div>
+                <BackButton onBack={onBack} />
+                <div className="project-head-main">
+                    <h2>{current.name}</h2>
+                    <p className="project-head-meta">
+                        <StatusBadge status={current.status} />
+                        <span>{current.location ?? "Sin ubicación"}</span>
+                        <span>Actualizado {formatDate(current.updated_at)}</span>
+                    </p>
+                    {current.description && !editingProject && (
+                        <p className="project-head-text">{current.description}</p>
+                    )}
+                </div>
                 <div className="project-summary">
-                    <StatusBadge status={current.status} />
-                    <span>{current.location ?? "Sin ubicación"}</span>
-                    <select
-                        aria-label="Cambiar estado"
-                        value={current.status}
-                        onChange={(event) =>
-                            run(
-                                () =>
-                                    projectsApi.update(projectId, {
-                                        status: event.target.value as ProjectStatus,
-                                    }),
-                                project.reload,
-                            )
-                        }
-                    >
-                        <option value="draft">Borrador</option>
-                        <option value="active">Activo</option>
-                        <option value="archived">Archivado</option>
-                    </select>
+                    <label className="project-status">
+                        Estado
+                        <select
+                            aria-label="Cambiar estado"
+                            value={current.status}
+                            onChange={(event) =>
+                                run(
+                                    () =>
+                                        projectsApi.update(projectId, {
+                                            status: event.target.value as ProjectStatus,
+                                        }),
+                                    project.reload,
+                                )
+                            }
+                        >
+                            <option value="draft">Borrador</option>
+                            <option value="active">Activo</option>
+                            <option value="archived">Archivado</option>
+                        </select>
+                    </label>
                     <button
                         type="button"
                         className="button-secondary"
-                        disabled={lastDeleted === undefined}
-                        onClick={() =>
-                            run(
-                                () => undoApi.undoLast(projectId),
-                                () => setPanelsVersion((version) => version + 1),
-                            )
-                        }
-                    >
-                        {lastDeleted === undefined
-                            ? "Nada que deshacer"
-                            : `Deshacer: ${KIND_LABELS[lastDeleted.kind]} «${lastDeleted.label}»`}
-                    </button>
-                    <button
-                        type="button"
-                        className="button-secondary"
+                        aria-expanded={editingProject}
                         onClick={() => setEditingProject((editing) => !editing)}
                     >
                         Editar proyecto
                     </button>
+                    {lastDeleted !== undefined && (
+                        <button
+                            type="button"
+                            className="button-secondary"
+                            onClick={() =>
+                                run(
+                                    () => undoApi.undoLast(projectId),
+                                    () => setPanelsVersion((version) => version + 1),
+                                )
+                            }
+                        >
+                            {`Deshacer: ${KIND_LABELS[lastDeleted.kind]} «${lastDeleted.label}»`}
+                        </button>
+                    )}
                     <button
                         type="button"
-                        className="button-danger"
+                        className="button-danger project-remove"
                         onClick={() => {
                             if (window.confirm(`¿Eliminar el proyecto "${current.name}"?`)) {
                                 run(() => projectsApi.remove(projectId), onBack);
@@ -165,9 +183,6 @@ export function ProjectDetailPage({
                         Eliminar proyecto
                     </button>
                 </div>
-                {current.description && !editingProject && (
-                    <p className="message">{current.description}</p>
-                )}
                 {editingProject && (
                     <ProjectEditForm
                         project={current}
@@ -193,15 +208,16 @@ export function ProjectDetailPage({
                         {actionError}
                     </p>
                 )}
-            </Panel>
+            </section>
 
-            <Tabs
-                label="Secciones del proyecto"
-                items={SECTIONS}
-                current={section}
-                onChange={setSection}
-            />
-
+            <div className="project-tabs" data-theme="dark">
+                <Tabs
+                    label="Secciones del proyecto"
+                    items={SECTIONS}
+                    current={section}
+                    onChange={setSection}
+                />
+            </div>
             <Fragment key={panelsVersion}>
                 {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}
                 {section === "plans" && (
