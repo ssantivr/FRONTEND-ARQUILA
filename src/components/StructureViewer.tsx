@@ -57,7 +57,7 @@ import {
     layerLabel,
     workSwatch,
 } from "./RoomWorksPanel";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 interface Level {
     planId: number;
@@ -74,11 +74,11 @@ const KIND_LABELS: Record<StructureElement["kind"], string> = {
     wall: "Muro",
 };
 
-const VIEWS: { id: ViewName; label: string }[] = [
-    { id: "isometric", label: "Isométrica" },
-    { id: "front", label: "Frontal" },
-    { id: "side", label: "Lateral" },
-    { id: "top", label: "Superior" },
+const VIEWS: { id: ViewName; label: string; icon: IconName }[] = [
+    { id: "isometric", label: "Isométrica", icon: "viewer" },
+    { id: "front", label: "Frontal", icon: "viewFront" },
+    { id: "side", label: "Lateral", icon: "viewSide" },
+    { id: "top", label: "Superior", icon: "viewTop" },
 ];
 
 const LAYERS: { id: LayerName; label: string }[] = [
@@ -704,7 +704,8 @@ export function StructureViewer({
                 role="img"
                 aria-label={`Modelo 3D con ${structure.terrains.length} terrenos, ${structure.rooms.length} espacios y ${structure.components.length} componentes estructurales`}
             />
-            <div className={panels ? "hud-layer" : "hud-layer hud-layer-min"}>
+            {/* The panels over the scene are dark in both themes, like an instrument panel. */}
+            <div className={panels ? "hud-layer" : "hud-layer hud-layer-min"} data-theme="dark">
                 <div className="hud hud-views" role="group" aria-label="Vista de la cámara">
                     {VIEWS.map((item) => (
                         <button
@@ -712,28 +713,34 @@ export function StructureViewer({
                             type="button"
                             className="hud-item"
                             aria-pressed={item.id === view}
+                            title={`Vista ${item.label.toLowerCase()}`}
                             onClick={() => chooseView(item.id)}
                         >
-                            {item.label}
+                            <Icon name={item.icon} />
+                            <span className="hud-label">{item.label}</span>
                         </button>
                     ))}
-                    <button
-                        type="button"
-                        className="hud-item"
-                        aria-label="Acercar"
-                        onClick={() => viewer.current?.zoomBy(ZOOM_STEP)}
-                    >
-                        +
-                    </button>
+                    <span className="hud-divider" aria-hidden="true" />
                     <button
                         type="button"
                         className="hud-item"
                         aria-label="Alejar"
+                        title="Alejar"
                         onClick={() => viewer.current?.zoomBy(1 / ZOOM_STEP)}
                     >
-                        −
+                        <Icon name="minus" />
                     </button>
-                    <span className="hud-readout">Zoom {zoom} %</span>
+                    <span className="hud-readout">{zoom} %</span>
+                    <button
+                        type="button"
+                        className="hud-item"
+                        aria-label="Acercar"
+                        title="Acercar"
+                        onClick={() => viewer.current?.zoomBy(ZOOM_STEP)}
+                    >
+                        <Icon name="plus" />
+                    </button>
+                    <span className="hud-divider" aria-hidden="true" />
                     <button
                         type="button"
                         className="hud-item"
@@ -745,7 +752,8 @@ export function StructureViewer({
                             )
                         }
                     >
-                        Ortográfica
+                        <Icon name="parallel" />
+                        <span className="hud-label">Ortográfica</span>
                     </button>
                     <button
                         type="button"
@@ -754,7 +762,8 @@ export function StructureViewer({
                         title="Muestra u oculta los paneles laterales para despejar la escena"
                         onClick={() => setPanels((visible) => !visible)}
                     >
-                        Paneles
+                        <Icon name="panels" />
+                        <span className="hud-label">Paneles</span>
                     </button>
                 </div>
                 {isolatedRoom === null ? (
@@ -1285,21 +1294,21 @@ export function StructureViewer({
                             )}
                         </div>
                     )}
-                    <div
-                        className="hud-group hud-status"
-                        role="status"
-                        aria-label="Estado del modelo"
-                    >
-                        <span className="hud-readout">
-                            {selected === null ? "Sin selección" : itemLabel(selected)}
-                        </span>
-                        <span className="hud-readout">
-                            {projection === "orthographic" ? "Ortográfica" : "Perspectiva"}
-                        </span>
-                        <span className={`hud-readout hud-save hud-save-${saving}`}>
-                            {SAVE_LABELS[saving]}
-                        </span>
-                    </div>
+                </div>
+                <div className="hud hud-status" role="status" aria-label="Estado del modelo">
+                    <span className="hud-readout hud-status-selection">
+                        {selected === null ? "Sin selección" : itemLabel(selected)}
+                    </span>
+                    <span className="hud-readout">
+                        Cámara {VIEWS.find((item) => item.id === view)?.label.toLowerCase()}
+                    </span>
+                    <span className="hud-readout">
+                        {projection === "orthographic" ? "Ortográfica" : "Perspectiva"}
+                    </span>
+                    <span className="hud-readout">Zoom {zoom} %</span>
+                    <span className={`hud-readout hud-save hud-save-${saving}`}>
+                        {SAVE_LABELS[saving]}
+                    </span>
                 </div>
             </div>
         </div>

@@ -19,7 +19,14 @@ export type IconName =
     | "edit"
     | "archive"
     | "grid"
-    | "rows";
+    | "rows"
+    | "minus"
+    | "viewFront"
+    | "viewSide"
+    | "viewTop"
+    | "parallel"
+    | "panels"
+    | "help";
 
 const PATHS: Record<IconName, string> = {
     home: "M3 11l9-8 9 8M5 10v10h14V10",
@@ -43,6 +50,13 @@ const PATHS: Record<IconName, string> = {
     archive: "M3 5h18v4H3zM5 9v10h14V9M10 13h4",
     grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
     rows: "M4 6h16M4 12h16M4 18h16",
+    minus: "M5 12h14",
+    viewFront: "M5 4h14v15H5zM3 19h18M9 19v-6h6v6",
+    viewSide: "M8 4h8v15H8zM3 19h18M11 8h2",
+    viewTop: "M4 4h16v16H4zM4 12h16M12 4v8",
+    parallel: "M4 7l8-3 8 3v10l-8 3-8-3zM12 4v16",
+    panels: "M3 5h18v14H3zM8 5v14M16 5v14",
+    help: "M12 21a9 9 0 100-18 9 9 0 000 18zM9.5 9.5a2.5 2.5 0 114.2 1.8c-.9.8-1.7 1.2-1.7 2.4M12 17h.01",
 };
 
 export function Icon({ name }: { name: IconName }) {

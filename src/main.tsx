@@ -20,6 +20,7 @@ import "./styles/auth.css";
 import "./styles/home.css";
 import "./styles/pages.css";
 import "./styles/polish.css";
+import "./styles/editor.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 
