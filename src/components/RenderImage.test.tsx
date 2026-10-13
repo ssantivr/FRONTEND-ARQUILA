@@ -1,15 +1,20 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
+import { setTheme } from "../state/theme";
 import { RenderImage } from "./RenderImage";
 
+afterEach(() => {
+    setTheme("light");
+});
+
 describe("RenderImage", () => {
-    it("labels the sample scene as such and reveals it once it has loaded", () => {
-        render(<RenderImage place="home" />);
+    it("says the picture is a sample model drawn by the viewer and reveals it once loaded", () => {
+        render(<RenderImage />);
 
-        const image = screen.getByRole("img", { name: /Escena de muestra/ });
+        const image = screen.getByRole("img", { name: /Modelo de muestra dibujado con el visor/ });
 
-        expect(screen.getByText("Escena de muestra")).toBeInTheDocument();
+        expect(screen.getByText("Modelo de muestra · visor 3D")).toBeInTheDocument();
         expect(image).not.toHaveClass("render-ready");
 
         fireEvent.load(image);
@@ -17,19 +22,23 @@ describe("RenderImage", () => {
         expect(image).toHaveClass("render-ready");
     });
 
-    it("uses a different sample picture in each place", () => {
-        const home = render(<RenderImage place="home" />);
-        const homeSource = home.container.querySelector("img")?.getAttribute("src");
+    it("shows the building by day in the light theme and by night in the dark one", () => {
+        setTheme("light");
 
-        home.unmount();
+        const day = render(<RenderImage />);
+        const daySource = day.container.querySelector("img")?.getAttribute("src");
 
-        const auth = render(<RenderImage place="auth" />);
+        expect(screen.getByRole("img", { name: /de día/ })).toBeInTheDocument();
+        day.unmount();
+        setTheme("dark");
+        render(<RenderImage />);
 
-        expect(auth.container.querySelector("img")?.getAttribute("src")).not.toBe(homeSource);
+        expect(screen.getByRole("img", { name: /de noche/ })).toBeInTheDocument();
+        expect(screen.getByRole("img").getAttribute("src")).not.toBe(daySource);
     });
 
     it("falls back to the decorative drawing when the image cannot load", () => {
-        const { container } = render(<RenderImage place="auth" />);
+        const { container } = render(<RenderImage />);
 
         fireEvent.error(screen.getByRole("img"));
 

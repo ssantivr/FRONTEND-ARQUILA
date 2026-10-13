@@ -81,7 +81,7 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
     return (
         <>
             <section className="hero hero-home">
-                <RenderImage place="home" />
+                <RenderImage />
                 <div className="hero-copy">
                     <span className="hero-eyebrow">Tu espacio de trabajo</span>
                     <h2>Hola, {user.name}</h2>

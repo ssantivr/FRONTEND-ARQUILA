@@ -40,14 +40,20 @@
     line-height: 1.5;
 }
 
+/* The building shows in the upper part; from where the claim starts the veil is nearly solid. */
 .auth-visual::after {
     background: linear-gradient(
         180deg,
-        rgba(6, 17, 12, 0.72) 0%,
-        rgba(6, 17, 12, 0.05) 30%,
-        rgba(6, 17, 12, 0.3) 55%,
-        rgba(6, 17, 12, 0.94) 100%
+        rgba(6, 17, 12, 0.8) 0%,
+        rgba(6, 17, 12, 0.3) 16%,
+        rgba(6, 17, 12, 0.3) 28%,
+        rgba(6, 17, 12, 0.9) 44%,
+        rgba(6, 17, 12, 0.96) 100%
     );
+}
+
+.auth-visual .render {
+    object-position: 72% 30%;
 }
 
 .auth-visual .render-label {
@@ -143,6 +149,11 @@
 
     .auth-visual {
         padding: 28px 24px;
+    }
+
+    /* The claim covers the whole picture here, so the veil is even. */
+    .auth-visual::after {
+        background: rgba(6, 17, 12, 0.86);
     }
 
     .auth-visual .render-label {
