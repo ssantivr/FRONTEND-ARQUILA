@@ -19,7 +19,7 @@
 .field-note {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 0.82rem;
+    font-size: var(--fs-12);
 }
 
 .field-invalid :is(input, select, textarea) {
@@ -41,16 +41,16 @@
     width: var(--control-height-sm);
     height: var(--control-height-sm);
     color: var(--text-secondary);
-    font-size: 1.2rem;
+    font-size: var(--fs-18);
     line-height: 1;
     list-style: none;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition:
-        background-color var(--motion),
-        border-color var(--motion),
-        color var(--motion);
+        background-color var(--dur-fast),
+        border-color var(--dur-fast),
+        color var(--dur-fast);
 }
 
 .menu > summary::-webkit-details-marker {

@@ -4,6 +4,7 @@ import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
 import { bounds, edges, footprint, insetBounds } from "../utils/geometry";
 import { downloadSvg } from "../utils/svg";
+import { SHEET_COLORS } from "../utils/drawingPalette";
 
 const VIEW_WIDTH = 470;
 const VIEW_HEIGHT = 330;
@@ -19,16 +20,7 @@ const NORTH_Y = 245;
 const NORTH_SIZE = 24;
 const DEFAULT_SETBACK = 3;
 
-const COLORS = {
-    background: "#fbfaf7",
-    text: "#1c2430",
-    muted: "#5b6675",
-    boundary: "#1c2430",
-    free: "rgba(47, 125, 79, 0.16)",
-    buildable: "rgba(31, 78, 121, 0.2)",
-    buildableLine: "#1f4e79",
-    access: "#8a5d00",
-};
+const COLORS = SHEET_COLORS;
 
 const NORTH_OPTIONS = [
     { angle: 0, label: "El fondo" },

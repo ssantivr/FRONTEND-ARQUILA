@@ -1,76 +1,64 @@
+/*
+ * Design tokens. Every colour, size, radius, shadow and duration of the interface is defined here;
+ * the other style sheets only use these variables. `npm run contraste` checks the text pairs.
+ */
+
 :root,
 [data-theme="light"] {
-    --bg: #f4f6f2;
+    /* Surfaces: background, panel and card are three distinct tones. */
+    --bg: #e7ebe4;
     --bg-secondary: #ffffff;
     --panel: #ffffff;
-    --panel-raised: #f8faf6;
-    --border: #dfe5de;
+    --panel-raised: #f2f5ef;
+    --border: #d3dad1;
     --border-strong: #7d8a80;
+    --viewport: #e6ebe4;
+
+    /* Text */
     --text: #17211b;
     --text-secondary: #5c675f;
+    --text-muted: #4d5850;
+
+    /* Interaction green and the lime accent */
     --accent: #236b42;
     --accent-contrast: #ffffff;
     --accent-soft: rgba(35, 107, 66, 0.1);
     --accent-alt: #236b42;
     --primary: #236b42;
     --primary-contrast: #ffffff;
-    --lime: #b8f36b;
-    --lime-contrast: #0b211a;
-    --forest: #0b211a;
-    --forest-raised: #12382a;
-    --forest-text: #d5e2d8;
     --hover: rgba(23, 33, 27, 0.06);
     --vignette: rgba(11, 33, 26, 0.1);
-    --success: #1e7b4d;
+
+    /* States */
+    --success: #1a7145;
     --warning: #8a5d00;
     --error: #b3261e;
+
+    /* Two shadow levels: resting cards and floating layers. */
     --shadow: 0 1px 2px rgba(11, 33, 26, 0.04), 0 8px 24px -14px rgba(11, 33, 26, 0.16);
     --shadow-float: 0 1px 2px rgba(11, 33, 26, 0.06), 0 16px 40px -14px rgba(11, 33, 26, 0.28);
     --glass: rgba(255, 255, 255, 0.92);
     --glass-border: rgba(23, 33, 27, 0.14);
-    --glass-blur: blur(12px);
     --ring: 0 0 0 3px rgba(35, 107, 66, 0.24);
-    --radius: 12px;
-    --radius-sm: 8px;
-    --header-height: 60px;
-    --space-1: 4px;
-    --space-2: 8px;
-    --space-3: 12px;
-    --space-4: 16px;
-    --space-5: 24px;
-    --space-6: 32px;
-    --control-height: 40px;
-    --control-height-sm: 32px;
-    --motion: 0.15s;
-    --sidebar-width: 248px;
-    --viewport: #e6ebe4;
 
     color-scheme: light;
-    font-family:
-        "Inter",
-        "Manrope",
-        "Segoe UI Variable Text",
-        "Segoe UI",
-        system-ui,
-        -apple-system,
-        sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
 }
 
 /* The interior walkthrough is a dusk scene, so its overlays keep the dark tokens in both themes. */
 [data-theme="dark"],
 .interior-stage {
-    --bg: #07140f;
-    --bg-secondary: #0b211a;
-    --panel: #0e281f;
-    --panel-raised: #12382a;
-    --border: #1e4636;
+    --bg: #050f0b;
+    --bg-secondary: #0a1b14;
+    --panel: #0d241b;
+    --panel-raised: #163f2e;
+    --border: #23533f;
     --border-strong: #5a8570;
+    --viewport: #07140f;
+
     --text: #eef3ee;
     --text-secondary: #a6b8ab;
+    --text-muted: #a6b8ab;
+
     --accent: #b8f36b;
     --accent-contrast: #0b211a;
     --accent-soft: rgba(184, 243, 107, 0.12);
@@ -79,32 +67,116 @@
     --primary-contrast: #0b211a;
     --hover: rgba(255, 255, 255, 0.06);
     --vignette: rgba(0, 0, 0, 0.4);
+
     --success: #6fdc9b;
     --warning: #f2c35b;
     --error: #ff8a80;
+
     --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 28px -16px rgba(0, 0, 0, 0.6);
     --shadow-float: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 44px -14px rgba(0, 0, 0, 0.7);
     --glass: rgba(11, 33, 26, 0.9);
     --glass-border: rgba(255, 255, 255, 0.12);
     --ring: 0 0 0 3px rgba(184, 243, 107, 0.28);
-    --viewport: #07140f;
 
     color-scheme: dark;
 }
 
-/* Shared scale: three radii, three control heights, the label size and the motion curve. */
+/* Values that are the same in both themes. */
 :root {
+    /* Brand: the forest of the sidebar and the bands, and the lime of the main action. */
+    --forest: #0b211a;
+    --forest-raised: #12382a;
+    --forest-text: #d5e2d8;
+    --lime: #b8f36b;
+    --lime-hover: #c9f78d;
+    --lime-contrast: #0b211a;
+    --white: #ffffff;
+    --sidebar-top: #0c261d;
+    --sidebar-bottom: #06150f;
+    --scrim: rgba(5, 15, 11, 0.6);
+
+    /* Overlays of the 3D scene, which are dark in both themes. */
+    --on-scene: #eef3ee;
+    --viewport-deep: #08160f;
+    --gizmo-ground: #06110c;
+    --axis-x: #ff8a80;
+    --axis-y: #8ab4ff;
+
+    /* Neon: only the selection outline of the 3D viewer and the accent lights of its dark scene. */
+    --neon-cyan: #00f0ff;
+    --neon-magenta: #ff007f;
+
+    /* Illustrations (empty states and the vector house). */
+    --art-ink: #0f2e22;
+    --art-paper: #e9eee6;
+    --art-stone: #b9c6b8;
+    --art-wood: #a8794f;
+    --art-glass: #7fb2a0;
+    --art-leaf: #236b42;
+    --art-leaf-light: #2f8a56;
+    --art-hill: #17432f;
+
+    /* Project covers, drawn like the elevation of a sheet. */
+    --cover-1: #0d2a20;
+    --cover-2: #0f3024;
+    --cover-3: #0b241b;
+    --cover-4: #11362a;
+    --cover-line: #e3efe5;
+
+    /* Type: Inter for the interface, JetBrains Mono for figures. */
+    --font-sans: "Inter Variable", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono:
+        "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "Cascadia Mono", "Consolas",
+        monospace;
+    --fs-12: 12px;
+    --fs-13: 13px;
+    --fs-14: 14px;
+    --fs-16: 16px;
+    --fs-18: 18px;
+    --fs-20: 20px;
+    --fs-24: 24px;
+    --fs-30: 30px;
+    --fs-36: 36px;
+    --fs-label: var(--fs-12);
+
+    /* Spacing in multiples of 4 px. */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 40px;
+    --space-8: 48px;
+
+    /* Radii: controls, cards and dialogs. */
     --r-sm: 6px;
     --r-md: 10px;
     --r-lg: 14px;
+    --r-pill: 999px;
+    --radius: var(--r-md);
+    --radius-sm: var(--r-sm);
+
     --control-sm: 32px;
     --control-md: 40px;
     --control-lg: 48px;
-    --fs-label: 12px;
+    --control-height: var(--control-md);
+    --control-height-sm: var(--control-sm);
+    --header-height: 68px;
+    --sidebar-width: 248px;
+
+    /* Motion: three durations and one curve. */
     --ease: cubic-bezier(0.2, 0, 0, 1);
     --dur-fast: 120ms;
-    --dur: 200ms;
-    --dur-slow: 280ms;
+    --dur: 180ms;
+    --dur-slow: 240ms;
+    --glass-blur: blur(12px);
+
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
 * {

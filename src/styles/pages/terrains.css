@@ -31,7 +31,7 @@
 
 .stat-strip dd {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--fs-20);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
@@ -84,13 +84,13 @@
 }
 
 .terrain-card .card-title {
-    font-size: 16px;
+    font-size: var(--fs-16);
     font-weight: 600;
     letter-spacing: -0.01em;
 }
 
 .terrain-card .card-subtitle {
-    font-size: 13px;
+    font-size: var(--fs-13);
 }
 
 .terrain-card .terrain-card-figures {
@@ -114,7 +114,7 @@
 }
 
 .terrain-detail h3 {
-    font-size: 24px;
+    font-size: var(--fs-24);
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.15;
@@ -123,7 +123,7 @@
 .terrain-detail-head p {
     margin: 4px 0 0;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: var(--fs-14);
 }
 
 /* Only the sheet of a narrow screen can be closed. */
@@ -177,7 +177,7 @@
 
 .fact-grid dd {
     margin: 0;
-    font-size: 16px;
+    font-size: var(--fs-16);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
@@ -206,7 +206,7 @@
         display: grid;
         max-height: 82vh;
         overflow: auto;
-        border-radius: 20px 20px 0 0;
+        border-radius: var(--r-lg) var(--r-lg) 0 0;
         box-shadow: 0 -16px 48px rgba(6, 17, 12, 0.4);
         animation: sheet-in var(--dur-slow) var(--ease) both;
     }

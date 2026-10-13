@@ -2,6 +2,7 @@ import { useRef } from "react";
 
 import type { Drawing } from "../utils/elevations";
 import { downloadSvg } from "../utils/svg";
+import { SHEET_COLORS } from "../utils/drawingPalette";
 
 const VIEW_WIDTH = 660;
 const VIEW_HEIGHT = 420;
@@ -11,20 +12,7 @@ const DRAW_WIDTH = 460;
 const DRAW_HEIGHT = 260;
 const MARK_X = 575;
 
-const COLORS = {
-    background: "#fbfaf7",
-    grid: "#e7e4dd",
-    text: "#1c2430",
-    muted: "#5b6675",
-    wall: "#1c2430",
-    facade: "#ece8e0",
-    accent: "#1f4e79",
-    glass: "rgba(31, 78, 121, 0.2)",
-    door: "#7a4f24",
-    roof: "#8c4a3c",
-    roofFill: "#dcbfb4",
-    ground: "#2f7d4f",
-};
+const COLORS = SHEET_COLORS;
 
 const TEXT = { fontFamily: "system-ui, sans-serif", fontSize: 10, fill: COLORS.text };
 const MARK = {

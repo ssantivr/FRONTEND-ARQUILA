@@ -1,0 +1,25 @@
+/*
+ * Figures (areas, dimensions, costs, levels and counts) are set in JetBrains Mono with tabular
+ * digits, so columns of numbers line up and a figure reads as data, not as prose.
+ */
+:is(
+    .numeric,
+    .metric-value,
+    output,
+    .hud-readout,
+    .hud-count,
+    .hero-stats dd,
+    .band-stats dd,
+    .status-legend dd,
+    .stat-strip dd,
+    .fact-grid dd,
+    .range-value,
+    .list-count,
+    .task-count,
+    .task-progress,
+    .terrain-card-figures
+) {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}

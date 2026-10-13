@@ -85,8 +85,8 @@
     max-width: calc(100% - 24px);
     margin: 0;
     padding: 8px 14px;
-    color: #eef3ee;
-    font-size: 13px;
+    color: var(--on-scene);
+    font-size: var(--fs-13);
     font-variant-numeric: tabular-nums;
     background: rgba(11, 33, 26, 0.86);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -133,7 +133,7 @@
     flex: 1 1 auto;
     min-height: var(--control-sm);
     padding: 5px 8px;
-    font-size: 13px;
+    font-size: var(--fs-13);
 }
 
 .studio-presets {
@@ -152,7 +152,7 @@
 .studio-note {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: var(--fs-13);
     line-height: 1.45;
 }
 
@@ -169,7 +169,7 @@
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    font-size: 14px;
+    font-size: var(--fs-14);
 }
 
 .range-value {
@@ -229,7 +229,7 @@
 
 .render-result-foot span {
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: var(--fs-13);
 }
 
 .render-result-foot a {
@@ -262,7 +262,7 @@
     align-items: center;
     gap: 16px;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: var(--fs-13);
     font-variant-numeric: tabular-nums;
 }
 
@@ -296,7 +296,7 @@
     align-items: center;
     gap: 8px;
     margin: 0;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 600;
 }
 
@@ -337,7 +337,7 @@
 .task-empty {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: var(--fs-13);
 }
 
 .task-card {
@@ -351,14 +351,14 @@
 }
 
 .task-card > strong {
-    font-size: 15px;
+    font-size: var(--fs-14);
     line-height: 1.3;
 }
 
 .task-card > p {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: var(--fs-13);
 }
 
 .task-card .task-project {
@@ -366,7 +366,7 @@
     min-height: 0;
     padding: 0;
     color: var(--accent);
-    font-size: 13px;
+    font-size: var(--fs-13);
     font-weight: 600;
     text-align: left;
 }
@@ -375,7 +375,7 @@
     display: grid;
     gap: 4px;
     margin: 0;
-    font-size: 13px;
+    font-size: var(--fs-13);
 }
 
 .task-card dl > div {

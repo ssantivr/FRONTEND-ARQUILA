@@ -42,7 +42,7 @@
 .hud {
     padding: 10px 12px;
     color: var(--text);
-    font-size: 0.82rem;
+    font-size: var(--fs-12);
     background: var(--glass);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
@@ -59,14 +59,14 @@
     justify-content: space-between;
     gap: 8px;
     color: var(--text-secondary);
-    font-size: 0.7rem;
+    font-size: var(--fs-12);
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     list-style: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: color 0.15s;
+    transition: color var(--dur-fast);
 }
 
 .hud summary::-webkit-details-marker {
@@ -81,7 +81,7 @@
     border: solid currentColor;
     border-width: 0 1.5px 1.5px 0;
     transform: translateY(-2px) rotate(45deg);
-    transition: transform 0.15s;
+    transition: transform var(--dur-fast);
 }
 
 .hud details[open] > summary::after {
@@ -160,7 +160,7 @@
 .hud h3 {
     margin: 0 0 6px;
     color: var(--text-secondary);
-    font-size: 0.72rem;
+    font-size: var(--fs-12);
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -169,7 +169,7 @@
 .hud h4 {
     margin: 8px 0 4px;
     color: var(--text-secondary);
-    font-size: 0.78rem;
+    font-size: var(--fs-12);
     font-weight: 500;
 }
 
@@ -301,12 +301,12 @@
     min-height: 28px;
     padding: 4px 10px;
     color: var(--text);
-    font-size: 0.8rem;
+    font-size: var(--fs-12);
     font-weight: 500;
     text-align: left;
     background: transparent;
     border: 1px solid var(--glass-border);
-    border-radius: 8px;
+    border-radius: var(--r-sm);
     cursor: pointer;
 }
 
@@ -353,7 +353,7 @@
 .hud-works .hud-works-title {
     margin-bottom: 4px;
     color: var(--text);
-    font-size: 0.95rem;
+    font-size: var(--fs-14);
     font-weight: 600;
 }
 
@@ -368,7 +368,7 @@
 .hud-works small {
     display: block;
     color: var(--text-secondary);
-    font-size: 0.74rem;
+    font-size: var(--fs-12);
 }
 
 .hud-work {
@@ -424,7 +424,7 @@
     width: auto;
     margin: 0;
     padding: 1px 6px;
-    font-size: 0.74rem;
+    font-size: var(--fs-12);
 }
 
 .hud-count {

@@ -39,10 +39,10 @@
     left: 12px;
     padding: 2px 8px;
     color: var(--lime-contrast);
-    font-size: 0.78rem;
+    font-size: var(--fs-12);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-shadow: none;
     background: var(--lime);
-    border-radius: 6px;
+    border-radius: var(--r-sm);
 }

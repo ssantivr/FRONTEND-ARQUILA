@@ -12,7 +12,7 @@
 
 .auth-visual .brand {
     gap: 14px;
-    font-size: 1.15rem;
+    font-size: var(--fs-18);
     font-weight: 750;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .auth-visual p {
-    font-size: 1.08rem;
+    font-size: var(--fs-16);
     line-height: 1.5;
 }
 
@@ -92,7 +92,7 @@
 }
 
 .auth-form .login .panel-header h2 {
-    font-size: 2rem;
+    font-size: var(--fs-30);
     font-weight: 740;
     letter-spacing: -0.035em;
 }
@@ -102,16 +102,16 @@
 }
 
 .auth-form label {
-    font-size: 0.86rem;
+    font-size: var(--fs-13);
 }
 
 .auth-form :is(input:not([type="checkbox"])) {
     min-height: 50px;
     padding: 0 16px;
-    font-size: 1rem;
+    font-size: var(--fs-14);
     background: var(--panel-raised);
     border-color: var(--border);
-    border-radius: 12px;
+    border-radius: var(--r-md);
 }
 
 .auth-form .field-password .field-toggle {
@@ -122,9 +122,9 @@
 .auth-form button[type="submit"] {
     min-height: 52px;
     margin-top: 6px;
-    font-size: 1.02rem;
+    font-size: var(--fs-16);
     font-weight: 650;
-    border-radius: 12px;
+    border-radius: var(--r-md);
 }
 
 .auth-form .login .button-secondary {

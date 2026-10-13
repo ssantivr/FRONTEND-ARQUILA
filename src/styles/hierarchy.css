@@ -14,7 +14,7 @@
 }
 
 .panel-header h2 {
-    font-size: 1.12rem;
+    font-size: var(--fs-16);
 }
 
 .header {
@@ -22,12 +22,12 @@
 }
 
 .header h1 {
-    font-size: 1.3rem;
+    font-size: var(--fs-20);
     line-height: 1.2;
 }
 
 .header-eyebrow {
-    font-size: 0.7rem;
+    font-size: var(--fs-12);
     font-weight: 600;
     letter-spacing: 0.16em;
 }
@@ -36,7 +36,7 @@
     min-height: 40px;
     padding: 4px 14px 4px 4px;
     border-color: var(--border);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
 }
 
 .user-menu .icon-button:first-child {
@@ -46,18 +46,18 @@
 .user-menu .avatar {
     width: 30px;
     height: 30px;
-    font-size: 0.85rem;
+    font-size: var(--fs-13);
 }
 
 .global-search input {
     height: 40px;
     background: var(--panel-raised);
     border-color: var(--border);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
 }
 
 button {
-    border-radius: 10px;
+    border-radius: var(--r-md);
 }
 
 input,
@@ -90,21 +90,21 @@ input:is([type="checkbox"], [type="radio"], [type="range"]) {
 }
 
 .metric-label {
-    font-size: 0.72rem;
+    font-size: var(--fs-12);
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
 .metric-value {
-    font-size: 2rem;
+    font-size: var(--fs-30);
     font-weight: 650;
     letter-spacing: -0.02em;
     line-height: 1.1;
 }
 
 .metric-detail {
-    font-size: 0.85rem;
+    font-size: var(--fs-13);
 }
 
 /* Project cards: one surface, a quiet footer for the actions. */
@@ -115,7 +115,7 @@ input:is([type="checkbox"], [type="radio"], [type="range"]) {
 .project-cover {
     position: relative;
     height: 116px;
-    font-size: 1.7rem;
+    font-size: var(--fs-24);
 }
 
 .project-cover::after {
@@ -135,9 +135,9 @@ input:is([type="checkbox"], [type="radio"], [type="range"]) {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     transition:
-        border-color 0.15s,
-        box-shadow 0.15s,
-        transform 0.15s;
+        border-color var(--dur-fast),
+        box-shadow var(--dur-fast),
+        transform var(--dur-fast);
 }
 
 .project-item:hover {
@@ -164,7 +164,7 @@ input:is([type="checkbox"], [type="radio"], [type="range"]) {
 
 .project-actions button {
     padding: 4px 10px;
-    font-size: 0.82rem;
+    font-size: var(--fs-12);
     background: transparent;
     border-color: transparent;
 }
@@ -200,7 +200,7 @@ input:is([type="checkbox"], [type="radio"], [type="range"]) {
 /* Tables and bars */
 th {
     padding: 10px 8px;
-    font-size: 0.72rem;
+    font-size: var(--fs-12);
     letter-spacing: 0.08em;
 }
 
@@ -210,7 +210,7 @@ td {
 
 td button {
     padding: 5px 14px;
-    font-size: 0.88rem;
+    font-size: var(--fs-13);
 }
 
 .bar {
@@ -234,7 +234,7 @@ td button {
 
 .hero-eyebrow {
     color: var(--lime);
-    font-size: 0.72rem;
+    font-size: var(--fs-12);
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -251,7 +251,7 @@ td button {
 }
 
 .art-hill {
-    fill: #17432f;
+    fill: var(--art-hill);
 }
 
 /* Sign-in: the drawing runs edge to edge. */

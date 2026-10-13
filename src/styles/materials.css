@@ -29,7 +29,7 @@
     height: var(--control-height-sm);
     padding: 0;
     color: var(--text);
-    font-size: 1.05rem;
+    font-size: var(--fs-16);
     line-height: 1;
     background: var(--panel);
     border-color: var(--border);

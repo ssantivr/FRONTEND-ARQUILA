@@ -4,13 +4,18 @@
 // The API is answered here with sample data, so the pictures never show a real account and the
 // script works without a backend. Nothing in this file ships with the app.
 import { mkdir } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright-core";
 
 import { answer } from "./datos-de-muestra.mjs";
 
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
-const OUT = new URL("../docs/capturas/", import.meta.url);
+// CAPTURAS_SALIDA=C:\otra\carpeta writes somewhere else, to compare two runs without touching the docs.
+const OUT =
+    process.env.CAPTURAS_SALIDA === undefined
+        ? new URL("../docs/capturas/", import.meta.url)
+        : pathToFileURL(`${resolve(process.env.CAPTURAS_SALIDA)}/`);
 // CAPTURAS_SOLO=inicio,inicio-de-sesion regenerates only those screens and skips the viewer check.
 const ONLY = (process.env.CAPTURAS_SOLO ?? "").split(",").filter(Boolean);
 const wanted = (name) => ONLY.length === 0 || ONLY.includes(name);

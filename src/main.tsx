@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 
 import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
 
 import { App } from "./App";
 import "./styles/tokens.css";
@@ -38,6 +39,7 @@ import "./styles/pages/responsive.css";
 import "./styles/polish.css";
 import "./styles/editor.css";
 import "./styles/rich.css";
+import "./styles/numbers.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 

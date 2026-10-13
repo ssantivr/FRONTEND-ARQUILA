@@ -22,7 +22,7 @@
     }
 
     .band-stats dd {
-        font-size: 1.5rem;
+        font-size: var(--fs-24);
     }
 
     .page-band-aside:has(.band-chart) {

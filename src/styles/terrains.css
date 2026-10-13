@@ -27,7 +27,7 @@
     display: grid;
     place-items: center;
     color: var(--text-secondary);
-    font-size: 0.82rem;
+    font-size: var(--fs-12);
 }
 
 .terrain-detail {
@@ -43,7 +43,7 @@
 
 .terrain-detail h3 {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: var(--fs-16);
 }
 
 .terrain-detail .terrain-shape {

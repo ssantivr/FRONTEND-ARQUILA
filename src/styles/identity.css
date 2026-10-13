@@ -3,35 +3,7 @@
 /* ---- Type and surfaces ---- */
 
 :root {
-    --header-height: 68px;
-    --motion: 0.18s;
-
-    font-family:
-        "Inter Variable",
-        "Inter",
-        "Segoe UI",
-        system-ui,
-        -apple-system,
-        sans-serif;
     font-feature-settings: "cv11", "ss03";
-}
-
-/* Background, panel and card are three distinct tones in each theme. */
-:root,
-[data-theme="light"] {
-    --bg: #e7ebe4;
-    --panel: #ffffff;
-    --panel-raised: #f2f5ef;
-    --border: #d3dad1;
-}
-
-[data-theme="dark"],
-.interior-stage {
-    --bg: #050f0b;
-    --bg-secondary: #0a1b14;
-    --panel: #0d241b;
-    --panel-raised: #163f2e;
-    --border: #23533f;
 }
 
 h1,
@@ -54,7 +26,7 @@ td,
 }
 
 .header h1 {
-    font-size: 1.75rem;
+    font-size: var(--fs-24);
     font-weight: 720;
     letter-spacing: -0.03em;
     line-height: 1.1;
@@ -66,11 +38,11 @@ td,
 }
 
 .panel {
-    border-radius: 16px;
+    border-radius: var(--r-lg);
 }
 
 .panel-header h2 {
-    font-size: 1.2rem;
+    font-size: var(--fs-18);
     font-weight: 680;
     letter-spacing: -0.015em;
 }
@@ -84,7 +56,7 @@ td,
 .avatar,
 .user-menu .avatar,
 .sidebar-user .avatar {
-    color: #ffffff;
+    color: var(--white);
     background: var(--forest-raised);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
@@ -94,7 +66,7 @@ td,
 }
 
 .project-monogram {
-    color: #ffffff;
+    color: var(--white);
     background: rgba(6, 17, 12, 0.72);
     border: 1px solid rgba(255, 255, 255, 0.24);
 }
@@ -110,7 +82,7 @@ td,
     gap: 14px;
     min-height: 34px;
     padding: 0 10px;
-    font-size: 1.12rem;
+    font-size: var(--fs-16);
     font-weight: 750;
     letter-spacing: 0.22em;
 }
@@ -172,7 +144,7 @@ td,
 .sidebar-group {
     margin: 18px 12px 6px;
     color: rgba(213, 226, 216, 0.58);
-    font-size: 0.68rem;
+    font-size: var(--fs-12);
     font-weight: 650;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -184,14 +156,14 @@ td,
 
 .sidebar-item {
     min-height: 42px;
-    border-radius: 10px;
+    border-radius: var(--r-md);
     transition:
-        background-color var(--motion),
-        color var(--motion);
+        background-color var(--dur-fast),
+        color var(--dur-fast);
 }
 
 .sidebar-item[aria-current="page"] {
-    color: #ffffff;
+    color: var(--white);
     background: rgba(184, 243, 107, 0.14);
 }
 
@@ -215,13 +187,13 @@ td,
     z-index: 1;
     padding: 3px 10px;
     color: rgba(255, 255, 255, 0.86);
-    font-size: 0.66rem;
+    font-size: var(--fs-12);
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     background: rgba(6, 17, 12, 0.82);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
 }
 
 /* Phone: the navigation is one scrolling row, without group titles. */
@@ -257,6 +229,6 @@ td,
     }
 
     .header h1 {
-        font-size: 1.4rem;
+        font-size: var(--fs-20);
     }
 }

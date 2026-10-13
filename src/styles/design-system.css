@@ -23,7 +23,7 @@
 }
 
 .ds-h1 {
-    font-size: 1.6rem;
+    font-size: var(--fs-24);
 }
 
 .ds-row {

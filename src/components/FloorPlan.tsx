@@ -14,6 +14,7 @@ import {
 } from "../utils/openings";
 import { downloadSvg } from "../utils/svg";
 import { PlanViewport } from "./PlanViewport";
+import { SHEET_COLORS } from "../utils/drawingPalette";
 
 const VIEW_WIDTH = 660;
 const VIEW_HEIGHT = 520;
@@ -31,16 +32,7 @@ const MIN_LABEL_HEIGHT = 28;
 const TREAD_M = 0.3;
 const SCALE_BARS_M = [1, 2, 5, 10, 20, 50];
 
-const COLORS = {
-    background: "#fbfaf7",
-    grid: "#e7e4dd",
-    floor: "#f3f0e9",
-    text: "#1c2430",
-    muted: "#5b6675",
-    wall: "#1c2430",
-    accent: "#1f4e79",
-    beam: "#8a5d00",
-};
+const COLORS = SHEET_COLORS;
 
 const TEXT = { fontFamily: "system-ui, sans-serif", fontSize: 10, fill: COLORS.text };
 const NOTE = { ...TEXT, fontSize: 9, fill: COLORS.muted };

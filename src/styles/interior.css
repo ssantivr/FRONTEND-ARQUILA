@@ -68,7 +68,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    font-size: 0.82rem;
+    font-size: var(--fs-12);
     background: var(--glass);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
@@ -92,7 +92,7 @@
 }
 
 .interior-room {
-    font-size: 1rem;
+    font-size: var(--fs-14);
     font-weight: 600;
 }
 
@@ -104,14 +104,14 @@
 
 .interior-badge {
     padding: 3px 10px;
-    color: color-mix(in srgb, var(--accent-alt) 70%, #ffffff);
-    font-size: 0.7rem;
+    color: color-mix(in srgb, var(--accent-alt) 70%, var(--white));
+    font-size: var(--fs-12);
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     background: color-mix(in srgb, var(--accent-alt) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent-alt) 55%, transparent);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     box-shadow: 0 0 12px color-mix(in srgb, var(--accent-alt) 25%, transparent);
 }
 
@@ -125,11 +125,11 @@
     min-height: 28px;
     padding: 4px 12px;
     color: var(--text);
-    font-size: 0.8rem;
+    font-size: var(--fs-12);
     white-space: nowrap;
     background: transparent;
     border: 1px solid var(--glass-border);
-    border-radius: 8px;
+    border-radius: var(--r-sm);
     cursor: pointer;
 }
 
@@ -152,10 +152,10 @@
     margin: 0;
     padding: 3px 12px;
     color: var(--text-secondary);
-    font-size: 0.74rem;
+    font-size: var(--fs-12);
     white-space: nowrap;
     background: var(--glass);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     pointer-events: none;
     transform: translateX(-50%);
 }

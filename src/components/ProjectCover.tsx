@@ -3,9 +3,9 @@ interface ProjectCoverProps {
     name: string;
 }
 
-const SHEETS = ["#0d2a20", "#0f3024", "#0b241b", "#11362a"];
-const LINE = "#e3efe5";
-const LIME = "#b8f36b";
+const SHEETS = ["var(--cover-1)", "var(--cover-2)", "var(--cover-3)", "var(--cover-4)"];
+const LINE = "var(--cover-line)";
+const LIME = "var(--lime)";
 
 /** Small repeatable generator: the same project always gets the same drawing. */
 function seeded(seed: number): () => number {
@@ -61,7 +61,7 @@ export function ProjectCover({ id, name }: ProjectCoverProps) {
             aria-hidden="true"
         >
             <rect width="320" height="120" fill={sheet} />
-            <g stroke="#ffffff" strokeWidth="0.5">
+            <g stroke="var(--white)" strokeWidth="0.5">
                 {Array.from({ length: 19 }, (_, index) => (
                     <line
                         key={`v${index}`}

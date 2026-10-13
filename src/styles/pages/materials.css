@@ -7,7 +7,7 @@
     font-size: var(--fs-label);
     background: var(--hover);
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
 }
 
 .cell-lead {
@@ -37,7 +37,7 @@
 .table-dense td {
     height: 44px;
     padding: 0 12px;
-    font-size: 14px;
+    font-size: var(--fs-14);
 }
 
 .table-dense tr:last-child td {
@@ -91,7 +91,7 @@
 
 .surface-card .card-title {
     padding: 0 12px;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 600;
 }
 

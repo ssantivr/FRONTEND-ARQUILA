@@ -4,7 +4,7 @@
 
 .hud-status {
     gap: var(--space-1) var(--space-3);
-    font-size: 0.78rem;
+    font-size: var(--fs-12);
 }
 
 .hud-save::before {
@@ -51,7 +51,7 @@
 
 .viewer-section-head h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--fs-20);
     font-weight: 600;
     letter-spacing: -0.02em;
 }
@@ -63,10 +63,10 @@
     min-height: var(--control-sm);
     padding: 0 10px;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: var(--fs-13);
     list-style: none;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     cursor: pointer;
     transition:
         color var(--dur-fast) var(--ease),
@@ -97,7 +97,7 @@
     margin: 0;
     padding: 14px 16px;
     color: var(--text);
-    font-size: 13px;
+    font-size: var(--fs-13);
     line-height: 1.5;
     background: var(--panel);
     border: 1px solid var(--border);
@@ -130,7 +130,7 @@
 
 .hud {
     padding: 8px 10px;
-    font-size: 13px;
+    font-size: var(--fs-13);
     background: rgba(8, 22, 16, 0.92);
     border-color: rgba(255, 255, 255, 0.1);
     border-radius: var(--r-md);
@@ -138,7 +138,7 @@
 }
 
 .hud summary {
-    font-size: 12px;
+    font-size: var(--fs-12);
     letter-spacing: 0.08em;
 }
 
@@ -154,7 +154,7 @@
 .hud-item {
     min-height: 28px;
     padding: 3px 8px;
-    font-size: 13px;
+    font-size: var(--fs-13);
     border-color: rgba(255, 255, 255, 0.12);
     border-radius: var(--r-sm);
     transition:
@@ -174,17 +174,17 @@
 .hud h3,
 .hud h4,
 .hud-works small {
-    font-size: 12px;
+    font-size: var(--fs-12);
 }
 
 .hud :is(input:not([type="range"], [type="checkbox"]), select) {
     min-height: 28px;
-    font-size: 13px;
+    font-size: var(--fs-13);
     border-radius: var(--r-sm);
 }
 
 .hud .checkbox {
-    font-size: 13px;
+    font-size: var(--fs-13);
 }
 
 /* ---- View bar: icons on one row ---- */
@@ -244,7 +244,7 @@
     margin: 0 -10px;
     padding: 0 12px;
     overflow-x: auto;
-    font-size: 12px;
+    font-size: var(--fs-12);
     background: rgba(5, 15, 11, 0.96);
     border-width: 1px 0 0;
     border-radius: 0;
@@ -291,7 +291,7 @@
 
     .hud-layer {
         padding: 0;
-        background: #08160f;
+        background: var(--viewport-deep);
     }
 
     .hud {
@@ -340,19 +340,19 @@
 }
 
 .hud-gizmo text {
-    fill: #06110c;
+    fill: var(--gizmo-ground);
     font-size: 8px;
     font-weight: 700;
 }
 
 .hud-gizmo-x :is(line, circle) {
-    stroke: #ff8a80;
-    fill: #ff8a80;
+    stroke: var(--axis-x);
+    fill: var(--axis-x);
 }
 
 .hud-gizmo-y :is(line, circle) {
-    stroke: #8ab4ff;
-    fill: #8ab4ff;
+    stroke: var(--axis-y);
+    fill: var(--axis-y);
 }
 
 .hud-gizmo-z :is(line, circle) {
