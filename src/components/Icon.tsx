@@ -14,7 +14,12 @@ export type IconName =
     | "plus"
     | "eye"
     | "eyeOff"
-    | "search";
+    | "search"
+    | "check"
+    | "edit"
+    | "archive"
+    | "grid"
+    | "rows";
 
 const PATHS: Record<IconName, string> = {
     home: "M3 11l9-8 9 8M5 10v10h14V10",
@@ -33,6 +38,11 @@ const PATHS: Record<IconName, string> = {
     eye: "M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z",
     eyeOff: "M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12zM4 4l16 16",
     search: "M11 4a7 7 0 100 14 7 7 0 000-14zM16 16l5 5",
+    check: "M5 12.5l4.5 4.5L19 7",
+    edit: "M4 20l4-1L19 8l-3-3L5 16zM14 7l3 3",
+    archive: "M3 5h18v4H3zM5 9v10h14V9M10 13h4",
+    grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+    rows: "M4 6h16M4 12h16M4 18h16",
 };
 
 export function Icon({ name }: { name: IconName }) {
@@ -42,7 +52,7 @@ export function Icon({ name }: { name: IconName }) {
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"

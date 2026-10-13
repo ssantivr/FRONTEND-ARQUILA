@@ -92,6 +92,21 @@
     color-scheme: dark;
 }
 
+/* Shared scale: three radii, three control heights, the label size and the motion curve. */
+:root {
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+    --control-sm: 32px;
+    --control-md: 40px;
+    --control-lg: 48px;
+    --fs-label: 12px;
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --dur-fast: 120ms;
+    --dur: 200ms;
+    --dur-slow: 280ms;
+}
+
 * {
     box-sizing: border-box;
 }
