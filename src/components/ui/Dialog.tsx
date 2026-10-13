@@ -9,6 +9,8 @@ interface DialogProps {
     actions?: ReactNode;
     /** `viewer` fills the window to show a file or a sample; `compact` wraps a short text. */
     size?: "viewer" | "compact";
+    /** Element to draw the window in; the page by default. Needed inside a full-screen element. */
+    container?: HTMLElement | null;
     onClose: () => void;
     children: ReactNode;
 }
@@ -17,7 +19,14 @@ interface DialogProps {
  * A modal window. Radix keeps the focus inside while it is open, closes it with Escape or a click
  * outside and gives the focus back to the control that opened it.
  */
-export function Dialog({ title, actions, size = "viewer", onClose, children }: DialogProps) {
+export function Dialog({
+    title,
+    actions,
+    size = "viewer",
+    container,
+    onClose,
+    children,
+}: DialogProps) {
     return (
         <RadixDialog.Root
             open
@@ -27,7 +36,7 @@ export function Dialog({ title, actions, size = "viewer", onClose, children }: D
                 }
             }}
         >
-            <RadixDialog.Portal>
+            <RadixDialog.Portal container={container}>
                 <RadixDialog.Overlay className={styles.overlay} />
                 <RadixDialog.Content
                     className={`${styles.dialog} ${styles[size]} modal`}

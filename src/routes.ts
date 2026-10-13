@@ -20,12 +20,17 @@ const VIEW_PATHS: Record<View, string> = {
 const SECTION_SLUGS: Record<SectionId, string> = {
     terrain: "terreno",
     plans: "planos",
-    model: "modelo",
+    model: "modelo-3d",
     elevations: "elevaciones",
     materials: "materiales",
     analysis: "analisis",
     files: "archivos",
     assistant: "asistente",
+};
+
+/** Slugs of earlier versions. A link saved with one of them still opens, and is rewritten. */
+const LEGACY_SLUGS: Record<string, SectionId> = {
+    modelo: "model",
 };
 
 export const DESIGN_SYSTEM_PATH = "/design-system";
@@ -53,7 +58,7 @@ function sectionOf(slug: string | undefined): SectionId | null {
         (section) => SECTION_SLUGS[section] === slug,
     );
 
-    return found ?? null;
+    return found ?? LEGACY_SLUGS[slug] ?? null;
 }
 
 export function parsePath(pathname: string): Route {
@@ -81,4 +86,21 @@ export function parsePath(pathname: string): Route {
     }
 
     return { kind: "unknown" };
+}
+
+/**
+ * The address a path should be shown as, or `null` when it is already the right one. It turns an
+ * old link such as `/proyectos/7/modelo` into `/proyectos/7/modelo-3d`.
+ */
+export function canonicalPath(pathname: string): string | null {
+    const route = parsePath(pathname);
+
+    if (route.kind !== "project") {
+        return null;
+    }
+
+    const wanted = projectPath(route.id, route.section);
+    const [, , , slug] = pathname.replace(/\/+$/, "").split("/");
+
+    return slug !== undefined && pathname.replace(/\/+$/, "") !== wanted ? wanted : null;
 }

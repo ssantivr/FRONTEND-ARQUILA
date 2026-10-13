@@ -40,6 +40,7 @@ import "./styles/polish.css";
 import "./styles/editor.css";
 import "./styles/rich.css";
 import "./styles/numbers.css";
+import "./styles/navigation.css";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 

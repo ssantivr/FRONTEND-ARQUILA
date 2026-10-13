@@ -59,6 +59,9 @@ import {
     workSwatch,
 } from "./RoomWorksPanel";
 import { ObjectTree } from "./viewer/ObjectTree";
+import { ShortcutsDialog } from "./viewer/ShortcutsDialog";
+import { shortcutsBlocked } from "./viewer/shortcuts";
+import { ToolRail, type RailTool } from "./viewer/ToolRail";
 import { ScenePanel } from "./viewer/ScenePanel";
 import { StatusBar } from "./viewer/StatusBar";
 import { Toolbar } from "./viewer/Toolbar";
@@ -167,6 +170,7 @@ const TOUR_STEP_MS = 5000;
 const TOUR_START_AZIMUTH = 0.6;
 const TOUR_TURN = 0.7;
 const ISOLATION_CUT_PERCENT = 80;
+const TOOL_CUT_PERCENT = 60;
 const ALL_LAYERS: Layers = { rooms: true, roof: true, environment: true, grid: true };
 
 interface StructureViewerProps {
@@ -236,6 +240,7 @@ export function StructureViewer({
     const [pickedId, setPickedId] = useState<number | null>(null);
     const [inside, setInside] = useState(false);
     const [assetState, setAssetState] = useState<AssetState | null>(null);
+    const [help, setHelp] = useState(false);
     const projectId = structure.project_id;
     const theme = useTheme();
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
@@ -436,6 +441,136 @@ export function StructureViewer({
 
         setTouring(!touring);
     }
+
+    function toggleIsolation() {
+        visit(selectedKey === isolatedKey ? null : selectedKey);
+    }
+
+    function toggleCut() {
+        setCut(cut === 100 ? TOOL_CUT_PERCENT : 100);
+    }
+
+    /** Leaves one level at a time: the interior view, then the isolated room, then the selection. */
+    function stepBack() {
+        if (inside) {
+            toggleInside();
+        } else if (isolatedKey !== null) {
+            visit(null);
+        } else {
+            setSelectedKey(null);
+            setPickedId(null);
+        }
+    }
+
+    const roomSelected = selected !== null && selected.kind === "room";
+    const tools: RailTool[] = [
+        {
+            id: "focus",
+            label: "Enfocar",
+            icon: "focus",
+            shortcut: "F",
+            unavailable: selected === null ? "Selecciona un elemento para enfocarlo" : undefined,
+            onUse: () => viewer.current?.focus(selectedKey),
+        },
+        {
+            id: "isolate",
+            label: "Aislar cuarto",
+            icon: "isolate",
+            shortcut: "I",
+            pressed: isolatedKey !== null,
+            unavailable:
+                roomSelected || isolatedKey !== null
+                    ? undefined
+                    : "Selecciona un cuarto para aislarlo",
+            onUse: () => (roomSelected ? toggleIsolation() : visit(null)),
+        },
+        {
+            id: "cut",
+            label: "Corte",
+            icon: "cut",
+            pressed: cut < 100,
+            unavailable: inside ? "Sal de la vista interior para usar el corte" : undefined,
+            onUse: toggleCut,
+        },
+        {
+            id: "inside",
+            label: "Vista interior",
+            icon: "interior",
+            pressed: inside,
+            unavailable:
+                isolatedKey === null
+                    ? "Aísla un cuarto para entrar a la vista interior"
+                    : undefined,
+            onUse: toggleInside,
+        },
+        {
+            id: "capture",
+            label: "Guardar imagen",
+            icon: "download",
+            onUse: downloadCapture,
+        },
+        {
+            id: "help",
+            label: "Atajos de teclado",
+            icon: "keyboard",
+            shortcut: "?",
+            onUse: () => setHelp(true),
+        },
+    ];
+
+    const tip =
+        inside || isolatedKey !== null
+            ? "Esc vuelve un paso atrás"
+            : roomSelected
+              ? "I aísla el cuarto · F lo enfoca"
+              : selected !== null
+                ? "F enfoca lo seleccionado · Esc lo suelta"
+                : "Clic para seleccionar · 1 a 4 cambian la vista · ? muestra los atajos";
+
+    const handleKey = useRef<(event: KeyboardEvent) => void>(() => undefined);
+    handleKey.current = (event) => {
+        if (shortcutsBlocked(event)) {
+            return;
+        }
+
+        const viewIndex = ["1", "2", "3", "4"].indexOf(event.key);
+
+        if (viewIndex !== -1) {
+            chooseView(VIEWS[viewIndex].id);
+        } else if (event.key === "f" || event.key === "F") {
+            if (selected !== null) {
+                viewer.current?.focus(selectedKey);
+            }
+        } else if (event.key === "i" || event.key === "I") {
+            if (roomSelected) {
+                toggleIsolation();
+            } else if (isolatedKey !== null) {
+                visit(null);
+            }
+        } else if (event.key === "Escape") {
+            stepBack();
+        } else if (event.key === "?") {
+            setHelp(true);
+        } else {
+            return;
+        }
+
+        event.preventDefault();
+    };
+
+    useEffect(() => {
+        if (preview) {
+            return;
+        }
+
+        function onKeyDown(event: KeyboardEvent) {
+            handleKey.current(event);
+        }
+
+        window.addEventListener("keydown", onKeyDown);
+
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [preview]);
 
     const selectByKey = useRef(pick);
     selectByKey.current = pick;
@@ -822,29 +957,6 @@ export function StructureViewer({
                                         )}
                                     </dl>
                                 )}
-                                {selected !== null && (
-                                    <button
-                                        type="button"
-                                        className="hud-item"
-                                        title="Acerca la cámara al elemento seleccionado"
-                                        onClick={() => viewer.current?.focus(selectedKey)}
-                                    >
-                                        Enfocar
-                                    </button>
-                                )}
-                                {selected !== null && selected.kind === "room" && (
-                                    <button
-                                        type="button"
-                                        className="hud-item"
-                                        aria-pressed={selectedKey === isolatedKey}
-                                        title="Oculta el resto del modelo y deja solo este cuarto con su estructura"
-                                        onClick={() =>
-                                            visit(selectedKey === isolatedKey ? null : selectedKey)
-                                        }
-                                    >
-                                        Aislar cuarto
-                                    </button>
-                                )}
                                 {saveError !== null && (
                                     <p className="message message-error" role="alert">
                                         {saveError}
@@ -975,11 +1087,11 @@ export function StructureViewer({
                             </details>
                         </aside>
                     </div>
+                    <ToolRail tools={tools} />
                     <ViewGizmo listener={orbitListener} />
                     <Toolbar
                         onReset={() => chooseView(view)}
                         onFullscreen={toggleFullscreen}
-                        onDownload={downloadCapture}
                         hasStops={stops.length > 0}
                         touring={touring}
                         onToggleTour={toggleTour}
@@ -991,8 +1103,6 @@ export function StructureViewer({
                                   ? isolatedRoom.name
                                   : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`
                         }
-                        inside={inside}
-                        onToggleInside={toggleInside}
                         onShowAll={() => visit(null)}
                     />
                     <StatusBar
@@ -1001,7 +1111,16 @@ export function StructureViewer({
                         projection={projection}
                         zoom={zoom}
                         saving={saving}
+                        tip={tip}
                     />
+                    {help && (
+                        <ShortcutsDialog
+                            container={
+                                document.fullscreenElement === stage.current ? stage.current : null
+                            }
+                            onClose={() => setHelp(false)}
+                        />
+                    )}
                 </div>
             )}
         </div>

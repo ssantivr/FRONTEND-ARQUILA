@@ -39,7 +39,7 @@ for (const [theme, name] of [
 
     const page = await context.newPage();
 
-    await page.goto(`${BASE}/proyectos/1/modelo`);
+    await page.goto(`${BASE}/proyectos/1/modelo-3d`);
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(1500);
     await page.getByRole("button", { name: "Paneles" }).click();

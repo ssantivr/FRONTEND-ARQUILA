@@ -158,4 +158,107 @@ describe("StructureViewer", () => {
         expect(screen.queryByRole("button", { name: "Sala" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Cocina" })).toBeInTheDocument();
     });
+
+    describe("tool rail and shortcuts", () => {
+        it("explains why a tool does not apply instead of hiding it", async () => {
+            render(<StructureViewer structure={structure} />);
+
+            const isolate = screen.getByRole("button", { name: "Aislar cuarto" });
+            const inside = screen.getByRole("button", { name: "Vista interior" });
+
+            expect(isolate).toHaveAttribute("aria-disabled", "true");
+            expect(isolate).toHaveAccessibleDescription("Selecciona un cuarto para aislarlo");
+            expect(inside).toHaveAccessibleDescription(
+                "Aísla un cuarto para entrar a la vista interior",
+            );
+
+            await userEvent.click(isolate);
+
+            expect(engine.calls.get("isolate")).not.toHaveBeenCalledWith("room-1");
+        });
+
+        it("changes the view with 1 to 4", async () => {
+            render(<StructureViewer structure={structure} />);
+
+            await userEvent.keyboard("4");
+
+            expect(lastCall("setView")).toEqual(["top"]);
+            expect(screen.getByRole("button", { name: "Superior" })).toHaveAttribute(
+                "aria-pressed",
+                "true",
+            );
+
+            await userEvent.keyboard("2");
+
+            expect(lastCall("setView")).toEqual(["front"]);
+        });
+
+        it("focuses with F, isolates with I and steps back with Escape", async () => {
+            render(<StructureViewer structure={structure} />);
+
+            await userEvent.click(screen.getByRole("button", { name: "Sala" }));
+            await userEvent.keyboard("f");
+
+            expect(lastCall("focus")).toEqual(["room-1"]);
+
+            await userEvent.keyboard("i");
+
+            expect(lastCall("isolate")).toEqual(["room-1"]);
+            expect(screen.getByRole("button", { name: "Aislar cuarto" })).toHaveAttribute(
+                "aria-pressed",
+                "true",
+            );
+            expect(screen.getByRole("status", { name: "Estado del modelo" })).toHaveTextContent(
+                "Esc vuelve un paso atrás",
+            );
+
+            await userEvent.keyboard("{Escape}");
+
+            expect(lastCall("isolate")).toEqual([null]);
+
+            await userEvent.keyboard("{Escape}");
+
+            expect(screen.getByRole("status", { name: "Estado del modelo" })).toHaveTextContent(
+                "Sin selección",
+            );
+        });
+
+        it("toggles the cut from the rail", async () => {
+            render(<StructureViewer structure={structure} />);
+
+            await userEvent.click(screen.getByRole("button", { name: "Corte" }));
+
+            expect(lastCall("setCutaway")).toEqual([0.6]);
+
+            await userEvent.click(screen.getByRole("button", { name: "Corte" }));
+
+            expect(lastCall("setCutaway")).toEqual([1]);
+        });
+
+        it("opens the shortcut help with ? and ignores keys typed in a field", async () => {
+            render(<StructureViewer structure={structure} />);
+
+            await userEvent.type(screen.getByLabelText("Buscar objeto por nombre"), "4i?");
+
+            expect(engine.calls.get("setView")).toBeUndefined();
+            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+            await userEvent.click(document.body);
+            await userEvent.keyboard("?");
+
+            expect(screen.getByRole("dialog", { name: "Atajos de teclado" })).toBeInTheDocument();
+
+            await userEvent.keyboard("3");
+
+            expect(engine.calls.get("setView")).toBeUndefined();
+        });
+
+        it("does not listen to the keyboard when it is only a preview", async () => {
+            render(<StructureViewer structure={structure} preview />);
+
+            await userEvent.keyboard("4");
+
+            expect(engine.calls.get("setView")).toBeUndefined();
+        });
+    });
 });

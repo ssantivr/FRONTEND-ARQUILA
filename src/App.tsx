@@ -1,6 +1,7 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
+import { CommandPalette, type Command } from "./components/CommandPalette";
 import { RenderImage } from "./components/RenderImage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GlobalSearch } from "./components/GlobalSearch";
@@ -14,7 +15,7 @@ import { LightingPage } from "./pages/LightingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MaterialsPage } from "./pages/MaterialsPage";
 import { PlansPage } from "./pages/PlansPage";
-import { ProjectDetailPage, type SectionId } from "./pages/ProjectDetailPage";
+import { ProjectDetailPage, SECTIONS, type SectionId } from "./pages/ProjectDetailPage";
 import { ProjectToolPage } from "./pages/ProjectToolPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { RenderPage } from "./pages/RenderPage";
@@ -22,7 +23,7 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { TasksPage } from "./pages/TasksPage";
 import { TerrainsPage } from "./pages/TerrainsPage";
-import { parsePath, projectPath, viewPath } from "./routes";
+import { canonicalPath, parsePath, projectPath, viewPath } from "./routes";
 import { authApi } from "./services/api";
 import { setTheme, useTheme } from "./state/theme";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
@@ -62,6 +63,34 @@ export function App() {
     );
     const [loginNotice, setLoginNotice] = useState<string | undefined>(undefined);
     const theme = useTheme();
+    const [commandsOpen, setCommandsOpen] = useState(false);
+    const signedIn = session.state === "authenticated";
+    const canonical = canonicalPath(location.pathname);
+
+    // An address of an earlier version, such as /proyectos/7/modelo, is replaced by the current one.
+    useEffect(() => {
+        if (canonical !== null) {
+            go(canonical, { replace: true });
+        }
+    }, [canonical, go]);
+
+    useEffect(() => {
+        if (!signedIn) {
+            return;
+        }
+
+        function handleShortcut(event: KeyboardEvent) {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+                event.preventDefault();
+                setCommandsOpen((open) => !open);
+            }
+        }
+
+        window.addEventListener("keydown", handleShortcut);
+
+        return () => window.removeEventListener("keydown", handleShortcut);
+    }, [signedIn]);
+
     const [collapsed, setCollapsed] = useState(
         () => window.localStorage.getItem(SIDEBAR_KEY) === "collapsed",
     );
@@ -155,6 +184,49 @@ export function App() {
     function openProject(id: number, section: SectionId = "terrain") {
         go(projectPath(id, section));
     }
+
+    const commands = useMemo<Command[]>(
+        () => [
+            ...(project === null
+                ? []
+                : SECTIONS.map((item) => ({
+                      id: `section-${item.id}`,
+                      group: "Este proyecto",
+                      label: item.label,
+                      icon: "chevronRight" as const,
+                      run: () => go(projectPath(project.id, item.id)),
+                  }))),
+            ...MODULES.map((item) => ({
+                id: `view-${item.id}`,
+                group: "Ir a",
+                label: item.label,
+                icon: item.icon,
+                run: () => go(viewPath(item.id)),
+            })),
+            {
+                id: "new-project",
+                group: "Acciones",
+                label: "Crear un proyecto",
+                icon: "plus",
+                run: () => go(viewPath("projects"), { state: { create: true } }),
+            },
+            {
+                id: "theme",
+                group: "Acciones",
+                label: theme === "dark" ? "Cambiar al modo claro" : "Cambiar al modo oscuro",
+                icon: theme === "dark" ? "sun" : "moon",
+                run: () => setTheme(theme === "dark" ? "light" : "dark"),
+            },
+            {
+                id: "logout",
+                group: "Acciones",
+                label: "Cerrar sesión",
+                icon: "logout",
+                run: () => void handleLogout(),
+            },
+        ],
+        [project?.id, theme, go],
+    );
 
     function renderView(user: User) {
         if (project !== null) {
@@ -290,7 +362,10 @@ export function App() {
                                         : "ARQUILA")}
                             </h1>
                         </div>
-                        <GlobalSearch onOpenProject={(id) => openProject(id)} />
+                        <GlobalSearch
+                            onOpenProject={(id) => openProject(id)}
+                            onOpenCommands={() => setCommandsOpen(true)}
+                        />
                         <div className="user-menu">
                             <button
                                 type="button"
@@ -328,6 +403,13 @@ export function App() {
                         </ErrorBoundary>
                     </main>
                 </div>
+                {commandsOpen && (
+                    <CommandPalette
+                        commands={commands}
+                        onOpenProject={(id) => openProject(id)}
+                        onClose={() => setCommandsOpen(false)}
+                    />
+                )}
                 <Toasts />
             </div>
         );

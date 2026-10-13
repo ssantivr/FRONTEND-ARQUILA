@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { Icon } from "../Icon";
+import { Breadcrumbs } from "./Breadcrumbs";
 import { Button } from "./Button";
 import { Card } from "./Card";
 import { Dialog } from "./Dialog";
@@ -257,5 +258,31 @@ describe("Icon", () => {
             expect(icon).toHaveAttribute("aria-hidden", "true");
             expect(icon).toHaveAttribute("stroke-width", "1.5");
         });
+    });
+});
+
+describe("Breadcrumbs", () => {
+    it("links every step but the last, which is the current page", async () => {
+        const toProjects = vi.fn();
+
+        render(
+            <Breadcrumbs
+                items={[
+                    { label: "Proyectos", onSelect: toProjects },
+                    { label: "Casa Mirador", onSelect: () => undefined },
+                    { label: "Modelo 3D" },
+                ]}
+            />,
+        );
+
+        const trail = screen.getByRole("navigation", { name: "Migas de pan" });
+
+        expect(trail).toHaveTextContent("ProyectosCasa MiradorModelo 3D");
+        expect(screen.getByText("Modelo 3D")).toHaveAttribute("aria-current", "page");
+        expect(screen.queryByRole("button", { name: "Modelo 3D" })).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Proyectos" }));
+
+        expect(toProjects).toHaveBeenCalledTimes(1);
     });
 });

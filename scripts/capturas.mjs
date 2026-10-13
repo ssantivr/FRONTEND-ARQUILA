@@ -25,7 +25,7 @@ const SCREENS = [
     ["proyectos", "/proyectos"],
     ["proyecto-materiales", "/proyectos/1/materiales"],
     ["proyecto-planos", "/proyectos/1/planos"],
-    ["proyecto-modelo-3d", "/proyectos/1/modelo"],
+    ["proyecto-modelo-3d", "/proyectos/1/modelo-3d"],
     ["terrenos", "/terrenos"],
     ["materiales", "/materiales"],
     ["recorrido", "/recorrido"],
@@ -70,13 +70,45 @@ async function shoot(page, name) {
     console.log(`  ${name}.jpg`);
 }
 
+/** The states a plain visit does not show: the command palette and the tools of the 3D viewer. */
+async function shootStates(browser, theme) {
+    const suffix = `${theme === "light" ? "claro" : "oscuro"}-escritorio`;
+    const context = await open(browser, { theme, size: "escritorio" });
+    const page = await context.newPage();
+
+    await page.goto(`${BASE}/proyectos/1/planos`);
+    await page.getByRole("navigation", { name: "Migas de pan" }).waitFor();
+    await page.keyboard.press("Control+K");
+    await page.getByRole("combobox").fill("mod");
+    await shoot(page, `estado-paleta-de-comandos-${suffix}`);
+    await page.keyboard.press("Escape");
+
+    await page.goto(`${BASE}/proyectos/1/modelo-3d`);
+    await page.locator(".structure-viewer canvas").waitFor();
+    await page.getByRole("button", { name: "Sala", exact: true }).click();
+    await page.keyboard.press("i");
+    await page.waitForTimeout(1200);
+    await shoot(page, `estado-modelo-3d-cuarto-aislado-${suffix}`);
+
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Corte", exact: true }).click();
+    await page.waitForTimeout(900);
+    await shoot(page, `estado-modelo-3d-corte-${suffix}`);
+
+    await page.getByRole("button", { name: "Corte", exact: true }).click();
+    await page.keyboard.press("?");
+    await page.getByRole("dialog", { name: "Atajos de teclado" }).waitFor();
+    await shoot(page, `estado-modelo-3d-atajos-${suffix}`);
+    await context.close();
+}
+
 /** Uses the 3D viewer the way a person would and reports what the engine did. */
 async function checkViewer(browser) {
     const context = await open(browser, { theme: "light", size: "escritorio" });
     const page = await context.newPage();
     const results = [];
 
-    await page.goto(`${BASE}/proyectos/1/modelo`);
+    await page.goto(`${BASE}/proyectos/1/modelo-3d`);
     await page.getByRole("button", { name: "Ocultar Dormitorio" }).click();
     results.push([
         "ojo del árbol: oculta y ofrece volver a mostrar",
@@ -200,6 +232,10 @@ for (const theme of ["light", "dark"]) {
         }
 
         await context.close();
+    }
+
+    if (wanted("estados")) {
+        await shootStates(browser, theme);
     }
 
     if (wanted("inicio-de-sesion")) {

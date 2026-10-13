@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation, useNavigate, type NavigateFunction } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -133,5 +133,36 @@ describe("App routing", () => {
         expect(
             await screen.findByRole("heading", { name: "Página no encontrada" }),
         ).toBeInTheDocument();
+    });
+
+    it("rewrites the old address of the 3D model", async () => {
+        renderAt("/proyectos/7/modelo");
+
+        expect(await screen.findByRole("heading", { name: "Casa Andina" })).toBeInTheDocument();
+        expect(screen.getByTestId("path")).toHaveTextContent("/proyectos/7/modelo-3d");
+    });
+
+    it("shows where a project tab sits and goes back through the breadcrumbs", async () => {
+        renderAt("/proyectos/7/materiales");
+
+        const trail = await screen.findByRole("navigation", { name: "Migas de pan" });
+
+        expect(trail).toHaveTextContent("ProyectosCasa AndinaMateriales");
+
+        await userEvent.click(within(trail).getByRole("button", { name: "Proyectos" }));
+
+        expect(screen.getByTestId("path")).toHaveTextContent("/proyectos");
+    });
+
+    it("opens the command palette with Ctrl+K and jumps to a screen from it", async () => {
+        renderAt("/");
+
+        await screen.findByRole("button", { name: "Terrenos" });
+        await userEvent.keyboard("{Control>}k{/Control}");
+
+        await userEvent.type(screen.getByRole("combobox"), "config{Enter}");
+
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.getByTestId("path")).toHaveTextContent("/configuracion");
     });
 });

@@ -1,7 +1,6 @@
 interface ToolbarProps {
     onReset: () => void;
     onFullscreen: () => void;
-    onDownload: () => void;
     /** The interior run is offered only when the model has rooms to visit. */
     hasStops: boolean;
     touring: boolean;
@@ -9,23 +8,18 @@ interface ToolbarProps {
     onStep: (delta: number) => void;
     /** What the isolated room is called, or null while the whole model is shown. */
     roomLabel: string | null;
-    inside: boolean;
-    onToggleInside: () => void;
     onShowAll: () => void;
 }
 
-/** Actions on the whole view, and the room-by-room run of the interior. */
+/** Actions on the whole view, and the room-by-room run of the interior. The tools that act on the selection live in the vertical `ToolRail`. */
 export function Toolbar({
     onReset,
     onFullscreen,
-    onDownload,
     hasStops,
     touring,
     onToggleTour,
     onStep,
     roomLabel,
-    inside,
-    onToggleInside,
     onShowAll,
 }: ToolbarProps) {
     return (
@@ -41,14 +35,6 @@ export function Toolbar({
                 </button>
                 <button type="button" className="hud-item" onClick={onFullscreen}>
                     Pantalla completa
-                </button>
-                <button
-                    type="button"
-                    className="hud-item"
-                    data-tip="Descarga la vista actual del modelo como imagen PNG"
-                    onClick={onDownload}
-                >
-                    Guardar imagen
                 </button>
             </div>
             {hasStops && (
@@ -81,15 +67,6 @@ export function Toolbar({
                     {roomLabel !== null && (
                         <>
                             <span className="hud-readout">{roomLabel}</span>
-                            <button
-                                type="button"
-                                className="hud-item"
-                                aria-pressed={inside}
-                                data-tip="Coloca la cámara dentro del cuarto, a la altura de los ojos"
-                                onClick={onToggleInside}
-                            >
-                                Vista interior
-                            </button>
                             <button
                                 type="button"
                                 className="hud-item"

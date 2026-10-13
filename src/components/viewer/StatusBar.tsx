@@ -8,10 +8,12 @@ interface StatusBarProps {
     projection: Projection;
     zoom: number;
     saving: SaveState;
+    /** What can be done next with the keyboard or the mouse, given what is selected. */
+    tip: string;
 }
 
-/** The strip along the bottom of the scene: selection, camera, projection, zoom and saving. */
-export function StatusBar({ selection, camera, projection, zoom, saving }: StatusBarProps) {
+/** The strip along the bottom of the scene: selection, camera, projection, zoom, a tip and saving. */
+export function StatusBar({ selection, camera, projection, zoom, saving, tip }: StatusBarProps) {
     return (
         <div className="hud hud-status" role="status" aria-label="Estado del modelo">
             <span className="hud-readout hud-status-selection">{selection}</span>
@@ -20,6 +22,7 @@ export function StatusBar({ selection, camera, projection, zoom, saving }: Statu
                 {projection === "orthographic" ? "Ortográfica" : "Perspectiva"}
             </span>
             <span className="hud-readout">Zoom {zoom} %</span>
+            <span className="hud-readout hud-tip">{tip}</span>
             <span className={`hud-readout hud-save hud-save-${saving}`}>{SAVE_LABELS[saving]}</span>
         </div>
     );

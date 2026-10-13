@@ -57,4 +57,14 @@ describe("GlobalSearch", () => {
 
         expect(screen.getByRole("searchbox")).toHaveFocus();
     });
+
+    it("offers the command palette from the end of the field", async () => {
+        const onOpenCommands = vi.fn();
+
+        render(<GlobalSearch onOpenProject={() => undefined} onOpenCommands={onOpenCommands} />);
+
+        await userEvent.click(screen.getByRole("button", { name: "Abrir la paleta de comandos" }));
+
+        expect(onOpenCommands).toHaveBeenCalledTimes(1);
+    });
 });

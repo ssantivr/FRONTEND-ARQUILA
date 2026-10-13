@@ -1,63 +1,27 @@
 import { useEffect, useId, useRef, useState } from "react";
 
-import { errorMessage } from "../hooks/useAsync";
-import { projectsApi } from "../services/api";
-import type { Project } from "../types/api";
+import { useProjectSearch } from "../hooks/useProjectSearch";
 import { StatusBadge } from "./ui/Badge";
 import { Icon } from "./Icon";
 
-const SEARCH_DELAY_MS = 250;
-const MAX_RESULTS = 6;
-
-type Results =
-    | { state: "idle" }
-    | { state: "loading" }
-    | { state: "ready"; projects: Project[] }
-    | { state: "error"; message: string };
+/** «⌘K» on a Mac and «Ctrl K» everywhere else. */
+export const COMMANDS_KEY = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? "")
+    ? "⌘K"
+    : "Ctrl K";
 
 interface GlobalSearchProps {
     onOpenProject: (projectId: number) => void;
+    /** Opens the command palette; without it the field only shows its own shortcut. */
+    onOpenCommands?: () => void;
 }
 
 /** Finds projects by name from anywhere in the app; the API only searches projects. */
-export function GlobalSearch({ onOpenProject }: GlobalSearchProps) {
+export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProps) {
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<Results>({ state: "idle" });
     const listId = useId();
     const input = useRef<HTMLInputElement>(null);
     const wanted = query.trim();
-
-    useEffect(() => {
-        if (wanted === "") {
-            setResults({ state: "idle" });
-
-            return;
-        }
-
-        let cancelled = false;
-
-        setResults({ state: "loading" });
-
-        const timer = window.setTimeout(() => {
-            projectsApi
-                .list({ search: wanted })
-                .then((projects) => {
-                    if (!cancelled) {
-                        setResults({ state: "ready", projects: projects.slice(0, MAX_RESULTS) });
-                    }
-                })
-                .catch((reason: unknown) => {
-                    if (!cancelled) {
-                        setResults({ state: "error", message: errorMessage(reason) });
-                    }
-                });
-        }, SEARCH_DELAY_MS);
-
-        return () => {
-            cancelled = true;
-            window.clearTimeout(timer);
-        };
-    }, [wanted]);
+    const results = useProjectSearch(query);
 
     useEffect(() => {
         function handleShortcut(event: KeyboardEvent) {
@@ -103,11 +67,23 @@ export function GlobalSearch({ onOpenProject }: GlobalSearchProps) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
             />
-            {query === "" && (
-                <kbd className="global-search-key" aria-hidden="true">
-                    /
-                </kbd>
-            )}
+            {query === "" &&
+                (onOpenCommands === undefined ? (
+                    <kbd className="global-search-key" aria-hidden="true">
+                        /
+                    </kbd>
+                ) : (
+                    <button
+                        type="button"
+                        className="global-search-key global-search-commands"
+                        aria-label="Abrir la paleta de comandos"
+                        aria-keyshortcuts="Control+K Meta+K"
+                        title="Paleta de comandos: pantallas, proyectos y acciones"
+                        onClick={onOpenCommands}
+                    >
+                        {COMMANDS_KEY}
+                    </button>
+                ))}
             {results.state !== "idle" && (
                 <div id={listId} className="global-search-results">
                     {results.state === "loading" && (

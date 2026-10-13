@@ -1,0 +1,28 @@
+/* Pieces added by the navigation: the palette trigger and the tip of the 3D status bar. */
+
+/* The shortcut of the command palette, at the end of the search field, is a button. */
+.global-search-commands {
+    min-height: 0;
+    font-family: var(--font-mono);
+    box-shadow: none;
+    cursor: pointer;
+    pointer-events: auto;
+    transition:
+        color var(--dur-fast) var(--ease),
+        border-color var(--dur-fast) var(--ease);
+}
+
+.global-search-commands:hover {
+    color: var(--text);
+    background: var(--panel);
+    border-color: var(--border-strong);
+}
+
+/* The tip of the 3D status bar gives way first when the bar runs out of room. */
+.hud-status .hud-tip {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -9,6 +9,7 @@ import { FloorPlansPanel } from "../components/FloorPlansPanel";
 import { GeneratedElevationsPanel } from "../components/GeneratedElevationsPanel";
 import { Icon } from "../components/Icon";
 import { MaterialsPanel } from "../components/MaterialsPanel";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Panel } from "../components/ui/Panel";
 import { Tabs } from "../components/ui/Tabs";
 import { PlansPanel } from "../components/PlansPanel";
@@ -119,7 +120,13 @@ export function ProjectDetailPage({
                     <ProjectCover id={current.id} name={current.name} />
                 </div>
                 <div className="project-head-main">
-                    <BackButton onBack={onBack} />
+                    <Breadcrumbs
+                        items={[
+                            { label: "Proyectos", onSelect: onBack },
+                            { label: current.name, onSelect: () => setSection("terrain") },
+                            { label: SECTIONS.find((item) => item.id === section)?.label ?? "" },
+                        ]}
+                    />
                     <h2>{current.name}</h2>
                     <p className="project-head-meta">
                         <StatusBadge status={current.status} />
@@ -299,7 +306,7 @@ export function ProjectDetailPage({
 export type SectionId =
     "terrain" | "plans" | "model" | "elevations" | "materials" | "analysis" | "files" | "assistant";
 
-const SECTIONS: { id: SectionId; label: string }[] = [
+export const SECTIONS: { id: SectionId; label: string }[] = [
     { id: "terrain", label: "Terreno" },
     { id: "plans", label: "Planos" },
     { id: "model", label: "Modelo 3D" },
