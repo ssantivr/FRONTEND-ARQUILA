@@ -20,6 +20,12 @@ const TITLES: Record<Mode, string> = {
     forgot: "Recuperar contraseña",
 };
 
+const LEADS: Record<Mode, string> = {
+    login: "Entra con tu correo para volver a tus proyectos.",
+    register: "Con una cuenta guardas tus proyectos, terrenos y materiales.",
+    forgot: "Escribe tu correo y te enviamos un enlace para elegir otra contraseña.",
+};
+
 export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     const [mode, setMode] = useState<Mode>("login");
     const [name, setName] = useState("");
@@ -66,6 +72,7 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
         <div className="login">
             <Panel title={TITLES[mode]}>
                 <form className="form-column" onSubmit={handleSubmit}>
+                    <p className="login-lead">{LEADS[mode]}</p>
                     {mode === "register" && (
                         <label>
                             Nombre

@@ -70,6 +70,17 @@ export function App() {
         });
     }
 
+    const screenName =
+        session.state !== "authenticated"
+            ? null
+            : project !== null
+              ? "Proyecto"
+              : (MODULES.find((item) => item.id === view)?.label ?? null);
+
+    useEffect(() => {
+        document.title = screenName === null ? "ARQUILA" : `${screenName} · ARQUILA`;
+    }, [screenName]);
+
     useEffect(() => {
         if (new URLSearchParams(window.location.search).has("reset_token")) {
             window.history.replaceState(null, "", window.location.pathname);
@@ -322,6 +333,29 @@ export function App() {
                             Proyectos, terrenos, planos, materiales y modelo 3D en un solo espacio
                             de trabajo.
                         </p>
+                        <ul className="auth-features">
+                            <li>
+                                <Icon name="viewer" />
+                                <span>
+                                    <strong>Modelo 3D</strong>
+                                    Se arma con los terrenos, planos y cuartos del proyecto.
+                                </span>
+                            </li>
+                            <li>
+                                <Icon name="projects" />
+                                <span>
+                                    <strong>Planos con cotas</strong>
+                                    Plantas, fachadas e implantación, descargables en SVG.
+                                </span>
+                            </li>
+                            <li>
+                                <Icon name="materials" />
+                                <span>
+                                    <strong>Costos</strong>
+                                    Materiales por proyecto y su costo por categoría.
+                                </span>
+                            </li>
+                        </ul>
                     </div>
                 </section>
                 <section className="auth-form">
