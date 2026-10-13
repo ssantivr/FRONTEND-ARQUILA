@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
-import { MetricCard } from "../components/MetricCard";
+import { PageBand } from "../components/PageBand";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/ui/Button";
 import { useAsync } from "../hooks/useAsync";
@@ -100,25 +100,28 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
             (projectId === "" || terrain.project_id === Number(projectId)) &&
             (soil === "" || terrain.soil_type === soil),
     );
-    const selected = shown.find((terrain) => terrain.id === selectedId) ?? null;
+    // There is always a terrain in the detail panel: the chosen one, or the first of the list.
+    const selected = shown.find((terrain) => terrain.id === selectedId) ?? shown[0] ?? null;
 
     return (
         <>
-            <Panel title="Terrenos">
-                <p className="message">
-                    Los terrenos de todos tus proyectos. Para agregar o editar uno, ábrelo desde su
-                    proyecto.
-                </p>
-                <div className="metrics">
-                    <MetricCard label="Terrenos" value={formatNumber(terrains.length)} />
-                    <MetricCard label="Área total" value={`${formatNumber(totalArea)} m²`} />
-                    <MetricCard
-                        label="Pendiente máxima"
-                        value={steepest === null ? "—" : `${formatNumber(steepest)} %`}
-                        detail={`${slopes.length} con pendiente registrada`}
-                    />
-                </div>
-            </Panel>
+            <PageBand
+                title="Todos tus terrenos"
+                text="Los terrenos de todos tus proyectos. Son de consulta: para agregar o editar uno, ábrelo desde su proyecto."
+                stats={
+                    data.data === null
+                        ? undefined
+                        : [
+                              { label: "Terrenos", value: formatNumber(terrains.length) },
+                              { label: "Área total", value: `${formatNumber(totalArea)} m²` },
+                              {
+                                  label: "Pendiente máxima",
+                                  value: steepest === null ? "—" : `${formatNumber(steepest)} %`,
+                                  detail: `${slopes.length} con pendiente registrada`,
+                              },
+                          ]
+                }
+            />
             <Panel
                 title="Fichas"
                 actions={
@@ -178,16 +181,14 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                         selected === null ? "terrain-layout" : "terrain-layout terrain-layout-open"
                     }
                 >
-                    <ul className="card-list">
+                    <ul className="terrain-list">
                         {shown.map((terrain) => (
                             <li key={terrain.id}>
                                 <button
                                     type="button"
                                     className="card terrain-card"
-                                    aria-pressed={terrain.id === selectedId}
-                                    onClick={() =>
-                                        setSelectedId(terrain.id === selectedId ? null : terrain.id)
-                                    }
+                                    aria-pressed={terrain.id === selected?.id}
+                                    onClick={() => setSelectedId(terrain.id)}
                                 >
                                     <TerrainShape terrain={terrain} />
                                     <span className="card-title">{terrain.name}</span>
@@ -207,33 +208,51 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                             className="terrain-detail"
                             aria-label={`Detalle de ${selected.name}`}
                         >
-                            <h3>{selected.name}</h3>
-                            <TerrainShape terrain={selected} />
-                            <dl className="definition-list">
-                                <dt>Proyecto</dt>
-                                <dd>{projectNames.get(selected.project_id) ?? "—"}</dd>
-                                <dt>Área</dt>
-                                <dd>{formatNumber(selected.area_m2)} m²</dd>
-                                <dt>Forma</dt>
-                                <dd>{describeShape(selected)}</dd>
-                                <dt>Pendiente</dt>
-                                <dd>
-                                    {selected.slope_percent === null
-                                        ? "Sin registrar"
-                                        : `${formatNumber(selected.slope_percent)} %`}
-                                </dd>
-                                <dt>Suelo</dt>
-                                <dd>{selected.soil_type ?? "Sin registrar"}</dd>
-                                <dt>Coordenadas</dt>
-                                <dd>
-                                    {selected.latitude === null || selected.longitude === null
-                                        ? "Sin registrar"
-                                        : `${selected.latitude}, ${selected.longitude}`}
-                                </dd>
+                            <header className="terrain-detail-head">
+                                <div>
+                                    <h3>{selected.name}</h3>
+                                    <p>{projectNames.get(selected.project_id) ?? "—"}</p>
+                                </div>
+                                <Button onClick={() => onOpenProject(selected.project_id)}>
+                                    Abrir en su proyecto
+                                </Button>
+                            </header>
+                            <figure className="terrain-figure">
+                                <TerrainShape terrain={selected} />
+                                <figcaption>
+                                    Contorno a escala · {describeShape(selected)}
+                                </figcaption>
+                            </figure>
+                            <dl className="fact-grid">
+                                <div>
+                                    <dt>Área</dt>
+                                    <dd>{formatNumber(selected.area_m2)} m²</dd>
+                                </div>
+                                <div>
+                                    <dt>Forma</dt>
+                                    <dd>{describeShape(selected)}</dd>
+                                </div>
+                                <div>
+                                    <dt>Pendiente</dt>
+                                    <dd>
+                                        {selected.slope_percent === null
+                                            ? "Sin registrar"
+                                            : `${formatNumber(selected.slope_percent)} %`}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt>Suelo</dt>
+                                    <dd>{selected.soil_type ?? "Sin registrar"}</dd>
+                                </div>
+                                <div>
+                                    <dt>Coordenadas</dt>
+                                    <dd>
+                                        {selected.latitude === null || selected.longitude === null
+                                            ? "Sin registrar"
+                                            : `${selected.latitude}, ${selected.longitude}`}
+                                    </dd>
+                                </div>
                             </dl>
-                            <Button onClick={() => onOpenProject(selected.project_id)}>
-                                Abrir en su proyecto
-                            </Button>
                         </aside>
                     )}
                 </div>
