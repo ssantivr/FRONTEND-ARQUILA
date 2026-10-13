@@ -200,7 +200,7 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 
 ### Pantallas interiores
 
-Proyectos, el detalle de un proyecto, Terrenos, Materiales y Configuración abren con una banda verde bosque (`PageBand.tsx`, estilos en `styles/pages.css`) que dice qué es la pantalla, muestra sus cifras y lleva su acción principal. La banda es verde en los dos temas, como el menú lateral, y por eso lleva `data-theme="dark"`: sus botones, campos e insignias usan los colores del tema oscuro.
+Las pantallas interiores abren con un título tipográfico grande, sus cifras y su acción principal, sin caja (`styles/pages/head.css`). Solo Materiales conserva la banda verde bosque (`PageBand.tsx`, `styles/pages/band.css`), que lleva `data-theme="dark"` para que sus contenidos usen los colores del tema oscuro en los dos temas.
 
 - **Proyectos.** Sin banda: el título es el total («4 proyectos», de 32 a 44 px) con el reparto por estado debajo, y ambos salen de `GET /summary`, no de la lista, porque la lista puede estar filtrada. Debajo va una barra con búsqueda, estado, orden y el conmutador de vista, y luego las tarjetas directamente sobre el fondo. «Crear proyecto» abre el formulario en un panel que se cierra al crear; «Ejemplos» es un botón secundario que solo aparece si `GET /templates` devuelve alguno. En esta pantalla el botón «Nuevo proyecto» de la cabecera deja el lima, para que haya un solo foco.
     - Tarjeta: portada de 180 px, insignia de estado sobre la portada con icono y palabra (`Badge.tsx`), nombre a 16 px y metadatos a 12 px. La vista de lista es una tabla ligera con filas de 56 px y la portada en miniatura (`layout="list"` en `ProjectCard.tsx`).
@@ -221,6 +221,12 @@ Proyectos, el detalle de un proyecto, Terrenos, Materiales y Configuración abre
 - **Configuración.** La banda lleva la cuenta y «Cerrar sesión»; cada preferencia es una fila con su explicación a la izquierda y su control a la derecha. «Reducir movimiento» es una casilla nativa dibujada como interruptor.
 
 El contraste del texto de las bandas se midió sobre la captura, píxel a píxel, igual que el del hero; ninguna pantalla se desborda a lo ancho a 390, 820, 1024 y 1366 px.
+
+### Organización de los estilos y del visor
+
+- **Estilos por área.** `src/styles/ui.css` solo tiene los componentes compartidos; lo demás se repartió en `design-system.css`, `projects.css`, `terrains.css`, `materials.css`, `plans.css` y `shell-phone.css`, y las pantallas nuevas en `src/styles/pages/` (un archivo por pantalla y `responsive.css`). `src/main.tsx` los importa en el mismo orden que tenían dentro de los archivos originales, porque en CSS plano el orden decide qué regla gana. El reparto se comprobó comparando las capturas byte a byte antes y después: 45 de 48 idénticas, y las tres restantes son de Proyectos, que ya varían entre dos ejecuciones iguales.
+- **Visor 3D en piezas.** `StructureViewer.tsx` conserva el estado y la relación con el motor; lo que se dibuja encima vive en `src/components/viewer/`: `ViewBar` (vistas, zoom, proyección), `ObjectTree` (objetos por nivel), `ScenePanel` (capas, corte, despiece, sol, cubierta), `Toolbar` y `StatusBar`. Cada pieza recibe valores y funciones; ninguna habla con el motor. El inspector y el panel de color siguen dentro de `StructureViewer.tsx`.
+- **Accesibilidad automática.** `npm run accesibilidad` (`scripts/accesibilidad.mjs`) pasa axe-core por nueve pantallas en claro y oscuro con las reglas WCAG 2.1 A y AA, y falla si hay alguna infracción grave o crítica. Usa los mismos datos de muestra que las capturas (`scripts/datos-de-muestra.mjs`). `axe-core` es dependencia de desarrollo.
 
 ### Sistema de diseño
 
