@@ -181,10 +181,16 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                         {actionError}
                     </p>
                 )}
-                <ul className={layout === "grid" ? "card-list" : "card-list card-list-rows"}>
+                <ul
+                    className={
+                        layout === "grid"
+                            ? "card-list project-grid"
+                            : "card-list card-list-rows project-grid"
+                    }
+                >
                     {recent.map((project) => (
                         <li key={project.id} className="project-item">
-                            <ProjectCard project={project} onOpen={onOpenProject} />
+                            <ProjectCard project={project} onOpen={onOpenProject} layout={layout} />
                             <div className="project-actions">
                                 <Menu
                                     label={`Acciones de ${project.name}`}

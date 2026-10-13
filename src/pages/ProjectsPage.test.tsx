@@ -84,7 +84,7 @@ describe("ProjectsPage", () => {
 
         renderPage();
 
-        expect(await screen.findByText("No hay proyectos.")).toBeInTheDocument();
+        expect(await screen.findByText("Todavía no hay proyectos")).toBeInTheDocument();
     });
 
     it("shows a load error and reloads when the user retries", async () => {
@@ -111,7 +111,7 @@ describe("ProjectsPage", () => {
         projects.create.mockResolvedValue(project(3, "Casa Nueva"));
 
         renderPage();
-        await screen.findByText("No hay proyectos.");
+        await screen.findByText("Todavía no hay proyectos");
 
         expect(screen.queryByLabelText("Nombre")).not.toBeInTheDocument();
 
@@ -138,13 +138,11 @@ describe("ProjectsPage", () => {
 
         renderPage();
 
-        const drafts = (await screen.findByText("En borrador")).closest("div") as HTMLElement;
-
-        expect(drafts).toHaveTextContent("2");
-        expect(screen.getByRole("heading", { name: "2 proyectos" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "2 proyectos" })).toBeInTheDocument();
+        expect(screen.getByText("0 activos · 2 en borrador · 0 archivados")).toBeInTheDocument();
     });
 
-    it("offers the examples inside the creation panel and opens the one chosen", async () => {
+    it("offers the examples as a secondary way in and opens the one chosen", async () => {
         projects.list.mockResolvedValue([]);
         templates.list.mockResolvedValue([
             {
@@ -161,7 +159,7 @@ describe("ProjectsPage", () => {
 
         const { onOpenModel } = renderPage();
 
-        await userEvent.click(await screen.findByRole("button", { name: "Crear proyecto" }));
+        await userEvent.click(await screen.findByRole("button", { name: "Ejemplos" }));
         await userEvent.click(await screen.findByRole("button", { name: /Casa de ejemplo/ }));
 
         expect(onOpenModel).toHaveBeenCalledWith(9);
@@ -172,7 +170,7 @@ describe("ProjectsPage", () => {
         projects.create.mockRejectedValue(new Error("Failed to fetch"));
 
         renderPage();
-        await screen.findByText("No hay proyectos.");
+        await screen.findByText("Todavía no hay proyectos");
         await userEvent.click(screen.getByRole("button", { name: "Crear proyecto" }));
         await userEvent.type(screen.getByLabelText("Nombre"), "Casa Nueva");
         await userEvent.click(screen.getByRole("button", { name: "Crear" }));
@@ -233,5 +231,29 @@ describe("ProjectsPage", () => {
             .map((card) => card.textContent ?? "");
 
         expect(names[0]).toContain("Casa Andina");
+    });
+
+    it("offers to clear the filters when they leave nothing, and clears them", async () => {
+        projects.list.mockResolvedValue([]);
+
+        renderPage();
+        await userEvent.type(screen.getByLabelText("Buscar por nombre"), "zzz");
+        await userEvent.click(await screen.findByRole("button", { name: "Quitar los filtros" }));
+
+        expect(screen.getByLabelText("Buscar por nombre")).toHaveValue("");
+        expect(await screen.findByText("Todavía no hay proyectos")).toBeInTheDocument();
+    });
+
+    it("shows the list as rows with the same data when asked", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+
+        renderPage();
+        await screen.findByRole("button", { name: /Casa Andina/ });
+        await userEvent.click(screen.getByRole("button", { name: "Lista" }));
+
+        const row = screen.getByRole("button", { name: /Casa Andina/ });
+
+        expect(row).toHaveTextContent("Quito");
+        expect(row).toHaveTextContent("Borrador");
     });
 });

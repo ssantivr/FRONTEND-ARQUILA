@@ -271,7 +271,11 @@ export function App() {
                         <div className="user-menu">
                             <button
                                 type="button"
-                                className="button-lime icon-button"
+                                className={
+                                    view === "projects" && project === null
+                                        ? "button-secondary icon-button"
+                                        : "button-lime icon-button"
+                                }
                                 onClick={() =>
                                     go(viewPath("projects"), { state: { create: true } })
                                 }

@@ -2,22 +2,30 @@ import { useState, type FormEvent } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { Icon } from "../components/Icon";
-import { PageBand } from "../components/PageBand";
-import { Panel } from "../components/Panel";
 import { ProjectCard } from "../components/ProjectCard";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi, templatesApi } from "../services/api";
 import { showToast } from "../state/toasts";
-import type { ProjectStatus } from "../types/api";
+import type { ProjectStatus, Summary } from "../types/api";
 import { formatNumber, optionalText } from "../utils/format";
 
 type Order = "recent" | "name";
+/** What the panel under the page head shows: nothing, the form or the ready-made examples. */
+type Creating = "closed" | "form" | "examples";
 
 interface ProjectsPageProps {
     onOpenProject: (projectId: number) => void;
     onOpenModel: (projectId: number) => void;
     /** Opens the creation form with the cursor in its name, for arrivals through "Nuevo proyecto". */
     focusCreate?: boolean;
+}
+
+function countsOf(summary: Summary): string {
+    return [
+        `${formatNumber(summary.active_projects)} ${summary.active_projects === 1 ? "activo" : "activos"}`,
+        `${formatNumber(summary.draft_projects)} en borrador`,
+        `${formatNumber(summary.archived_projects)} ${summary.archived_projects === 1 ? "archivado" : "archivados"}`,
+    ].join(" · ");
 }
 
 export function ProjectsPage({
@@ -37,7 +45,7 @@ export function ProjectsPage({
     const [description, setDescription] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
-    const [creating, setCreating] = useState(focusCreate);
+    const [creating, setCreating] = useState<Creating>(focusCreate ? "form" : "closed");
     const summary = useAsync(() => summaryApi.get(), []);
     const templates = useAsync(() => templatesApi.list(), []);
     const [templateError, setTemplateError] = useState<string | null>(null);
@@ -79,7 +87,7 @@ export function ProjectsPage({
             setName("");
             setLocation("");
             setDescription("");
-            setCreating(false);
+            setCreating("closed");
             projects.reload();
             summary.reload();
             showToast("Proyecto creado.");
@@ -124,116 +132,110 @@ export function ProjectsPage({
             ? first.name.localeCompare(second.name, "es")
             : second.updated_at.localeCompare(first.updated_at),
     );
-
     const examples = templates.data ?? [];
+    const filtered = search.trim() !== "" || status !== "";
 
     return (
         <>
-            <PageBand
-                title="Tus proyectos"
-                text="Cada proyecto reúne su terreno, sus planos, el modelo 3D, los materiales y los archivos."
-                stats={
-                    summary.data
-                        ? [
-                              { label: "Proyectos", value: formatNumber(summary.data.projects) },
-                              {
-                                  label: "Activos",
-                                  value: formatNumber(summary.data.active_projects),
-                              },
-                              {
-                                  label: "En borrador",
-                                  value: formatNumber(summary.data.draft_projects),
-                              },
-                              {
-                                  label: "Archivados",
-                                  value: formatNumber(summary.data.archived_projects),
-                              },
-                          ]
-                        : undefined
-                }
-                aside={
-                    <button
-                        type="button"
-                        className="button-lime icon-button"
-                        aria-expanded={creating}
-                        aria-controls="project-create"
-                        onClick={() => setCreating((open) => !open)}
-                    >
-                        <Icon name="plus" />
-                        Crear proyecto
-                    </button>
-                }
-            >
-                {summary.error && (
-                    <AsyncStatus
-                        loading={false}
-                        error={summary.error}
-                        onRetry={summary.reload}
-                        isEmpty={false}
-                        emptyText=""
-                    />
-                )}
-            </PageBand>
-
-            {creating && (
-                <section id="project-create" className="panel create-panel">
-                    <header className="panel-header">
-                        <h2>Nuevo proyecto</h2>
-                        <button
-                            type="button"
-                            className="button-tertiary"
-                            onClick={() => setCreating(false)}
-                        >
-                            Cancelar
-                        </button>
-                    </header>
-                    <form className="form-row" onSubmit={handleCreate}>
-                        <label>
-                            Nombre
-                            <input
-                                autoFocus
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                                maxLength={160}
-                                required
-                            />
-                        </label>
-                        <label>
-                            Ubicación
-                            <input
-                                value={location}
-                                onChange={(event) => setLocation(event.target.value)}
-                                maxLength={255}
-                            />
-                        </label>
-                        <label className="field-wide">
-                            Descripción
-                            <input
-                                value={description}
-                                onChange={(event) => setDescription(event.target.value)}
-                            />
-                        </label>
-                        <button type="submit" disabled={saving || name.trim() === ""}>
-                            Crear
-                        </button>
-                    </form>
-                    {formError && (
-                        <p className="message message-error" role="alert">
-                            {formError}
-                        </p>
-                    )}
-                    {templates.error && (
+            <header className="page-head">
+                <div>
+                    <h2>
+                        {summary.data
+                            ? summary.data.projects === 1
+                                ? "1 proyecto"
+                                : `${formatNumber(summary.data.projects)} proyectos`
+                            : "Proyectos"}
+                    </h2>
+                    {summary.data && <p className="page-head-meta">{countsOf(summary.data)}</p>}
+                    {summary.error && (
                         <AsyncStatus
                             loading={false}
-                            error={templates.error}
-                            onRetry={templates.reload}
+                            error={summary.error}
+                            onRetry={summary.reload}
                             isEmpty={false}
                             emptyText=""
                         />
                     )}
+                </div>
+                <div className="page-head-actions">
                     {examples.length > 0 && (
-                        <div className="create-examples">
-                            <h3>O empieza con un ejemplo</h3>
+                        <button
+                            type="button"
+                            className="button-secondary"
+                            aria-expanded={creating === "examples"}
+                            aria-controls="project-create"
+                            onClick={() =>
+                                setCreating(creating === "examples" ? "closed" : "examples")
+                            }
+                        >
+                            Ejemplos
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className="button-lime icon-button"
+                        aria-expanded={creating === "form"}
+                        aria-controls="project-create"
+                        onClick={() => setCreating(creating === "form" ? "closed" : "form")}
+                    >
+                        <Icon name="plus" />
+                        Crear proyecto
+                    </button>
+                </div>
+            </header>
+
+            {creating !== "closed" && (
+                <section id="project-create" className="panel create-panel">
+                    <header className="panel-header">
+                        <h2>{creating === "form" ? "Nuevo proyecto" : "Empezar con un ejemplo"}</h2>
+                        <button
+                            type="button"
+                            className="button-tertiary"
+                            onClick={() => setCreating("closed")}
+                        >
+                            Cancelar
+                        </button>
+                    </header>
+                    {creating === "form" ? (
+                        <>
+                            <form className="form-row" onSubmit={handleCreate}>
+                                <label>
+                                    Nombre
+                                    <input
+                                        autoFocus
+                                        value={name}
+                                        onChange={(event) => setName(event.target.value)}
+                                        maxLength={160}
+                                        required
+                                    />
+                                </label>
+                                <label>
+                                    Ubicación
+                                    <input
+                                        value={location}
+                                        onChange={(event) => setLocation(event.target.value)}
+                                        maxLength={255}
+                                    />
+                                </label>
+                                <label className="field-wide">
+                                    Descripción
+                                    <input
+                                        value={description}
+                                        onChange={(event) => setDescription(event.target.value)}
+                                    />
+                                </label>
+                                <button type="submit" disabled={saving || name.trim() === ""}>
+                                    Crear
+                                </button>
+                            </form>
+                            {formError && (
+                                <p className="message message-error" role="alert">
+                                    {formError}
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <>
                             <p className="message">
                                 Un proyecto ya armado, con su terreno, planos, cuartos y columnas,
                                 que se abre en el modelo 3D. Después se edita como cualquier otro.
@@ -266,82 +268,114 @@ export function ProjectsPage({
                                     </li>
                                 ))}
                             </ul>
-                        </div>
-                    )}
-                    {templateError && (
-                        <p className="message message-error" role="alert">
-                            {templateError}
-                        </p>
+                            {templateError && (
+                                <p className="message message-error" role="alert">
+                                    {templateError}
+                                </p>
+                            )}
+                        </>
                     )}
                 </section>
             )}
-            <Panel
-                title={
-                    projects.data === null
-                        ? "Proyectos"
-                        : items.length === 1
-                          ? "1 proyecto"
-                          : `${items.length} proyectos`
-                }
-                actions={
-                    <div className="filters">
-                        <input
-                            type="search"
-                            placeholder="Buscar por nombre"
-                            aria-label="Buscar por nombre"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                        />
-                        <select
-                            aria-label="Filtrar por estado"
-                            value={status}
-                            onChange={(event) =>
-                                setStatus(event.target.value as ProjectStatus | "")
-                            }
+
+            <section className="list-section" aria-label="Lista de proyectos">
+                <div className="list-toolbar">
+                    <input
+                        type="search"
+                        placeholder="Buscar por nombre"
+                        aria-label="Buscar por nombre"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                    />
+                    <select
+                        aria-label="Filtrar por estado"
+                        value={status}
+                        onChange={(event) => setStatus(event.target.value as ProjectStatus | "")}
+                    >
+                        <option value="">Todos los estados</option>
+                        <option value="draft">Borrador</option>
+                        <option value="active">Activo</option>
+                        <option value="archived">Archivado</option>
+                    </select>
+                    <select
+                        aria-label="Ordenar proyectos"
+                        value={order}
+                        onChange={(event) => setOrder(event.target.value as Order)}
+                    >
+                        <option value="recent">Más recientes</option>
+                        <option value="name">Por nombre</option>
+                    </select>
+                    {filtered && projects.data !== null && (
+                        <span className="list-count" role="status">
+                            {items.length === 1 ? "1 resultado" : `${items.length} resultados`}
+                        </span>
+                    )}
+                    <div className="segmented" role="group" aria-label="Vista de la lista">
+                        <button
+                            type="button"
+                            className="icon-button"
+                            aria-pressed={layout === "grid"}
+                            onClick={() => setLayout("grid")}
                         >
-                            <option value="">Todos</option>
-                            <option value="draft">Borrador</option>
-                            <option value="active">Activo</option>
-                            <option value="archived">Archivado</option>
-                        </select>
-                        <select
-                            aria-label="Ordenar proyectos"
-                            value={order}
-                            onChange={(event) => setOrder(event.target.value as Order)}
+                            <Icon name="grid" />
+                            Cuadrícula
+                        </button>
+                        <button
+                            type="button"
+                            className="icon-button"
+                            aria-pressed={layout === "list"}
+                            onClick={() => setLayout("list")}
                         >
-                            <option value="recent">Más recientes</option>
-                            <option value="name">Por nombre</option>
-                        </select>
-                        <div className="segmented" role="group" aria-label="Vista de la lista">
-                            <button
-                                type="button"
-                                aria-pressed={layout === "grid"}
-                                onClick={() => setLayout("grid")}
-                            >
-                                Cuadrícula
-                            </button>
-                            <button
-                                type="button"
-                                aria-pressed={layout === "list"}
-                                onClick={() => setLayout("list")}
-                            >
-                                Lista
-                            </button>
-                        </div>
+                            <Icon name="rows" />
+                            Lista
+                        </button>
                     </div>
-                }
-            >
+                </div>
+
                 <AsyncStatus
                     loading={projects.loading}
                     error={projects.error}
                     onRetry={projects.reload}
                     isEmpty={items.length === 0}
-                    emptyText="No hay proyectos."
+                    skeleton={layout === "grid" ? "cards" : "rows"}
+                    emptyTitle={filtered ? "Ningún proyecto coincide" : "Todavía no hay proyectos"}
+                    emptyText={
+                        filtered
+                            ? "Prueba con otro nombre o con otro estado."
+                            : "Crea el primero con su nombre; el terreno, los planos y el modelo se agregan después."
+                    }
+                    emptyAction={
+                        filtered ? (
+                            <button
+                                type="button"
+                                className="button-secondary"
+                                onClick={() => {
+                                    setSearch("");
+                                    setStatus("");
+                                }}
+                            >
+                                Quitar los filtros
+                            </button>
+                        ) : (
+                            <button type="button" onClick={() => setCreating("form")}>
+                                Crear el primer proyecto
+                            </button>
+                        )
+                    }
                 />
                 {actionError && (
                     <p className="message message-error" role="alert">
                         {actionError}
                     </p>
+                )}
+                {layout === "list" && items.length > 0 && (
+                    <div className="project-rows-head" aria-hidden="true">
+                        <span />
+                        <span>Proyecto</span>
+                        <span>Ubicación</span>
+                        <span>Estado</span>
+                        <span>Actualizado</span>
+                    </div>
                 )}
                 <ul
                     className={
@@ -352,7 +386,7 @@ export function ProjectsPage({
                 >
                     {items.map((project) => (
                         <li key={project.id} className="project-item">
-                            <ProjectCard project={project} onOpen={onOpenProject} />
+                            <ProjectCard project={project} onOpen={onOpenProject} layout={layout} />
                             <div className="project-actions">
                                 {confirmingId === project.id ? (
                                     <>
@@ -408,7 +442,7 @@ export function ProjectsPage({
                         </li>
                     ))}
                 </ul>
-            </Panel>
+            </section>
         </>
     );
 }
