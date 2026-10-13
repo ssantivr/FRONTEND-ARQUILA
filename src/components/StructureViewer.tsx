@@ -61,6 +61,7 @@ import { ScenePanel } from "./viewer/ScenePanel";
 import { StatusBar } from "./viewer/StatusBar";
 import { Toolbar } from "./viewer/Toolbar";
 import { ViewBar } from "./viewer/ViewBar";
+import { ViewGizmo, type OrbitListener } from "./viewer/ViewGizmo";
 import { KIND_LABELS, VIEWS, itemLabel, type SaveState } from "./viewer/labels";
 
 const TABLET_QUERY = "(min-width: 721px) and (max-width: 1024px)";
@@ -201,6 +202,7 @@ export function StructureViewer({
     const [layers, setLayers] = useState(ALL_LAYERS);
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
+    const orbitListener = useRef<OrbitListener | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [saving, setSaving] = useState<SaveState>("idle");
     const [projection, setProjection] = useState<Projection>("perspective");
@@ -456,6 +458,7 @@ export function StructureViewer({
             viewer.current = createStructureViewer(container.current, {
                 onSelect: (key) => selectByKey.current(key),
                 onZoom: setZoom,
+                onOrbit: (azimuth, elevation) => orbitListener.current?.(azimuth, elevation),
                 onAsset: setAssetState,
             });
         } catch {
@@ -923,6 +926,7 @@ export function StructureViewer({
                         </details>
                     </aside>
                 </div>
+                <ViewGizmo listener={orbitListener} />
                 <Toolbar
                     onReset={() => chooseView(view)}
                     onFullscreen={toggleFullscreen}

@@ -257,6 +257,8 @@ export interface StructureViewer {
 export interface ViewerEvents {
     onSelect: (key: string | null) => void;
     onZoom: (percent: number) => void;
+    /** Where the camera looks, in whole degrees: around the vertical axis, and above the horizon. */
+    onOrbit: (azimuth: number, elevation: number) => void;
     onAsset: (state: "ready" | "error") => void;
 }
 
@@ -752,6 +754,8 @@ export function createStructureViewer(
     const orthographic = new OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
     let projection: Projection = "perspective";
 
+    const gaze = new Vector3();
+    let lastOrbit = "";
     const rig = createCameraRig(camera, canvas, handleCameraChange);
     const cutPlane = new Plane(new Vector3(0, -1, 0), CUT_DISABLED_M);
     const cutPlanes = [cutPlane];
@@ -1530,9 +1534,23 @@ export function createStructureViewer(
         invalidate();
     }
 
+    function reportOrbit(): void {
+        camera.getWorldDirection(gaze);
+
+        const azimuth = Math.round(MathUtils.radToDeg(Math.atan2(gaze.x, gaze.z)));
+        const elevation = Math.round(MathUtils.radToDeg(Math.asin(MathUtils.clamp(gaze.y, -1, 1))));
+        const orbit = `${azimuth}/${elevation}`;
+
+        if (orbit !== lastOrbit) {
+            lastOrbit = orbit;
+            events.onOrbit(azimuth, elevation);
+        }
+    }
+
     function handleCameraChange(): void {
         dirty = true;
         reportZoom();
+        reportOrbit();
     }
 
     const observer = new ResizeObserver(resize);

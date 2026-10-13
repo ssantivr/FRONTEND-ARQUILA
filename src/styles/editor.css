@@ -317,3 +317,51 @@
         min-width: 44px;
     }
 }
+
+/* ---- Orientation gizmo: the axes of the plan, turning with the camera ---- */
+
+.hud-gizmo {
+    grid-area: 2 / 2;
+    align-self: end;
+    justify-self: start;
+    width: 72px;
+    height: 72px;
+    pointer-events: none;
+}
+
+.hud-gizmo-disc {
+    fill: rgba(8, 22, 16, 0.72);
+    stroke: rgba(255, 255, 255, 0.14);
+}
+
+.hud-gizmo line {
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.hud-gizmo text {
+    fill: #06110c;
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.hud-gizmo-x :is(line, circle) {
+    stroke: #ff8a80;
+    fill: #ff8a80;
+}
+
+.hud-gizmo-y :is(line, circle) {
+    stroke: #8ab4ff;
+    fill: #8ab4ff;
+}
+
+.hud-gizmo-z :is(line, circle) {
+    stroke: var(--lime);
+    fill: var(--lime);
+}
+
+@media (max-width: 720px) {
+    .hud-gizmo {
+        display: none;
+    }
+}
