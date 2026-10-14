@@ -88,6 +88,32 @@ export default defineConfig(({ mode }) => ({
         },
     },
     test: {
+        // The browser flows in e2e/ are run by Playwright, not by Vitest.
+        exclude: ["node_modules/**", "dist/**", "e2e/**"],
+        coverage: {
+            provider: "v8",
+            include: ["src/**/*.{ts,tsx}"],
+            exclude: [
+                "src/**/*.test.{ts,tsx}",
+                "src/test/**",
+                "src/main.tsx",
+                // WebGL scenes: jsdom cannot run them, and they are checked in a real browser
+                // by `npm run capturas`. Their pure helpers do have unit tests.
+                "src/three/**",
+                // Development-only page.
+                "src/pages/DesignSystemPage.tsx",
+                "src/components/MotionDemos.tsx",
+                "src/types/**",
+            ],
+            reporter: ["text-summary", "html"],
+            // Set a little under what the suite reaches today, so coverage can only go up.
+            thresholds: {
+                statements: 60,
+                branches: 58,
+                functions: 53,
+                lines: 60,
+            },
+        },
         projects: [
             {
                 extends: true,
