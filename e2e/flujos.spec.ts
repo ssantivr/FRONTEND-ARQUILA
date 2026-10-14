@@ -116,3 +116,69 @@ test.describe("ver el modelo 3D", () => {
         });
     });
 });
+
+test.describe("tema y paleta de comandos", () => {
+    test("cambia de tema con el botón y con la paleta, y lo recuerda al volver", async ({
+        page,
+    }) => {
+        await page.emulateMedia({ colorScheme: "dark" });
+        await mockApi(page);
+        await page.goto("/");
+        await expect(page.getByRole("heading", { name: /Hola/ })).toBeVisible();
+
+        const root = page.locator("html");
+        const body = page.locator("body");
+
+        // With no choice saved, the app follows the system.
+        await expect(root).toHaveAttribute("data-theme", "dark");
+        const dark = await body.evaluate((element) => getComputedStyle(element).backgroundColor);
+
+        await page.getByRole("button", { name: "Modo claro" }).click();
+        await expect(root).toHaveAttribute("data-theme", "light");
+        await expect(page.getByRole("button", { name: "Modo oscuro" })).toHaveAttribute(
+            "aria-pressed",
+            "false",
+        );
+        // The colours settle a frame or two after the attribute changes.
+        await expect(body).not.toHaveCSS("background-color", dark);
+
+        // The choice outlives a reload, even though the system still asks for dark.
+        await page.reload();
+        await expect(page.getByRole("heading", { name: /Hola/ })).toBeVisible();
+        await expect(root).toHaveAttribute("data-theme", "light");
+
+        const palette = page.getByRole("dialog", { name: "Paleta de comandos" });
+
+        await page.keyboard.press("Control+K");
+        await expect(palette).toBeVisible();
+        await palette.getByRole("combobox").fill("modo oscuro");
+        await palette.getByRole("option", { name: "Cambiar al modo oscuro" }).click();
+
+        await expect(palette).toBeHidden();
+        await expect(root).toHaveAttribute("data-theme", "dark");
+        await expect(body).toHaveCSS("background-color", dark);
+    });
+
+    test("se abre y se cierra con Ctrl+K y con Cmd+K", async ({ page }) => {
+        await mockApi(page);
+        await page.goto("/");
+        await expect(page.getByRole("heading", { name: /Hola/ })).toBeVisible();
+
+        const palette = page.getByRole("dialog", { name: "Paleta de comandos" });
+
+        for (const shortcut of ["Control+K", "Meta+K"]) {
+            await page.keyboard.press(shortcut);
+            await expect(palette).toBeVisible();
+            await expect(palette.getByRole("combobox")).toBeFocused();
+
+            await page.keyboard.press(shortcut);
+            await expect(palette).toBeHidden();
+        }
+
+        // Escape closes it too.
+        await page.keyboard.press("Control+K");
+        await expect(palette).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(palette).toBeHidden();
+    });
+});
