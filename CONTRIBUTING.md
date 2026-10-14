@@ -8,7 +8,7 @@ Los comandos exactos para comprobar en local lo mismo que comprueba CI (`.github
 npm ci
 ```
 
-`npm ci` termina con un aviso sobre `esbuild@0.25.12 (postinstall: node install.js)`. npm 11 bloquea por defecto los scripts de instalación de las dependencias que no estén aprobados en el campo `allowScripts` de `package.json`. Es un aviso conocido y no hace falta hacer nada: esbuild trae su binario en `@esbuild/<plataforma>` y funciona sin ese script (ver `docs/DECISIONES.md`).
+npm 11 bloquea por defecto los scripts de instalación de las dependencias que no estén aprobados en el campo `allowScripts` de `package.json`. Está aprobado solo `esbuild@0.25.12`. Si una actualización trae otra versión de esbuild, `npm ci` vuelve a avisar: hay que revisarla y cambiar la versión en `allowScripts` a mano. No uses `npm install-scripts approve --dry-run`, que en npm 11.19.0 sí escribe en `package.json` (ver `docs/DECISIONES.md`).
 
 Las variables de entorno están en `.env.example`. Para desarrollar no hace falta ninguna: `/api` se reenvía a `http://localhost:8000`.
 

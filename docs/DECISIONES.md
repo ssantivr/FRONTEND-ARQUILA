@@ -104,12 +104,12 @@ Un retiro medido desde el lindero da una esquina redonda junto a un vértice ent
 
 Para que «0.60» vuelva como «0.60» y no como «0.6» mientras se escribe.
 
-### Aviso de `allowScripts` para esbuild (14 de octubre, aviso conocido)
+### `allowScripts` para esbuild (14 de octubre, aprobado)
 
 `npm ci` termina con «1 package has install scripts not yet covered by allowScripts: esbuild@0.25.12 (postinstall: node install.js)». Según la documentación de nuestra versión (npm 11.19.0, `docs/content/commands/npm-install-scripts.md` y `using-npm/config.md`), npm 11 bloquea por defecto los scripts de instalación de las dependencias. Solo los ejecuta para las que aprueba el campo `allowScripts` de `package.json`, que se mantiene con `npm install-scripts approve <paquete>`, y por defecto fija la versión (`esbuild@0.25.12`).
 
 - **esbuild funciona sin su script.** `npx esbuild --version` da `0.25.12`, y `vite build` y Vitest pasan en Windows y en Linux. El binario llega por la dependencia opcional `@esbuild/<plataforma>`. `install.js` solo lo comprueba y lo deja a mano.
-- **La aprobación existe y está documentada**, pero cambia `package.json`, así que queda pendiente de aprobación. Sería este bloque al final de `package.json`:
+- **Aprobado y aplicado** el 14 de octubre, ligado a la versión exacta. Se escribió a mano, sin `npm install-scripts approve`, por lo de `--dry-run` de abajo. Con él, `npm ci` ya no avisa y el `postinstall` de esbuild corre. Es este bloque al final de `package.json`:
 
     ```diff
          "vitest": "5.0.3"
