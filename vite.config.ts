@@ -112,6 +112,29 @@ export default defineConfig(({ mode }) => ({
                 branches: 58,
                 functions: 53,
                 lines: 60,
+                // The code that every screen trusts for its figures, its errors and its session:
+                // never under 80 %, each one at what it reaches today, rounded down.
+                "src/utils/geometry.ts": {
+                    statements: 98,
+                    branches: 97,
+                    functions: 100,
+                    lines: 98,
+                },
+                "src/utils/building.ts": { 100: true },
+                "src/utils/elevations.ts": {
+                    statements: 95,
+                    branches: 89,
+                    functions: 100,
+                    lines: 95,
+                },
+                "src/utils/errors.ts": { 100: true },
+                "src/state/appState.ts": {
+                    statements: 96,
+                    branches: 100,
+                    functions: 94,
+                    lines: 96,
+                },
+                "src/services/http.ts": { statements: 95, branches: 97, functions: 90, lines: 95 },
             },
         },
         projects: [
