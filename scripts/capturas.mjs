@@ -37,9 +37,10 @@ const SCREENS = [
     ["tareas", "/tareas"],
     ["configuracion", "/configuracion"],
 ];
+// The three widths of the delivery: a laptop, a tablet held upright and a phone.
 const SIZES = {
-    escritorio: { width: 1440, height: 900 },
-    tablet: { width: 1024, height: 768 },
+    escritorio: { width: 1280, height: 800 },
+    tablet: { width: 820, height: 1180 },
     movil: { width: 390, height: 844 },
 };
 
