@@ -48,7 +48,20 @@ import { App } from "./App";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 
-if (container) {
+// `npm run demo` answers the API in the browser before the first request. The mode is a
+// constant of the build, so in any other mode this import is dropped with the branch.
+const ready =
+    import.meta.env.MODE === "demo"
+        ? import("./demo/start").then(({ startDemo }) => startDemo())
+        : Promise.resolve();
+
+void ready.then(render);
+
+function render() {
+    if (!container) {
+        return;
+    }
+
     createRoot(container).render(
         <StrictMode>
             {/* Without its own transitions the router updates at once, which a view transition

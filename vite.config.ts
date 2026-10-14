@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
+
 import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
-import { loadEnv } from "vite";
+import { loadEnv, type Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 const DEFAULT_PROXY_TARGET = "http://localhost:8000";
@@ -15,6 +17,23 @@ const DEFAULT_PROXY_TARGET = "http://localhost:8000";
  * - `charts`: Recharts and the d3 pieces it brings, for the cost chart.
  * - `geometry`: polygon-clipping, for the buildable area and the overlap of rooms.
  */
+/**
+ * `npm run demo`: serves MSW's worker script from node_modules. It is not copied to public/, so
+ * it never ships with a build.
+ */
+function demoWorker(): Plugin {
+    return {
+        name: "arquila-demo-worker",
+        apply: "serve",
+        configureServer(server) {
+            server.middlewares.use("/mockServiceWorker.js", (_request, response) => {
+                response.setHeader("Content-Type", "text/javascript");
+                response.end(readFileSync("node_modules/msw/lib/mockServiceWorker.js"));
+            });
+        },
+    };
+}
+
 function chunkOf(id: string): string | undefined {
     if (!id.includes("node_modules")) {
         return undefined;
@@ -62,6 +81,7 @@ function chunkOf(id: string): string | undefined {
 export default defineConfig(({ mode }) => ({
     plugins: [
         react(),
+        ...(mode === "demo" ? [demoWorker()] : []),
         // `npm run analizar` writes dist/bundle.html, a map of what each file of the build weighs.
         ...(process.env.ANALYZE === "1"
             ? [visualizer({ filename: "dist/bundle.html", gzipSize: true, template: "treemap" })]
@@ -97,6 +117,8 @@ export default defineConfig(({ mode }) => ({
                 "src/**/*.test.{ts,tsx}",
                 "src/test/**",
                 "src/main.tsx",
+                // Only `npm run demo` loads it.
+                "src/demo/**",
                 // WebGL scenes: jsdom cannot run them, and they are checked in a real browser
                 // by `npm run capturas`. Their pure helpers do have unit tests.
                 "src/three/**",
