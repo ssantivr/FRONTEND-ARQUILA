@@ -15,7 +15,7 @@ import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi } from "../services/api";
 import { showToast } from "../state/toasts";
 import type { Project, ProjectStatus, User } from "../types/api";
-import type { SectionId } from "./ProjectDetailPage";
+import type { SectionId } from "./sections";
 import { formatDate, formatMoney, formatNumber } from "../utils/format";
 
 const RECENT_PROJECTS = 8;

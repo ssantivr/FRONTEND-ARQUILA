@@ -13,28 +13,41 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GlobalSearch } from "./components/GlobalSearch";
 import { Icon } from "./components/Icon";
 import { Panel } from "./components/ui/Panel";
+import { Skeleton } from "./components/ui/Skeleton";
 import { Toasts } from "./components/Toasts";
 import { MODULES, Sidebar, type View } from "./components/Sidebar";
 import { errorMessage } from "./hooks/useAsync";
 import { HomePage } from "./pages/HomePage";
-import { LightingPage } from "./pages/LightingPage";
 import { LoginPage } from "./pages/LoginPage";
-import { MaterialsPage } from "./pages/MaterialsPage";
-import { PlansPage } from "./pages/PlansPage";
-import { ProjectDetailPage, SECTIONS, type SectionId } from "./pages/ProjectDetailPage";
-import { ProjectToolPage } from "./pages/ProjectToolPage";
+import { SECTIONS, type SectionId } from "./pages/sections";
 import { ProjectsPage } from "./pages/ProjectsPage";
-import { RenderPage } from "./pages/RenderPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { TasksPage } from "./pages/TasksPage";
-import { TerrainsPage } from "./pages/TerrainsPage";
 import { canonicalPath, parsePath, projectPath, viewPath } from "./routes";
 import { authApi } from "./services/api";
 import { setTheme, useTheme } from "./state/theme";
 import { withViewTransition } from "./state/viewTransition";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
+
+// Only the screens someone lands on (home, sign-in, the list of projects) come with the app.
+// Each of the others is a file of its own that the browser asks for when it is opened, so the
+// first load does not carry the plans, the charts or the geometry of screens not yet visited.
+function page<Name extends string, Props>(
+    load: () => Promise<Record<Name, React.ComponentType<Props>>>,
+    name: Name,
+) {
+    return lazy(() => load().then((module) => ({ default: module[name] })));
+}
+
+const ProjectDetailPage = page(() => import("./pages/ProjectDetailPage"), "ProjectDetailPage");
+const LightingPage = page(() => import("./pages/LightingPage"), "LightingPage");
+const MaterialsPage = page(() => import("./pages/MaterialsPage"), "MaterialsPage");
+const PlansPage = page(() => import("./pages/PlansPage"), "PlansPage");
+const ProjectToolPage = page(() => import("./pages/ProjectToolPage"), "ProjectToolPage");
+const RenderPage = page(() => import("./pages/RenderPage"), "RenderPage");
+const SettingsPage = page(() => import("./pages/SettingsPage"), "SettingsPage");
+const TasksPage = page(() => import("./pages/TasksPage"), "TasksPage");
+const TerrainsPage = page(() => import("./pages/TerrainsPage"), "TerrainsPage");
 
 const InteriorPage = lazy(() =>
     import("./pages/InteriorPage").then((module) => ({ default: module.InteriorPage })),
@@ -427,7 +440,11 @@ export function App() {
                         <ErrorBoundary
                             key={`${view ?? location.pathname}-${project?.id ?? "none"}`}
                         >
-                            {renderView(session.user)}
+                            <Suspense
+                                fallback={<Skeleton shape="cards" label="Cargando la pantalla…" />}
+                            >
+                                {renderView(session.user)}
+                            </Suspense>
                         </ErrorBoundary>
                     </main>
                 </div>

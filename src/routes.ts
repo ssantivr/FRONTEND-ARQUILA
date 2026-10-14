@@ -1,5 +1,5 @@
 import type { View } from "./components/Sidebar";
-import type { SectionId } from "./pages/ProjectDetailPage";
+import type { SectionId } from "./pages/sections";
 
 /** One address per screen. The words are Spanish because the user reads them in the URL bar. */
 const VIEW_PATHS: Record<View, string> = {

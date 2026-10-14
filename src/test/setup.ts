@@ -1,7 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterEach } from "vitest";
+
+// Screens are loaded on demand: the first test that opens one waits for its file as well.
+configure({ asyncUtilTimeout: 5000 });
 
 afterEach(() => {
     cleanup();

@@ -21,6 +21,7 @@ import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { SaveStatusProvider } from "../state/saveStatus";
 import { projectPath, viewPath } from "../routes";
+import { SECTIONS, type SectionId } from "./sections";
 import { filesApi, projectsApi, undoApi } from "../services/api";
 import { undoLastDeletion } from "../services/terrainUndo";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
@@ -310,19 +311,7 @@ export function ProjectDetailPage({
     );
 }
 
-export type SectionId =
-    "terrain" | "plans" | "model" | "elevations" | "materials" | "analysis" | "files" | "assistant";
-
-export const SECTIONS: { id: SectionId; label: string }[] = [
-    { id: "terrain", label: "Terreno" },
-    { id: "plans", label: "Planos" },
-    { id: "model", label: "Modelo 3D" },
-    { id: "elevations", label: "Elevaciones" },
-    { id: "materials", label: "Materiales" },
-    { id: "analysis", label: "Análisis" },
-    { id: "files", label: "Archivos" },
-    { id: "assistant", label: "Asistente IA" },
-];
+export type { SectionId };
 
 /** What the assistant is asked first from each tab: it is about what is on screen. */
 const SECTION_QUESTIONS: Record<Exclude<SectionId, "assistant">, readonly string[]> = {
