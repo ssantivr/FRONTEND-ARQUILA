@@ -129,7 +129,10 @@ describe("LiveForm", () => {
                     <button type="button" onClick={() => setName("")}>
                         Cancelar
                     </button>
-                    <a href="/otra">Otra parte</a>
+                    {/* Only somewhere to move to: jsdom cannot open another page. */}
+                    <a href="/otra" onClick={(event) => event.preventDefault()}>
+                        Otra parte
+                    </a>
                 </LiveForm>
             );
         }

@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { silenceExpectedError } from "../test/expectedError";
 import CostChart from "./CostChart";
 
 describe("CostChart", () => {
@@ -33,7 +34,7 @@ describe("CostSummary", () => {
                 throw new Error("sin gráfico");
             },
         }));
-        const silence = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const restore = silenceExpectedError("sin gráfico");
         const { CostSummary: Summary } = await import("./CostSummary");
 
         render(
@@ -48,7 +49,7 @@ describe("CostSummary", () => {
         expect(item).toHaveTextContent("Estructura");
         expect(item).toHaveTextContent("41 %");
 
-        silence.mockRestore();
+        restore();
         vi.doUnmock("./CostChart");
     });
 });

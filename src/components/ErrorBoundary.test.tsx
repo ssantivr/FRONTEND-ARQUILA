@@ -1,10 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { silenceExpectedError } from "../test/expectedError";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 let broken = true;
+let restore: () => void;
 
 function Screen() {
     if (broken) {
@@ -17,11 +19,11 @@ function Screen() {
 beforeEach(() => {
     broken = true;
     // React reports the caught error on the console; the test output stays readable without it.
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    restore = silenceExpectedError("boom");
 });
 
 afterEach(() => {
-    vi.restoreAllMocks();
+    restore();
 });
 
 describe("ErrorBoundary", () => {
