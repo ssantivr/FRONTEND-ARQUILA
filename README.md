@@ -76,6 +76,7 @@ src/
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Servidor de desarrollo. |
+| `npm run demo` | La app con los datos de muestra de Casa Mirador y sin backend, en http://localhost:5174/ (MSW). |
 | `npm run build` | Comprueba los tipos y compila en `dist/`. |
 | `npm run preview` | Sirve la compilación. |
 | `npm test` | Pruebas. |

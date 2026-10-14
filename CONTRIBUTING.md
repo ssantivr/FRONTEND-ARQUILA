@@ -23,6 +23,14 @@ npm run local:wasm
 
 `local:wasm` (`scripts/local-wasm.mjs`) cambia `node_modules/rollup` por `@rollup/wasm-node` de la misma versión, que es el mismo Rollup compilado a WebAssembly. No cambia ningún archivo del repositorio: `package.json` y `package-lock.json` siguen con el Rollup nativo que usan CI y Vercel, y el siguiente `npm ci` lo vuelve a poner. Fuera de Windows no hace nada. Si `git status` muestra cambios en esos dos archivos después de usarlo, algo salió mal: no los subas.
 
+## Ver la app sin backend
+
+```sh
+npm run demo
+```
+
+Abre http://localhost:5174/ con la sesión iniciada y los datos de muestra de Casa Mirador. MSW responde la API dentro del navegador. Lo que se crea o se borra dura hasta recargar la página. Para volver a entrar después de cerrar sesión sirve cualquier correo y cualquier contraseña.
+
 ## Comprobar todo, en el orden de CI
 
 ```sh

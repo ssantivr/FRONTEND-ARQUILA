@@ -132,9 +132,14 @@ Los umbrales globales (60 % de líneas) no protegen el código del que dependen 
 
 Espiar `console.error` no basta: en modo desarrollo React 18 vuelve a lanzar el error capturado dentro de un evento de jsdom, y jsdom lo imprime con toda su pila si nadie cancela el evento. `src/test/expectedError.ts` cancela ese evento y calla `console.error` solo cuando el mensaje es el que la prueba provoca. Callar todo habría escondido un fallo real.
 
-### Datos de muestra sin MSW (14 de octubre)
+### Datos de muestra: MSW para la demo, Playwright para las pruebas (14 de octubre)
 
-Las capturas, las comprobaciones del navegador y los flujos e2e responden la API desde Playwright (`page.route`) con `scripts/datos-de-muestra.mjs`. No se añadió MSW: haría lo mismo con una dependencia nueva fuera de la lista aprobada y un service worker en `public/`. Si hiciera falta navegar la app a mano sin backend, MSW sería la herramienta, pero hay que aprobarla antes.
+MSW se aprobó el 14 de octubre para `npm run demo`: la app en el navegador con Casa Mirador y sin backend. Se fijó en **2.15.0**. La 3.x es una versión mayor de finales de septiembre y su 3.0.3 tenía cuatro días.
+
+- **Una sola API de muestra.** `scripts/api-de-muestra.mjs` guarda la sesión y los proyectos creados, y responde con `datos-de-muestra.mjs`. La usan MSW (`src/demo/start.ts`) y Playwright (`e2e/api.ts`), así que la demo y las pruebas ven lo mismo.
+- **Las pruebas y las capturas siguen con Playwright** (`page.route`) y no se migraron a MSW. `page.route` responde desde la primera petición de cada contexto. Con MSW, cada contexto nuevo tendría que registrar el service worker y esperar a que controle la página antes de pedir nada. Además, `movimiento.mjs` mete un retraso fijo que con `page.route` es una línea.
+- **Nada llega a producción.** `main.tsx` solo importa la demo cuando `MODE === "demo"`, que es una constante del build. El worker (`mockServiceWorker.js`) no se copia a `public/`: lo sirve un plugin del servidor de desarrollo, solo en ese modo. Se comprobó que `dist/` no contiene `setupWorker`, ni los datos de muestra, ni el worker.
+- **El script de instalación de MSW está denegado** (`"msw": false` en `allowScripts`): solo copia el worker a la carpeta que se le configure, y aquí no hace falta.
 
 ### Capturas a 1280, 820 y 390 px (14 de octubre)
 
