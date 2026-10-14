@@ -20,9 +20,17 @@ Decisiones tomadas durante el rediseño y su motivo. Las de la interfaz en sí (
 
 Smart App Control bloquea `rollup.win32-x64-msvc.node`, que no está firmado, y ni Vitest ni `vite build` arrancan. El override de `package.json` cambia `rollup` por `@rollup/wasm-node` 4.64.0. Va en un commit aparte para revertirlo antes de fusionar o desplegar.
 
+**Sustituida el 14 de octubre por `npm run local:wasm`.** El override viajaba en `package.json` y en `package-lock.json` hacia CI y Vercel, y revertirlo ya no era limpio: los commits posteriores también tocaron el lockfile, y `git revert` choca en él. Se consideraron tres salidas:
+
+- Un archivo ignorado por git: npm no lee `overrides` de `.npmrc` ni de otro archivo que no sea `package.json`.
+- `git update-index --skip-worktree` sobre los dos archivos: esconde el cambio, pero se puede confirmar por accidente y rompe los `pull` que toquen esos archivos.
+- Un script que cambie `node_modules/rollup` después de instalar. **Elegida**, porque es la única en la que el repositorio queda exactamente como lo usan CI y Vercel. El cambio vive solo en `node_modules`, el siguiente `npm ci` lo deshace y fuera de Windows el script no hace nada. Toma la versión de Rollup instalada, así que sigue sirviendo cuando Dependabot la suba.
+
 ### Commits con `--no-verify` (fase 0)
 
 El hook de pre-commit es un guion de `sh` y git no puede lanzarlo («cannot spawn .git/hooks/pre-commit»), por el mismo bloqueo. El hook solo pasa Prettier por `src/`, `vite.config.ts` y `eslint.config.js`. Antes de cada commit se ejecuta `npm run format:check`, que comprueba esos mismos archivos, y se confirma con `--no-verify`.
+
+**Ya no hace falta desde el 14 de octubre:** el hook vuelve a ejecutarse y los commits de esa sesión pasaron por él, sin `--no-verify`.
 
 ### `save-exact` en `.npmrc` (fase 0)
 
@@ -95,3 +103,39 @@ Un retiro medido desde el lindero da una esquina redonda junto a un vértice ent
 ### Los máximos de COS y CUS se guardan como texto (fase 4)
 
 Para que «0.60» vuelva como «0.60» y no como «0.6» mientras se escribe.
+
+### Aviso de `allowScripts` para esbuild (14 de octubre, aviso conocido)
+
+`npm ci` termina con «1 package has install scripts not yet covered by allowScripts: esbuild@0.25.12 (postinstall: node install.js)». Según la documentación de nuestra versión (npm 11.19.0, `docs/content/commands/npm-install-scripts.md` y `using-npm/config.md`), npm 11 bloquea por defecto los scripts de instalación de las dependencias. Solo los ejecuta para las que aprueba el campo `allowScripts` de `package.json`, que se mantiene con `npm install-scripts approve <paquete>`, y por defecto fija la versión (`esbuild@0.25.12`).
+
+- **esbuild funciona sin su script.** `npx esbuild --version` da `0.25.12`, y `vite build` y Vitest pasan en Windows y en Linux. El binario llega por la dependencia opcional `@esbuild/<plataforma>`. `install.js` solo lo comprueba y lo deja a mano.
+- **La aprobación existe y está documentada**, pero cambia `package.json`, así que queda pendiente de aprobación. Sería este bloque al final de `package.json`:
+
+    ```diff
+         "vitest": "5.0.3"
+    -    }
+    +    },
+    +    "allowScripts": {
+    +        "esbuild@0.25.12": true
+    +    }
+     }
+    ```
+
+    Al ir fijado a la versión, cuando Dependabot suba Vite y con él esbuild, el aviso volverá hasta aprobar la versión nueva. Para aprobar cualquier versión: `--no-allow-scripts-pin` (`"esbuild": true`).
+- **Cuidado con `--dry-run`:** en npm 11.19.0, `npm install-scripts approve esbuild --dry-run` **sí escribió** el bloque en `package.json`, aunque la documentación dice que no cambia nada. Se deshizo a mano. Para ver qué falta sin tocar nada, usar `npm install-scripts ls`.
+
+### Umbrales de cobertura por archivo (14 de octubre)
+
+Los umbrales globales (60 % de líneas) no protegen el código del que dependen las cifras: una utilidad podía perder pruebas mientras otra pantalla las ganaba. `geometry`, `building`, `elevations`, `errors`, `appState` y `services/http` tienen cada una el suyo en `vite.config.ts`, en lo que alcanzan hoy redondeado hacia abajo (de 89 % a 100 %). Ninguno está por debajo del 80 %, y ninguno se baja.
+
+### Callar solo el error esperado en las pruebas (14 de octubre)
+
+Espiar `console.error` no basta: en modo desarrollo React 18 vuelve a lanzar el error capturado dentro de un evento de jsdom, y jsdom lo imprime con toda su pila si nadie cancela el evento. `src/test/expectedError.ts` cancela ese evento y calla `console.error` solo cuando el mensaje es el que la prueba provoca. Callar todo habría escondido un fallo real.
+
+### Datos de muestra sin MSW (14 de octubre)
+
+Las capturas, las comprobaciones del navegador y los flujos e2e responden la API desde Playwright (`page.route`) con `scripts/datos-de-muestra.mjs`. No se añadió MSW: haría lo mismo con una dependencia nueva fuera de la lista aprobada y un service worker en `public/`. Si hiciera falta navegar la app a mano sin backend, MSW sería la herramienta, pero hay que aprobarla antes.
+
+### Capturas a 1280, 820 y 390 px (14 de octubre)
+
+Las de la entrega, como decía la decisión 8. Antes eran 1440 × 900 y 1024 × 768. La tablet se toma en vertical (820 × 1180), que es como se usa al revisar planos.

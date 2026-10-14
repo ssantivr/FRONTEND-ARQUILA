@@ -39,3 +39,10 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
 - **Ruta:** `GET /projects/{id}/structure` (la misma).
 - **Respuesta:** cada elemento de `terrains` añadiría `slope_percent: number | null`.
 - **Mientras tanto:** si el campo no viene, la interfaz pide `GET /projects/{id}/terrains` y lo toma de ahí; cuando venga, deja de pedirlo sola.
+
+## 6. La API, en el mismo origen o por HTTPS
+
+- **Para qué:** que el navegador deje hablar a la interfaz con la API. `vercel.json` envía una Content-Security-Policy con `connect-src 'self' https:`.
+- **Ruta:** ninguna nueva. Hoy no hace falta cambiar nada: en Vercel, `/api/*` se reescribe hacia `https://arquila-backend.vercel.app`, así que el navegador la ve en el mismo origen.
+- **Qué lo rompería:** apuntar `VITE_API_URL` a una API por `http://` en otro dominio. Si algún día se llama a la API directamente desde otro dominio, el backend tendrá que aceptar CORS con credenciales para ese origen, porque las peticiones van con `credentials: "include"`.
+- **Mientras tanto:** nada que hacer.

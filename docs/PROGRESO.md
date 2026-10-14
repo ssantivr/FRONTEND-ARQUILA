@@ -12,11 +12,11 @@ Memoria de trabajo de la rama `rediseno-ui`. Se actualiza al cerrar cada fase, p
 | 3. Pantallas | Obligatorio | Hecha |
 | 3b. Animaciones básicas (F1 y F2) | Obligatorio | Hecha y revisada |
 | 4. Correcciones | Obligatorio | Hecha |
-| 5. Datos | Deseable | En curso |
+| 5. Datos | Deseable | En curso (datos de muestra de Casa Mirador hechos) |
 | 6. Producto | Deseable | Pendiente |
-| 6b. Animaciones expresivas (F3) y selector de movimiento | Deseable | Pendiente |
-| 7. Calidad | Obligatorio | Pendiente |
-| 8. Entrega | Obligatorio | Pendiente |
+| 6b. Animaciones expresivas (F3) y selector de movimiento | Deseable | Pendiente: falta recibir la especificación de F3 y del selector |
+| 7. Calidad | Obligatorio | En curso: CI, cobertura, e2e, carga bajo demanda y cabeceras hechos; falta la revisión independiente |
+| 8. Entrega | Obligatorio | Pendiente (capturas a 1280, 820 y 390 px ya regeneradas) |
 
 Opcional (Sentry, Storybook, Docker, Web Worker, Lighthouse CI): sin empezar.
 
@@ -26,7 +26,7 @@ Revisión independiente: al cerrar las fases 2, 3b y 7.
 
 ## Antes de fusionar o desplegar
 
-- **Revertir el commit `chore(local): rollup wasm por Smart App Control`.** CI y Vercel usan Linux con el Rollup nativo.
+- ~~Revertir el commit `chore(local): rollup wasm por Smart App Control`~~. Ya no hace falta: `546f590` sacó el override del repositorio (ver la sesión del 14 de octubre). El commit `06851ba` sigue en el historial, pero desde `546f590` ni `package.json` ni `package-lock.json` lo llevan.
 - Nada se ha subido a `origin`. No subir sin autorización.
 
 ## Respaldos
@@ -198,9 +198,55 @@ Resultado: `format:check` y `lint` limpios, `Test Files 49 passed (49)`, `Tests 
 
 Sin regenerar: las capturas de `docs/capturas/` son de la fase 3b. Se rehacen todas en la fase 8, con los datos de Casa Mirador.
 
+## Sesión del 14 de octubre de 2026: cierre de pendientes
+
+Al empezar había 15 archivos modificados y 7 nuevos sin confirmar, de trabajo de las fases 5 y 7. Se repartieron en commits por tema y se cerró lo que quedaba a la vista. No hubo revisión independiente en esta sesión: la siguiente toca al cerrar la fase 7.
+
+| Commit | Qué |
+|---|---|
+| `d83fd55` build(deps) | Playwright, cobertura v8, jest-axe y el visor del paquete |
+| `152aa93` feat(muestra) | Datos de muestra de Casa Mirador (fase 5) |
+| `274bc00` perf(carga) | Pantallas bajo demanda y bibliotecas en archivos propios |
+| `4330776` test | Cobertura con umbrales, axe en unitarias y flujos e2e en CI |
+| `dee75a3` feat(seo) | Título y vista previa Open Graph |
+| `12c41eb` chore(seguridad) | CSP y cabeceras en Vercel |
+| `295b661` ci(deps) | Dependabot |
+| `546f590` build(local) | Fuera el override de Rollup WASM; `npm run local:wasm` en su lugar |
+| `5bf4140` test(cobertura) | Umbrales por archivo para las utilidades críticas |
+| `e35dd0e` test | Solo se callan los errores esperados en la salida de las pruebas |
+| `12363af` test(e2e) | Cambio de tema y paleta con Ctrl+K y Cmd+K |
+
+- **Override de Rollup.** El commit `06851ba` no se podía revertir sin conflictos: probado con `git revert --no-commit` en un worktree aparte, choca en `package-lock.json`. Se sacó del repositorio (`546f590`) y se sustituyó por `npm run local:wasm`, que cambia `node_modules/rollup` solo en el equipo que lo necesite. Con el lockfile nuevo (Rollup 4.64.6), el binario nativo carga en este equipo y no hace falta el script, aunque el registro marca Smart App Control como activo.
+- **CI sin el override, en Linux.** Clon limpio de la rama en WSL2 (Ubuntu 26.04, Node 24.22.0 para Linux): los siete pasos del job `frontend` y los 6 flujos del job `e2e` pasan, con `rollup-linux-x64-gnu`. No es idéntico a GitHub Actions: `ubuntu-latest` es 24.04, y sin sudo las cuatro bibliotecas del navegador (`libnss3`, `libnspr4`, `libnssutil3`, `libasound`) se desempaquetaron a mano en lugar de instalarlas con `--with-deps`.
+- **Cobertura.** Las seis utilidades críticas ya pasaban del 80 % (la más baja, `elevations.ts`, con 89,28 % de ramas). Quedaron con umbrales por archivo; se comprobó que un umbral por encima de lo real hace fallar `test:cobertura`. El 61 % global lo bajan componentes y pantallas.
+- **Salida de las pruebas.** «Error: boom» y «Error: sin gráfico» salían aunque `console.error` estaba espiado: los imprime jsdom al ver el error que React 18 relanza en un evento. `silenceExpectedError` cancela ese evento solo para el mensaje esperado; se comprobó que otro error sí sale.
+- **e2e.** 8 flujos (antes 6). El nuevo de tema falló una vez porque leía el fondo antes de que se asentara; se corrigió la prueba, no la app.
+- **Aviso de esbuild.** Ver `DECISIONES.md`. Pendiente de aprobación el cambio en `allowScripts`.
+
+### Verificación visual
+
+`npm run capturas` con los datos de muestra (Playwright responde la API; no hay MSW en el proyecto): 111 imágenes en `docs/capturas/`, a 1280 × 800, 820 × 1180 y 390 × 844 en los dos temas, y las ocho comprobaciones del visor en verde. Revisadas a ojo y con una auditoría del DOM en las 15 pantallas y los tres tamaños (cifras sin la fuente mono, texto recortado, desplazamiento horizontal, controles bajo el botón «Asistente», anillo de foco en las primeras 12 paradas del teclado). `npm run accesibilidad` (axe-core en el navegador) también.
+
+Bien: ninguna pantalla se desplaza en horizontal; todas las paradas de teclado probadas muestran el foco; axe no encuentra ningún fallo de contraste.
+
+Mal, sin corregir:
+
+| Dónde | Qué |
+|---|---|
+| Todas las pantallas con sesión | axe `label-content-name-mismatch` (grave): el botón «Ctrl K» del buscador se llama «Abrir la paleta de comandos» y no incluye el texto que se ve (WCAG 2.5.3). `npm run accesibilidad` no corre en CI |
+| Inicio de sesión, 390 px | La insignia «MODELO DE MUESTRA · VISOR 3D» tapa el logotipo («AR…») |
+| Inicio | «1 activos» en las cifras de proyectos (singular) |
+| Inicio, 1280 px | «22.124,00 US$» queda casi pegado al borde derecho de la tarjeta |
+| Inicio, todos los tamaños | Las descripciones de los accesos rápidos se cortan con puntos suspensivos |
+| Materiales, Planos, Elevaciones, Modelo 3D | El botón flotante «Asistente» tapa controles al abrir: Editar/Eliminar de la primera fila, «Lateral der.» y «Corte», el selector de cubierta |
+| Cifras sin JetBrains Mono | Total de Materiales del proyecto (`th` «20.156,00 US$»), columna Nivel de Planos, áreas de la tabla de cuartos del Modelo 3D, área y pendiente del detalle en Terrenos, total de Materiales y presupuestos de Tareas (`dd`) |
+| Modelo 3D, 1280 × 800 | El visor empieza a 380 px de altura: al abrir solo se ve su mitad superior |
+| Recorrido, 1280 px | «6 × 5 × 2,8 m» del inspector parte la «m» a otra línea |
+| Renderizado, 390 px | Franja vacía de unos 85 px sobre la imagen |
+| Tareas | «6 tareas» arriba y «Terminadas 1 de 5»: sin revisar si es correcto (una tarea puede no contar) |
+
 ## Problemas abiertos
 
-- Smart App Control bloquea binarios sin firma: el Rollup nativo y `sh.exe` de Git. Otros binarios nativos que traiga una dependencia nueva pueden caer en lo mismo.
-- El hook de pre-commit no se puede ejecutar en este equipo (ver `DECISIONES.md`).
+- Smart App Control: el 13 de octubre bloqueaba el Rollup nativo 4.64.0 y `sh.exe` de Git; el 14 cargan el Rollup nativo 4.64.6 y el hook de pre-commit. No se sabe si cambió la reputación de esos binarios o algo del equipo. Si vuelve a bloquear, `npm run local:wasm`.
 - Las capas de obra del visor usan cian y magenta, fuera de la regla del neón (ver `DECISIONES.md`): pendiente de decisión.
-- El botón flotante «Asistente» tapa parte del panel «Color» del visor a 1440 px. Ya ocurría antes del rediseño.
+- El botón flotante «Asistente» tapa controles en varias pantallas (ver la verificación visual del 14 de octubre). Ya ocurría antes del rediseño.
