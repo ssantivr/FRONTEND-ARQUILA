@@ -116,10 +116,10 @@ async function checkViewer(browser) {
     const results = [];
 
     await page.goto(`${BASE}/proyectos/1/modelo-3d`);
-    await page.getByRole("button", { name: "Ocultar Dormitorio" }).click();
+    await page.getByRole("button", { name: "Ocultar Alcoba principal" }).click();
     results.push([
         "ojo del árbol: oculta y ofrece volver a mostrar",
-        await page.getByRole("button", { name: "Mostrar Dormitorio" }).isVisible(),
+        await page.getByRole("button", { name: "Mostrar Alcoba principal" }).isVisible(),
     ]);
     await page.waitForTimeout(600);
     await shoot(page, "comprobacion-objeto-oculto");
@@ -130,7 +130,7 @@ async function checkViewer(browser) {
     await shoot(page, "comprobacion-sol-180");
 
     // Real picking through the orthographic camera: a click on the model must select something.
-    await page.getByRole("button", { name: "Mostrar Dormitorio" }).click();
+    await page.getByRole("button", { name: "Mostrar Alcoba principal" }).click();
     await page.getByRole("button", { name: "Ortográfica" }).click();
     await page.waitForTimeout(600);
 
@@ -210,7 +210,7 @@ async function checkStudio(browser) {
     await download.saveAs(fileURLToPath(new URL("comprobacion-render.png", OUT)));
     results.push([
         `render: descarga ${download.suggestedFilename()}`,
-        download.suggestedFilename() === "arquila-Casa-Andina-1920x1080.png",
+        download.suggestedFilename() === "arquila-Casa-Mirador-1920x1080.png",
     ]);
     await shoot(page, "comprobacion-render-pantalla");
     await context.close();
