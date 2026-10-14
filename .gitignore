@@ -8,3 +8,6 @@ dist/
 *.log
 
 .vercel
+coverage/
+test-results/
+playwright-report/
