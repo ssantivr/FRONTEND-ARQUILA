@@ -2,15 +2,38 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { projectsApi, summaryApi, templatesApi } from "../services/api";
-import type { Project } from "../types/api";
+import { loadAcrossProjects, projectsApi, summaryApi, templatesApi } from "../services/api";
+import type { Project, RenovationLog } from "../types/api";
 import { ProjectsPage } from "./ProjectsPage";
 
 vi.mock("../services/api", () => ({
     projectsApi: { list: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn() },
     templatesApi: { list: vi.fn(), createProject: vi.fn() },
     summaryApi: { get: vi.fn() },
+    loadAcrossProjects: vi.fn(),
+    loadProjectTasks: vi.fn(),
 }));
+
+function task(id: number, title: string, dates: Partial<RenovationLog>): RenovationLog {
+    return {
+        id,
+        project_id: 1,
+        room_id: null,
+        spatial_element_id: null,
+        created_by: null,
+        layer: "finishes",
+        title,
+        description: null,
+        status: "planned",
+        planned_start: null,
+        planned_end: null,
+        completed_at: null,
+        estimated_cost: null,
+        created_at: "2026-10-01T00:00:00Z",
+        updated_at: "2026-10-01T00:00:00Z",
+        ...dates,
+    };
+}
 
 function project(id: number, name: string): Project {
     return {
@@ -249,11 +272,63 @@ describe("ProjectsPage", () => {
 
         renderPage();
         await screen.findByRole("button", { name: /Casa Andina/ });
-        await userEvent.click(screen.getByRole("button", { name: "Lista" }));
+        await userEvent.click(screen.getByRole("radio", { name: "Lista" }));
 
-        const row = screen.getByRole("button", { name: /Casa Andina/ });
+        const row = screen.getByRole("row", { name: /Casa Andina/ });
 
         expect(row).toHaveTextContent("Quito");
         expect(row).toHaveTextContent("Borrador");
+        expect(within(row).getByRole("button", { name: "Archivar" })).toBeInTheDocument();
+    });
+
+    it("asks for the tasks only when the timeline is opened, and places them by their dates", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina"), project(2, "Oficina")]);
+        vi.mocked(loadAcrossProjects).mockResolvedValue({
+            projects: [project(1, "Casa Andina"), project(2, "Oficina")],
+            items: [
+                task(1, "Pintar fachada", {
+                    planned_start: "2026-10-01",
+                    planned_end: "2026-10-20",
+                }),
+                task(2, "Cambiar tejas", { planned_end: "2026-11-05" }),
+                task(3, "Revisar desagües", {}),
+            ],
+        });
+
+        renderPage();
+        await screen.findByRole("button", { name: /Casa Andina/ });
+
+        expect(loadAcrossProjects).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole("radio", { name: "Cronograma" }));
+
+        const group = await screen.findByRole("region", { name: /Casa Andina/ });
+
+        expect(within(group).getByText("Pintar fachada").closest("li")).toHaveTextContent(
+            "del 01/10/2026 al 20/10/2026",
+        );
+        // One planned date only: it is said so, and no start is made up.
+        expect(within(group).getByText("Cambiar tejas").closest("li")).toHaveTextContent(
+            "termina el 05/11/2026, sin la otra fecha",
+        );
+
+        const undated = screen.getByRole("region", { name: "Tareas sin fechas" });
+
+        expect(undated).toHaveTextContent("Revisar desagües");
+        expect(screen.getByText(/Sin tareas registradas: Oficina/)).toBeInTheDocument();
+    });
+
+    it("deletes from a confirmation window that opens on «Cancelar»", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.remove.mockResolvedValue(undefined);
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+
+        const dialog = screen.getByRole("alertdialog", { name: "¿Eliminar «Casa Andina»?" });
+
+        expect(within(dialog).getByRole("button", { name: "Cancelar" })).toHaveFocus();
+        await userEvent.click(within(dialog).getByRole("button", { name: "Sí, eliminar" }));
+        expect(projects.remove).toHaveBeenCalledWith(1);
     });
 });

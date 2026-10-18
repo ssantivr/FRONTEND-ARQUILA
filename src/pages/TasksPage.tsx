@@ -5,22 +5,12 @@ import { WORK_LAYERS, layerLabel } from "../components/RoomWorksPanel";
 import { Button } from "../components/ui/Button";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { errorMessage, useAsync } from "../hooks/useAsync";
-import { loadAcrossProjects, walkthroughApi } from "../services/api";
+import { loadAcrossProjects, loadProjectTasks, walkthroughApi } from "../services/api";
 import { showToast } from "../state/toasts";
 import type { RenovationLog, RenovationStatus, SpatialLayer } from "../types/api";
-import { formatMoney, formatNumber } from "../utils/format";
+import { formatDay, formatMoney, formatNumber } from "../utils/format";
 import { TASK_STATUSES, isOverdue, taskProgress } from "../utils/tasks";
 import { LiveForm } from "../components/ui/LiveForm";
-
-// Kept outside the component: the cache of `loadAcrossProjects` is keyed by this function.
-const loadTasks = (projectId: number) =>
-    walkthroughApi.get(projectId).then((walkthrough) => walkthrough.renovation_logs);
-
-function formatDay(day: string): string {
-    const [year, month, date] = day.split("-");
-
-    return `${date}/${month}/${year}`;
-}
 
 function timeline(task: RenovationLog): string {
     if (task.planned_start !== null && task.planned_end !== null) {
@@ -46,7 +36,7 @@ interface TasksPageProps {
 }
 
 export function TasksPage({ onOpenProject }: TasksPageProps) {
-    const data = useAsync(() => loadAcrossProjects(loadTasks), []);
+    const data = useAsync(() => loadAcrossProjects(loadProjectTasks), []);
     const [query, setQuery] = useState("");
     const [projectFilter, setProjectFilter] = useState("");
     const [layerFilter, setLayerFilter] = useState("");

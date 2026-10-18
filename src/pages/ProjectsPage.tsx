@@ -3,14 +3,42 @@ import { useState, type FormEvent } from "react";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { Icon } from "../components/Icon";
 import { ProjectCard } from "../components/ProjectCard";
+import { ProjectTimeline } from "../components/ProjectTimeline";
+import { StatusBadge } from "../components/ui/Badge";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { DataTable } from "../components/ui/DataTable";
+import { FilterBar } from "../components/ui/FilterBar";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import { Skeleton } from "../components/ui/Skeleton";
 import { errorMessage, useAsync } from "../hooks/useAsync";
-import { projectsApi, summaryApi, templatesApi } from "../services/api";
+import {
+    loadAcrossProjects,
+    loadProjectTasks,
+    projectsApi,
+    summaryApi,
+    templatesApi,
+} from "../services/api";
 import { showToast } from "../state/toasts";
-import type { ProjectStatus, Summary } from "../types/api";
-import { formatNumber, optionalText } from "../utils/format";
+import type { Project, ProjectStatus, Summary } from "../types/api";
+import { formatDate, formatNumber, optionalText } from "../utils/format";
 import { LiveForm } from "../components/ui/LiveForm";
 
-type Order = "recent" | "name";
+type Order = "recent" | "created" | "name";
+type Layout = "grid" | "list" | "timeline";
+
+const LAYOUTS = [
+    { value: "grid", label: "Cuadrícula", icon: "grid" },
+    { value: "list", label: "Lista", icon: "rows" },
+    { value: "timeline", label: "Cronograma", icon: "tasks" },
+] as const;
+
+/** Today as a `YYYY-MM-DD` day of the user's calendar, like the dates of a task. */
+function localDay(): string {
+    const now = new Date();
+    const pad = (value: number) => String(value).padStart(2, "0");
+
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
 /** What the panel under the page head shows: nothing, the form or the ready-made examples. */
 type Creating = "closed" | "form" | "examples";
 
@@ -37,7 +65,7 @@ export function ProjectsPage({
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState<ProjectStatus | "">("");
     const [order, setOrder] = useState<Order>("recent");
-    const [layout, setLayout] = useState<"grid" | "list">("grid");
+    const [layout, setLayout] = useState<Layout>("grid");
     const [confirmingId, setConfirmingId] = useState<number | null>(null);
     const [actingId, setActingId] = useState<number | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
@@ -131,8 +159,47 @@ export function ProjectsPage({
     const items = [...(projects.data ?? [])].sort((first, second) =>
         order === "name"
             ? first.name.localeCompare(second.name, "es")
-            : second.updated_at.localeCompare(first.updated_at),
+            : order === "created"
+              ? second.created_at.localeCompare(first.created_at)
+              : second.updated_at.localeCompare(first.updated_at),
     );
+    // The tasks are only asked for when the timeline is opened: one request per project.
+    const showTimeline = layout === "timeline";
+    const tasks = useAsync(
+        () => (showTimeline ? loadAcrossProjects(loadProjectTasks) : Promise.resolve(null)),
+        [showTimeline],
+    );
+    const confirming = items.find((project) => project.id === confirmingId) ?? null;
+
+    function actions(project: Project) {
+        return (
+            <div className="project-actions">
+                <button
+                    type="button"
+                    className="button-secondary"
+                    disabled={actingId !== null}
+                    aria-describedby={`project-${project.id}-name`}
+                    onClick={() =>
+                        handleStatus(
+                            project.id,
+                            project.status === "archived" ? "active" : "archived",
+                        )
+                    }
+                >
+                    {project.status === "archived" ? "Reactivar" : "Archivar"}
+                </button>
+                <button
+                    type="button"
+                    className="button-danger"
+                    disabled={actingId !== null}
+                    aria-describedby={`project-${project.id}-name`}
+                    onClick={() => setConfirmingId(project.id)}
+                >
+                    Eliminar
+                </button>
+            </div>
+        );
+    }
     const examples = templates.data ?? [];
     const filtered = search.trim() !== "" || status !== "";
 
@@ -281,14 +348,18 @@ export function ProjectsPage({
             )}
 
             <section className="list-section" aria-label="Lista de proyectos">
-                <div className="list-toolbar">
-                    <input
-                        type="search"
-                        placeholder="Buscar por nombre"
-                        aria-label="Buscar por nombre"
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                    />
+                <FilterBar
+                    searchLabel="Buscar por nombre"
+                    search={search}
+                    onSearch={setSearch}
+                    resultText={
+                        filtered && projects.data !== null
+                            ? items.length === 1
+                                ? "1 resultado"
+                                : `${items.length} resultados`
+                            : undefined
+                    }
+                >
                     <select
                         aria-label="Filtrar por estado"
                         value={status}
@@ -304,35 +375,17 @@ export function ProjectsPage({
                         value={order}
                         onChange={(event) => setOrder(event.target.value as Order)}
                     >
-                        <option value="recent">Más recientes</option>
+                        <option value="recent">Actualizados recientemente</option>
+                        <option value="created">Creados recientemente</option>
                         <option value="name">Por nombre</option>
                     </select>
-                    {filtered && projects.data !== null && (
-                        <span className="list-count" role="status">
-                            {items.length === 1 ? "1 resultado" : `${items.length} resultados`}
-                        </span>
-                    )}
-                    <div className="segmented" role="group" aria-label="Vista de la lista">
-                        <button
-                            type="button"
-                            className="icon-button"
-                            aria-pressed={layout === "grid"}
-                            onClick={() => setLayout("grid")}
-                        >
-                            <Icon name="grid" />
-                            Cuadrícula
-                        </button>
-                        <button
-                            type="button"
-                            className="icon-button"
-                            aria-pressed={layout === "list"}
-                            onClick={() => setLayout("list")}
-                        >
-                            <Icon name="rows" />
-                            Lista
-                        </button>
-                    </div>
-                </div>
+                    <SegmentedControl
+                        label="Vista de la lista"
+                        options={LAYOUTS}
+                        value={layout}
+                        onChange={setLayout}
+                    />
+                </FilterBar>
 
                 <AsyncStatus
                     loading={projects.loading}
@@ -370,81 +423,104 @@ export function ProjectsPage({
                         {actionError}
                     </p>
                 )}
-                {layout === "list" && items.length > 0 && (
-                    <div className="project-rows-head" aria-hidden="true">
-                        <span />
-                        <span>Proyecto</span>
-                        <span>Ubicación</span>
-                        <span>Estado</span>
-                        <span>Actualizado</span>
-                    </div>
+
+                {layout === "grid" && items.length > 0 && (
+                    <ul className="card-list project-grid">
+                        {items.map((project) => (
+                            <li key={project.id} className="project-item">
+                                <ProjectCard project={project} onOpen={onOpenProject} />
+                                {actions(project)}
+                            </li>
+                        ))}
+                    </ul>
                 )}
-                <ul
-                    className={
-                        layout === "grid"
-                            ? "card-list project-grid"
-                            : "card-list card-list-rows project-grid"
-                    }
-                >
-                    {items.map((project) => (
-                        <li key={project.id} className="project-item">
-                            <ProjectCard project={project} onOpen={onOpenProject} layout={layout} />
-                            <div className="project-actions">
-                                {confirmingId === project.id ? (
-                                    <>
-                                        <span role="status">¿Eliminar «{project.name}»?</span>
-                                        <button
-                                            type="button"
-                                            className="button-danger"
-                                            disabled={actingId !== null}
-                                            onClick={() => handleRemove(project.id)}
-                                        >
-                                            Sí, eliminar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="button-secondary"
-                                            onClick={() => setConfirmingId(null)}
-                                        >
-                                            Cancelar
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button
-                                            type="button"
-                                            className="button-secondary"
-                                            disabled={actingId !== null}
-                                            aria-describedby={`project-${project.id}-name`}
-                                            onClick={() =>
-                                                handleStatus(
-                                                    project.id,
-                                                    project.status === "archived"
-                                                        ? "active"
-                                                        : "archived",
-                                                )
-                                            }
-                                        >
-                                            {project.status === "archived"
-                                                ? "Reactivar"
-                                                : "Archivar"}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="button-danger"
-                                            disabled={actingId !== null}
-                                            aria-describedby={`project-${project.id}-name`}
-                                            onClick={() => setConfirmingId(project.id)}
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </li>
+
+                {layout === "list" && items.length > 0 && (
+                    <DataTable
+                        caption="Proyectos"
+                        rows={items}
+                        rowKey={(project) => project.id}
+                        columns={[
+                            {
+                                id: "name",
+                                header: "Proyecto",
+                                sortValue: (project) => project.name,
+                                cell: (project) => (
+                                    <button
+                                        type="button"
+                                        id={`project-${project.id}-name`}
+                                        className="table-link"
+                                        onClick={() => onOpenProject(project.id)}
+                                    >
+                                        {project.name}
+                                    </button>
+                                ),
+                            },
+                            {
+                                id: "location",
+                                header: "Ubicación",
+                                sortValue: (project) => project.location,
+                                cell: (project) => project.location ?? "Sin ubicación",
+                            },
+                            {
+                                id: "status",
+                                header: "Estado",
+                                sortValue: (project) => project.status,
+                                cell: (project) => <StatusBadge status={project.status} />,
+                            },
+                            {
+                                id: "updated",
+                                header: "Actualizado",
+                                sortValue: (project) => project.updated_at,
+                                cell: (project) => formatDate(project.updated_at),
+                            },
+                            {
+                                id: "actions",
+                                header: "Acciones",
+                                cell: (project) => actions(project),
+                            },
+                        ]}
+                    />
+                )}
+
+                {layout === "timeline" &&
+                    items.length > 0 &&
+                    (tasks.data === null ? (
+                        <>
+                            <AsyncStatus
+                                loading={tasks.loading}
+                                error={tasks.error}
+                                onRetry={tasks.reload}
+                                isEmpty={false}
+                                emptyText=""
+                            />
+                            {tasks.loading && <Skeleton shape="rows" count={4} />}
+                        </>
+                    ) : (
+                        <ProjectTimeline
+                            projects={items}
+                            tasks={tasks.data.items}
+                            onOpenProject={onOpenProject}
+                            today={localDay()}
+                        />
                     ))}
-                </ul>
             </section>
+
+            {confirming !== null && (
+                <ConfirmDialog
+                    title={`¿Eliminar «${confirming.name}»?`}
+                    confirmLabel="Sí, eliminar"
+                    danger
+                    pending={actingId !== null}
+                    onConfirm={() => handleRemove(confirming.id)}
+                    onCancel={() => setConfirmingId(null)}
+                >
+                    <p>
+                        Se eliminan también sus terrenos, planos, cuartos, materiales y archivos. No
+                        se puede deshacer.
+                    </p>
+                </ConfirmDialog>
+            )}
         </>
     );
 }

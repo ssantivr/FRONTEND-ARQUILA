@@ -44,3 +44,10 @@ export function formatFileSize(bytes: number): string {
 
     return `${numberFormat.format(bytes / (1024 * 1024))} MB`;
 }
+
+/** A `YYYY-MM-DD` day as `DD/MM/YYYY`, without going through a time zone. */
+export function formatDay(day: string): string {
+    const [year, month, date] = day.split("-");
+
+    return `${date}/${month}/${year}`;
+}

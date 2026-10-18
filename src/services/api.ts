@@ -297,3 +297,10 @@ export const walkthroughApi = {
             body: { status },
         }),
 };
+
+/**
+ * The work log of one project: the tasks. A named function on purpose: the cache of
+ * `loadAcrossProjects` is keyed by it, so the Tasks screen and the projects timeline share it.
+ */
+export const loadProjectTasks = (projectId: number) =>
+    walkthroughApi.get(projectId).then((walkthrough) => walkthrough.renovation_logs);
