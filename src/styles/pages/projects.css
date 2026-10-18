@@ -292,6 +292,22 @@
     white-space: nowrap;
 }
 
+/* The 3D model tab: only the breadcrumbs and the name stay, and the actions beside them. */
+.project-head-compact {
+    min-height: 0;
+    align-items: center;
+    padding: 12px 20px;
+}
+
+.project-head-compact h2 {
+    font-size: var(--fs-24);
+}
+
+.project-head-compact .project-head-meta,
+.project-head-compact .project-head-text {
+    display: none;
+}
+
 .project-head .project-summary {
     flex: none;
     gap: 8px;

@@ -78,7 +78,7 @@ describe("motion system", () => {
         const system = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
 
         expect(system).toMatch(/animation-duration:\s*0\.01ms\s*!important/);
-        expect(system).toMatch(/transition-duration:\s*0\.01ms\s*!important/);
+        expect(system).toMatch(/transition:\s*none\s*!important/);
         expect(system).toMatch(/animation-iteration-count:\s*1\s*!important/);
         expect(css).toMatch(/\[data-motion="reduced"\], \[data-motion="off"\]/);
         expect(system).toMatch(/::view-transition-new\(\*\)[^}]*\{[^}]*animation:\s*none/);

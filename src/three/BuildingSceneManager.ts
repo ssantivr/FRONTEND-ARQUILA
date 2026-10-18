@@ -258,6 +258,8 @@ export interface StructureViewer {
     setHidden: (keys: ReadonlySet<string>) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
+    /** Width covered by panels over each side of the scene, so framing leaves the model clear. */
+    setFrameInsets: (left: number, right: number) => void;
     isolate: (key: string | null) => void;
     setCutaway: (fraction: number) => void;
     setHighlight: (keys: ReadonlySet<string> | null) => void;
@@ -1025,6 +1027,8 @@ export function createStructureViewer(
     let asset: Object3D | null = null;
     let assetRequest = 0;
     let framed = false;
+    let insetLeft = 0;
+    let insetRight = 0;
     let pressX = 0;
     let pressY = 0;
     let lastZoom = 0;
@@ -1070,6 +1074,7 @@ export function createStructureViewer(
 
         viewport = next;
         applySize(width, height, pixelRatio);
+        applyFill();
 
         if (model !== null) {
             fitLimits();
@@ -1085,6 +1090,25 @@ export function createStructureViewer(
         if (percent !== lastZoom) {
             lastZoom = percent;
             events.onZoom(percent);
+        }
+    }
+
+    function applyFill(): void {
+        const width = container.clientWidth;
+
+        if (width > 0) {
+            rig.setFill((width - insetLeft - insetRight) / width);
+        }
+    }
+
+    function setFrameInsets(left: number, right: number): void {
+        insetLeft = Math.max(0, left);
+        insetRight = Math.max(0, right);
+        applyFill();
+
+        if (model !== null) {
+            fitLimits();
+            reportZoom();
         }
     }
 
@@ -2057,6 +2081,7 @@ export function createStructureViewer(
         setHidden: changing(setHidden),
         setPalette: changing(setPalette),
         setView: changing(setView),
+        setFrameInsets: changing(setFrameInsets),
         isolate: changing(isolate),
         setCutaway: changing(setCutaway),
         setHighlight: changing(setHighlight),

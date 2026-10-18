@@ -677,6 +677,58 @@ function ViewerScene({
         };
     }, []);
 
+    // The scene takes the rest of the window below where it starts, and the camera frames the
+    // model in the room that the panels over each side leave free.
+    const treeShown = isolatedRoom === null;
+
+    useEffect(() => {
+        const host = stage.current;
+        const scene = container.current;
+
+        if (preview || host === null || scene === null) {
+            return;
+        }
+
+        function measure(host: HTMLDivElement, scene: HTMLDivElement): void {
+            const top = host.getBoundingClientRect().top + window.scrollY;
+            const box = scene.getBoundingClientRect();
+            let left = 0;
+            let right = 0;
+
+            scene.style.setProperty("--viewer-top", `${Math.round(top)}px`);
+
+            for (const panel of host.querySelectorAll<HTMLElement>(".hud-layer > *")) {
+                const rect = panel.getBoundingClientRect();
+                const middle = (rect.left + rect.right) / 2 - box.left;
+
+                if (rect.width === 0 || rect.height < box.height * 0.3) {
+                    continue;
+                }
+
+                if (middle < box.width * 0.4) {
+                    left = Math.max(left, rect.right - box.left);
+                } else if (middle > box.width * 0.6) {
+                    right = Math.max(right, box.right - rect.left);
+                }
+            }
+
+            viewer.current?.setFrameInsets(left, right);
+        }
+
+        measure(host, scene);
+
+        if (typeof ResizeObserver === "undefined") {
+            return;
+        }
+
+        const observer = new ResizeObserver(() => measure(host, scene));
+
+        observer.observe(host);
+        host.querySelectorAll(".hud-layer > *").forEach((panel) => observer.observe(panel));
+
+        return () => observer.disconnect();
+    }, [preview, panels, treeShown]);
+
     useEffect(() => {
         void appState.refresh(projectId);
     }, [projectId]);

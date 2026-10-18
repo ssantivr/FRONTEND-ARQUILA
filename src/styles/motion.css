@@ -297,8 +297,9 @@ html[data-theme-switching] *:not(canvas)::after {
         animation-duration: 0.01ms !important;
         animation-delay: 0s !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        transition-delay: 0s !important;
+        /* No transition at all: a tiny duration would turn every change of every property into
+           one (the initial transition-property is "all"), and a size read mid-way could stick. */
+        transition: none !important;
         scroll-behavior: auto !important;
     }
 
@@ -315,8 +316,7 @@ html[data-theme-switching] *:not(canvas)::after {
     animation-duration: 0.01ms !important;
     animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0s !important;
+    transition: none !important;
     scroll-behavior: auto !important;
 }
 

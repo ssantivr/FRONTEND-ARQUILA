@@ -112,10 +112,11 @@
     border-radius: var(--r-lg);
 }
 
-/* Header, tabs and the title line stay in view; the scene takes the rest of the window. */
+/* Header, tabs and the title line stay in view; the scene takes the rest of the window below
+   where it starts (--viewer-top, measured by StructureViewer). */
 .structure-viewer {
-    height: calc(100vh - var(--header-height) - 132px);
-    min-height: 560px;
+    height: calc(100dvh - var(--viewer-top, calc(var(--header-height) + 132px)) - 16px);
+    min-height: 440px;
 }
 
 .hud-layer {

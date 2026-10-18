@@ -119,7 +119,13 @@ export function ProjectDetailPage({
 
     return (
         <SaveStatusProvider value={{ pending: actionPending, failed: actionError !== null }}>
-            <section className="project-head" data-theme="dark">
+            {/* On the 3D model the head shrinks to one line, so the scene fits in the window. */}
+            <section
+                className={
+                    section === "model" ? "project-head project-head-compact" : "project-head"
+                }
+                data-theme="dark"
+            >
                 <div className="project-head-art" aria-hidden="true">
                     <ProjectCover id={current.id} name={current.name} />
                 </div>
