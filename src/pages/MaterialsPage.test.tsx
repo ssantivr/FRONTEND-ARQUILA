@@ -36,9 +36,26 @@ beforeEach(() => {
     });
 });
 
+/** The budget items are the second catalogue; the surfaces of the 3D model open first. */
+async function openWorks() {
+    await userEvent.click(screen.getByRole("button", { name: "Materiales de obra" }));
+}
+
 describe("MaterialsPage", () => {
+    it("opens on the visual catalogue of surfaces and counts both catalogues", async () => {
+        render(<MaterialsPage onOpenProject={() => undefined} />);
+
+        expect(
+            screen.getByRole("heading", { name: "Superficies del modelo 3D" }),
+        ).toBeInTheDocument();
+        expect(
+            await screen.findByText(/7 superficies del motor · 3 materiales de obra/),
+        ).toBeInTheDocument();
+    });
+
     it("filters the list by name", async () => {
         render(<MaterialsPage onOpenProject={() => undefined} />);
+        await openWorks();
 
         await userEvent.type(await screen.findByLabelText("Buscar material por nombre"), "cem");
 
@@ -48,6 +65,7 @@ describe("MaterialsPage", () => {
 
     it("filters the list by category", async () => {
         render(<MaterialsPage onOpenProject={() => undefined} />);
+        await openWorks();
 
         await userEvent.selectOptions(
             await screen.findByLabelText("Filtrar por categoría"),
@@ -60,6 +78,7 @@ describe("MaterialsPage", () => {
 
     it("says so when the filter leaves nothing", async () => {
         render(<MaterialsPage onOpenProject={() => undefined} />);
+        await openWorks();
 
         await userEvent.type(await screen.findByLabelText("Buscar material por nombre"), "zzz");
 

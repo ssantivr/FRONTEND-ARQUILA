@@ -333,7 +333,12 @@ export function App() {
             case "terrains":
                 return <TerrainsPage onOpenProject={(id) => openProject(id, "terrain")} />;
             case "materials":
-                return <MaterialsPage onOpenProject={(id) => openProject(id, "materials")} />;
+                return (
+                    <MaterialsPage
+                        onOpenProject={(id) => openProject(id, "materials")}
+                        onOpenViewer={() => navigate("viewer")}
+                    />
+                );
             case "plans":
                 return <PlansPage onOpenProject={(id) => openProject(id, "plans")} />;
             case "lighting":

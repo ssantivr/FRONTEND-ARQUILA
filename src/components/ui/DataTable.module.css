@@ -1,4 +1,5 @@
 .scroll {
+    container: table-host / inline-size;
     max-width: 100%;
     overflow: auto;
     border: 1px solid var(--border);
@@ -63,12 +64,12 @@
     text-align: center;
 }
 
-@media (max-width: 720px) {
-    .scroll {
-        border: 0;
+@container table-host (max-width: 760px) {
+    .table {
+        background: transparent;
     }
 
-    .table {
+    .table tbody tr:hover {
         background: transparent;
     }
 }

@@ -117,11 +117,6 @@
     place-items: center;
 }
 
-/* Three categories is the usual: the chart keeps that height for its placeholder too. */
-.band-chart {
-    min-height: 164px;
-}
-
 /* A warning about the data: something to check, not a failure. */
 .message.message-warning {
     display: grid;

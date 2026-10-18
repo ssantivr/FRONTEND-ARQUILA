@@ -1,0 +1,171 @@
+.library {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.intro h3 {
+    margin: 0 0 var(--space-1);
+    font-size: var(--fs-18);
+}
+
+.intro :global(.message) {
+    max-width: 72ch;
+    margin: 0;
+}
+
+/* Swatches large enough to read the pattern: a sample board, not an icon. */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.item {
+    position: relative;
+}
+
+.card {
+    display: grid;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    color: var(--text);
+    text-align: left;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+    transition:
+        border-color var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.card:hover {
+    background: var(--panel);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-float);
+}
+
+.swatch {
+    aspect-ratio: 4 / 3;
+    border-bottom: 1px solid var(--border);
+}
+
+.swatchLarge {
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.body {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.name {
+    font-weight: 650;
+}
+
+.group {
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.values {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+}
+
+.favorite {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    min-height: 0;
+    padding: 0;
+    color: var(--text);
+    font-size: var(--fs-18);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    box-shadow: var(--shadow);
+}
+
+.favorite:hover {
+    background: var(--panel-raised);
+}
+
+.favorite[aria-pressed="true"] {
+    color: var(--lime-contrast);
+    background: var(--lime);
+    border-color: var(--lime);
+}
+
+/* The enlarged view, in the side panel. */
+.detail {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.detail h4 {
+    margin: var(--space-3) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.detail :global(.message) {
+    margin: 0;
+}
+
+.detail dl.values {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    font-family: inherit;
+    font-size: var(--fs-13);
+}
+
+.detail dt {
+    color: var(--text-secondary);
+}
+
+.detail dd {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--text);
+}
+
+.detail dd :global(.bar-progress) {
+    flex: 1;
+}
+
+.chip {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+}
+
+.locked {
+    display: grid;
+    gap: var(--space-2);
+    opacity: 0.7;
+}

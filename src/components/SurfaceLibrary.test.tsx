@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SURFACE_MATERIAL_IDS } from "../utils/surfaceMaterials";
 import { ProjectCover } from "./ProjectCover";
@@ -42,6 +42,42 @@ describe("SurfaceLibrary", () => {
         await userEvent.click(screen.getByLabelText("Solo favoritas de este navegador"));
 
         expect(screen.getAllByRole("button", { name: /Rugosidad/ })).toHaveLength(1);
+    });
+});
+
+describe("SurfaceLibrary catalogue", () => {
+    it("filters by finish, searches by name and sorts by a value", async () => {
+        render(<SurfaceLibrary />);
+
+        await userEvent.selectOptions(screen.getByLabelText("Filtrar por acabado"), "Metálicas");
+        // Glass is metallic too, but its opacity puts it among the translucent ones.
+        expect(screen.getAllByRole("button", { name: /Rugosidad/ })).toHaveLength(1);
+        expect(screen.getByRole("button", { name: /Rugosidad/ })).toHaveTextContent("Acero");
+
+        await userEvent.click(screen.getByRole("button", { name: "Quitar filtros" }));
+        await userEvent.type(screen.getByRole("searchbox", { name: "Buscar superficie" }), "pied");
+        expect(screen.getAllByRole("button", { name: /Rugosidad/ })).toHaveLength(1);
+
+        await userEvent.clear(screen.getByRole("searchbox", { name: "Buscar superficie" }));
+        await userEvent.selectOptions(screen.getByLabelText("Ordenar superficies"), "roughness");
+        expect(screen.getAllByRole("button", { name: /Rugosidad/ })[0]).toHaveTextContent("Piedra");
+    });
+
+    it("shows the engine values in the enlarged view, with editing off and why", async () => {
+        const onOpenViewer = vi.fn();
+
+        render(<SurfaceLibrary onOpenViewer={onOpenViewer} />);
+        await userEvent.click(screen.getByRole("button", { name: /^Ladrillo/ }));
+
+        const panel = screen.getByRole("dialog", { name: "Ladrillo" });
+
+        expect(panel).toHaveTextContent("#a9583f");
+        expect(panel).toHaveTextContent("Una tesela cada 0,84 m");
+        expect(within(panel).getByRole("slider", { name: /Rugosidad/ })).toBeDisabled();
+        expect(panel).toHaveTextContent(/la API no guarda materiales propios/);
+
+        await userEvent.click(within(panel).getByRole("button", { name: "Abrir el editor 3D" }));
+        expect(onOpenViewer).toHaveBeenCalledTimes(1);
     });
 });
 

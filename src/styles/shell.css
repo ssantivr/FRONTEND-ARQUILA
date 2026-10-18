@@ -312,7 +312,18 @@
     padding: 0;
 }
 
-@media (max-width: 720px) {
+/*
+ * A table turns into cards by the width of what holds it, not of the window: a table of six
+ * columns in a narrow panel (a tablet, or beside the sidebar) has no room for its columns even
+ * when the window is wide. 760 px is about what the widest table (materials, with its actions)
+ * needs; under it each row is a card with the name of each column beside its value.
+ */
+.panel:has(table),
+.table-host {
+    container: table-host / inline-size;
+}
+
+@container table-host (max-width: 760px) {
     table,
     tbody,
     tfoot,
@@ -552,4 +563,14 @@ code {
 
 .floor-plan svg {
     max-width: 820px;
+}
+
+/* With room for two, the cards go side by side instead of one long column. It comes after the
+   rule that turns rows into cards, which sets the body back to a block. */
+@container table-host (min-width: 520px) and (max-width: 760px) {
+    tbody {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: var(--space-6);
+    }
 }

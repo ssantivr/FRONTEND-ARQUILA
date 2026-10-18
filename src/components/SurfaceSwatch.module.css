@@ -1,0 +1,17 @@
+/* The board the sample is laid on; the size comes from whoever places it. */
+.swatch {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--panel-raised);
+}
+
+.fill {
+    position: absolute;
+    inset: 0;
+}
+
+/* Translucent surfaces show a checkerboard through them. */
+.clear {
+    background: repeating-conic-gradient(var(--border) 0 25%, var(--panel) 0 50%) 0 0 / 16px 16px;
+}

@@ -54,3 +54,26 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
 - **Cuerpo:** `{"email": "...", "password": "...", "remember": true}`. Con `remember: true`, la cookie de sesión llevaría `Max-Age` (por ejemplo 30 días); con `false` o sin el campo, sería una cookie de sesión del navegador, sin `Max-Age`.
 - **Respuesta:** la de hoy (`User`), con la cookie `HttpOnly` según lo pedido.
 - **Mientras tanto:** el formulario no muestra la casilla «Recordar sesión», porque no haría nada. Recuperar la contraseña sí aparece: `POST /auth/password-reset` y `/auth/password-reset/confirm` existen.
+
+## 8. Materiales propios del modelo 3D (valores PBR editables)
+
+- **Para qué:** que la biblioteca permita crear o ajustar un acabado (color base, rugosidad, metalicidad, opacidad, repetición) y aplicarlo a un elemento, en vez de elegir solo entre las siete superficies fijas del motor.
+- **Rutas:**
+    - `GET /surfaces` → `[{ id, name, category, color: "#rrggbb", roughness, metalness, opacity, tile_m, pattern: "brick" | "wood" | "stone" | null, owner_id | null }]`. Las siete del motor vendrían con `owner_id: null`.
+    - `POST /surfaces` y `PATCH /surfaces/{id}` con esos campos (validando 0–1 en rugosidad, metalicidad y opacidad); `DELETE /surfaces/{id}` solo para las propias.
+    - `PATCH /projects/{id}/structure/{kind}/{element_id}/surface` (la de hoy) aceptaría también el `id` de una superficie propia.
+- **Respuesta:** `201` con la superficie creada; `422` si un valor está fuera de rango.
+- **Mientras tanto:** la vista ampliada muestra los valores con que dibuja el motor y los controles deshabilitados, con el motivo. Las categorías de la biblioteca (madera, piedra, concreto, metal, vidrio, ladrillo) son las siete superficies del motor; cerámica, mármol, pinturas, textiles y personalizados no se muestran porque no existen.
+
+## 9. Favoritos de la biblioteca en la cuenta
+
+- **Para qué:** que las superficies favoritas sigan al usuario a otro equipo.
+- **Ruta:** `GET /me/favorites/surfaces` → `["brick", "wood"]`; `PUT /me/favorites/surfaces` con la lista completa.
+- **Respuesta:** `204` al guardar.
+- **Mientras tanto:** se guardan en `localStorage` (`arquila:favorite-surfaces`) y la pantalla dice que solo valen en ese navegador.
+
+## 10. Materiales de obra con imagen
+
+- **Para qué:** mostrar una miniatura de cada partida de presupuesto (un producto concreto: un bloque, una teja).
+- **Ruta:** `PUT /materials/{id}/image` (`multipart/form-data`, campo `image`); `GET /materials` añadiría `image_url: string | null`.
+- **Mientras tanto:** «Materiales de obra» es una tabla sin imágenes; no se inventa una foto por categoría.
