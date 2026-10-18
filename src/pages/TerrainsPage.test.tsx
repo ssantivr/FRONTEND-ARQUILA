@@ -40,6 +40,65 @@ beforeEach(() => {
 });
 
 describe("TerrainsPage", () => {
+    it("derives the dimensions, perimeter and drop from what the terrain records", async () => {
+        vi.mocked(loadAcrossProjects).mockResolvedValue({
+            projects: [{ id: 1, name: "Casa Andina", location: "Quito" }] as never,
+            items: [
+                {
+                    ...terrain(1, "Lote norte", 1, null),
+                    slope_percent: 5,
+                    latitude: -0.18,
+                    longitude: -78.47,
+                },
+            ],
+        });
+        window.localStorage.setItem(
+            "arquila:site:1",
+            JSON.stringify({ terrains: { 1: { north: 30 } } }),
+        );
+
+        render(<TerrainsPage onOpenProject={() => undefined} />);
+
+        const detail = await screen.findByRole("complementary", { name: "Detalle de Lote norte" });
+
+        expect(detail).toHaveTextContent("24 × 20 m");
+        expect(detail).toHaveTextContent("88 m · 4 lados");
+        // 20 m of depth at 5 %.
+        expect(detail).toHaveTextContent("1 m de desnivel en el fondo");
+        expect(detail).toHaveTextContent("Quito");
+        expect(detail).toHaveTextContent("Norte a 30°");
+        expect(within(detail).getByRole("link", { name: /OpenStreetMap/ })).toHaveAttribute(
+            "href",
+            expect.stringContaining("mlat=-0.18&mlon=-78.47"),
+        );
+        window.localStorage.clear();
+    });
+
+    it("sorts by area and by slope, with unrecorded slopes last", async () => {
+        vi.mocked(loadAcrossProjects).mockResolvedValue({
+            projects: [{ id: 1, name: "Casa Andina" }] as never,
+            items: [
+                { ...terrain(1, "Plano", 1, null), area_m2: 100, slope_percent: null },
+                { ...terrain(2, "Ladera", 1, null), area_m2: 300, slope_percent: 12 },
+                { ...terrain(3, "Suave", 1, null), area_m2: 200, slope_percent: 2 },
+            ],
+        });
+
+        render(<TerrainsPage onOpenProject={() => undefined} />);
+        await screen.findByRole("button", { name: /Plano/ });
+
+        const names = () =>
+            within(screen.getByRole("list"))
+                .getAllByRole("button")
+                .map((card) => card.textContent?.split("Casa Andina")[0]);
+
+        await userEvent.selectOptions(screen.getByLabelText("Ordenar terrenos"), "area");
+        expect(names()).toEqual(["Ladera", "Suave", "Plano"]);
+
+        await userEvent.selectOptions(screen.getByLabelText("Ordenar terrenos"), "slope");
+        expect(names()).toEqual(["Ladera", "Suave", "Plano"]);
+    });
+
     it("shows a card per terrain and filters them by project", async () => {
         render(<TerrainsPage onOpenProject={() => undefined} />);
 
@@ -68,7 +127,8 @@ describe("TerrainsPage", () => {
 
         const detail = screen.getByRole("complementary", { name: "Detalle de Lote sur" });
 
-        expect(within(detail).getAllByText("Sin registrar")).toHaveLength(3);
+        // Slope, soil, location of the project, orientation and coordinates: none recorded.
+        expect(within(detail).getAllByText("Sin registrar")).toHaveLength(5);
 
         await userEvent.click(within(detail).getByRole("button", { name: "Abrir en su proyecto" }));
 

@@ -570,7 +570,8 @@ code {
 @container table-host (min-width: 520px) and (max-width: 760px) {
     tbody {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        /* auto-fit folds the empty column, so a single card takes the whole width. */
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         column-gap: var(--space-6);
     }
 }

@@ -2,11 +2,47 @@ import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { Button } from "../components/ui/Button";
+import { FilterBar } from "../components/ui/FilterBar";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, terrainsApi } from "../services/api";
+import { readSiteSettings } from "../state/siteSettings";
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
+import { bounds, edges, footprint } from "../utils/geometry";
+
+type Order = "name" | "area" | "slope";
+
+/**
+ * Figures that follow from what the terrain records, with the same rules as its diagrams: the
+ * perimeter and sides from its outline, and the drop as depth × slope (FRONTEND.md, «Esquemas del
+ * terreno»). Nothing here is stored or guessed.
+ */
+function measures(terrain: Terrain) {
+    const outline = footprint(terrain);
+
+    if (outline === null) {
+        return null;
+    }
+
+    const sides = edges(outline).map((edge) => edge.length);
+    const box = bounds(outline);
+    const depth = box.maxY - box.minY;
+
+    return {
+        sides,
+        perimeter: sides.reduce((sum, side) => sum + side, 0),
+        width: box.maxX - box.minX,
+        depth,
+        drop: terrain.slope_percent === null ? null : (depth * terrain.slope_percent) / 100,
+        fromVertices: terrain.points.length >= 3,
+    };
+}
+
+/** Where north points on the site plan of this terrain, if the user set it in this browser. */
+function northOf(terrain: Terrain): number | null {
+    return readSiteSettings(terrain.project_id).terrains[terrain.id]?.north ?? null;
+}
 
 interface TerrainsPageProps {
     onOpenProject: (projectId: number) => void;
@@ -83,9 +119,11 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
     const [projectId, setProjectId] = useState("");
     const [soil, setSoil] = useState("");
     const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [order, setOrder] = useState<Order>("name");
     const terrains = data.data?.items ?? [];
     const projects = data.data?.projects ?? [];
     const projectNames = new Map(projects.map((item) => [item.id, item.name]));
+    const projectPlaces = new Map(projects.map((item) => [item.id, item.location]));
     const soils = [...new Set(terrains.flatMap((terrain) => terrain.soil_type ?? []))].sort();
     const totalArea = terrains.reduce((sum, terrain) => sum + terrain.area_m2, 0);
     const slopes = terrains.flatMap((terrain) =>
@@ -94,12 +132,21 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
     const steepest = slopes.length === 0 ? null : Math.max(...slopes);
     const wanted = query.trim().toLowerCase();
     const filtered = wanted !== "" || projectId !== "" || soil !== "";
-    const shown = terrains.filter(
-        (terrain) =>
-            (wanted === "" || terrain.name.toLowerCase().includes(wanted)) &&
-            (projectId === "" || terrain.project_id === Number(projectId)) &&
-            (soil === "" || terrain.soil_type === soil),
-    );
+    const shown = terrains
+        .filter(
+            (terrain) =>
+                (wanted === "" || terrain.name.toLowerCase().includes(wanted)) &&
+                (projectId === "" || terrain.project_id === Number(projectId)) &&
+                (soil === "" || terrain.soil_type === soil),
+        )
+        .sort((first, second) =>
+            order === "area"
+                ? second.area_m2 - first.area_m2
+                : order === "slope"
+                  ? // Terrains without a slope go last, not first as if they were flat.
+                    (second.slope_percent ?? -Infinity) - (first.slope_percent ?? -Infinity)
+                  : first.name.localeCompare(second.name, "es"),
+        );
     // On a wide screen the panel always shows a terrain: the chosen one, or the first of the list.
     // On a narrow one it is a sheet that only opens for a terrain the user chose.
     const chosen = shown.find((terrain) => terrain.id === selectedId) ?? null;
@@ -143,15 +190,18 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
 
             <section className="list-section" aria-label="Fichas de terrenos">
                 {(arriving || terrains.length > 0) && (
-                    <div className="list-toolbar">
-                        <input
-                            type="search"
-                            placeholder="Buscar terreno"
-                            aria-label="Buscar terreno por nombre"
-                            disabled={arriving}
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                        />
+                    <FilterBar
+                        searchLabel="Buscar terreno por nombre"
+                        search={query}
+                        onSearch={setQuery}
+                        resultText={
+                            filtered
+                                ? shown.length === 1
+                                    ? "1 resultado"
+                                    : `${shown.length} resultados`
+                                : undefined
+                        }
+                    >
                         <select
                             aria-label="Filtrar por proyecto"
                             disabled={arriving}
@@ -179,12 +229,17 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                 ))}
                             </select>
                         )}
-                        {filtered && (
-                            <span className="list-count" role="status">
-                                {shown.length === 1 ? "1 resultado" : `${shown.length} resultados`}
-                            </span>
-                        )}
-                    </div>
+                        <select
+                            aria-label="Ordenar terrenos"
+                            disabled={arriving}
+                            value={order}
+                            onChange={(event) => setOrder(event.target.value as Order)}
+                        >
+                            <option value="name">Por nombre</option>
+                            <option value="area">Mayor área primero</option>
+                            <option value="slope">Mayor pendiente primero</option>
+                        </select>
+                    </FilterBar>
                 )}
                 {arriving && (
                     <div className="terrain-layout terrain-layout-open">
@@ -277,36 +332,10 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                     Contorno a escala · {describeShape(selected)}
                                 </figcaption>
                             </figure>
-                            <dl className="fact-grid">
-                                <div>
-                                    <dt>Área</dt>
-                                    <dd>{formatNumber(selected.area_m2)} m²</dd>
-                                </div>
-                                <div>
-                                    <dt>Forma</dt>
-                                    <dd>{describeShape(selected)}</dd>
-                                </div>
-                                <div>
-                                    <dt>Pendiente</dt>
-                                    <dd>
-                                        {selected.slope_percent === null
-                                            ? "Sin registrar"
-                                            : `${formatNumber(selected.slope_percent)} %`}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt>Suelo</dt>
-                                    <dd>{selected.soil_type ?? "Sin registrar"}</dd>
-                                </div>
-                                <div>
-                                    <dt>Coordenadas</dt>
-                                    <dd>
-                                        {selected.latitude === null || selected.longitude === null
-                                            ? "Sin registrar"
-                                            : `${selected.latitude}, ${selected.longitude}`}
-                                    </dd>
-                                </div>
-                            </dl>
+                            <TerrainFacts
+                                terrain={selected}
+                                place={projectPlaces.get(selected.project_id) ?? null}
+                            />
                             <Button onClick={() => onOpenProject(selected.project_id)}>
                                 Abrir en su proyecto
                             </Button>
@@ -315,5 +344,94 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                 </div>
             </section>
         </>
+    );
+}
+
+function TerrainFacts({ terrain, place }: { terrain: Terrain; place: string | null }) {
+    const measured = measures(terrain);
+    const north = northOf(terrain);
+    const hasCoordinates = terrain.latitude !== null && terrain.longitude !== null;
+
+    return (
+        <dl className="fact-grid">
+            <div>
+                <dt>Área</dt>
+                <dd>{formatNumber(terrain.area_m2)} m²</dd>
+            </div>
+            <div>
+                <dt>Dimensiones</dt>
+                <dd>
+                    {measured === null
+                        ? "Sin registrar"
+                        : `${formatNumber(measured.width)} × ${formatNumber(measured.depth)} m${measured.fromVertices ? " (envolvente)" : ""}`}
+                </dd>
+            </div>
+            <div>
+                <dt>Perímetro</dt>
+                <dd>
+                    {measured === null
+                        ? "Sin registrar"
+                        : `${formatNumber(measured.perimeter)} m · ${measured.sides.length} lados`}
+                </dd>
+            </div>
+            <div>
+                <dt>Pendiente</dt>
+                <dd>
+                    {terrain.slope_percent === null
+                        ? "Sin registrar"
+                        : `${formatNumber(terrain.slope_percent)} %`}
+                    {measured?.drop !== null && measured?.drop !== undefined && (
+                        <span className="fact-note">
+                            {formatNumber(measured.drop)} m de desnivel en el fondo
+                        </span>
+                    )}
+                </dd>
+            </div>
+            <div>
+                <dt>Suelo</dt>
+                <dd>{terrain.soil_type ?? "Sin registrar"}</dd>
+            </div>
+            <div>
+                <dt>Ubicación del proyecto</dt>
+                <dd>{place ?? "Sin registrar"}</dd>
+            </div>
+            <div>
+                <dt>Orientación</dt>
+                <dd>
+                    {north === null ? (
+                        "Sin registrar"
+                    ) : (
+                        <>
+                            Norte a {formatNumber(north)}°
+                            <span className="fact-note">
+                                Del plano de implantación, guardado en este navegador
+                            </span>
+                        </>
+                    )}
+                </dd>
+            </div>
+            <div>
+                <dt>Coordenadas</dt>
+                <dd>
+                    {hasCoordinates ? (
+                        <>
+                            <span className="numeric">
+                                {terrain.latitude}, {terrain.longitude}
+                            </span>
+                            <a
+                                className="fact-note"
+                                href={`https://www.openstreetmap.org/?mlat=${terrain.latitude}&mlon=${terrain.longitude}#map=18/${terrain.latitude}/${terrain.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Ver en OpenStreetMap (abre otra pestaña)
+                            </a>
+                        </>
+                    ) : (
+                        "Sin registrar"
+                    )}
+                </dd>
+            </div>
+        </dl>
     );
 }

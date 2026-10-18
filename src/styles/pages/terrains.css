@@ -183,6 +183,19 @@
     overflow-wrap: anywhere;
 }
 
+/* Where a figure comes from, or what follows from it, under the figure itself. */
+.fact-grid .fact-note {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    font-weight: 400;
+}
+
+.fact-grid a.fact-note {
+    color: var(--accent);
+}
+
 /* Tablet and phone: the detail is a sheet that slides up for the terrain the user chose. */
 @media (max-width: 1024px) {
     .terrain-layout-open {
