@@ -100,3 +100,12 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
 - **Para qué:** deshacer también después de recargar la página o desde otro equipo, y ver quién cambió qué.
 - **Ruta:** `GET /projects/{id}/history` → `[{ id, at, user_id, entity, entity_id, before, after }]`; `POST /projects/{id}/history/{id}/revert`.
 - **Mientras tanto:** deshacer y rehacer viven en la sesión del editor: cada paso es una petición real a la API, pero la lista se pierde al cerrar la pestaña.
+
+## 14. Entidades de dibujo en los planos 2D
+
+- **Para qué:** dibujar sobre una lámina como en un programa CAD: muros, puertas y ventanas sueltas, líneas, cotas y textos, y duplicar o eliminar esos trazos.
+- **Rutas:**
+    - `GET /plans/{id}/entities` → `[{ id, kind: "wall" | "door" | "window" | "line" | "dimension" | "text", points: [[x_m, y_m], ...], props: {...} }]`.
+    - `POST /plans/{id}/entities`, `PATCH /plan-entities/{id}` y `DELETE /plan-entities/{id}`.
+- **Respuesta:** `201` con la entidad; `422` si los puntos no corresponden a su tipo.
+- **Mientras tanto:** las láminas se generan con los cuartos y los terrenos y la API no guarda trazos. Planos 2D muestra esas nueve herramientas deshabilitadas con el motivo y envía al editor 3D, donde los cuartos sí se mueven y redimensionan. Medir, zoom, desplazamiento, cuadrícula, reglas, escala gráfica, centrar, el SVG y la impresión a PDF funcionan. No se ofrecen DXF ni PNG: no están hechos, y la regla es no mostrar una exportación que no genere un archivo válido.

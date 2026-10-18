@@ -165,6 +165,52 @@ test.describe("ver el modelo 3D", () => {
     });
 });
 
+test.describe("planos 2D", () => {
+    test("mide sobre la lámina y descarga un SVG que se puede abrir", async ({ page }) => {
+        await mockApi(page);
+        await page.goto("/planos");
+
+        await page.getByRole("button", { name: "Fachada principal" }).click();
+        await page.getByRole("button", { name: "Planta baja" }).click();
+        await expect(page.getByRole("img", { name: /Planta baja/ })).toBeVisible();
+
+        await page.getByRole("button", { name: "Medir" }).click();
+        const stage = page.locator(".plan-stage");
+        const box = await stage.boundingBox();
+
+        if (box === null) {
+            throw new Error("Sin lámina");
+        }
+
+        await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.5);
+        await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.5);
+        await expect(
+            page.getByRole("status").filter({ hasText: /Distancia: [\d,]+ m/ }),
+        ).toBeVisible();
+
+        const download = page.waitForEvent("download");
+        await page.getByRole("button", { name: /Descargar planta/ }).click();
+        const file = await download;
+        const source = await (await file.createReadStream()).toArray();
+        const text = Buffer.concat(source).toString("utf8");
+
+        // A valid file: it parses as SVG and carries the drawing.
+        const parsed = await page.evaluate((svg) => {
+            const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+
+            return {
+                error: doc.querySelector("parsererror") !== null,
+                root: doc.documentElement.nodeName,
+                shapes: doc.querySelectorAll("rect, line, polygon, path").length,
+            };
+        }, text);
+
+        expect(file.suggestedFilename()).toMatch(/\.svg$/);
+        expect(parsed).toMatchObject({ error: false, root: "svg" });
+        expect(parsed.shapes).toBeGreaterThan(10);
+    });
+});
+
 test.describe("tema y paleta de comandos", () => {
     test("cambia de tema con el botón y con la paleta, y lo recuerda al volver", async ({
         page,

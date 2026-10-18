@@ -340,7 +340,12 @@ export function App() {
                     />
                 );
             case "plans":
-                return <PlansPage onOpenProject={(id) => openProject(id, "plans")} />;
+                return (
+                    <PlansPage
+                        onOpenProject={(id) => openProject(id, "plans")}
+                        onOpenViewer={() => navigate("viewer")}
+                    />
+                );
             case "lighting":
                 return <LightingPage onRender={() => navigate("render")} />;
             case "render":

@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { PlanViewport } from "./PlanViewport";
+import { PlanViewport, niceLength } from "./PlanViewport";
 
 function renderPlan() {
     const { container } = render(
@@ -32,7 +32,7 @@ describe("PlanViewport", () => {
         await userEvent.click(screen.getByRole("button", { name: "Acercar el plano" }));
         expect(screen.getByLabelText("Zoom del plano")).toHaveTextContent("125 %");
 
-        await userEvent.click(screen.getByRole("button", { name: "Ajustar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Centrar plano" }));
         expect(screen.getByLabelText("Zoom del plano")).toHaveTextContent("100 %");
     });
 
@@ -56,5 +56,42 @@ describe("PlanViewport", () => {
         fireEvent.keyDown(stage, { key: "ArrowRight" });
 
         expect(sheet.style.transform).toBe("translate(-40px, 0px) scale(1.25)");
+    });
+
+    it("draws a metre grid and rulers, and both can be switched off", async () => {
+        // jsdom lays nothing out: the stage is given the width it would have on screen, 800 px,
+        // so one metre (20 units) is 40 px and the grid has a line every metre.
+        const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientWidth");
+
+        Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+            configurable: true,
+            get: () => 800,
+        });
+
+        const { container } = render(
+            <PlanViewport width={400} height={200} unitsPerMetre={20}>
+                <svg viewBox="0 0 400 200" role="img" aria-label="Planta de muestra" />
+            </PlanViewport>,
+        );
+
+        // 400 units at 20 a metre: a line every metre, 0 to 20 m.
+        expect(container.querySelectorAll(".plan-grid line")).toHaveLength(21 + 11);
+        expect(container.querySelector(".plan-ruler-x")).not.toBeNull();
+
+        await userEvent.click(screen.getByRole("button", { name: "Cuadrícula" }));
+        await userEvent.click(screen.getByRole("button", { name: "Reglas" }));
+
+        expect(container.querySelector(".plan-grid")).toBeNull();
+        expect(container.querySelector(".plan-ruler-x")).toBeNull();
+
+        if (width !== undefined) {
+            Object.defineProperty(HTMLElement.prototype, "clientWidth", width);
+        }
+    });
+
+    it("picks a round length for the ticks and the scale bar", () => {
+        expect(niceLength(40, 56)).toBe(2);
+        expect(niceLength(10, 64)).toBe(10);
+        expect(niceLength(0.1, 64)).toBe(100);
     });
 });

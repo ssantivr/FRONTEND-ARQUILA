@@ -5,8 +5,9 @@ import { formatNumber } from "../utils/format";
 import { readSiteSettings, saveTerrainSite } from "../state/siteSettings";
 import { bounds, edges, footprint, type Point } from "../utils/geometry";
 import { buildableArea } from "../utils/polygons";
-import { downloadSvg } from "../utils/svg";
+import { downloadSvg, printSvg } from "../utils/svg";
 import { SHEET_COLORS } from "../utils/drawingPalette";
+import { PlanViewport } from "./PlanViewport";
 
 const VIEW_WIDTH = 470;
 const VIEW_HEIGHT = 330;
@@ -38,42 +39,8 @@ function download(svg: SVGSVGElement, name: string) {
     downloadSvg(svg, `implantacion-${name}`);
 }
 
-export function printableDocument(svgSource: string, title: string): string {
-    const safeTitle = title.replace(/[&<>]/g, "");
-
-    return (
-        `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>${safeTitle}</title>` +
-        "<style>@page{size:A4 landscape;margin:12mm}html,body{height:100%;margin:0}" +
-        "body{display:flex;align-items:center;justify-content:center}" +
-        "svg{width:100%;height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-        `</style></head><body>${svgSource}</body></html>`
-    );
-}
-
 function print(svg: SVGSVGElement, name: string) {
-    const frame = document.createElement("iframe");
-
-    frame.style.position = "fixed";
-    frame.style.width = "0";
-    frame.style.height = "0";
-    frame.style.border = "0";
-    frame.srcdoc = printableDocument(
-        new XMLSerializer().serializeToString(svg),
-        `Plano de implantación — ${name}`,
-    );
-    frame.onload = () => {
-        const target = frame.contentWindow;
-
-        if (target === null) {
-            frame.remove();
-            return;
-        }
-
-        target.onafterprint = () => frame.remove();
-        target.focus();
-        target.print();
-    };
-    document.body.append(frame);
+    printSvg(svg, `Plano de implantación — ${name}`);
 }
 
 const SETBACK_STEP = 0.5;
@@ -154,138 +121,152 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
         <figure className="terrain-diagrams">
             <figcaption>{terrain.name}</figcaption>
             <div className="diagram site-plan">
-                <svg
-                    ref={svg}
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-                    role="img"
-                    aria-label={`Plano de implantación de ${terrain.name}: lote de ${formatNumber(width)} por ${formatNumber(height)} metros. ${summary}`}
-                >
-                    <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={COLORS.background} />
-                    <text x={DRAW_LEFT - 30} y={24} {...TEXT} fontSize={13}>
-                        Plano de implantación — {terrain.name}
-                    </text>
-                    <polygon
-                        points={shape.map((point) => `${toX(point.x)},${toY(point.y)}`).join(" ")}
-                        fill={COLORS.free}
-                        stroke={COLORS.boundary}
-                        strokeWidth={1.5}
-                    />
-                    {buildable.pieces.map((piece, index) => (
+                <PlanViewport width={VIEW_WIDTH} height={VIEW_HEIGHT} unitsPerMetre={scale}>
+                    <svg
+                        ref={svg}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+                        role="img"
+                        aria-label={`Plano de implantación de ${terrain.name}: lote de ${formatNumber(width)} por ${formatNumber(height)} metros. ${summary}`}
+                    >
+                        <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={COLORS.background} />
+                        <text x={DRAW_LEFT - 30} y={24} {...TEXT} fontSize={13}>
+                            Plano de implantación — {terrain.name}
+                        </text>
                         <polygon
-                            key={index}
-                            points={piece
+                            points={shape
                                 .map((point) => `${toX(point.x)},${toY(point.y)}`)
                                 .join(" ")}
-                            fill={COLORS.buildable}
-                            stroke={COLORS.buildableLine}
-                            strokeWidth={1}
-                            strokeDasharray="5 3"
+                            fill={COLORS.free}
+                            stroke={COLORS.boundary}
+                            strokeWidth={1.5}
                         />
-                    ))}
-                    {edges(shape).map((edge, index) => (
-                        <text
-                            key={index}
-                            x={toX(edge.middle.x) + edge.outward.x * LABEL_OFFSET}
-                            y={toY(edge.middle.y) - edge.outward.y * LABEL_OFFSET}
-                            textAnchor={
-                                edge.outward.x > 0.5
-                                    ? "start"
-                                    : edge.outward.x < -0.5
-                                      ? "end"
-                                      : "middle"
-                            }
-                            dominantBaseline="middle"
-                            {...TEXT}
-                        >
-                            {formatNumber(edge.length)} m
-                        </text>
-                    ))}
-                    <polygon
-                        points={`${accessX},${accessY} ${accessX - 6},${accessY + 10} ${accessX + 6},${accessY + 10}`}
-                        fill={COLORS.access}
-                    />
-                    <text x={accessX} y={accessY + 22} textAnchor="middle" {...TEXT}>
-                        Acceso
-                    </text>
-
-                    <line
-                        x1={LEGEND_X}
-                        y1={LEGEND_Y}
-                        x2={LEGEND_X + 18}
-                        y2={LEGEND_Y}
-                        stroke={COLORS.boundary}
-                        strokeWidth={1.5}
-                    />
-                    <text x={LEGEND_X + 26} y={LEGEND_Y} dominantBaseline="middle" {...TEXT}>
-                        Límite del terreno
-                    </text>
-                    <rect
-                        x={LEGEND_X}
-                        y={LEGEND_Y + 16}
-                        width={18}
-                        height={10}
-                        fill={COLORS.free}
-                        stroke={COLORS.muted}
-                        strokeWidth={0.5}
-                    />
-                    <text x={LEGEND_X + 26} y={LEGEND_Y + 21} dominantBaseline="middle" {...TEXT}>
-                        Área libre (retiros)
-                    </text>
-                    {buildable !== null && (
-                        <>
-                            <rect
-                                x={LEGEND_X}
-                                y={LEGEND_Y + 37}
-                                width={18}
-                                height={10}
+                        {buildable.pieces.map((piece, index) => (
+                            <polygon
+                                key={index}
+                                points={piece
+                                    .map((point) => `${toX(point.x)},${toY(point.y)}`)
+                                    .join(" ")}
                                 fill={COLORS.buildable}
                                 stroke={COLORS.buildableLine}
                                 strokeWidth={1}
                                 strokeDasharray="5 3"
                             />
+                        ))}
+                        {edges(shape).map((edge, index) => (
                             <text
-                                x={LEGEND_X + 26}
-                                y={LEGEND_Y + 42}
+                                key={index}
+                                x={toX(edge.middle.x) + edge.outward.x * LABEL_OFFSET}
+                                y={toY(edge.middle.y) - edge.outward.y * LABEL_OFFSET}
+                                textAnchor={
+                                    edge.outward.x > 0.5
+                                        ? "start"
+                                        : edge.outward.x < -0.5
+                                          ? "end"
+                                          : "middle"
+                                }
                                 dominantBaseline="middle"
                                 {...TEXT}
                             >
-                                Área edificable
+                                {formatNumber(edge.length)} m
                             </text>
-                        </>
-                    )}
-                    <polygon
-                        points={`${LEGEND_X + 9},${LEGEND_Y + 58} ${LEGEND_X + 3},${LEGEND_Y + 68} ${LEGEND_X + 15},${LEGEND_Y + 68}`}
-                        fill={COLORS.access}
-                    />
-                    <text x={LEGEND_X + 26} y={LEGEND_Y + 63} dominantBaseline="middle" {...TEXT}>
-                        Acceso
-                    </text>
+                        ))}
+                        <polygon
+                            points={`${accessX},${accessY} ${accessX - 6},${accessY + 10} ${accessX + 6},${accessY + 10}`}
+                            fill={COLORS.access}
+                        />
+                        <text x={accessX} y={accessY + 22} textAnchor="middle" {...TEXT}>
+                            Acceso
+                        </text>
 
-                    <line
-                        x1={2 * NORTH_X - tipX}
-                        y1={2 * NORTH_Y - tipY}
-                        x2={tipX}
-                        y2={tipY}
-                        stroke={COLORS.text}
-                        strokeWidth={1.5}
-                    />
-                    <circle cx={tipX} cy={tipY} r={3} fill={COLORS.text} />
-                    <text
-                        x={letterX}
-                        y={letterY}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        {...TEXT}
-                        fontSize={12}
-                    >
-                        N
-                    </text>
+                        <line
+                            x1={LEGEND_X}
+                            y1={LEGEND_Y}
+                            x2={LEGEND_X + 18}
+                            y2={LEGEND_Y}
+                            stroke={COLORS.boundary}
+                            strokeWidth={1.5}
+                        />
+                        <text x={LEGEND_X + 26} y={LEGEND_Y} dominantBaseline="middle" {...TEXT}>
+                            Límite del terreno
+                        </text>
+                        <rect
+                            x={LEGEND_X}
+                            y={LEGEND_Y + 16}
+                            width={18}
+                            height={10}
+                            fill={COLORS.free}
+                            stroke={COLORS.muted}
+                            strokeWidth={0.5}
+                        />
+                        <text
+                            x={LEGEND_X + 26}
+                            y={LEGEND_Y + 21}
+                            dominantBaseline="middle"
+                            {...TEXT}
+                        >
+                            Área libre (retiros)
+                        </text>
+                        {buildable !== null && (
+                            <>
+                                <rect
+                                    x={LEGEND_X}
+                                    y={LEGEND_Y + 37}
+                                    width={18}
+                                    height={10}
+                                    fill={COLORS.buildable}
+                                    stroke={COLORS.buildableLine}
+                                    strokeWidth={1}
+                                    strokeDasharray="5 3"
+                                />
+                                <text
+                                    x={LEGEND_X + 26}
+                                    y={LEGEND_Y + 42}
+                                    dominantBaseline="middle"
+                                    {...TEXT}
+                                >
+                                    Área edificable
+                                </text>
+                            </>
+                        )}
+                        <polygon
+                            points={`${LEGEND_X + 9},${LEGEND_Y + 58} ${LEGEND_X + 3},${LEGEND_Y + 68} ${LEGEND_X + 15},${LEGEND_Y + 68}`}
+                            fill={COLORS.access}
+                        />
+                        <text
+                            x={LEGEND_X + 26}
+                            y={LEGEND_Y + 63}
+                            dominantBaseline="middle"
+                            {...TEXT}
+                        >
+                            Acceso
+                        </text>
 
-                    <text x={DRAW_LEFT - 30} y={VIEW_HEIGHT - 12} {...NOTE}>
-                        {summary}
-                    </text>
-                </svg>
+                        <line
+                            x1={2 * NORTH_X - tipX}
+                            y1={2 * NORTH_Y - tipY}
+                            x2={tipX}
+                            y2={tipY}
+                            stroke={COLORS.text}
+                            strokeWidth={1.5}
+                        />
+                        <circle cx={tipX} cy={tipY} r={3} fill={COLORS.text} />
+                        <text
+                            x={letterX}
+                            y={letterY}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            {...TEXT}
+                            fontSize={12}
+                        >
+                            N
+                        </text>
+
+                        <text x={DRAW_LEFT - 30} y={VIEW_HEIGHT - 12} {...NOTE}>
+                            {summary}
+                        </text>
+                    </svg>
+                </PlanViewport>
                 <div className="diagram-controls">
                     <label>
                         Retiro: {formatNumber(setback)} m
