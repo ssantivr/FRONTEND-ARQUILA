@@ -33,8 +33,8 @@ Encargo nuevo, con su complemento, sobre la misma rama: no reconstruir, sino cer
 | 1. Auditoría | Hecha: informe en la conversación, sin cambios en el código |
 | 2. Sistema visual (bloques A, B y C) | Hecha |
 | 3. Login y dashboard (bloques A y B) | Hecha |
-| 4. Proyectos (con cronograma), materiales y terrenos | Pendiente: espera el «continúa» |
-| 5. Editor 3D (mover y redimensionar cuartos), planos e iluminación (sol por fecha) | Pendiente |
+| 4. Proyectos (con cronograma), materiales y terrenos (bloques A, B y C) | Hecha |
+| 5. Editor 3D (mover y redimensionar cuartos), planos e iluminación (sol por fecha) | Pendiente: espera el «continúa» |
 | 6. Renderizado y recorridos con datos del proyecto | Pendiente |
 | 7. Responsive, accesibilidad, animación de entrada, preferencias | Pendiente |
 | 8. Pruebas, capturas y guía de VS Code | Pendiente |
@@ -103,6 +103,43 @@ Revisión visual (capturas en el scratchpad de la sesión, no en `docs/capturas/
 No se ejecutó `npm run movimiento` (CLS). La fila de cifras del inicio guarda 124 px mientras carga, pero no se midió.
 
 La tabla de materiales a 820 px no se corrigió: no era un cambio pequeño (medidas en `FRONTEND.md`). Pasa a la fase 4.
+
+### Fase 4. Proyectos, materiales y terrenos
+
+**Pendiente de la fase 3.** `scripts/movimiento.mjs` mide ahora también el inicio de sesión (con `?sin-sesion` la API de muestra responde 401). Antes de tocar nada de la fase 4: inicio de sesión CLS 0,0000 e inicio CLS 0,0000, sin animaciones con movimiento reducido. La misma ejecución encontró Materiales en CLS 0,2037 (el 13 de octubre era 0,0131): el gráfico de costo de la banda llegaba con cinco categorías donde su marcador reservaba tres. Se corrigió antes del bloque A (`96d07d3`, 0,0983) y en el bloque B quedó en 0,0000.
+
+| Bloque | Commit | Qué |
+|---|---|---|
+| — | `96d07d3` | El gráfico de costo deja de empujar Materiales al llegar; `movimiento` mide el inicio de sesión |
+| A | `fcdf74a` | Proyectos: FilterBar, cuadrícula, lista (DataTable) y cronograma con las fechas reales de las tareas; eliminar con ConfirmDialog |
+| B | `234c10d` | Materiales: catálogo de superficies con las texturas del motor, vista ampliada, controles PBR deshabilitados con motivo; materiales de obra en DataTable; tablas a fichas por el ancho de su panel |
+| C | `f92000a` | Terrenos: orden, dimensiones, perímetro, desnivel, ubicación, orientación y coordenadas |
+
+Detalle en `FRONTEND.md`, «Proyectos, materiales y terrenos». Lo que la API no tiene, en `CAMBIOS_BACKEND.md` (puntos 8 a 11).
+
+Pruebas adaptadas, no eliminadas:
+
+- `ProjectsPage.test.tsx`, vista de lista: «Lista» es una opción de radio (antes un botón con `aria-pressed`) y la fila es una fila de tabla, no un botón con todo el texto.
+- `MaterialsPage.test.tsx`, las tres: abren antes la pestaña «Materiales de obra», porque la página abre en las superficies.
+- `TerrainsPage.test.tsx`: un terreno sin datos dice «Sin registrar» 5 veces (antes 3), por la ubicación y la orientación nuevas.
+
+Pruebas nuevas: `utils/timeline` (6), cronograma, confirmación de borrado, pestaña inicial de Materiales, filtro y orden del catálogo, vista ampliada, medidas del terreno y orden de terrenos.
+
+Resultados al cerrar cada bloque:
+
+| Comando | A | B | C |
+|---|---|---|---|
+| `npm run lint` | sin errores | sin errores | sin errores |
+| `npm test` | `55 passed`, `387 passed` | `55 passed`, `390 passed` | `55 passed`, `392 passed` |
+| `npm run build` | `✓ built in 9.04s`, `index` 159,26 kB | `✓ built in 9.34s` | `✓ built in 10.09s`, `index` 159,45 kB (50,33 kB gzip) |
+| `npm run contraste` | todos ≥ 4,5:1 | igual | igual |
+| `npm run test:e2e` | `8 passed (51.4s)` | `8 passed (49.8s)` | `8 passed (57.1s)` |
+| `npm run movimiento` | todo ok; Materiales 0,0983 | todo ok; Materiales 0,0000 | todo ok; Terrenos 0,0019 |
+
+Revisión visual: Proyectos (las tres vistas), Materiales (las dos pestañas y la vista ampliada), pestaña Materiales y pestaña Terreno del proyecto, y Terrenos, en claro y oscuro a 1440, 1024, 768 y 390 px, con capturas en el scratchpad de la sesión (no en `docs/capturas/`) y una medida del desbordamiento horizontal de la página y de cada panel en cada una: cero en todas.
+
+Visto y pendiente: a 768 px el título de la barra superior se corta; fase 7.
+
 
 
 ## Antes de fusionar o desplegar

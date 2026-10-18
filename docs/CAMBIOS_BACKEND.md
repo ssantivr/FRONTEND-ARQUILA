@@ -77,3 +77,11 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
 - **Para qué:** mostrar una miniatura de cada partida de presupuesto (un producto concreto: un bloque, una teja).
 - **Ruta:** `PUT /materials/{id}/image` (`multipart/form-data`, campo `image`); `GET /materials` añadiría `image_url: string | null`.
 - **Mientras tanto:** «Materiales de obra» es una tabla sin imágenes; no se inventa una foto por categoría.
+
+## 11. Fechas, tipo y duplicado de un proyecto
+
+- **Para qué:** que el cronograma muestre el plazo del proyecto y no solo el de sus tareas; filtrar por tipo (vivienda, oficina…); duplicar un proyecto como punto de partida de otro.
+- **Rutas:**
+    - `PATCH /projects/{id}` y `POST /projects` admitirían `start_date`, `end_date` (`YYYY-MM-DD`, nulos) y `kind` (texto de una lista cerrada); `GET` los devolvería.
+    - `POST /projects/{id}/duplicate` con `{"name": "..."}` → `201` con el proyecto nuevo, copiando terrenos, planos, cuartos, componentes y materiales (no los archivos ni las conversaciones).
+- **Mientras tanto:** el cronograma usa solo las fechas de las tareas, no hay filtro por tipo y no se ofrece duplicar.

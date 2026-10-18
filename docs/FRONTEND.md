@@ -167,7 +167,7 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 
 - **Portadas.** `ProjectCover.tsx` dibuja en SVG un edificio distinto para cada proyecto a partir de su identificador y su nombre (pisos, ancho, cubierta, árboles), con el aspecto del alzado de una lámina: líneas finas sobre retícula, ejes con su burbuja, el suelo rayado y una línea de cota. No lleva ninguna cifra, porque un número ahí se leería como una medida real. El dibujo varía **solo por el identificador y el nombre**: no representa un tipo de proyecto, porque la API no tiene ese campo, ni nada del edificio real (una casa de una planta puede recibir un dibujo de tres). Si se cambia el nombre, cambia la portada. Es un emblema para distinguir tarjetas. Con un campo `type` o `cover_url` en el backend, la portada podría reflejar algo real.
 - **Terrenos.** Fichas con el contorno real del lote (sus vértices o su ancho y largo), filtros por nombre, proyecto y suelo, y un panel de detalle. Lo que no está registrado se muestra como «Sin registrar»; no se inventan coordenadas.
-- **Materiales.** Además del listado con filtros, «Superficies del modelo 3D» muestra los acabados que el motor puede aplicar (`utils/surfaceMaterials.ts`) con sus valores reales de rugosidad, metalicidad y opacidad, y una vista ampliada. Las favoritas se guardan en `localStorage` (`arquila:favorite-surfaces`), solo en ese navegador.
+- **Materiales.** Además del listado con filtros, «Superficies del modelo 3D» muestra los acabados que el motor puede aplicar (`utils/surfaceMaterials.ts`) con sus valores reales de rugosidad, metalicidad y opacidad, y una vista ampliada. Las favoritas se guardan en `localStorage` (`arquila:favorite-surfaces`), solo en ese navegador. (Rehecho en la fase 4 del 18 de octubre: ver «Proyectos, materiales y terrenos».)
 - **Listas de todos los proyectos.** `loadAcrossProjects` pide los proyectos y luego la lista de cada uno en paralelo, y guarda la respuesta 30 segundos. Cualquier escritura (`onWrite` en `services/http.ts`) vacía esa caché, y una carga fallida no se recuerda.
 
 ### Visor 3D y planos: lo que hacen y lo que no
@@ -228,7 +228,7 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 
 ### Pantallas interiores
 
-Las pantallas interiores abren con un título tipográfico grande, sus cifras y su acción principal, sin caja (`styles/pages/head.css`). Solo Materiales conserva la banda verde bosque (`PageBand.tsx`, `styles/pages/band.css`), que lleva `data-theme="dark"` para que sus contenidos usen los colores del tema oscuro en los dos temas.
+Las pantallas interiores abren con un título tipográfico grande, sus cifras y su acción principal, sin caja (`styles/pages/head.css`). La banda verde (`PageBand`) que conservaba Materiales se retiró en la fase 4 del 18 de octubre.
 
 - **Proyectos.** Sin banda: el título es el total («4 proyectos», de 32 a 44 px) con el reparto por estado debajo, y ambos salen de `GET /summary`, no de la lista, porque la lista puede estar filtrada. Debajo va una barra con búsqueda, estado, orden y el conmutador de vista, y luego las tarjetas directamente sobre el fondo. «Crear proyecto» abre el formulario en un panel que se cierra al crear; «Ejemplos» es un botón secundario que solo aparece si `GET /templates` devuelve alguno. En esta pantalla el botón «Nuevo proyecto» de la cabecera deja el lima, para que haya un solo foco.
     - Tarjeta: portada de 180 px, insignia de estado sobre la portada con icono y palabra (`Badge.tsx`), nombre a 16 px y metadatos a 12 px. La vista de lista es una tabla ligera con filas de 56 px y la portada en miniatura (`layout="list"` en `ProjectCard.tsx`).
@@ -236,7 +236,7 @@ Las pantallas interiores abren con un título tipográfico grande, sus cifras y 
 - **Detalle de proyecto.** Cabecera de 160 px con la portada del proyecto difuminada de fondo, el nombre a 36 px, el estado, la ubicación y las fechas de creación y actualización; las acciones (estado, editar, eliminar) van agrupadas a la derecha y «Deshacer» solo aparece cuando hay algo que deshacer. Las pestañas van subrayadas y sin caja, pegadas a la cabecera y fijas al desplazarse; una línea se desliza hasta la pestaña abierta (`Tabs.tsx` mide su posición) y en pantallas estrechas la fila se desplaza sola hasta ella. Los vacíos de Terreno, Planos y Materiales llevan título y un botón que lleva el cursor al primer campo del formulario del mismo panel (`FocusFormButton`).
 - **Foco y detalle.** El foco de teclado en botones es un anillo lima de 2 px sobre otro verde oscuro, para que se vea tanto en fondo claro como oscuro; el lima solo sobre blanco no llega a 3:1 (`styles/polish.css`).
 - **Terrenos.** Título con el total y, a su lado, una franja de una línea con el área total, la pendiente máxima y cuántos tienen pendiente registrada. Fichas con el contorno del lote a 160 px sobre una retícula y, a la derecha, un panel fijo con el terreno elegido (al entrar, el primero). Hasta 1024 px de ancho ese panel es una hoja que sube desde abajo solo cuando se elige un terreno, y se cierra con «Cerrar». Lo que no está registrado sigue diciendo «Sin registrar».
-- **Materiales.** Es la única pantalla que conserva la banda verde, porque aquí lleva un gráfico: el costo por categoría con su importe y su parte del total, y debajo los indicadores. La tabla tiene filas de 44 px y cabecera fija dentro de su propio desplazamiento. «Superficies del modelo 3D» es un catálogo con muestras de 140 px agrupadas en «Con relieve», «Lisas», «Metálicas» y «Translúcidas»; el grupo se deduce de los valores con que el motor dibuja cada superficie (`groupOf` en `SurfaceLibrary.tsx`), porque la API no tiene categorías para ellas.
+- **Materiales.** (Sustituido en la fase 4 del 18 de octubre: ver «Proyectos, materiales y terrenos».)
 - **Configuración.** Una columna de 720 px sin cajas: la cuenta con un avatar de 64 px y «Cerrar sesión», y debajo Apariencia, Contraseña y Sistema separadas por una línea. El tema se elige entre tres opciones con una miniatura de cómo se ve cada una; siguen siendo botones con `aria-pressed`. «Reducir movimiento» es una casilla nativa dibujada como interruptor.
 - **Inicio.** Bajo el hero hay dos bloques con datos reales: «Continuar donde lo dejaste», con el último proyecto no archivado y accesos directos a su modelo 3D, sus planos y sus materiales; y «Proyectos por estado», una barra repartida según `GET /summary` con su leyenda en texto.
 - **Inicio de sesión.** Bajo el titular se listan tres cosas que la aplicación hace de verdad (modelo 3D, planos con cotas y costos), y el formulario abre con una frase que cambia según se entre, se cree la cuenta o se recupere la contraseña.
@@ -251,7 +251,7 @@ Las pantallas interiores abren con un título tipográfico grande, sus cifras y 
 - **Título de la pestaña.** Cada pantalla pone su nombre en el título del navegador (`document.title` en `App.tsx`).
 - **Móvil.** Los destinos de la navegación y de la cabecera miden al menos 44 px.- **Foco y detalle.** El foco de teclado en botones es un anillo lima de 2 px sobre otro verde oscuro, para que se vea tanto en fondo claro como oscuro; el lima solo sobre blanco no llega a 3:1 (`styles/polish.css`).
 - **Terrenos.** Lista a la izquierda y, a la derecha, el terreno elegido con su contorno a escala sobre una retícula y sus datos en fichas; al entrar se muestra el primero. Lo que no está registrado sigue diciendo «Sin registrar».
-- **Materiales.** El costo por categoría va dentro de la banda, con el importe y su parte del total.
+- **Materiales.** (Sustituido en la fase 4 del 18 de octubre.)
 - **Configuración.** La banda lleva la cuenta y «Cerrar sesión»; cada preferencia es una fila con su explicación a la izquierda y su control a la derecha. «Reducir movimiento» es una casilla nativa dibujada como interruptor.
 
 El contraste del texto de las bandas se midió sobre la captura, píxel a píxel, igual que el del hero; ninguna pantalla se desborda a lo ancho a 390, 820, 1024 y 1366 px.
@@ -288,7 +288,7 @@ La identidad sigue `docs/DISENO_ARQUILA.md`: verde bosque (`#0B211A`, `#12382A`)
 - **Tema inicial.** Mientras el usuario no elija uno, se usa el que pide el sistema (`prefers-color-scheme`).
 - **Imágenes.** `src/assets/renders/` tiene dos renders (día y noche) de una casa de muestra, hechos con el propio visor 3D de ARQUILA; no son fotos de terceros ni el modelo de ningún proyecto. `RenderImage.tsx` los muestra en la portada (según el tema) y en el inicio de sesión, con aparición suave y, si la imagen no carga, la ilustración vectorial de `ArchitectureArt.tsx`.
 - **Portadas.** La API no guarda imagen de portada, así que `ProjectCard.tsx` pone las iniciales del proyecto sobre uno de esos renders oscurecido: es decoración, no una imagen del proyecto.
-- **Proyectos.** Orden y vista de cuadrícula o lista en el cliente; archivar, reactivar y eliminar (con confirmación) usan `PATCH` y `DELETE /projects/{id}`. No hay «duplicar» porque la API no lo ofrece.
+- **Proyectos.** Orden y vista de cuadrícula o lista en el cliente; archivar, reactivar y eliminar (con confirmación) usan `PATCH` y `DELETE /projects/{id}`. No hay «duplicar» porque la API no lo ofrece. (Fase 4 del 18 de octubre: también vista de cronograma y confirmación en ventana.)
 - **Modelo 3D.** El panel «Objetos» agrupa por nivel en espacios y estructura, permite buscar y ocultar cada objeto (`setHidden` en `BuildingSceneManager.ts`). El tema oscuro es una escena nocturna y el claro una diurna; la oclusión ambiental (`GTAOPass` en `postprocessing.ts`) deja fuera vidrios, elementos atenuados, líneas y el cielo. El control «Sol» gira la luz alrededor del modelo (`setSun`) y «Guardar imagen» descarga la vista como PNG (`capture`); ninguno de los dos se guarda en el servidor. Mover, rotar o escalar objetos no existe: el modelo se genera a partir de los planos.
 
 ### Sistema visual y navegación (fase 2 del 18 de octubre de 2026)
@@ -366,6 +366,44 @@ Commits `c8cb02e` (acceso) y `9402e69` (inicio).
 
 A 1024 y 1100 px no se sale ninguna tabla. Queda para la fase 4: pasar a fichas antes de 720 px o recoger las acciones en un menú.
 
+### Proyectos, materiales y terrenos (fase 4 del 18 de octubre de 2026)
+
+Commits `96d07d3` (CLS de Materiales), `fcdf74a` (proyectos), `234c10d` (materiales) y `f92000a` (terrenos).
+
+**Proyectos** (`ProjectsPage.tsx`).
+
+- `FilterBar` con búsqueda, estado y orden (actualizados, creados, nombre) y un `SegmentedControl` para la vista: cuadrícula, lista (`DataTable`, ordenable por columna) y cronograma. Eliminar pide confirmación en `ConfirmDialog`.
+- **Cronograma** (`ProjectTimeline.tsx`, `utils/timeline.ts`). Usa solo las fechas de las tareas: `planned_start`, `planned_end` y `completed_at`. Una barra necesita las dos fechas previstas; con una sola es un rombo en ese día y el texto dice «sin la otra fecha»; el día en que se terminó es un punto; una línea marca hoy si cae dentro. Las tareas sin ninguna fecha se listan aparte y se nombran los proyectos sin tareas. La API no tiene fechas de proyecto: un proyecto dura lo que duran sus tareas. Respeta los filtros de la página. Las tareas se piden solo al abrir el cronograma, una petición por proyecto, con la misma caché que Tareas (`loadProjectTasks`). Para los lectores de pantalla cada tarea lleva sus fechas en palabras.
+- No hay duplicar ni tipo de proyecto (`CAMBIOS_BACKEND.md`, punto 11).
+
+**Biblioteca de materiales** (`MaterialsPage.tsx`, `SurfaceLibrary.tsx`, `SurfaceSwatch.tsx`). Dos pestañas, porque son dos catálogos distintos que existen de verdad:
+
+- **Superficies del modelo 3D**, la que abre: las siete del motor, con búsqueda, filtro por acabado (con relieve, lisas, metálicas, translúcidas), orden por nombre, rugosidad o metalicidad, y favoritas de este navegador. Las muestras se dibujan con los mismos píxeles que las texturas del motor: los generadores de ladrillo, tablas y sillares pasaron de `three/patterns.ts` a `utils/patternPixels.ts`, sin three.js, y el motor solo los convierte en `DataTexture`. Así la biblioteca no carga el motor (la página pesa 11 kB). La vista ampliada es un `Drawer` con color base, rugosidad, metalicidad, opacidad, relieve, mapa normal (no hay: el motor usa bump) y repetición a escala real. Los controles para editar esos valores aparecen deshabilitados y dicen por qué: las superficies son fijas y la API no guarda materiales propios (punto 8). «Aplicar a un elemento» explica que se hace en el inspector del editor 3D y abre el editor.
+- **Materiales de obra**: las partidas de presupuesto de todos los proyectos, en `DataTable` con búsqueda, categoría y orden; el nombre del proyecto es el enlace que lo abre. Debajo, el costo por categoría.
+- Las categorías del encargo que no son superficies del motor (cerámica, mármol, pinturas, textiles, personalizados) no se muestran. La banda verde de cabecera (`PageBand`) desapareció: Materiales era su único uso.
+
+**Terrenos** (`TerrainsPage.tsx`). `FilterBar` con búsqueda, proyecto, suelo y orden (nombre, mayor área, mayor pendiente; las pendientes sin registrar van al final). El detalle añade dimensiones (la envolvente si el lote es un polígono), perímetro y número de lados, el desnivel del fondo (fondo × pendiente, la misma regla que la vista lateral), la ubicación del proyecto, la orientación y las coordenadas.
+
+- **Orientación.** Es el norte que el usuario fija en el plano de implantación; se guarda en este navegador (`state/siteSettings.ts`) y la ficha lo dice. Sin él, «Sin registrar».
+- **Mapa.** No hay mapa incrustado: no hay una integración cartográfica en el proyecto y no se añade una dependencia. Con coordenadas, un enlace abre OpenStreetMap en otra pestaña.
+
+**Tablas que pasan a fichas por el ancho de su panel.** Antes la regla era la ventana (720 px) y una tabla de seis columnas en un panel de tableta se salía (Materiales a 820 px, Terreno a 760 px). Ahora los paneles con una tabla y `DataTable` son contenedores (`container: table-host / inline-size`) y la tabla pasa a fichas cuando su contenedor mide menos de 760 px, sea cual sea la ventana. Con sitio para dos, las fichas van en dos columnas (`auto-fit`, así una ficha sola ocupa toda la fila). Medido en 1440, 1024, 820, 768, 760 y 390 px: ninguna tabla se sale; tabla a partir de 1024 px y fichas por debajo de 820 px. La tabla de Materiales de obra tenía siete columnas y se salía 21 px a 1024; se quitó la columna «Abrir» haciendo del proyecto el enlace, en vez de mover el umbral.
+
+**Lista de comprobación visual en estas pantallas** (claro y oscuro, a 1440, 1024, 768 y 390 px):
+
+| Estándar | Proyectos | Materiales | Terrenos |
+|---|---|---|---|
+| 1. Misma identidad visual | Sí | Sí | Sí |
+| 2. Inicio con jerarquía y render protagonista | — (fase 3) | — | — |
+| 3. Editor 3D prioriza el área de trabajo | — (fase 5) | — | — |
+| 4. Planos como herramienta técnica | — (fase 5) | — | — |
+| 5. Biblioteca visual y fácil de explorar | — | Sí: muestras grandes con el dibujo del motor, filtros y vista ampliada | — |
+| 6. Formularios, propiedades, tablas y listas sin saturación | Sí | Sí | Sí, el detalle en dos columnas de datos |
+| 7. Carga y error diseñados | Sí, también en el cronograma | Sí | Sí |
+| 8. Móvil con distribución propia | Sí: fichas, cronograma con la etiqueta sobre su pista | Sí: tarjetas en una columna, tabla en fichas | Sí: lista y hoja de detalle |
+
+Visto y pendiente: a 768 px el título de la barra superior se corta («Proye…») porque los controles de la derecha ocupan el resto; va a la fase 7 (responsive).
+
 ### Movimiento
 
 El movimiento explica un cambio (qué apareció, qué se movió, qué se guardó); no decora. Todo sale de `src/styles/motion.css`.
@@ -404,7 +442,7 @@ El movimiento explica un cambio (qué apareció, qué se movió, qué se guardó
 
 ### Pantallas pequeñas
 
-Por debajo de 720 px de ancho el menú lateral se sustituye por una barra inferior (`MobileNav.tsx`, ver «Sistema visual y navegación»), las tablas se muestran como fichas con el nombre de cada columna junto a su valor y los controles del modelo 3D se colocan debajo del visor. Comprobado el 4 de octubre de 2026 a 390, 820 y 1280 px en todos los módulos y pestañas: ninguna vista se desborda a lo ancho.
+Por debajo de 720 px de ancho el menú lateral se sustituye por una barra inferior (`MobileNav.tsx`, ver «Sistema visual y navegación»), las tablas se muestran como fichas (desde la fase 4 del 18 de octubre, según el ancho de su panel y no de la ventana) con el nombre de cada columna junto a su valor y los controles del modelo 3D se colocan debajo del visor. Comprobado el 4 de octubre de 2026 a 390, 820 y 1280 px en todos los módulos y pestañas: ninguna vista se desborda a lo ancho.
 
 ### Accesibilidad
 
