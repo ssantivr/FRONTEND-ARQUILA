@@ -223,8 +223,8 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 - **Un foco de lima por zona.** El lima queda para la acción principal y el elemento activo; el avatar, los puntos de los indicadores y los monogramas ya no lo usan.
 - **Navegación.** Los módulos se agrupan en «Trabajo», «Visualización» y «Asistencia y cuenta».
 - **Imagen protagonista.** La portada y el inicio de sesión muestran la casa de muestra dibujada por el propio visor 3D de ARQUILA: de día en el tema claro (`house-day.jpg`) y de noche en el oscuro (`house-night.jpg`), rotulada «Modelo de muestra · visor 3D» porque no es un proyecto del usuario. Las dos imágenes se regeneran con `npm run renders` (`scripts/renders.mjs`), que usa el visor como una persona: oculta los paneles, se acerca, desplaza el edificio a la derecha y pulsa «Guardar imagen». Ya no se usan las imágenes del recorrido interior. Para poner renders propios basta sustituir esos dos archivos en `src/assets/renders/`.
-- **Inicio.** Hero a ancho completo con el saludo a 44–60 px y los indicadores reales de la API en una franja sobre la imagen; los accesos rápidos son una acción principal y una lista compacta. El velo oscuro sigue al texto y no al hero: sus paradas van en píxeles (opaco hasta 440 px, transparente a los 720 px), así que el resto de la escena queda a la vista. El contraste del texto se midió píxel a píxel sobre la imagen a 390, 820, 1024, 1366 y 1920 px: el peor punto del párrafo da 4,6:1 y el del saludo 5,6:1. La escena nocturna se usa también en el tema claro.
-- **Inicio de sesión.** Titular grande sobre la imagen y formulario sin tarjeta. No hay franja de datos porque sin sesión no hay ningún dato real que mostrar.
+- **Inicio.** (Sustituido en la fase 3 del 18 de octubre: ver «Inicio de sesión y dashboard».) Hero a ancho completo con el saludo a 44–60 px y los indicadores reales de la API en una franja sobre la imagen; los accesos rápidos son una acción principal y una lista compacta. El velo oscuro sigue al texto y no al hero: sus paradas van en píxeles (opaco hasta 440 px, transparente a los 720 px), así que el resto de la escena queda a la vista. El contraste del texto se midió píxel a píxel sobre la imagen a 390, 820, 1024, 1366 y 1920 px: el peor punto del párrafo da 4,6:1 y el del saludo 5,6:1. La escena nocturna se usa también en el tema claro.
+- **Inicio de sesión.** (Sustituido en la fase 3 del 18 de octubre.) Titular grande sobre la imagen y formulario sin tarjeta. No hay franja de datos porque sin sesión no hay ningún dato real que mostrar.
 
 ### Pantallas interiores
 
@@ -246,7 +246,7 @@ Las pantallas interiores abren con un título tipográfico grande, sus cifras y 
 - **Gizmo de orientación.** En la esquina inferior del visor, tres ejes giran con la cámara (`viewer/ViewGizmo.tsx`): X a lo ancho del lote, Y hacia el fondo y Z hacia arriba, igual que las coordenadas que se escriben en los planos. El motor avisa de la dirección de la cámara en grados (`onOrbit` en `BuildingSceneManager.ts`) y el gizmo se redibuja tocando el SVG directamente, sin volver a pintar React en cada giro.
 - **Asistente desde cualquier pestaña.** Dentro de un proyecto, el botón «Asistente» de la barra superior abre a la derecha el mismo `AssistantPanel` de la pestaña Asistente IA, con la primera pregunta sugerida según la pestaña abierta (y, si hay un elemento seleccionado en el modelo, sobre ese elemento). Las respuestas vienen de la API (`POST /conversations/{id}/messages`); el panel dice siempre quién responde, un modelo local o las reglas fijas, y marca cada respuesta dada por reglas. No hay ninguna respuesta generada en el navegador.
 - **Modelo en vivo en el inicio.** La tarjeta «Continuar donde lo dejaste» dibuja el modelo 3D real del último proyecto (`ProjectPreview.tsx`, que usa `StructureViewer` con `preview` para mostrar solo la escena, sin paneles). Se puede girar con el puntero. Three.js se descarga solo entonces; si el proyecto no tiene nada que dibujar o el navegador no tiene WebGL, queda la portada dibujada.
-- **Cifras que cuentan.** Las cifras del hero suben desde cero hasta su valor real al aparecer (`CountUp.tsx`); con «reducir movimiento» aparecen directamente.
+- **Cifras que cuentan.** Las cifras del inicio suben desde cero hasta su valor real al aparecer (`CountUp.tsx`); con «reducir movimiento» aparecen directamente.
 - **Profundidad y movimiento.** `styles/rich.css` da luz a la barra lateral, deja la cabecera translúcida sobre el contenido, hace llegar las listas elemento a elemento y da a las tarjetas una sombra por capas, un acercamiento de la portada y una línea lima al pasar el cursor. Todas esas animaciones duran menos de medio segundo y se anulan con «reducir movimiento».
 - **Título de la pestaña.** Cada pantalla pone su nombre en el título del navegador (`document.title` en `App.tsx`).
 - **Móvil.** Los destinos de la navegación y de la cabecera miden al menos 44 px.- **Foco y detalle.** El foco de teclado en botones es un anillo lima de 2 px sobre otro verde oscuro, para que se vea tanto en fondo claro como oscuro; el lima solo sobre blanco no llega a 3:1 (`styles/polish.css`).
@@ -332,6 +332,39 @@ Encargo de cerrar huecos frente a una apariencia de software profesional de arqu
 8. El móvil tiene una distribución propia, no una versión apretada del escritorio.
 
 Al cerrar la fase 2 se miraron Inicio, Proyectos, la pestaña Materiales, el Modelo 3D y Configuración a 1280, 820 y 390 px en los dos temas (`npm run capturas` con `CAPTURAS_SALIDA`, sin tocar `docs/capturas/`). Visto y sin corregir todavía: a 820 px la tabla de materiales del proyecto se sale de su panel por la derecha (fase 4).
+
+### Inicio de sesión y dashboard (fase 3 del 18 de octubre de 2026)
+
+Commits `c8cb02e` (acceso) y `9402e69` (inicio).
+
+**Inicio de sesión** (`AuthScreen.tsx`, `LoginPage.tsx`, cada uno con su `*.module.css`).
+
+- **Composición.** En escritorio el render va a la izquierda, entero y sin velo, con el texto debajo sobre verde bosque sólido; el formulario va a la derecha. En la página el formulario va primero, así que en el móvil y para un lector de pantalla es lo primero; la imagen queda después. Antes el texto iba sobre la imagen con un velo que tapaba casi toda la casa.
+- **Formulario.** Sin tarjeta: título, una línea de contexto, los campos, el ojo dentro del campo de contraseña (un solo nombre, «Mostrar contraseña», y `aria-pressed` dice si se ve), «Olvidé mi contraseña» bajo el campo y el botón lima, que se bloquea y muestra su carga mientras se envía. Los errores y avisos llevan icono y texto. La validación es la de `LiveForm`, al salir de cada campo.
+- **Autenticación.** El mismo flujo: `POST /auth/login`, `/auth/register` y `/auth/password-reset`; la cookie la pone el backend y el navegador no guarda nada. Recuperar la contraseña se muestra porque la API lo soporta; «Recordar sesión» no, porque la API no tiene una duración de sesión que elegir (`CAMBIOS_BACKEND.md`, punto 7).
+- **Imagen.** La misma de antes (`RenderImage`), con su rótulo «Modelo de muestra · visor 3D» y la ilustración vectorial si no carga.
+- **Tema.** Las tres opciones están también antes de entrar.
+- Se quitaron `styles/auth.css`, `styles/pages/auth.css` y las reglas `.auth*` del resto de hojas.
+
+**Entrada de la aplicación** (`BrandIntro.tsx`, `BrandMark.tsx`). Las cuatro barras lima de la marca se colocan una tras otra, como muros en una planta (el suelo crece desde la izquierda, el muro hacia arriba, el dintel desde la derecha y el poste hacia abajo), y aparece el nombre; luego todo se desvanece. Dura menos de un segundo, solo con `transform` y `opacity`. No captura clics (`pointer-events: none`), cualquier tecla o clic la termina, se muestra una vez por pestaña (`sessionStorage`, clave `arquila:intro`) y nunca con movimiento reducido, del sistema o de Configuración. Es decorativa (`aria-hidden`). La marca pasó a SVG para poder animar cada barra; la barra lateral sigue dibujándola en CSS.
+
+**Dashboard** (`HomePage.tsx`, `HomePage.module.css`).
+
+- **Héroe.** El saludo, el texto y las dos acciones van sobre verde bosque con una línea lima a la izquierda; el render va a su lado, entero. «Crear proyecto» abre el formulario de creación (antes solo llevaba a la lista) y «Explorar proyectos» lleva a la lista. En el móvil el saludo va primero y la imagen debajo.
+- **Cifras.** Tres tarjetas bajo el héroe con lo que devuelve `GET /summary`: proyectos (con el reparto por estado), terrenos (con el área total) y costo de materiales. El encargo pedía también en progreso, completados, materiales guardados y planos creados: la API no tiene estado «completado», no cuenta planos ni materiales y solo da el costo, así que esas cifras no se muestran. «Activo» es el estado de la API, no «en progreso». Las palabras concuerdan con la cifra («1 activo», «1 archivado»). La fila guarda su alto mientras carga.
+- **Proyectos recientes.** La tarjeta muestra la portada (la miniatura del modelo o la portada dibujada), el nombre, el estado, la ubicación y la fecha de actualización. No hay tipo de proyecto ni avance, porque la API no los tiene. El menú tiene Abrir, Ver el modelo 3D, Archivar o Reactivar y **Eliminar…**, que pide confirmación (`ConfirmDialog`) y dice que se borran también terrenos, planos, cuartos, materiales y archivos; se comprobó en el esquema (`ON DELETE CASCADE`) y en el servicio, que borra los archivos guardados. Duplicar no está porque la API no lo ofrece.
+- **Accesos rápidos.** Las descripciones ocupan hasta dos líneas en vez de cortarse.
+- Se quitaron las reglas `.hero*` del héroe anterior.
+
+**Tabla de materiales a 820 px.** No se corrigió. La tabla no desborda la página, sino su panel, que se desplaza en horizontal y deja la columna de acciones cortada. Se probaron dos cambios pequeños y ninguno bastó:
+
+| Intento | Materiales a 820 px | Terreno a 760 px |
+|---|---|---|
+| Sin cambios | se sale | se sale |
+| Texto de las celdas en varias líneas | sobran 77 px y se lee peor | — |
+| Celdas más estrechas y «Editar»/«Eliminar» apilados | sobran 46 px | sobran 71 px |
+
+A 1024 y 1100 px no se sale ninguna tabla. Queda para la fase 4: pasar a fichas antes de 720 px o recoger las acciones en un menú.
 
 ### Movimiento
 

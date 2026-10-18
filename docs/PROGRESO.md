@@ -32,8 +32,8 @@ Encargo nuevo, con su complemento, sobre la misma rama: no reconstruir, sino cer
 |---|---|
 | 1. Auditoría | Hecha: informe en la conversación, sin cambios en el código |
 | 2. Sistema visual (bloques A, B y C) | Hecha |
-| 3. Login y dashboard | Pendiente: espera el «continúa» |
-| 4. Proyectos (con cronograma), materiales y terrenos | Pendiente |
+| 3. Login y dashboard (bloques A y B) | Hecha |
+| 4. Proyectos (con cronograma), materiales y terrenos | Pendiente: espera el «continúa» |
 | 5. Editor 3D (mover y redimensionar cuartos), planos e iluminación (sol por fecha) | Pendiente |
 | 6. Renderizado y recorridos con datos del proyecto | Pendiente |
 | 7. Responsive, accesibilidad, animación de entrada, preferencias | Pendiente |
@@ -71,6 +71,39 @@ Revisión visual: Inicio, Proyectos, pestaña Materiales, Modelo 3D y Configurac
 También: `.vscode/extensions.json` con ESLint y Prettier recomendados. `.gitignore` ignoraba toda la carpeta `.vscode/`; ahora ignora su contenido salvo ese archivo.
 
 No hubo revisión independiente en esta fase.
+
+### Fase 3. Inicio de sesión y dashboard
+
+| Bloque | Commit | Qué |
+|---|---|---|
+| A | `c8cb02e` | Pantalla de acceso dividida (formulario primero en la página, render entero, texto sobre verde sólido), ojo en el campo de contraseña, botón con carga, animación de entrada del logotipo |
+| B | `9402e69` | Héroe con el render a la vista, cifras de `/summary` en tarjetas aparte, plural corregido, «Crear proyecto» abre el formulario, «Eliminar…» con confirmación, accesos rápidos sin cortar |
+
+Detalle en `FRONTEND.md`, «Inicio de sesión y dashboard». «Recordar sesión» no está: la API no lo soporta (`CAMBIOS_BACKEND.md`, punto 7).
+
+Pruebas adaptadas, no eliminadas:
+
+- `LoginPage.test.tsx`: el botón del ojo se buscaba por «Mostrar» y «Ocultar»; ahora tiene un solo nombre, «Mostrar contraseña», y la prueba comprueba `aria-pressed`.
+- `HomePage.test.tsx`: esperaba «1 archivados» y ahora espera «1 archivado»; el botón «Abrir el visor 3D» pasó a ser «Explorar proyectos», y «Crear proyecto» llama a `onCreateProject`.
+
+Pruebas nuevas: `AuthScreen` (3), `BrandIntro` (4), `LoginPage` (2: correo inválido al salir del campo y sin casilla de recordar) y `HomePage` (eliminar solo tras confirmar).
+
+Resultados al cerrar cada bloque:
+
+| Comando | Bloque A | Bloque B |
+|---|---|---|
+| `npm run lint` | sin errores ni avisos | sin errores ni avisos |
+| `npm test` | `54 passed`, `378 passed` | `54 passed`, `379 passed` |
+| `npm run build` | `✓ built in 9.12s`, `index` 146,97 kB | `✓ built in 11.58s`, `index` 149,61 kB (46,73 kB gzip) |
+| `npm run contraste` | `Todos los pares llegan a 4.5:1.` | igual |
+| `npm run test:e2e` | `8 passed (51.6s)` | `8 passed (1.1m)` |
+
+Revisión visual (capturas en el scratchpad de la sesión, no en `docs/capturas/`): inicio de sesión e inicio a 1280, 820 y 390 px en los dos temas. La animación de entrada se comprobó en el navegador: a los 380 ms está en pantalla, al segundo ha desaparecido y al recargar en la misma pestaña no vuelve.
+
+No se ejecutó `npm run movimiento` (CLS). La fila de cifras del inicio guarda 124 px mientras carga, pero no se midió.
+
+La tabla de materiales a 820 px no se corrigió: no era un cambio pequeño (medidas en `FRONTEND.md`). Pasa a la fase 4.
+
 
 ## Antes de fusionar o desplegar
 
@@ -282,10 +315,10 @@ Mal, sin corregir:
 | Dónde | Qué |
 |---|---|
 | Todas las pantallas con sesión | axe `label-content-name-mismatch` (grave): el botón «Ctrl K» del buscador se llama «Abrir la paleta de comandos» y no incluye el texto que se ve (WCAG 2.5.3). `npm run accesibilidad` no corre en CI |
-| Inicio de sesión, 390 px | La insignia «MODELO DE MUESTRA · VISOR 3D» tapa el logotipo («AR…») |
-| Inicio | «1 activos» en las cifras de proyectos (singular) |
+| ~~Inicio de sesión, 390 px~~ | ~~La insignia tapa el logotipo~~. Resuelto en la fase 3 del 18 de octubre: el logotipo va sobre el formulario y la insignia sobre la imagen |
+| ~~Inicio~~ | ~~«1 activos»~~. Resuelto en la fase 3 del 18 de octubre |
 | Inicio, 1280 px | «22.124,00 US$» queda casi pegado al borde derecho de la tarjeta |
-| Inicio, todos los tamaños | Las descripciones de los accesos rápidos se cortan con puntos suspensivos |
+| ~~Inicio, todos los tamaños~~ | ~~Accesos rápidos cortados~~. Resuelto en la fase 3 del 18 de octubre: hasta dos líneas |
 | Materiales, Planos, Elevaciones, Modelo 3D | El botón flotante «Asistente» tapa controles al abrir: Editar/Eliminar de la primera fila, «Lateral der.» y «Corte», el selector de cubierta |
 | Cifras sin JetBrains Mono | Total de Materiales del proyecto (`th` «20.156,00 US$»), columna Nivel de Planos, áreas de la tabla de cuartos del Modelo 3D, área y pendiente del detalle en Terrenos, total de Materiales y presupuestos de Tareas (`dd`) |
 | Modelo 3D, 1280 × 800 | El visor empieza a 380 px de altura: al abrir solo se ve su mitad superior |
