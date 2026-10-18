@@ -174,14 +174,14 @@ button {
 }
 
 .panel th {
-    height: 36px;
+    height: var(--row-head-height);
     padding: 0 12px;
     font-size: var(--fs-label);
     letter-spacing: 0.08em;
 }
 
 .panel td {
-    height: 44px;
+    height: var(--row-height);
     padding: 4px 12px;
 }
 

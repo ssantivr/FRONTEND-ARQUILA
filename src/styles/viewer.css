@@ -81,8 +81,6 @@
     box-shadow: var(--shadow-float);
     pointer-events: auto;
     scrollbar-width: thin;
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
 }
 
 .hud summary {
