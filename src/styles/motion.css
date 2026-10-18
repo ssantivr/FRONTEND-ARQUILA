@@ -111,6 +111,27 @@
     }
 }
 
+@keyframes slide-out-down {
+    to {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+}
+
+@keyframes slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+}
+
+@keyframes slide-out-left {
+    to {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+}
+
 /* A bar that grows from its left end (progress, the mark under a title, a chart bar). */
 @keyframes grow-in {
     from {

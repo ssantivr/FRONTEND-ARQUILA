@@ -9,6 +9,14 @@ import { Panel } from "../components/ui/Panel";
 import { ProjectCard } from "../components/ProjectCard";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { DataTable } from "../components/ui/DataTable";
+import { Drawer } from "../components/ui/Drawer";
+import { FilterBar } from "../components/ui/FilterBar";
+import { SaveIndicator, type SaveState } from "../components/ui/SaveIndicator";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import { Spinner } from "../components/ui/Spinner";
+import { Switch } from "../components/ui/Switch";
 import { Input, Select } from "../components/ui/Input";
 import { Skeleton } from "../components/ui/Skeleton";
 import { Tooltip } from "../components/ui/Tooltip";
@@ -56,11 +64,28 @@ const SAMPLE_PROJECT: Project = {
     updated_at: "2026-10-04T12:00:00Z",
 };
 
+/** Rows of the sample table; like the sample project, they only exist on this page. */
+const SAMPLE_ROWS = [
+    { id: 1, name: "Lote de muestra A", area: 480 },
+    { id: 2, name: "Lote de muestra B", area: null },
+    { id: 3, name: "Lote de muestra C", area: 212.5 },
+];
+
+const SAVE_STATES: SaveState[] = ["idle", "saving", "saved", "error"];
+
 function Showcase() {
     const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("first");
     const [name, setName] = useState("");
     const [open, setOpen] = useState(false);
     const [picked, setPicked] = useState("Ninguna todavía");
+    const [view, setView] = useState<"grid" | "rows">("grid");
+    const [compact, setCompact] = useState(false);
+    const [drawer, setDrawer] = useState(false);
+    const [confirming, setConfirming] = useState(false);
+    const [search, setSearch] = useState("");
+    const rows = SAMPLE_ROWS.filter((row) =>
+        row.name.toLowerCase().includes(search.trim().toLowerCase()),
+    );
 
     return (
         <>
@@ -171,6 +196,112 @@ function Showcase() {
                         <p>Contenido de la ventana. Se cierra con Escape o con el botón.</p>
                     </Dialog>
                 )}
+            </Panel>
+
+            <Panel title="Selección segmentada, interruptor y carga">
+                <div className="ds-stack">
+                    <div className="ds-row">
+                        <SegmentedControl
+                            label="Vista"
+                            options={[
+                                { value: "grid", label: "Cuadrícula", icon: "grid" },
+                                { value: "rows", label: "Lista", icon: "rows" },
+                            ]}
+                            value={view}
+                            onChange={setView}
+                        />
+                        <SegmentedControl
+                            label="Vista (solo iconos)"
+                            iconOnly
+                            size="sm"
+                            options={[
+                                { value: "grid", label: "Cuadrícula", icon: "grid" },
+                                { value: "rows", label: "Lista", icon: "rows" },
+                            ]}
+                            value={view}
+                            onChange={setView}
+                        />
+                        <Spinner size="sm" />
+                        <Spinner label="Cargando la muestra…" />
+                        <Spinner size="lg" />
+                    </div>
+                    <Switch
+                        label="Interruptor de muestra"
+                        description="Se aplica al momento, sin botón de guardar."
+                        checked={compact}
+                        onChange={(event) => setCompact(event.target.checked)}
+                    />
+                    <div className="ds-row">
+                        {SAVE_STATES.map((state) => (
+                            <span key={state} className="ds-row">
+                                <code>{state}</code>
+                                <SaveIndicator state={state} />
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            </Panel>
+
+            <Panel title="Cajón y confirmación">
+                <div className="ds-row">
+                    <Button variant="secondary" onClick={() => setDrawer(true)}>
+                        Abrir cajón
+                    </Button>
+                    <Button variant="danger" onClick={() => setConfirming(true)}>
+                        Eliminar…
+                    </Button>
+                </div>
+                {drawer && (
+                    <Drawer title="Cajón lateral" onClose={() => setDrawer(false)}>
+                        <p>Paneles de filtros o de propiedades en pantallas pequeñas.</p>
+                    </Drawer>
+                )}
+                {confirming && (
+                    <ConfirmDialog
+                        title="¿Eliminar la muestra?"
+                        confirmLabel="Eliminar"
+                        danger
+                        onConfirm={() => {
+                            setConfirming(false);
+                            showToast("Confirmación de muestra aceptada.");
+                        }}
+                        onCancel={() => setConfirming(false)}
+                    >
+                        <p>Abre con el foco en «Cancelar». No se elimina nada real.</p>
+                    </ConfirmDialog>
+                )}
+            </Panel>
+
+            <Panel title="Filtros y tabla ordenable">
+                <FilterBar
+                    searchLabel="Buscar en la muestra"
+                    search={search}
+                    onSearch={setSearch}
+                    resultText={`${rows.length} de ${SAMPLE_ROWS.length} filas`}
+                    active={search !== ""}
+                    onClear={() => setSearch("")}
+                />
+                <DataTable
+                    caption="Tabla de muestra"
+                    rows={rows}
+                    rowKey={(row) => row.id}
+                    empty="Ninguna fila coincide con la búsqueda."
+                    columns={[
+                        {
+                            id: "name",
+                            header: "Nombre",
+                            cell: (row) => row.name,
+                            sortValue: (row) => row.name,
+                        },
+                        {
+                            id: "area",
+                            header: "Área",
+                            numeric: true,
+                            cell: (row) => (row.area === null ? "Sin registrar" : `${row.area} m²`),
+                            sortValue: (row) => row.area,
+                        },
+                    ]}
+                />
             </Panel>
 
             <Panel title="Tarjeta, campos y carga">

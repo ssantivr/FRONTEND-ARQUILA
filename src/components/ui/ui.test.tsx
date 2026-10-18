@@ -6,13 +6,21 @@ import { Icon } from "../Icon";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Button } from "./Button";
 import { Card } from "./Card";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { DataTable } from "./DataTable";
 import { Dialog } from "./Dialog";
+import { Drawer } from "./Drawer";
 import { EmptyState } from "./EmptyState";
 import { Field } from "./Field";
+import { FilterBar } from "./FilterBar";
 import { Input, Select } from "./Input";
 import { Menu } from "./Menu";
 import { ProgressBar } from "./ProgressBar";
+import { SaveIndicator } from "./SaveIndicator";
+import { SegmentedControl } from "./SegmentedControl";
 import { Skeleton } from "./Skeleton";
+import { Spinner } from "./Spinner";
+import { Switch } from "./Switch";
 import { Tabs } from "./Tabs";
 import { Tooltip } from "./Tooltip";
 
@@ -319,5 +327,324 @@ describe("Breadcrumbs", () => {
         await userEvent.click(screen.getByRole("link", { name: "Proyectos" }));
 
         expect(toProjects).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("Drawer", () => {
+    it("is a named dialog that closes with its button and with Escape", async () => {
+        const onClose = vi.fn();
+
+        render(
+            <Drawer title="Filtros" side="bottom" onClose={onClose}>
+                <p>Contenido</p>
+            </Drawer>,
+        );
+
+        expect(screen.getByRole("dialog", { name: "Filtros" })).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Cerrar" }));
+        await userEvent.keyboard("{Escape}");
+
+        expect(onClose).toHaveBeenCalledTimes(2);
+    });
+});
+
+describe("ConfirmDialog", () => {
+    it("opens on «Cancelar», so Enter by habit does not confirm", async () => {
+        const onConfirm = vi.fn();
+        const onCancel = vi.fn();
+
+        render(
+            <ConfirmDialog
+                title="¿Eliminar el proyecto?"
+                confirmLabel="Eliminar"
+                danger
+                onConfirm={onConfirm}
+                onCancel={onCancel}
+            >
+                <p>No se puede deshacer.</p>
+            </ConfirmDialog>,
+        );
+
+        const dialog = screen.getByRole("alertdialog", { name: "¿Eliminar el proyecto?" });
+
+        expect(dialog).toHaveAccessibleDescription("No se puede deshacer.");
+        expect(screen.getByRole("button", { name: "Cancelar" })).toHaveFocus();
+
+        await userEvent.keyboard("{Enter}");
+
+        expect(onCancel).toHaveBeenCalledTimes(1);
+        expect(onConfirm).not.toHaveBeenCalled();
+    });
+
+    it("confirms with its button, which is red for a destructive action", async () => {
+        const onConfirm = vi.fn();
+
+        render(
+            <ConfirmDialog
+                title="¿Eliminar?"
+                confirmLabel="Eliminar"
+                danger
+                onConfirm={onConfirm}
+                onCancel={() => undefined}
+            >
+                Texto
+            </ConfirmDialog>,
+        );
+
+        const confirm = screen.getByRole("button", { name: "Eliminar" });
+
+        expect(confirm).toHaveClass("button-danger");
+        await userEvent.click(confirm);
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it("cannot be cancelled while the action runs", async () => {
+        const onCancel = vi.fn();
+
+        render(
+            <ConfirmDialog
+                title="¿Eliminar?"
+                confirmLabel="Eliminar"
+                pending
+                onConfirm={() => undefined}
+                onCancel={onCancel}
+            >
+                Texto
+            </ConfirmDialog>,
+        );
+
+        await userEvent.keyboard("{Escape}");
+
+        expect(onCancel).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Eliminar" })).toHaveAttribute(
+            "aria-busy",
+            "true",
+        );
+    });
+});
+
+describe("SegmentedControl", () => {
+    const OPTIONS = [
+        { value: "light", label: "Claro", icon: "sun" },
+        { value: "dark", label: "Oscuro", icon: "moon" },
+        { value: "auto", label: "Automático" },
+    ] as const;
+
+    it("is a radio group with one tab stop, on the chosen option", () => {
+        render(
+            <SegmentedControl
+                label="Tema"
+                options={OPTIONS}
+                value="dark"
+                onChange={() => undefined}
+            />,
+        );
+
+        expect(screen.getByRole("radiogroup", { name: "Tema" })).toBeInTheDocument();
+        expect(screen.getByRole("radio", { name: "Oscuro" })).toBeChecked();
+        expect(screen.getByRole("radio", { name: "Oscuro" })).toHaveAttribute("tabindex", "0");
+        expect(screen.getByRole("radio", { name: "Claro" })).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("moves the choice with the arrows, wrapping at the ends", async () => {
+        const onChange = vi.fn();
+
+        render(
+            <SegmentedControl label="Tema" options={OPTIONS} value="auto" onChange={onChange} />,
+        );
+
+        // From the last option Right wraps to the first; from the first, Left wraps to the last.
+        screen.getByRole("radio", { name: "Automático" }).focus();
+        await userEvent.keyboard("{ArrowRight}");
+        expect(screen.getByRole("radio", { name: "Claro" })).toHaveFocus();
+        await userEvent.keyboard("{ArrowLeft}");
+
+        expect(onChange.mock.calls).toEqual([["light"], ["auto"]]);
+    });
+
+    it("keeps the name of an icon-only option", () => {
+        render(
+            <SegmentedControl
+                label="Tema"
+                options={OPTIONS}
+                value="light"
+                iconOnly
+                onChange={() => undefined}
+            />,
+        );
+
+        expect(screen.getByRole("radio", { name: "Claro" })).toHaveAttribute("title", "Claro");
+        expect(screen.queryByText("Claro")).not.toBeInTheDocument();
+    });
+});
+
+describe("Switch", () => {
+    it("is a labelled switch with its description", async () => {
+        const onChange = vi.fn();
+
+        render(
+            <Switch
+                label="Reducir movimiento"
+                description="Quita las transiciones."
+                checked={false}
+                onChange={onChange}
+            />,
+        );
+
+        const toggle = screen.getByRole("switch", { name: "Reducir movimiento" });
+
+        expect(toggle).toHaveAccessibleDescription("Quita las transiciones.");
+        await userEvent.click(toggle);
+        expect(onChange).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("Spinner", () => {
+    it("is announced only when it has a label", () => {
+        const { rerender, container } = render(<Spinner />);
+
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(container.firstChild).toHaveAttribute("aria-hidden", "true");
+
+        rerender(<Spinner label="Cargando el modelo…" />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("Cargando el modelo…");
+    });
+});
+
+describe("SaveIndicator", () => {
+    it("says each state with words, not with colour alone", () => {
+        const { rerender } = render(<SaveIndicator state="idle" />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("");
+
+        rerender(<SaveIndicator state="saving" />);
+        expect(screen.getByRole("status")).toHaveTextContent("Guardando…");
+
+        rerender(<SaveIndicator state="saved" />);
+        expect(screen.getByRole("status")).toHaveTextContent("Cambios guardados");
+
+        rerender(<SaveIndicator state="error" />);
+        expect(screen.getByRole("status")).toHaveTextContent("Error al guardar");
+    });
+});
+
+describe("DataTable", () => {
+    interface Row {
+        id: number;
+        name: string;
+        area: number | null;
+    }
+
+    const ROWS: Row[] = [
+        { id: 1, name: "Lote 10", area: 120 },
+        { id: 2, name: "Lote 2", area: null },
+        { id: 3, name: "Lote 1", area: 480 },
+    ];
+    const COLUMNS = [
+        {
+            id: "name",
+            header: "Nombre",
+            cell: (row: Row) => row.name,
+            sortValue: (row: Row) => row.name,
+        },
+        {
+            id: "area",
+            header: "Área",
+            numeric: true,
+            cell: (row: Row) => (row.area === null ? "Sin registrar" : `${row.area} m²`),
+            sortValue: (row: Row) => row.area,
+        },
+    ];
+
+    function names(): string[] {
+        return screen
+            .getAllByRole("row")
+            .slice(1)
+            .map((row) => row.querySelector("td")?.textContent ?? "");
+    }
+
+    it("sorts by a column, with natural order for names and empty values last", async () => {
+        render(
+            <DataTable caption="Terrenos" columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />,
+        );
+
+        expect(screen.getByRole("table", { name: "Terrenos" })).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: /Nombre/ }));
+        expect(names()).toEqual(["Lote 1", "Lote 2", "Lote 10"]);
+        expect(screen.getByRole("columnheader", { name: /Nombre/ })).toHaveAttribute(
+            "aria-sort",
+            "ascending",
+        );
+
+        await userEvent.click(screen.getByRole("button", { name: /Área/ }));
+        await userEvent.click(screen.getByRole("button", { name: /Área/ }));
+        expect(names()).toEqual(["Lote 1", "Lote 10", "Lote 2"]);
+        expect(screen.getByRole("columnheader", { name: /Área/ })).toHaveAttribute(
+            "aria-sort",
+            "descending",
+        );
+    });
+
+    it("labels each cell with its column for the narrow layout, and shows an empty state", () => {
+        const { rerender } = render(
+            <DataTable caption="Terrenos" columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />,
+        );
+
+        expect(screen.getAllByRole("cell")[1]).toHaveAttribute("data-label", "Área");
+
+        rerender(
+            <DataTable
+                caption="Terrenos"
+                columns={COLUMNS}
+                rows={[]}
+                rowKey={(row) => row.id}
+                empty="Todavía no hay terrenos."
+            />,
+        );
+
+        expect(screen.getByRole("cell")).toHaveTextContent("Todavía no hay terrenos.");
+    });
+});
+
+describe("FilterBar", () => {
+    it("searches, announces the count and clears the filters", async () => {
+        const onSearch = vi.fn();
+        const onClear = vi.fn();
+
+        render(
+            <FilterBar
+                searchLabel="Buscar proyectos"
+                search=""
+                onSearch={onSearch}
+                resultText="2 de 5 proyectos"
+                active
+                onClear={onClear}
+            />,
+        );
+
+        expect(screen.getByRole("search")).toBeInTheDocument();
+        await userEvent.type(screen.getByRole("searchbox", { name: "Buscar proyectos" }), "c");
+        expect(onSearch).toHaveBeenCalledWith("c");
+        expect(screen.getByRole("status")).toHaveTextContent("2 de 5 proyectos");
+
+        await userEvent.click(screen.getByRole("button", { name: "Quitar filtros" }));
+        expect(onClear).toHaveBeenCalledTimes(1);
+    });
+
+    it("offers «Quitar filtros» only when something narrows the list", () => {
+        render(
+            <FilterBar
+                searchLabel="Buscar"
+                search=""
+                onSearch={() => undefined}
+                onClear={() => undefined}
+            />,
+        );
+
+        expect(screen.queryByRole("button", { name: "Quitar filtros" })).not.toBeInTheDocument();
     });
 });

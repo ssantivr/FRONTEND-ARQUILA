@@ -1,0 +1,97 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    background: var(--scrim);
+    animation: fade-in var(--dur-slow) var(--ease-out);
+}
+
+.drawer {
+    position: fixed;
+    z-index: var(--z-overlay);
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-float);
+}
+
+.right,
+.left {
+    top: 0;
+    bottom: 0;
+    width: min(400px, 92vw);
+}
+
+.right {
+    right: 0;
+    border-width: 0 0 0 1px;
+    animation: slide-in-right var(--dur-slow) var(--ease-out);
+}
+
+.left {
+    left: 0;
+    border-width: 0 1px 0 0;
+    animation: slide-in-left var(--dur-slow) var(--ease-out);
+}
+
+.bottom {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    max-height: 85dvh;
+    border-width: 1px 0 0;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    animation: slide-in-up var(--dur-slow) var(--ease-out);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: var(--touch-target);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+}
+
+.title {
+    margin: 0;
+    font-size: var(--fs-16);
+    font-weight: 650;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.body {
+    flex: 1;
+    min-height: 0;
+    padding: var(--space-4);
+    overflow: auto;
+}
+
+/* Leaving is quicker than arriving. */
+.overlay[data-state="closed"] {
+    animation: fade-out var(--dur-fast) var(--ease-in) both;
+}
+
+.right[data-state="closed"] {
+    animation: slide-out-right var(--dur-fast) var(--ease-in) both;
+}
+
+.left[data-state="closed"] {
+    animation: slide-out-left var(--dur-fast) var(--ease-in) both;
+}
+
+.bottom[data-state="closed"] {
+    animation: slide-out-down var(--dur-fast) var(--ease-in) both;
+}
