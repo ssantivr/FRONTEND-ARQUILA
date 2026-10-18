@@ -1,4 +1,5 @@
 import { Fragment, Suspense, lazy, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
@@ -11,6 +12,7 @@ import { Icon } from "../components/Icon";
 import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Panel } from "../components/ui/Panel";
+import { SaveIndicator, type SaveState } from "../components/ui/SaveIndicator";
 import { Tabs } from "../components/ui/Tabs";
 import { PlansPanel } from "../components/PlansPanel";
 import { ProjectCover } from "../components/ProjectCover";
@@ -20,6 +22,7 @@ import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { SaveStatusProvider } from "../state/saveStatus";
+import { useTopBarSlot } from "../state/topBarSlot";
 import { projectPath, viewPath } from "../routes";
 import { SECTIONS, type SectionId } from "./sections";
 import { filesApi, projectsApi, undoApi } from "../services/api";
@@ -50,6 +53,8 @@ export function ProjectDetailPage({
     const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
     const [actionPending, setActionPending] = useState(false);
+    const [saveState, setSaveState] = useState<SaveState>("idle");
+    const topBarSlot = useTopBarSlot();
     const running = useRef(false);
     const [panelsVersion, setPanelsVersion] = useState(0);
     const [plansVersion, setPlansVersion] = useState(0);
@@ -77,11 +82,14 @@ export function ProjectDetailPage({
         running.current = true;
         setActionPending(true);
         setActionError(null);
+        setSaveState("saving");
 
         try {
             await action();
+            setSaveState("saved");
         } catch (reason) {
             setActionError(errorMessage(reason));
+            setSaveState("error");
             return;
         } finally {
             running.current = false;
@@ -116,6 +124,27 @@ export function ProjectDetailPage({
     }
 
     const current = project.data;
+    const topBarControls = (
+        <>
+            <SaveIndicator state={saveState} />
+            {section !== "assistant" && (
+                <button
+                    type="button"
+                    className={
+                        assistantOpen
+                            ? "button-secondary icon-button assistant-launcher assistant-launcher-open"
+                            : "button-secondary icon-button assistant-launcher"
+                    }
+                    aria-expanded={assistantOpen}
+                    aria-controls="assistant-drawer"
+                    onClick={() => setAssistantOpen((open) => !open)}
+                >
+                    <Icon name="assistant" />
+                    <span className="assistant-launcher-label">Asistente</span>
+                </button>
+            )}
+        </>
+    );
 
     return (
         <SaveStatusProvider value={{ pending: actionPending, failed: actionError !== null }}>
@@ -282,22 +311,16 @@ export function ProjectDetailPage({
             )}
             {section === "assistant" && <AssistantPanel projectId={projectId} />}
 
+            {/* The save state and «Asistente» go to the top bar, so nothing floats over the
+                screen; without a top bar (a test of this screen alone) they stay here. */}
+            {topBarSlot === null ? (
+                <div className="project-top-controls">{topBarControls}</div>
+            ) : (
+                createPortal(topBarControls, topBarSlot)
+            )}
+
             {section !== "assistant" && (
                 <>
-                    <button
-                        type="button"
-                        className={
-                            section === "model"
-                                ? "assistant-launcher assistant-launcher-raised icon-button"
-                                : "assistant-launcher icon-button"
-                        }
-                        aria-expanded={assistantOpen}
-                        aria-controls="assistant-drawer"
-                        onClick={() => setAssistantOpen((open) => !open)}
-                    >
-                        <Icon name="assistant" />
-                        Asistente
-                    </button>
                     {assistantOpen && (
                         <aside
                             id="assistant-drawer"

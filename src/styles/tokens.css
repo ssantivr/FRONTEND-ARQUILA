@@ -178,6 +178,7 @@
     --row-head-height: 36px;
     --header-height: 68px;
     --sidebar-width: 248px;
+    --mobile-nav-height: 64px;
 
     /* Motion: three durations. The curves and keyframes are in motion.css. */
     --dur-fast: 120ms;

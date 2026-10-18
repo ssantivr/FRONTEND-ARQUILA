@@ -73,7 +73,7 @@ export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProp
                     <button
                         type="button"
                         className="global-search-key global-search-commands"
-                        aria-label="Abrir la paleta de comandos"
+                        aria-label={`${COMMANDS_KEY}: abrir la paleta de comandos`}
                         aria-keyshortcuts="Control+K Meta+K"
                         title="Paleta de comandos: pantallas, proyectos y acciones"
                         onClick={onOpenCommands}

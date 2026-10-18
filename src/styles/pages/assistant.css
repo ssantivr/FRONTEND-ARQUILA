@@ -1,39 +1,32 @@
-/* The assistant, reachable from every tab of a project: a launcher and a drawer on the right. */
+/* The assistant, reachable from every tab of a project: a button in the top bar and a panel on
+   the right that does not block the screen (it reads the selection of the 3D model). */
 
 .assistant-launcher {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    z-index: 30;
-    min-height: var(--control-lg);
-    padding: 0 18px;
-    color: var(--white);
-    font-weight: 600;
-    background: var(--forest);
-    border-color: rgba(255, 255, 255, 0.16);
-    border-radius: var(--r-pill);
-    box-shadow: var(--shadow-float);
-}
-
-/* On the 3D tab it sits above the viewer's status bar instead of covering it. */
-.assistant-launcher.assistant-launcher-raised {
-    bottom: 72px;
-}
-
-.assistant-launcher:hover:not(:disabled) {
-    background: var(--forest-raised);
-    border-color: var(--lime);
+    height: var(--control-height);
 }
 
 .assistant-launcher .icon {
-    color: var(--lime);
+    color: var(--accent);
+}
+
+.assistant-launcher-open {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Without a top bar (a screen tested on its own) the controls sit above the project. */
+.project-top-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
 }
 
 .assistant-drawer {
     position: fixed;
     top: calc(var(--header-height) + 12px);
     right: 12px;
-    bottom: 84px;
+    bottom: 12px;
     z-index: 30;
     display: flex;
     width: min(440px, calc(100vw - 24px));
@@ -70,16 +63,34 @@
     white-space: normal;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
     .assistant-launcher {
-        right: 16px;
-        bottom: 16px;
+        width: var(--control-height);
+        justify-content: center;
+        padding: 0;
     }
 
+    .assistant-launcher-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 720px) {
+    .assistant-launcher {
+        width: var(--touch-target);
+        height: var(--touch-target);
+    }
+
+    /* Above the bottom navigation. */
     .assistant-drawer {
         top: auto;
         right: 0;
-        bottom: 0;
+        bottom: var(--mobile-nav-height);
         width: 100%;
         max-height: 86vh;
     }

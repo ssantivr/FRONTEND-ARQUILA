@@ -1,0 +1,123 @@
+/* Only on small screens; above 720 px the sidebar does this job. */
+.bar {
+    display: none;
+}
+
+@media (max-width: 720px) {
+    .bar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 40;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: var(--forest);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+}
+
+.item {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    min-height: var(--touch-target);
+    padding: var(--space-1) 0;
+    color: var(--forest-text);
+    font-size: var(--fs-12);
+    font-weight: 550;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.item :global(.icon) {
+    width: 22px;
+    height: 22px;
+}
+
+.item:focus-visible {
+    outline: 2px solid var(--lime);
+    outline-offset: -4px;
+}
+
+/* The open module: lime icon, white word and a lime line over it. */
+.item[aria-current="page"],
+.item[data-active] {
+    color: var(--white);
+}
+
+.item[aria-current="page"] :global(.icon),
+.item[data-active] :global(.icon) {
+    color: var(--lime);
+}
+
+.item[aria-current="page"]::before,
+.item[data-active]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 28%;
+    right: 28%;
+    height: 3px;
+    background: var(--lime);
+    border-radius: 0 0 3px 3px;
+}
+
+.more {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+}
+
+.moreItem {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 52px;
+    padding: var(--space-2) var(--space-3);
+    color: var(--text);
+    font-weight: 550;
+    text-align: left;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: none;
+}
+
+.moreItem[aria-current="page"] {
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+}
+
+.sectionLabel {
+    font-weight: 600;
+}
+
+.who {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    font-size: var(--fs-13);
+}
+
+.who span {
+    color: var(--text-secondary);
+    overflow-wrap: anywhere;
+}

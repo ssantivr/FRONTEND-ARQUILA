@@ -133,12 +133,12 @@ test.describe("tema y paleta de comandos", () => {
         await expect(root).toHaveAttribute("data-theme", "dark");
         const dark = await body.evaluate((element) => getComputedStyle(element).backgroundColor);
 
-        await page.getByRole("button", { name: "Modo claro" }).click();
+        const themes = page.getByRole("radiogroup", { name: "Tema" });
+
+        await themes.getByRole("radio", { name: "Tema claro" }).click();
         await expect(root).toHaveAttribute("data-theme", "light");
-        await expect(page.getByRole("button", { name: "Modo oscuro" })).toHaveAttribute(
-            "aria-pressed",
-            "false",
-        );
+        await expect(themes.getByRole("radio", { name: "Tema claro" })).toBeChecked();
+        await expect(themes.getByRole("radio", { name: "Tema oscuro" })).not.toBeChecked();
         // The colours settle a frame or two after the attribute changes.
         await expect(body).not.toHaveCSS("background-color", dark);
 

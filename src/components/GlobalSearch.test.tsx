@@ -63,7 +63,14 @@ describe("GlobalSearch", () => {
 
         render(<GlobalSearch onOpenProject={() => undefined} onOpenCommands={onOpenCommands} />);
 
-        await userEvent.click(screen.getByRole("button", { name: "Abrir la paleta de comandos" }));
+        const button = screen.getByRole("button", { name: /abrir la paleta de comandos/ });
+
+        // WCAG 2.5.3: the accessible name starts with the text that is seen on the button.
+        expect(button.getAttribute("aria-label")).toMatch(
+            new RegExp(`^${button.textContent ?? ""}`),
+        );
+
+        await userEvent.click(button);
 
         expect(onOpenCommands).toHaveBeenCalledTimes(1);
     });

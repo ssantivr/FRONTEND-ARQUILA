@@ -1,3 +1,6 @@
+import { useState, type FocusEvent, type KeyboardEvent, type PointerEvent } from "react";
+
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import type { User } from "../types/api";
 import { Icon, type IconName } from "./Icon";
 
@@ -129,6 +132,27 @@ interface SidebarProps {
     user?: Pick<User, "name" | "email">;
 }
 
+/** Arrow keys move between the modules, as in a list; Tab still visits them one by one. */
+function moveFocus(event: KeyboardEvent<HTMLElement>) {
+    const step = event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
+    const items = [...event.currentTarget.querySelectorAll<HTMLButtonElement>(".sidebar-item")];
+    const at = items.indexOf(document.activeElement as HTMLButtonElement);
+
+    if (at === -1 || (step === 0 && event.key !== "Home" && event.key !== "End")) {
+        return;
+    }
+
+    event.preventDefault();
+    const next =
+        event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? items.length - 1
+              : (at + step + items.length) % items.length;
+
+    items[next]?.focus();
+}
+
 export function Sidebar({
     current,
     onNavigate,
@@ -137,10 +161,40 @@ export function Sidebar({
     onLogout,
     user,
 }: SidebarProps) {
+    // With the menu collapsed only icons are left: the name of the one under the pointer or the
+    // focus is shown beside it. It is drawn fixed, so the scrolling list does not clip it.
+    const [tip, setTip] = useState<{ text: string; top: number } | null>(null);
+    // Between 721 and 1024 px the menu shows only its icons even when it is not collapsed.
+    const narrow = useMediaQuery("(min-width: 721px) and (max-width: 1024px)");
+    const iconsOnly = collapsed || narrow;
+
+    function showTip(event: FocusEvent<HTMLElement> | PointerEvent<HTMLElement>) {
+        const item = (event.target as HTMLElement).closest<HTMLElement>("[data-tip]");
+
+        if (!iconsOnly || item === null) {
+            return;
+        }
+
+        const box = item.getBoundingClientRect();
+
+        setTip({ text: item.dataset.tip ?? "", top: box.top + box.height / 2 });
+    }
+
     return (
-        <aside className="sidebar">
+        <aside
+            className="sidebar"
+            onPointerOver={showTip}
+            onFocus={showTip}
+            onPointerLeave={() => setTip(null)}
+            onBlur={() => setTip(null)}
+            onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                    setTip(null);
+                }
+            }}
+        >
             <span className="brand">ARQUILA</span>
-            <nav className="sidebar-nav" aria-label="Navegación principal">
+            <nav className="sidebar-nav" aria-label="Navegación principal" onKeyDown={moveFocus}>
                 {GROUPS.map((group) => (
                     <div key={group.id} className="sidebar-section">
                         <p className="sidebar-group sidebar-label">{group.label}</p>
@@ -150,7 +204,7 @@ export function Sidebar({
                                 type="button"
                                 className="sidebar-item"
                                 aria-current={item.id === current ? "page" : undefined}
-                                title={collapsed ? item.label : undefined}
+                                data-tip={item.label}
                                 onClick={() => onNavigate(item.id)}
                             >
                                 <Icon name={item.icon} />
@@ -163,7 +217,7 @@ export function Sidebar({
             {(onToggle !== undefined || onLogout !== undefined) && (
                 <div className="sidebar-foot">
                     {user !== undefined && (
-                        <div className="sidebar-user" title={collapsed ? user.name : undefined}>
+                        <div className="sidebar-user" data-tip={user.name}>
                             <span className="avatar" aria-hidden="true">
                                 {user.name.trim().charAt(0).toUpperCase()}
                             </span>
@@ -177,7 +231,7 @@ export function Sidebar({
                         <button
                             type="button"
                             className="sidebar-item"
-                            title={collapsed ? "Cerrar sesión" : undefined}
+                            data-tip="Cerrar sesión"
                             onClick={onLogout}
                         >
                             <Icon name="logout" />
@@ -189,7 +243,7 @@ export function Sidebar({
                             type="button"
                             className="sidebar-item sidebar-toggle"
                             aria-expanded={!collapsed}
-                            title={collapsed ? "Expandir el menú" : undefined}
+                            data-tip="Expandir el menú"
                             onClick={onToggle}
                         >
                             <Icon name="collapse" />
@@ -199,6 +253,11 @@ export function Sidebar({
                         </button>
                     )}
                 </div>
+            )}
+            {iconsOnly && tip !== null && (
+                <span className="sidebar-tip" aria-hidden="true" style={{ top: tip.top }}>
+                    {tip.text}
+                </span>
             )}
         </aside>
     );

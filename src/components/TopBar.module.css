@@ -1,0 +1,170 @@
+/* One line on a wide screen: where you are, the search, then the actions pushed to the end. */
+.bar {
+    flex-wrap: nowrap;
+    gap: var(--space-3) var(--space-5);
+}
+
+.where {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.where h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search {
+    display: flex;
+    flex: 1 1 240px;
+    min-width: 0;
+    max-width: 420px;
+}
+
+.actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+}
+
+.slot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.slot:empty {
+    display: none;
+}
+
+/* A thin rule between what belongs to the screen and what belongs to the app. */
+.slot:not(:empty)::after {
+    content: "";
+    width: 1px;
+    height: 24px;
+    margin-left: var(--space-1);
+    background: var(--border);
+}
+
+.create {
+    height: var(--control-height);
+}
+
+/* The account: avatar and name in a pill; the menu says who is signed in. */
+.account :global(.menu) > summary {
+    display: flex;
+    gap: var(--space-2);
+    width: auto;
+    height: var(--control-height);
+    padding: 3px var(--space-3) 3px 3px;
+    color: var(--text);
+    font-size: var(--fs-14);
+    font-weight: 550;
+    border-color: var(--border);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+}
+
+.account :global(.avatar) {
+    width: 32px;
+    height: 32px;
+    font-size: var(--fs-13);
+}
+
+.userName {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account :global(.menu-items) {
+    min-width: 220px;
+}
+
+.who {
+    display: grid;
+    gap: 2px;
+    margin: 0 0 var(--space-1);
+    padding: var(--space-2) 10px var(--space-3);
+    font-size: var(--fs-13);
+    border-bottom: 1px solid var(--border);
+}
+
+.who span {
+    color: var(--text-secondary);
+    overflow-wrap: anywhere;
+}
+
+/* Below 1280 px the name gives way to the avatar; below 1100 the main action keeps its icon. */
+@media (max-width: 1280px) {
+    .userName {
+        display: none;
+    }
+
+    .account :global(.menu) > summary {
+        padding-right: 3px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .createLabel {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .create {
+        width: var(--control-height);
+        justify-content: center;
+        padding: 0;
+    }
+}
+
+/* Phone: title and actions on the first line, the search across the second. The theme moves to
+   «Más» in the bottom bar. */
+@media (max-width: 720px) {
+    .bar {
+        flex-wrap: wrap;
+        padding: var(--space-2) var(--space-4);
+    }
+
+    .where {
+        flex: 1 1 0;
+    }
+
+    .where :global(.header-eyebrow) {
+        display: none;
+    }
+
+    .where h1 {
+        font-size: var(--fs-18);
+    }
+
+    .search {
+        order: 3;
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .theme {
+        display: none;
+    }
+
+    .create,
+    .account :global(.menu) > summary {
+        width: var(--touch-target);
+        height: var(--touch-target);
+    }
+
+    .account :global(.menu) > summary {
+        justify-content: center;
+        padding: 0;
+    }
+}

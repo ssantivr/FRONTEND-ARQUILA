@@ -10,12 +10,13 @@ import {
 import { CommandPalette, type Command } from "./components/CommandPalette";
 import { RenderImage } from "./components/RenderImage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { GlobalSearch } from "./components/GlobalSearch";
 import { Icon } from "./components/Icon";
+import { MobileNav } from "./components/MobileNav";
 import { Panel } from "./components/ui/Panel";
 import { Skeleton } from "./components/ui/Skeleton";
 import { Toasts } from "./components/Toasts";
 import { MODULES, Sidebar, type View } from "./components/Sidebar";
+import { TopBar } from "./components/TopBar";
 import { errorMessage } from "./hooks/useAsync";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -25,6 +26,7 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { canonicalPath, parsePath, projectPath, viewPath } from "./routes";
 import { authApi } from "./services/api";
 import { setTheme, useTheme } from "./state/theme";
+import { TopBarSlotProvider } from "./state/topBarSlot";
 import { withViewTransition } from "./state/viewTransition";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
@@ -97,6 +99,7 @@ export function App() {
     const [loginNotice, setLoginNotice] = useState<string | undefined>(undefined);
     const theme = useTheme();
     const [commandsOpen, setCommandsOpen] = useState(false);
+    const [topBarSlot, setTopBarSlot] = useState<HTMLElement | null>(null);
     const signedIn = session.state === "authenticated" && resetToken === null;
     const canonical = canonicalPath(location.pathname);
 
@@ -393,49 +396,23 @@ export function App() {
                     user={session.user}
                 />
                 <div className="workspace">
-                    <header className="header">
-                        <div>
-                            <p className="header-eyebrow">ARQUILA</p>
-                            <h1>
-                                {current?.label ??
-                                    (route.kind === "design-system"
-                                        ? "Sistema de diseño"
-                                        : "ARQUILA")}
-                            </h1>
-                        </div>
-                        <GlobalSearch
-                            onOpenProject={(id) => openProject(id)}
-                            onOpenCommands={() => setCommandsOpen(true)}
-                        />
-                        <div className="user-menu">
-                            <button
-                                type="button"
-                                className={
-                                    view === "projects" && project === null
-                                        ? "button-secondary icon-button"
-                                        : "button-lime icon-button"
-                                }
-                                onClick={() =>
-                                    go(viewPath("projects"), { state: { create: true } })
-                                }
-                            >
-                                <Icon name="plus" />
-                                Nuevo proyecto
-                            </button>
-                            {themeToggle}
-                            <button
-                                type="button"
-                                className="button-secondary icon-button"
-                                title="Abrir tu cuenta y la configuración"
-                                onClick={() => navigate("settings")}
-                            >
-                                <span className="avatar" aria-hidden="true">
-                                    {session.user.name.trim().charAt(0).toUpperCase()}
-                                </span>
-                                {session.user.name}
-                            </button>
-                        </div>
-                    </header>
+                    <TopBar
+                        eyebrow="ARQUILA"
+                        title={
+                            current?.label ??
+                            (route.kind === "design-system" ? "Sistema de diseño" : "ARQUILA")
+                        }
+                        user={session.user}
+                        onOpenProject={(id) => openProject(id)}
+                        onOpenCommands={() => setCommandsOpen(true)}
+                        onCreateProject={() =>
+                            go(viewPath("projects"), { state: { create: true } })
+                        }
+                        createIsSecondary={view === "projects" && project === null}
+                        onOpenSettings={() => navigate("settings")}
+                        onLogout={() => void handleLogout()}
+                        onSlot={setTopBarSlot}
+                    />
                     <main id="content" className="content" tabIndex={-1}>
                         <ErrorBoundary
                             key={`${view ?? location.pathname}-${project?.id ?? "none"}`}
@@ -443,11 +420,19 @@ export function App() {
                             <Suspense
                                 fallback={<Skeleton shape="cards" label="Cargando la pantalla…" />}
                             >
-                                {renderView(session.user)}
+                                <TopBarSlotProvider value={topBarSlot}>
+                                    {renderView(session.user)}
+                                </TopBarSlotProvider>
                             </Suspense>
                         </ErrorBoundary>
                     </main>
                 </div>
+                <MobileNav
+                    current={view}
+                    onNavigate={navigate}
+                    onLogout={() => void handleLogout()}
+                    user={session.user}
+                />
                 {commandsOpen && (
                     <CommandPalette
                         commands={commands}

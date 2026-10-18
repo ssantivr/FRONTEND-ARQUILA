@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 interface MenuItem {
     label: string;
@@ -11,10 +11,14 @@ interface MenuProps {
     /** Accessible name of the trigger, for example "Acciones de Casa Andina". */
     label: string;
     items: MenuItem[];
+    /** What the trigger shows; «⋯» by default. The label stays its accessible name. */
+    trigger?: ReactNode;
+    /** Content above the items, such as who is signed in. */
+    header?: ReactNode;
 }
 
 /** Context menu on a native `<details>`: it opens with the keyboard and closes on Escape or outside clicks. */
-export function Menu({ label, items }: MenuProps) {
+export function Menu({ label, items, trigger, header }: MenuProps) {
     const details = useRef<HTMLDetailsElement>(null);
 
     useEffect(() => {
@@ -41,9 +45,10 @@ export function Menu({ label, items }: MenuProps) {
     return (
         <details ref={details} className="menu">
             <summary aria-label={label} title={label}>
-                <span aria-hidden="true">⋯</span>
+                {trigger ?? <span aria-hidden="true">⋯</span>}
             </summary>
             <div className="menu-items" role="group" aria-label={label}>
+                {header}
                 {items.map((item) => (
                     <button
                         key={item.label}
