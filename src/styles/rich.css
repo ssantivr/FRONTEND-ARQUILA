@@ -223,31 +223,6 @@ button:not([class]):hover:not(:disabled) {
     background: none;
 }
 
-/* ---- Sign-in: the form side gets the drafting grid and a lime mark over its title ---- */
-
-.auth-form {
-    background:
-        linear-gradient(var(--grid-line, rgba(23, 33, 27, 0.04)) 1px, transparent 1px) 0 0 / 32px
-            32px,
-        linear-gradient(90deg, var(--grid-line, rgba(23, 33, 27, 0.04)) 1px, transparent 1px) 0 0 /
-            32px 32px,
-        var(--panel);
-}
-
-.auth-form .login .panel-header h2::before {
-    display: block;
-    width: 40px;
-    height: 4px;
-    margin-bottom: 0;
-    background: var(--lime);
-}
-
-.auth-form .login .panel-header h2 {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-}
-
 @media (max-width: 900px) {
     .hero-home::after {
         inset: auto 24px 0;

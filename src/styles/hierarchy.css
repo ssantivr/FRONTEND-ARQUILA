@@ -254,29 +254,6 @@ td button {
     fill: var(--art-hill);
 }
 
-/* Sign-in: the drawing runs edge to edge. */
-.auth-visual {
-    background: linear-gradient(180deg, var(--forest) 0%, var(--forest-raised) 100%);
-}
-
-.auth-visual .hero-art {
-    width: auto;
-    margin: 0 -40px;
-}
-
-.auth-visual :is(.art-sky, .art-ground) {
-    fill: transparent;
-}
-
-.auth-form .login .button-secondary {
-    border-color: var(--border);
-}
-
 .sidebar .brand {
     flex: none;
-}
-
-.auth-form .login .panel {
-    padding: 32px;
-    box-shadow: var(--shadow-float);
 }

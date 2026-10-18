@@ -123,10 +123,6 @@
     .theme-preview {
         grid-row: span 2;
     }
-
-    .auth-features {
-        display: none;
-    }
 }
 
 /* Phone: every target of the navigation and the header is at least 44px. */

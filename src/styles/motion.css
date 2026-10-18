@@ -139,6 +139,13 @@
     }
 }
 
+/* The same, upwards: a wall of the logo rising at the entry of the app. */
+@keyframes grow-in-y {
+    from {
+        transform: scaleY(0);
+    }
+}
+
 /* The time a toast has left: its bar empties towards the left. */
 @keyframes run-out {
     to {

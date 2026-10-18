@@ -23,7 +23,6 @@ import "./styles/materials.css";
 import "./styles/plans.css";
 import "./styles/shell-phone.css";
 import "./styles/identity.css";
-import "./styles/auth.css";
 import "./styles/home.css";
 import "./styles/pages/band.css";
 import "./styles/pages/head.css";
@@ -32,7 +31,6 @@ import "./styles/pages/terrains.css";
 import "./styles/pages/materials.css";
 import "./styles/pages/settings.css";
 import "./styles/pages/home.css";
-import "./styles/pages/auth.css";
 import "./styles/pages/assistant.css";
 import "./styles/pages/studio.css";
 import "./styles/pages/responsive.css";
@@ -45,6 +43,7 @@ import "./styles/navigation.css";
 // The app is imported after the global sheets: the CSS Modules of its components then come later
 // in the bundle, so at equal specificity a component's own rule wins over a global one.
 import { App } from "./App";
+import { BrandIntro } from "./components/BrandIntro";
 
 const container = document.querySelector<HTMLDivElement>("#app");
 
@@ -68,6 +67,7 @@ function render() {
                 needs: the browser takes its picture of the new screen right after the update. */}
             <BrowserRouter useTransitions={false}>
                 <App />
+                <BrandIntro />
             </BrowserRouter>
         </StrictMode>,
     );

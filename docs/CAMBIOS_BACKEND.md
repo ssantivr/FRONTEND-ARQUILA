@@ -46,3 +46,11 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
 - **Ruta:** ninguna nueva. Hoy no hace falta cambiar nada: en Vercel, `/api/*` se reescribe hacia `https://arquila-backend.vercel.app`, así que el navegador la ve en el mismo origen.
 - **Qué lo rompería:** apuntar `VITE_API_URL` a una API por `http://` en otro dominio. Si algún día se llama a la API directamente desde otro dominio, el backend tendrá que aceptar CORS con credenciales para ese origen, porque las peticiones van con `credentials: "include"`.
 - **Mientras tanto:** nada que hacer.
+
+## 7. Recordar la sesión
+
+- **Para qué:** que quien entra desde su propio equipo no tenga que volver a escribir la contraseña cada vez que caduca la sesión, y que en un equipo compartido la sesión acabe al cerrar el navegador.
+- **Ruta:** `POST /auth/login` (la misma).
+- **Cuerpo:** `{"email": "...", "password": "...", "remember": true}`. Con `remember: true`, la cookie de sesión llevaría `Max-Age` (por ejemplo 30 días); con `false` o sin el campo, sería una cookie de sesión del navegador, sin `Max-Age`.
+- **Respuesta:** la de hoy (`User`), con la cookie `HttpOnly` según lo pedido.
+- **Mientras tanto:** el formulario no muestra la casilla «Recordar sesión», porque no haría nada. Recuperar la contraseña sí aparece: `POST /auth/password-reset` y `/auth/password-reset/confirm` existen.

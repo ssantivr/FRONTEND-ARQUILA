@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from "react";
 
-import { Panel } from "../components/ui/Panel";
+import { Icon } from "../components/Icon";
+import { Button } from "../components/ui/Button";
+import { LiveForm } from "../components/ui/LiveForm";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
 import type { User } from "../types/api";
-import { LiveForm } from "../components/ui/LiveForm";
+
+import styles from "./LoginPage.module.css";
 
 interface LoginPageProps {
     notice?: string;
@@ -27,6 +30,17 @@ const LEADS: Record<Mode, string> = {
     forgot: "Escribe tu correo y te enviamos un enlace para elegir otra contraseña.",
 };
 
+const SUBMIT: Record<Mode, string> = {
+    login: "Entrar",
+    register: "Crear cuenta",
+    forgot: "Enviar enlace",
+};
+
+/**
+ * Sign in, create an account or ask for a new password, against the API's session cookie
+ * (`/auth/login`, `/auth/register`, `/auth/password-reset`). Nothing is kept in the browser: the
+ * backend sets the cookie. There is no «remember me»: the API has no session length to choose.
+ */
 export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     const [mode, setMode] = useState<Mode>("login");
     const [name, setName] = useState("");
@@ -70,108 +84,112 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     }
 
     return (
-        <div className="login">
-            <Panel title={TITLES[mode]}>
-                <LiveForm className="form-column" onSubmit={handleSubmit}>
-                    <p className="login-lead">{LEADS[mode]}</p>
-                    {mode === "register" && (
-                        <label>
-                            Nombre
-                            <input
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                                maxLength={120}
-                                autoComplete="name"
-                                required
-                            />
-                        </label>
-                    )}
+        <div className={`login ${styles.login}`}>
+            <h2 className={styles.title}>{TITLES[mode]}</h2>
+            <p className={styles.lead}>{LEADS[mode]}</p>
+            <LiveForm className={`form-column ${styles.form}`} onSubmit={handleSubmit}>
+                {mode === "register" && (
                     <label>
-                        Correo
+                        Nombre
                         <input
-                            type="email"
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
-                            maxLength={255}
-                            autoComplete="email"
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            maxLength={120}
+                            autoComplete="name"
                             required
                         />
                     </label>
-                    {mode !== "forgot" && (
-                        <div className="field-password">
-                            <label>
-                                Contraseña
-                                <input
-                                    type={revealed ? "text" : "password"}
-                                    value={password}
-                                    onChange={(event) => setPassword(event.target.value)}
-                                    minLength={
-                                        mode === "register" ? MIN_PASSWORD_LENGTH : undefined
-                                    }
-                                    maxLength={128}
-                                    autoComplete={
-                                        mode === "register" ? "new-password" : "current-password"
-                                    }
-                                    required
-                                />
-                            </label>
-                            <button
-                                type="button"
-                                className="field-toggle"
-                                aria-pressed={revealed}
-                                onClick={() => setRevealed((visible) => !visible)}
-                            >
-                                {revealed ? "Ocultar" : "Mostrar"}
-                            </button>
-                        </div>
-                    )}
-                    {mode === "register" && (
-                        <p className="message">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
-                    )}
-                    {message && (
-                        <p className="message" role="status">
-                            {message}
-                        </p>
-                    )}
-                    {error && (
-                        <p className="message message-error" role="alert">
-                            {error}
-                        </p>
-                    )}
-                    <button type="submit" disabled={submitting} aria-busy={submitting}>
-                        {submitting && <span className="spinner" aria-hidden="true" />}
-                        {mode === "login" && "Entrar"}
-                        {mode === "register" && "Crear cuenta"}
-                        {mode === "forgot" && "Enviar enlace"}
-                    </button>
-                    {mode === "login" ? (
-                        <>
-                            <button
-                                type="button"
-                                className="button-secondary"
-                                onClick={() => switchTo("register")}
-                            >
-                                Crear una cuenta nueva
-                            </button>
-                            <button
-                                type="button"
-                                className="button-secondary"
-                                onClick={() => switchTo("forgot")}
-                            >
-                                Olvidé mi contraseña
-                            </button>
-                        </>
-                    ) : (
+                )}
+                <label>
+                    Correo
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        maxLength={255}
+                        autoComplete="email"
+                        placeholder="nombre@estudio.com"
+                        required
+                    />
+                </label>
+                {mode !== "forgot" && (
+                    <div className={`field-password ${styles.password}`}>
+                        <label>
+                            Contraseña
+                            <input
+                                type={revealed ? "text" : "password"}
+                                value={password}
+                                onChange={(event) => setPassword(event.target.value)}
+                                minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
+                                maxLength={128}
+                                autoComplete={
+                                    mode === "register" ? "new-password" : "current-password"
+                                }
+                                required
+                            />
+                        </label>
                         <button
                             type="button"
-                            className="button-secondary"
-                            onClick={() => switchTo("login")}
+                            className={`field-toggle ${styles.reveal}`}
+                            aria-label="Mostrar contraseña"
+                            aria-pressed={revealed}
+                            title={revealed ? "Ocultar la contraseña" : "Mostrar la contraseña"}
+                            onClick={() => setRevealed((visible) => !visible)}
                         >
-                            Volver a iniciar sesión
+                            <Icon name={revealed ? "eyeOff" : "eye"} />
                         </button>
-                    )}
-                </LiveForm>
-            </Panel>
+                    </div>
+                )}
+                {mode === "register" && (
+                    <p className={styles.hint}>Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
+                )}
+                {mode === "login" && (
+                    <button
+                        type="button"
+                        className={styles.link}
+                        onClick={() => switchTo("forgot")}
+                    >
+                        Olvidé mi contraseña
+                    </button>
+                )}
+                {message && (
+                    <p className={`message ${styles.notice}`} role="status">
+                        <Icon name="check" />
+                        {message}
+                    </p>
+                )}
+                {error && (
+                    <p className={`message message-error ${styles.error}`} role="alert">
+                        <Icon name="alert" />
+                        {error}
+                    </p>
+                )}
+                <Button
+                    type="submit"
+                    loading={submitting}
+                    className={`button-lime ${styles.submit}`}
+                >
+                    {SUBMIT[mode]}
+                </Button>
+            </LiveForm>
+            <p className={styles.switch}>
+                {mode === "login" ? (
+                    <>
+                        ¿Todavía no tienes cuenta?{" "}
+                        <button
+                            type="button"
+                            className={styles.link}
+                            onClick={() => switchTo("register")}
+                        >
+                            Crear una cuenta nueva
+                        </button>
+                    </>
+                ) : (
+                    <button type="button" className={styles.link} onClick={() => switchTo("login")}>
+                        Volver a iniciar sesión
+                    </button>
+                )}
+            </p>
         </div>
     );
 }

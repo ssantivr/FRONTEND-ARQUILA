@@ -7,8 +7,8 @@ import {
     type To,
 } from "react-router";
 
+import { AuthScreen } from "./components/AuthScreen";
 import { CommandPalette, type Command } from "./components/CommandPalette";
-import { RenderImage } from "./components/RenderImage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Icon } from "./components/Icon";
 import { MobileNav } from "./components/MobileNav";
@@ -447,52 +447,15 @@ export function App() {
 
     if (resetToken === null && session.state === "anonymous") {
         return (
-            <main id="content" className="auth" tabIndex={-1}>
-                <section className="auth-visual" aria-label="ARQUILA">
-                    <RenderImage />
-                    <span className="brand">ARQUILA</span>
-                    <div>
-                        <h2>Diseña, organiza y visualiza tu arquitectura.</h2>
-                        <p>
-                            Proyectos, terrenos, planos, materiales y modelo 3D en un solo espacio
-                            de trabajo.
-                        </p>
-                        <ul className="auth-features">
-                            <li>
-                                <Icon name="viewer" />
-                                <span>
-                                    <strong>Modelo 3D</strong>
-                                    Se arma con los terrenos, planos y cuartos del proyecto.
-                                </span>
-                            </li>
-                            <li>
-                                <Icon name="projects" />
-                                <span>
-                                    <strong>Planos con cotas</strong>
-                                    Plantas, fachadas e implantación, descargables en SVG.
-                                </span>
-                            </li>
-                            <li>
-                                <Icon name="materials" />
-                                <span>
-                                    <strong>Costos</strong>
-                                    Materiales por proyecto y su costo por categoría.
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-                <section className="auth-form">
-                    <LoginPage
-                        notice={loginNotice}
-                        onAuthenticated={(user) => {
-                            setLoginNotice(undefined);
-                            setSession({ state: "authenticated", user });
-                        }}
-                    />
-                    {themeToggle}
-                </section>
-            </main>
+            <AuthScreen>
+                <LoginPage
+                    notice={loginNotice}
+                    onAuthenticated={(user) => {
+                        setLoginNotice(undefined);
+                        setSession({ state: "authenticated", user });
+                    }}
+                />
+            </AuthScreen>
         );
     }
 
