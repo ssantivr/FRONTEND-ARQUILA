@@ -197,10 +197,6 @@ label {
     .panel {
         padding: 18px;
     }
-
-    .hero-copy {
-        padding: 28px 22px;
-    }
 }
 
 label :is(input, select, textarea) {

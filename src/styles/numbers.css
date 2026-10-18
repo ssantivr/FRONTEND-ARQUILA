@@ -10,7 +10,6 @@
     output,
     .hud-readout,
     .hud-count,
-    .hero-stats dd:not(.hero-stat-detail),
     .status-legend dd,
     .stat-strip dd,
     .range-value,

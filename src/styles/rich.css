@@ -127,26 +127,6 @@ button:not([class]):hover:not(:disabled) {
     animation: grow-in var(--dur-slow) var(--ease-out) var(--dur-fast) backwards;
 }
 
-/* ---- Home: a glowing edge on the hero, the live model in the continue card ---- */
-
-.hero-home {
-    box-shadow: var(--shadow-float);
-}
-
-.hero-home::after {
-    content: "";
-    position: absolute;
-    inset: auto 52px 0;
-    width: 96px;
-    height: 2px;
-    background: var(--lime);
-    border-radius: 2px;
-}
-
-.hero-stats dd {
-    font-variant-numeric: tabular-nums;
-}
-
 .continue-card {
     position: relative;
     box-shadow: var(--shadow);
@@ -221,12 +201,6 @@ button:not([class]):hover:not(:disabled) {
 
 :is(.hud, .modal, td) .empty-state {
     background: none;
-}
-
-@media (max-width: 900px) {
-    .hero-home::after {
-        inset: auto 24px 0;
-    }
 }
 
 /* Muted text set straight on the drafting grid is a step darker than on a panel. */

@@ -222,29 +222,6 @@ td button {
     gap: 16px;
 }
 
-/* Hero */
-.hero {
-    min-height: 300px;
-}
-
-.hero-copy {
-    gap: 16px;
-    padding: 40px;
-}
-
-.hero-eyebrow {
-    color: var(--lime);
-    font-size: var(--fs-12);
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-}
-
-.hero h2 {
-    font-size: clamp(1.9rem, 3vw, 2.6rem);
-    letter-spacing: -0.02em;
-}
-
 .art-sun {
     fill: var(--lime);
     opacity: 0.16;

@@ -1,138 +1,3 @@
-/* Home: full-width hero with the figures over it, and the quick access block. */
-
-/* ---- Home hero ---- */
-
-.hero-home {
-    position: relative;
-    display: block;
-    min-height: 470px;
-    isolation: isolate;
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow-float);
-}
-
-.hero-home .render {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    min-height: 0;
-    max-height: none;
-    -webkit-mask-image: none;
-    mask-image: none;
-}
-
-/* The veil follows the copy, not the hero: its stops are in px because the copy has a fixed
-   width, so on a wide screen the rest of the scene stays clear. */
-.hero-home::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-        linear-gradient(
-            90deg,
-            rgba(6, 17, 12, 0.8) 0,
-            rgba(6, 17, 12, 0.66) 440px,
-            rgba(6, 17, 12, 0) 720px
-        ),
-        linear-gradient(0deg, rgba(6, 17, 12, 0.5) 0, rgba(6, 17, 12, 0) 200px);
-}
-
-.hero-home .hero-copy {
-    gap: 18px;
-    max-width: 600px;
-    padding: 60px 52px 172px;
-}
-
-.hero-home .hero-eyebrow {
-    color: rgba(255, 255, 255, 0.88);
-}
-
-.hero-home h2 {
-    font-size: clamp(2.75rem, 4.6vw, 3.75rem);
-    font-weight: 770;
-    letter-spacing: -0.04em;
-    line-height: 1;
-}
-
-.hero-home .hero-copy p {
-    max-width: 44ch;
-    color: rgba(255, 255, 255, 0.92);
-    font-size: var(--fs-16);
-    line-height: 1.5;
-}
-
-.hero-home .hero-actions button {
-    min-height: 46px;
-    padding: 0 20px;
-    font-size: var(--fs-14);
-    border-radius: var(--r-md);
-}
-
-.hero-home .render-label {
-    top: 20px;
-    right: 22px;
-    bottom: auto;
-}
-
-.hero-stats {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding: 20px 52px 22px;
-    /* Solid enough to read on any part of the render, without blurring it. */
-    background: rgba(6, 17, 12, 0.86);
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.hero-stats dl {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px 40px;
-    margin: 0;
-}
-
-.hero-stats dl > div {
-    display: grid;
-    gap: 2px;
-}
-
-.hero-stats dl > div + div {
-    padding-left: 40px;
-    border-left: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.hero-stats dt {
-    color: rgba(255, 255, 255, 0.66);
-    font-size: var(--fs-12);
-    font-weight: 650;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-}
-
-.hero-stats dd {
-    margin: 0;
-    font-size: var(--fs-36);
-    font-weight: 740;
-    letter-spacing: -0.035em;
-    line-height: 1.1;
-}
-
-.hero-stats .hero-stat-detail {
-    color: rgba(255, 255, 255, 0.72);
-    font-size: var(--fs-13);
-    font-weight: 400;
-    letter-spacing: 0;
-    line-height: 1.4;
-}
-
-.hero-stats .skeleton {
-    max-width: 420px;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.7);
-}
-
 /* ---- Quick access: one main action, the rest as a list ---- */
 
 .quick {
@@ -224,50 +89,18 @@
     font-weight: 620;
 }
 
+/* Up to two lines: the description says what the module does, so it is not cut to one. */
 .quick-row-text {
+    display: -webkit-box;
     overflow: hidden;
     color: var(--text-secondary);
     font-size: var(--fs-13);
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 
 @media (max-width: 900px) {
-    /* On a narrow screen the copy covers the whole picture, so the veil is even. */
-    .hero-home::before {
-        background: rgba(6, 17, 12, 0.76);
-    }
-
-    .hero-home .hero-copy {
-        padding: 64px 24px 28px;
-    }
-
-    .hero-home .render-label {
-        top: 18px;
-        right: auto;
-        left: 24px;
-    }
-
-    .hero-stats {
-        position: static;
-        padding: 18px 24px;
-    }
-
-    .hero-stats dl {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 16px;
-    }
-
-    .hero-stats dl > div + div {
-        padding: 16px 0 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.14);
-        border-left: 0;
-    }
-
-    .hero-stats dd {
-        font-size: var(--fs-30);
-    }
-
     .quick,
     .quick-list {
         grid-template-columns: minmax(0, 1fr);

@@ -309,7 +309,16 @@ export function App() {
 
         switch (view) {
             case "home":
-                return <HomePage user={user} onOpenProject={openProject} onNavigate={navigate} />;
+                return (
+                    <HomePage
+                        user={user}
+                        onOpenProject={openProject}
+                        onNavigate={navigate}
+                        onCreateProject={() =>
+                            go(viewPath("projects"), { state: { create: true } })
+                        }
+                    />
+                );
             case "projects":
                 return (
                     <ProjectsPage

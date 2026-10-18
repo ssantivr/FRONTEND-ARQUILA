@@ -10,6 +10,7 @@ import { Panel } from "../components/ui/Panel";
 import { ProjectCard } from "../components/ProjectCard";
 import { MODULES, type View } from "../components/Sidebar";
 import { Button } from "../components/ui/Button";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { Menu } from "../components/ui/Menu";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi } from "../services/api";
@@ -17,6 +18,8 @@ import { showToast } from "../state/toasts";
 import type { Project, ProjectStatus, User } from "../types/api";
 import type { SectionId } from "./sections";
 import { formatDate, formatMoney, formatNumber } from "../utils/format";
+
+import styles from "./HomePage.module.css";
 
 const RECENT_PROJECTS = 8;
 // The live model only where the browser can draw it; three.js loads when it is first needed.
@@ -31,9 +34,16 @@ interface HomePageProps {
     user: User;
     onOpenProject: (projectId: number, section?: SectionId) => void;
     onNavigate: (view: View) => void;
+    /** Opens the creation form; without it «Crear proyecto» only goes to the projects screen. */
+    onCreateProject?: () => void;
 }
 
-export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
+/** «1 activo», «2 activos»: the word agrees with the figure. */
+function count(value: number, one: string, many: string): string {
+    return `${formatNumber(value)} ${value === 1 ? one : many}`;
+}
+
+export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: HomePageProps) {
     const summary = useAsync(() => summaryApi.get(), []);
     const projects = useAsync(() => projectsApi.list(), []);
 
@@ -41,6 +51,8 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
     const [status, setStatus] = useState<ProjectStatus | "">("");
     const [layout, setLayout] = useState<"grid" | "list">("grid");
     const [actionError, setActionError] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState<Project | null>(null);
+    const [deletePending, setDeletePending] = useState(false);
     const wanted = query.trim().toLowerCase();
     const all = projects.data ?? [];
     const recent = all
@@ -65,6 +77,24 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
           ]
         : [];
 
+    async function remove(project: Project) {
+        setDeletePending(true);
+        setActionError(null);
+
+        try {
+            await projectsApi.remove(project.id);
+            setDeleting(null);
+            projects.reload();
+            summary.reload();
+            showToast(`Proyecto «${project.name}» eliminado.`);
+        } catch (reason) {
+            setDeleting(null);
+            setActionError(errorMessage(reason));
+        } finally {
+            setDeletePending(false);
+        }
+    }
+
     async function changeStatus(project: Project, next: ProjectStatus) {
         setActionError(null);
 
@@ -80,20 +110,23 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
 
     return (
         <>
-            <section className="hero hero-home">
-                <RenderImage />
-                <div className="hero-copy">
-                    <span className="hero-eyebrow">Tu espacio de trabajo</span>
-                    <h2>Hola, {user.name}</h2>
+            <section className={styles.hero} aria-labelledby="home-greeting">
+                <div className={styles.copy}>
+                    <span className={styles.eyebrow}>Tu espacio de trabajo</span>
+                    <h2 id="home-greeting">Hola, {user.name}</h2>
                     <p>
                         Proyectos, terrenos, planos, materiales y modelo 3D en un solo lugar, con un
                         asistente que conoce cada proyecto.
                     </p>
-                    <div className="hero-actions">
+                    <div className={styles.actions}>
                         <button
                             type="button"
                             className="button-lime icon-button"
-                            onClick={() => onNavigate("projects")}
+                            onClick={() =>
+                                onCreateProject === undefined
+                                    ? onNavigate("projects")
+                                    : onCreateProject()
+                            }
                         >
                             <Icon name="plus" />
                             Crear proyecto
@@ -101,54 +134,80 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                         <button
                             type="button"
                             className="button-ghost"
-                            onClick={() => onNavigate("viewer")}
+                            onClick={() => onNavigate("projects")}
                         >
-                            Abrir el visor 3D
+                            Explorar proyectos
                         </button>
                     </div>
                 </div>
-                <div className="hero-stats">
-                    <AsyncStatus
-                        loading={summary.loading}
-                        error={summary.error}
-                        onRetry={summary.reload}
-                        isEmpty={summary.data === null}
-                        emptyText=""
-                    />
-                    {summary.data && (
-                        <dl>
-                            <div>
-                                <dt>Proyectos</dt>
-                                <dd>
-                                    <CountUp value={summary.data.projects} format={formatNumber} />
-                                </dd>
-                                <dd className="hero-stat-detail">
-                                    {`${summary.data.active_projects} activos · ${summary.data.draft_projects} en borrador · ${summary.data.archived_projects} archivados`}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Terrenos</dt>
-                                <dd>
-                                    <CountUp value={summary.data.terrains} format={formatNumber} />
-                                </dd>
-                                <dd className="hero-stat-detail">
-                                    {formatNumber(summary.data.total_area_m2)} m² en total
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Costo de materiales</dt>
-                                <dd>
-                                    <CountUp
-                                        value={summary.data.materials_total_cost}
-                                        format={formatMoney}
-                                    />
-                                </dd>
-                                <dd className="hero-stat-detail">Suma de todos los proyectos</dd>
-                            </div>
-                        </dl>
-                    )}
+                <div className={styles.picture}>
+                    <RenderImage />
                 </div>
             </section>
+
+            {/* Only the figures GET /summary returns. There is no count of plans or of saved
+                materials, nor a «completed» state, so none of them is shown. */}
+            <dl className={styles.figures} aria-label="Resumen de tu cuenta">
+                {summary.data === null ? (
+                    <div className={styles.figuresLoading}>
+                        <AsyncStatus
+                            loading={summary.loading}
+                            error={summary.error}
+                            onRetry={summary.reload}
+                            isEmpty
+                            emptyText=""
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <div className={styles.figure}>
+                            <dt>
+                                <Icon name="projects" />
+                                Proyectos
+                            </dt>
+                            <dd className={styles.value}>
+                                <CountUp value={summary.data.projects} format={formatNumber} />
+                            </dd>
+                            <dd className={styles.detail}>
+                                {[
+                                    count(summary.data.active_projects, "activo", "activos"),
+                                    `${formatNumber(summary.data.draft_projects)} en borrador`,
+                                    count(
+                                        summary.data.archived_projects,
+                                        "archivado",
+                                        "archivados",
+                                    ),
+                                ].join(" · ")}
+                            </dd>
+                        </div>
+                        <div className={styles.figure}>
+                            <dt>
+                                <Icon name="terrains" />
+                                Terrenos
+                            </dt>
+                            <dd className={styles.value}>
+                                <CountUp value={summary.data.terrains} format={formatNumber} />
+                            </dd>
+                            <dd className={styles.detail}>
+                                {formatNumber(summary.data.total_area_m2)} m² en total
+                            </dd>
+                        </div>
+                        <div className={styles.figure}>
+                            <dt>
+                                <Icon name="materials" />
+                                Costo de materiales
+                            </dt>
+                            <dd className={styles.value}>
+                                <CountUp
+                                    value={summary.data.materials_total_cost}
+                                    format={formatMoney}
+                                />
+                            </dd>
+                            <dd className={styles.detail}>Suma de todos los proyectos</dd>
+                        </div>
+                    </>
+                )}
+            </dl>
 
             {/* While the projects are on their way the row already takes its place, so the blocks
                 under it do not jump when it arrives. */}
@@ -346,6 +405,11 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                                                         : "archived",
                                                 ),
                                         },
+                                        {
+                                            label: "Eliminar…",
+                                            danger: true,
+                                            onSelect: () => setDeleting(project),
+                                        },
                                     ]}
                                 />
                             </div>
@@ -353,6 +417,22 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                     ))}
                 </ul>
             </Panel>
+
+            {deleting !== null && (
+                <ConfirmDialog
+                    title={`¿Eliminar «${deleting.name}»?`}
+                    confirmLabel="Eliminar el proyecto"
+                    danger
+                    pending={deletePending}
+                    onConfirm={() => void remove(deleting)}
+                    onCancel={() => setDeleting(null)}
+                >
+                    <p>
+                        Se eliminan también sus terrenos, planos, cuartos, materiales y archivos. No
+                        se puede deshacer.
+                    </p>
+                </ConfirmDialog>
+            )}
 
             <Panel title="Accesos rápidos">
                 <div className="quick">

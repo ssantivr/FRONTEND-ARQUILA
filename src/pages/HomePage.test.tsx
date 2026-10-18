@@ -7,7 +7,7 @@ import type { Project, User } from "../types/api";
 import { HomePage } from "./HomePage";
 
 vi.mock("../services/api", () => ({
-    projectsApi: { list: vi.fn(), update: vi.fn() },
+    projectsApi: { list: vi.fn(), update: vi.fn(), remove: vi.fn() },
     summaryApi: { get: vi.fn() },
 }));
 
@@ -93,9 +93,34 @@ describe("HomePage", () => {
         );
 
         expect(screen.getByRole("heading", { name: "Hola, Ana Torres" })).toBeInTheDocument();
+        // The word agrees with the figure: «1 archivado», not «1 archivados».
         expect(
-            await screen.findByText("2 activos · 1 en borrador · 1 archivados"),
+            await screen.findByText("2 activos · 1 en borrador · 1 archivado"),
         ).toBeInTheDocument();
+        expect(screen.getByText("480 m² en total")).toBeInTheDocument();
+        // Only what GET /summary returns: no count of plans nor a «completed» state.
+        const figures = screen.getByLabelText("Resumen de tu cuenta");
+
+        expect(within(figures).queryByText(/planos/i)).not.toBeInTheDocument();
+        expect(within(figures).queryByText(/completad/i)).not.toBeInTheDocument();
+    });
+
+    it("deletes a recent project only after confirming it", async () => {
+        vi.mocked(projectsApi).list.mockResolvedValue([project(1, "Casa Andina", "active")]);
+        vi.mocked(projectsApi).remove.mockResolvedValue(undefined);
+        render(
+            <HomePage user={user} onOpenProject={() => undefined} onNavigate={() => undefined} />,
+        );
+
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Eliminar…" }));
+
+        const dialog = screen.getByRole("alertdialog", { name: "¿Eliminar «Casa Andina»?" });
+
+        expect(projectsApi.remove).not.toHaveBeenCalled();
+        await userEvent.click(within(dialog).getByRole("button", { name: "Eliminar el proyecto" }));
+
+        expect(projectsApi.remove).toHaveBeenCalledWith(1);
     });
 
     it("offers to continue with the last project that is not archived", async () => {
@@ -118,15 +143,23 @@ describe("HomePage", () => {
         expect(screen.getByRole("img", { name: /Activos: 2, En borrador: 1/ })).toBeInTheDocument();
     });
 
-    it("takes the main actions of the hero to their modules", async () => {
+    it("takes the main actions of the hero to the creation form and to the projects", async () => {
         const onNavigate = vi.fn();
+        const onCreateProject = vi.fn();
 
-        render(<HomePage user={user} onOpenProject={() => undefined} onNavigate={onNavigate} />);
+        render(
+            <HomePage
+                user={user}
+                onOpenProject={() => undefined}
+                onNavigate={onNavigate}
+                onCreateProject={onCreateProject}
+            />,
+        );
 
         await userEvent.click(screen.getByRole("button", { name: "Crear proyecto" }));
-        await userEvent.click(screen.getByRole("button", { name: "Abrir el visor 3D" }));
+        await userEvent.click(screen.getByRole("button", { name: "Explorar proyectos" }));
 
-        expect(onNavigate).toHaveBeenNthCalledWith(1, "projects");
-        expect(onNavigate).toHaveBeenNthCalledWith(2, "viewer");
+        expect(onCreateProject).toHaveBeenCalledTimes(1);
+        expect(onNavigate).toHaveBeenCalledWith("projects");
     });
 });
