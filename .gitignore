@@ -3,7 +3,8 @@ dist/
 .env
 .env.*
 !.env.example
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.log
 

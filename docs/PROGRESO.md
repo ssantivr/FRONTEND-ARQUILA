@@ -24,6 +24,54 @@ Si falta tiempo se sacrifica en este orden: lo opcional, la fase 6b, lo avanzado
 
 Revisión independiente: al cerrar las fases 2, 3b y 7.
 
+## Encargo del 18 de octubre de 2026: cerrar huecos y pulir
+
+Encargo nuevo, con su complemento, sobre la misma rama: no reconstruir, sino cerrar lo que falta frente a una apariencia de software profesional de arquitectura. Tiene su propia numeración de fases, distinta de la tabla de arriba.
+
+| Fase | Estado |
+|---|---|
+| 1. Auditoría | Hecha: informe en la conversación, sin cambios en el código |
+| 2. Sistema visual (bloques A, B y C) | Hecha |
+| 3. Login y dashboard | Pendiente: espera el «continúa» |
+| 4. Proyectos (con cronograma), materiales y terrenos | Pendiente |
+| 5. Editor 3D (mover y redimensionar cuartos), planos e iluminación (sol por fecha) | Pendiente |
+| 6. Renderizado y recorridos con datos del proyecto | Pendiente |
+| 7. Responsive, accesibilidad, animación de entrada, preferencias | Pendiente |
+| 8. Pruebas, capturas y guía de VS Code | Pendiente |
+
+Antes de empezar se confirmaron, a petición, los 8 archivos que había sin confirmar (`f01d515`, altura del visor y encuadre).
+
+### Fase 2. Sistema visual y navegación
+
+| Bloque | Commit | Qué |
+|---|---|---|
+| A | `80a2788` | Paleta del encargo, paneles sólidos sin desenfoque, sombras discretas, filas con `--row-height` y densidad compacta |
+| B | `f3b4a21` | `Drawer`, `ConfirmDialog`, `SegmentedControl`, `Switch`, `Spinner`, `SaveIndicator`, `DataTable` y `FilterBar`, con pruebas y en `/design-system` |
+| C | `93b1bbf` | `TopBar`, `MobileNav`, asistente y estado de guardado en la barra superior, barra lateral plana con flechas y nombres al contraerse |
+
+Detalle y decisiones en `FRONTEND.md`, «Sistema visual y navegación».
+
+Pruebas adaptadas, no eliminadas:
+
+- `GlobalSearch.test.tsx`: buscaba el botón por «Abrir la paleta de comandos»; ahora su nombre es «Ctrl K: abrir la paleta de comandos» y la prueba comprueba además que empieza por el texto visible.
+- `e2e/flujos.spec.ts`, tema: pulsaba el botón «Modo claro» (`aria-pressed`); ahora pulsa la opción «Tema claro» del grupo «Tema» y comprueba cuál está marcada.
+
+Resultados al cerrar el bloque C:
+
+| Comando | Resultado |
+|---|---|
+| `npm run lint` | sin errores ni avisos |
+| `npm test` | `Test Files 52 passed (52)`, `Tests 369 passed (369)` (antes 50 y 344) |
+| `npm run build` | `✓ built in 9.00s`; `index` 144,37 kB (44,46 kB gzip), CSS 125,63 kB (25,46 kB gzip) |
+| `npm run contraste` | `Todos los pares llegan a 4.5:1.` |
+| `npm run test:e2e` | `8 passed (1.1m)` |
+
+Revisión visual: Inicio, Proyectos, pestaña Materiales, Modelo 3D y Configuración a 1280, 820 y 390 px, claro y oscuro, en el scratchpad de la sesión (no en `docs/capturas/`). Visto sin corregir: a 820 px la tabla de materiales del proyecto se sale de su panel (fase 4).
+
+También: `.vscode/extensions.json` con ESLint y Prettier recomendados. `.gitignore` ignoraba toda la carpeta `.vscode/`; ahora ignora su contenido salvo ese archivo.
+
+No hubo revisión independiente en esta fase.
+
 ## Antes de fusionar o desplegar
 
 - ~~Revertir el commit `chore(local): rollup wasm por Smart App Control`~~. Ya no hace falta: `546f590` sacó el override del repositorio (ver la sesión del 14 de octubre). El commit `06851ba` sigue en el historial, pero desde `546f590` ni `package.json` ni `package-lock.json` lo llevan.
@@ -249,4 +297,5 @@ Mal, sin corregir:
 
 - Smart App Control: el 13 de octubre bloqueaba el Rollup nativo 4.64.0 y `sh.exe` de Git; el 14 cargan el Rollup nativo 4.64.6 y el hook de pre-commit. No se sabe si cambió la reputación de esos binarios o algo del equipo. Si vuelve a bloquear, `npm run local:wasm`.
 - Las capas de obra del visor usan cian y magenta, fuera de la regla del neón (ver `DECISIONES.md`): pendiente de decisión.
-- El botón flotante «Asistente» tapa controles en varias pantallas (ver la verificación visual del 14 de octubre). Ya ocurría antes del rediseño.
+- ~~El botón flotante «Asistente» tapa controles en varias pantallas~~. Resuelto en la fase 2 del 18 de octubre: el botón está en la barra superior.
+- ~~axe `label-content-name-mismatch` en el botón «Ctrl K»~~. Resuelto en la misma fase.

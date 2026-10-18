@@ -98,7 +98,7 @@ En el frontend, `src/three/BuildingSceneManager.ts` arma la escena y no depende 
 - **Capas**: cuatro casillas muestran u ocultan cuartos, techo, árboles y cuadrícula. Al ocultar los cuartos queda a la vista la estructura; un elemento oculto tampoco se puede seleccionar con un clic.
 - Al cambiar de modelo o salir de la pestaña se liberan geometrías, materiales, el mapa de sombras, los eventos y el contexto WebGL (`dispose`). Los dos visores recorren la escena con la misma función, `disposeObject` de `src/three/dispose.ts`, que respeta los materiales compartidos (`userData.shared`). Las texturas solo se liberan si se pide (`textures: true`): se hace con un modelo glTF, que trae las suyas, y no con los elementos del edificio, que comparten la textura de grano.
 - Three.js se carga solo al abrir la pestaña (`lazy` en `ProjectDetailPage.tsx`), para no aumentar la carga inicial.
-- **Paneles que no tapan el modelo**: Niveles, Inspector y Color son `<details>` que se pliegan a su título; Color abre plegado y muestra el modo activo en el título. Inspector y Color comparten una columna a la derecha (`.hud-dock`) que nunca llega a la barra inferior. La barra inferior va centrada, en grupos (vista, corrida, corte y despiece con su porcentaje), y las casillas de capas y la cubierta se abren desde el botón «Capas». Las ayudas de la barra son `data-tip`, un texto que aparece sobre el control al pasar el cursor o al enfocarlo con el teclado. Los paneles son translúcidos con desenfoque en los dos temas (`--glass`).
+- **Paneles que no tapan el modelo**: Niveles, Inspector y Color son `<details>` que se pliegan a su título; Color abre plegado y muestra el modo activo en el título. Inspector y Color comparten una columna a la derecha (`.hud-dock`) que nunca llega a la barra inferior. La barra inferior va centrada, en grupos (vista, corrida, corte y despiece con su porcentaje), y las casillas de capas y la cubierta se abren desde el botón «Capas». Las ayudas de la barra son `data-tip`, un texto que aparece sobre el control al pasar el cursor o al enfocarlo con el teclado. Los paneles son sólidos, sin desenfoque, en los dos temas (`--glass` es ahora un color opaco).
 - Los paneles flotantes (vistas, niveles, inspector, color y barra inferior) usan los mismos colores que el resto de la aplicación (clases `.structure-stage` y `.hud` en `src/styles/viewer.css`). El cielo, la niebla, el suelo y la cuadrícula de la escena cambian con el modo claro u oscuro (`setPalette`); el elemento bajo el cursor se resalta en azul y el seleccionado lleva un contorno cian `#00F0FF` de 3 px (`LineSegments2`), en todos los modos de color y sin teñir el elemento, para que se vea su material o el color del dato. Ese contorno y las dos luces de acento del modo oscuro son el único neón de la aplicación. En pantallas estrechas los paneles pasan debajo del modelo.
 
 - **Pendiente.** El terreno se dibuja inclinado según su pendiente, a lo largo de su fondo, igual que en los esquemas del terreno. La losa no se gira sino que se cizalla: cada vértice conserva su sitio en planta y solo cambia de altura, así el contorno sigue coincidiendo con los planos. El suelo toca el nivel 0 en el muro posterior de la edificación: cae hacia el frente, donde un zócalo bajo cada cuarto de la planta baja llena el hueco, y sube por detrás, de modo que la casa nunca queda enterrada. Los árboles y el borde del lote siguen la pendiente. La respuesta de `structure` todavía no trae la pendiente, así que `structureApi.get` la lee de la lista de terrenos (una petición más) y, si no puede, dibuja el modelo plano.
@@ -183,7 +183,7 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 
 ### Apariencia y recorrido de muestra
 
-- **Tema.** En Configuración se elige Claro, Oscuro o Automático (`state/theme.ts`). Automático sigue al sistema y cambia con él; el botón de la cabecera fija claro u oscuro.
+- **Tema.** En Configuración se elige Claro, Oscuro o Automático (`state/theme.ts`). Automático sigue al sistema y cambia con él. La barra superior tiene las mismas tres opciones (y, en el móvil, el cajón «Más»).
 - **Reducir movimiento.** El interruptor de Configuración (`state/motion.ts`) se suma al ajuste del sistema: quita las transiciones de la interfaz y hace que la cámara del modelo 3D y la del recorrido salten en vez de animarse. Ambas preferencias se guardan en `localStorage`, no en la cuenta.
 - **Recorrido interior.** Está rotulado como «Escena de muestra» porque no usa datos de ningún proyecto. Las líneas de luz dejaron el cian y el magenta y usan el lima y un ámbar de la paleta; el botón se llama «Luces de acento». Las ventanas de la ciudad del fondo conservan sus colores.
 
@@ -219,7 +219,7 @@ Cada pantalla tiene su URL (`src/routes.ts`): `/`, `/proyectos`, `/terrenos`, `/
 ### Identidad visual
 
 - **Tipografía.** Inter variable, alojada en el proyecto con `@fontsource-variable/inter` (sin peticiones a terceros, `font-display: swap`). Los títulos de página van a 28 px con peso 720; las cifras usan numerales tabulares.
-- **Tres niveles de superficie.** Fondo, panel y tarjeta tienen tonos distintos en cada tema (`--bg`, `--panel`, `--panel-raised` en `styles/identity.css`).
+- **Tres niveles de superficie.** Fondo, panel y tarjeta tienen tonos distintos en cada tema (`--bg`, `--panel`, `--panel-raised` en `styles/tokens.css`).
 - **Un foco de lima por zona.** El lima queda para la acción principal y el elemento activo; el avatar, los puntos de los indicadores y los monogramas ya no lo usan.
 - **Navegación.** Los módulos se agrupan en «Trabajo», «Visualización» y «Asistencia y cuenta».
 - **Imagen protagonista.** La portada y el inicio de sesión muestran la casa de muestra dibujada por el propio visor 3D de ARQUILA: de día en el tema claro (`house-day.jpg`) y de noche en el oscuro (`house-night.jpg`), rotulada «Modelo de muestra · visor 3D» porque no es un proyecto del usuario. Las dos imágenes se regeneran con `npm run renders` (`scripts/renders.mjs`), que usa el visor como una persona: oculta los paneles, se acerca, desplaza el edificio a la derecha y pulsa «Guardar imagen». Ya no se usan las imágenes del recorrido interior. Para poner renders propios basta sustituir esos dos archivos en `src/assets/renders/`.
@@ -244,7 +244,7 @@ Las pantallas interiores abren con un título tipográfico grande, sus cifras y 
 - **Tablero de dibujo.** El área de trabajo lleva una retícula muy tenue de 32 px, y los paneles, tablas y formularios de las pestañas del proyecto usan la misma escala que las pantallas nuevas (filas de 44 px, etiquetas de 12 px, formulario de alta apartado bajo su tabla).
 - **Materiales con patrón.** El ladrillo, la madera y la piedra de los muros, las tejas de la cubierta y el césped del lote ya no son colores planos: `src/three/patterns.ts` genera por código, sin archivos de imagen, un mapa de color y otro de relieve para cada uno (ladrillo a soga con sus juntas, tablas, sillares, hiladas de tejas, manchas de césped), a escala real gracias a las coordenadas de textura en metros. En los modos Tipo, Coste y Alertas y al atenuar un elemento se vuelve al color plano, porque ahí manda el dato. Los árboles tienen tronco afinado y una copa de cuatro masas redondeadas, cada uno con su giro, su tamaño y su tono de verde; siguen siendo mallas instanciadas (cinco llamadas de dibujo en total).
 - **Gizmo de orientación.** En la esquina inferior del visor, tres ejes giran con la cámara (`viewer/ViewGizmo.tsx`): X a lo ancho del lote, Y hacia el fondo y Z hacia arriba, igual que las coordenadas que se escriben en los planos. El motor avisa de la dirección de la cámara en grados (`onOrbit` en `BuildingSceneManager.ts`) y el gizmo se redibuja tocando el SVG directamente, sin volver a pintar React en cada giro.
-- **Asistente desde cualquier pestaña.** Dentro de un proyecto, el botón «Asistente» abre a la derecha el mismo `AssistantPanel` de la pestaña Asistente IA, con la primera pregunta sugerida según la pestaña abierta (y, si hay un elemento seleccionado en el modelo, sobre ese elemento). Las respuestas vienen de la API (`POST /conversations/{id}/messages`); el panel dice siempre quién responde, un modelo local o las reglas fijas, y marca cada respuesta dada por reglas. No hay ninguna respuesta generada en el navegador.
+- **Asistente desde cualquier pestaña.** Dentro de un proyecto, el botón «Asistente» de la barra superior abre a la derecha el mismo `AssistantPanel` de la pestaña Asistente IA, con la primera pregunta sugerida según la pestaña abierta (y, si hay un elemento seleccionado en el modelo, sobre ese elemento). Las respuestas vienen de la API (`POST /conversations/{id}/messages`); el panel dice siempre quién responde, un modelo local o las reglas fijas, y marca cada respuesta dada por reglas. No hay ninguna respuesta generada en el navegador.
 - **Modelo en vivo en el inicio.** La tarjeta «Continuar donde lo dejaste» dibuja el modelo 3D real del último proyecto (`ProjectPreview.tsx`, que usa `StructureViewer` con `preview` para mostrar solo la escena, sin paneles). Se puede girar con el puntero. Three.js se descarga solo entonces; si el proyecto no tiene nada que dibujar o el navegador no tiene WebGL, queda la portada dibujada.
 - **Cifras que cuentan.** Las cifras del hero suben desde cero hasta su valor real al aparecer (`CountUp.tsx`); con «reducir movimiento» aparecen directamente.
 - **Profundidad y movimiento.** `styles/rich.css` da luz a la barra lateral, deja la cabecera translúcida sobre el contenido, hace llegar las listas elemento a elemento y da a las tarjetas una sombra por capas, un acercamiento de la portada y una línea lima al pasar el cursor. Todas esas animaciones duran menos de medio segundo y se anulan con «reducir movimiento».
@@ -283,13 +283,55 @@ La identidad sigue `docs/DISENO_ARQUILA.md`: verde bosque (`#0B211A`, `#12382A`)
 
 - **Sin Tailwind.** El documento pide no añadir dependencias sin justificarlas; la interfaz sigue en una sola hoja de estilos con variables.
 - **Menú lateral.** Mantiene el verde bosque en los dos temas, se contrae a una columna de iconos (se recuerda en `localStorage`, clave `arquila:sidebar`) y entre 721 y 1024 px se contrae solo. Con doce módulos, en una ventana baja la lista se desplaza sola y la cuenta queda siempre a la vista. Todos los módulos tienen pantalla real.
-- **Cabecera.** Título del módulo, buscador global (`GlobalSearch.tsx`, busca proyectos por nombre con `GET /projects?search=`), selector de tema y acceso a la cuenta.
+- **Cabecera.** Ver «Barra superior» en la sección de la fase 2 del 18 de octubre. El buscador (`GlobalSearch.tsx`) busca proyectos por nombre con `GET /projects?search=`.
 - **Avisos.** Crear, archivar, reactivar o eliminar un proyecto confirma con un aviso breve abajo a la derecha (`state/toasts.ts`, `Toasts.tsx`); los errores siguen junto al control que falló. La tecla `/` lleva el foco al buscador.
 - **Tema inicial.** Mientras el usuario no elija uno, se usa el que pide el sistema (`prefers-color-scheme`).
 - **Imágenes.** `src/assets/renders/` tiene dos renders (día y noche) de una casa de muestra, hechos con el propio visor 3D de ARQUILA; no son fotos de terceros ni el modelo de ningún proyecto. `RenderImage.tsx` los muestra en la portada (según el tema) y en el inicio de sesión, con aparición suave y, si la imagen no carga, la ilustración vectorial de `ArchitectureArt.tsx`.
 - **Portadas.** La API no guarda imagen de portada, así que `ProjectCard.tsx` pone las iniciales del proyecto sobre uno de esos renders oscurecido: es decoración, no una imagen del proyecto.
 - **Proyectos.** Orden y vista de cuadrícula o lista en el cliente; archivar, reactivar y eliminar (con confirmación) usan `PATCH` y `DELETE /projects/{id}`. No hay «duplicar» porque la API no lo ofrece.
 - **Modelo 3D.** El panel «Objetos» agrupa por nivel en espacios y estructura, permite buscar y ocultar cada objeto (`setHidden` en `BuildingSceneManager.ts`). El tema oscuro es una escena nocturna y el claro una diurna; la oclusión ambiental (`GTAOPass` en `postprocessing.ts`) deja fuera vidrios, elementos atenuados, líneas y el cielo. El control «Sol» gira la luz alrededor del modelo (`setSun`) y «Guardar imagen» descarga la vista como PNG (`capture`); ninguno de los dos se guarda en el servidor. Mover, rotar o escalar objetos no existe: el modelo se genera a partir de los planos.
+
+### Sistema visual y navegación (fase 2 del 18 de octubre de 2026)
+
+Encargo de cerrar huecos frente a una apariencia de software profesional de arquitectura. Commits `80a2788`, `f3b4a21` y `93b1bbf`.
+
+**Paleta.** El tema claro usa los valores del encargo: fondo `#F4F6F2`, paneles blancos, bordes `#DFE5DE` y texto secundario `#68736B`. Ese gris pasa 4,5:1 sobre el fondo (4,54) pero no sobre la superficie elevada anterior `#F2F5EF` (4,49), así que `--panel-raised` pasó a `#F8FAF6` (4,70). El tema oscuro no cambió. `npm run contraste` da todos los pares por encima de 4,5:1.
+
+**Superficies sólidas.** No queda ningún `backdrop-filter`: los paneles del visor y del recorrido, la cabecera, la franja de cifras del inicio (ahora con un velo del 86 %) y el fondo de los diálogos son opacos. Las sombras son dos y discretas (`--shadow`, `--shadow-float`); los bordes de 1 px marcan los límites, como en una lámina. Se quitaron los brillos y degradados de los botones principales, de la tarjeta «Continuar», del estado vacío, del formulario de acceso y de la barra lateral.
+
+**Densidad.** `--row-height` (44 px) y `--row-head-height` (36 px) miden las filas de las tablas. Con `data-density="compact"` en `<html>` pasan a 36 y 32 px y los controles a 32 px. Todavía no hay un control que lo active: se conecta en Configuración en la fase 7.
+
+**Componentes nuevos de `ui/`** (con su `*.module.css`, pruebas en `ui.test.tsx` y muestra en `/design-system`):
+
+- `Drawer`: panel lateral o inferior sobre Radix Dialog. Es modal; el asistente conserva su panel no modal porque tiene que dejar usar el visor mientras está abierto.
+- `ConfirmDialog`: `alertdialog` que abre con el foco en «Cancelar», para que pulsar Enter por costumbre no borre nada, y que no se puede cancelar mientras la acción está en curso. Los `window.confirm` existentes se sustituyen pantalla por pantalla en las fases 3 y 4.
+- `SegmentedControl`: grupo de radio con una sola parada de tabulación y flechas, para el tema y para cuadrícula o lista.
+- `Switch` (casilla nativa con `role="switch"`), `Spinner` (decorativo, o anunciado si lleva etiqueta) y `SaveIndicator` (guardando, guardado o error, siempre con palabra e icono).
+- `DataTable`: cabecera fija, orden natural («Lote 2» antes que «Lote 10») con `aria-sort`, vacíos al final en los dos sentidos y `data-label` para la vista de fichas del móvil. `FilterBar`: búsqueda, filtros, recuento anunciado y «Quitar filtros».
+
+**Barra superior** (`TopBar.tsx`). Dice dónde se está (el título es el único `h1`), tiene el buscador de proyectos, un hueco para los controles de la pantalla abierta, «Nuevo proyecto» (lima salvo en Proyectos), el tema en tres opciones y un menú de cuenta con quién ha entrado, la configuración y «Cerrar sesión». Por debajo de 1280 px el nombre del usuario deja solo el avatar, y por debajo de 1100 px «Nuevo proyecto» y «Asistente» quedan como iconos con su nombre accesible. No hay notificaciones porque la API no tiene.
+
+- **Hueco de la pantalla.** `TopBar` entrega su elemento a `App`, que lo pasa con `TopBarSlotProvider` (`state/topBarSlot.ts`). Un proyecto pone ahí, con un portal, su estado de guardado y el botón «Asistente». Sin barra superior (una prueba de la pantalla sola) los dibuja encima del proyecto.
+- **Estado de guardado.** Refleja las escrituras del proyecto que pasan por `run` en `ProjectDetailPage.tsx` (terrenos, planos, cuartos, materiales, archivos, recomendaciones, estado): «Guardando…», «Cambios guardados» o «Error al guardar». No cubre lo que el visor guarda por su cuenta (material de un elemento y cubierta), que sigue en su barra de estado.
+- **Asistente.** El botón dejó de flotar en la esquina, donde tapaba Editar y Eliminar de las tablas, las vistas del visor y el selector de cubierta. El panel sigue a la derecha y en el móvil sube desde encima de la barra inferior.
+- **Paleta de comandos.** El nombre accesible del botón «Ctrl K» empieza por su texto visible («Ctrl K: abrir la paleta de comandos», WCAG 2.5.3). Era el fallo grave que axe marcaba en todas las pantallas con sesión.
+
+**Barra inferior del móvil** (`MobileNav.tsx`). Hasta 720 px la barra lateral se oculta y abajo quedan Inicio, Proyectos, Planos, Tareas y «Más»: lo que más se consulta desde un teléfono. «Más» abre un cajón con los demás módulos, el tema y la cuenta, y se marca cuando el módulo abierto está dentro. El componente solo se dibuja cuando la consulta de medios coincide (`useMediaQuery`), así que en escritorio no hay dos navegaciones para un lector de pantalla. El contenido y los avisos dejan sitio para la barra.
+
+**Barra lateral.** Fondo plano verde bosque; el módulo abierto lleva fondo `#12382A`, una línea lima a la izquierda y el icono lima, sin brillo. Los grupos se separan con una línea fina. Las flechas, Inicio y Fin mueven el foco entre módulos (Tab sigue recorriéndolos uno a uno). Cuando solo se ven los iconos (contraída, o entre 721 y 1024 px) el nombre del módulo aparece a su lado al pasar el cursor o al enfocarlo; se dibuja con posición fija para que la lista desplazable no lo recorte, y se cierra con Escape.
+
+**Lista de comprobación visual.** Se revisa en cada fase, pantalla por pantalla, en claro y oscuro:
+
+1. Todas las pantallas comparten la misma identidad visual.
+2. El inicio tiene una jerarquía clara y los renders tienen protagonismo.
+3. El editor 3D prioriza el área de trabajo.
+4. Los planos 2D se leen como una herramienta técnica.
+5. La biblioteca de materiales es visual y fácil de explorar.
+6. Formularios legibles, paneles de propiedades ordenados, tablas y listas sin saturación.
+7. Estados de carga y de error diseñados.
+8. El móvil tiene una distribución propia, no una versión apretada del escritorio.
+
+Al cerrar la fase 2 se miraron Inicio, Proyectos, la pestaña Materiales, el Modelo 3D y Configuración a 1280, 820 y 390 px en los dos temas (`npm run capturas` con `CAPTURAS_SALIDA`, sin tocar `docs/capturas/`). Visto y sin corregir todavía: a 820 px la tabla de materiales del proyecto se sale de su panel por la derecha (fase 4).
 
 ### Movimiento
 
@@ -329,7 +371,7 @@ El movimiento explica un cambio (qué apareció, qué se movió, qué se guardó
 
 ### Pantallas pequeñas
 
-Por debajo de 720 px de ancho el menú lateral pasa a ser una fila desplazable sobre el contenido, las tablas se muestran como fichas con el nombre de cada columna junto a su valor y los controles del modelo 3D se colocan debajo del visor. Comprobado el 4 de octubre de 2026 a 390, 820 y 1280 px en todos los módulos y pestañas: ninguna vista se desborda a lo ancho.
+Por debajo de 720 px de ancho el menú lateral se sustituye por una barra inferior (`MobileNav.tsx`, ver «Sistema visual y navegación»), las tablas se muestran como fichas con el nombre de cada columna junto a su valor y los controles del modelo 3D se colocan debajo del visor. Comprobado el 4 de octubre de 2026 a 390, 820 y 1280 px en todos los módulos y pestañas: ninguna vista se desborda a lo ancho.
 
 ### Accesibilidad
 
