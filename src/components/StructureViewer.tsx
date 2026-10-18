@@ -23,7 +23,7 @@ import {
     type ViewName,
 } from "../three/BuildingSceneManager";
 import { sceneLighting } from "../three/lightingPalette";
-import type { LightingSettings } from "../utils/lighting";
+import type { LightingSettings, SolarSite } from "../utils/lighting";
 import type {
     RecommendationPriority,
     RoofKind,
@@ -191,6 +191,8 @@ interface StructureViewerProps {
     preview?: boolean;
     /** Presentation light chosen on another screen; without it the scene follows the theme. */
     lighting?: LightingSettings;
+    /** Coordinates of the lot, so that the presentation light is the real sun over it. */
+    site?: SolarSite | null;
     /** Hands the engine to the screen that shows the viewer, and `null` when it is gone. */
     onEngine?: (engine: Viewer | null) => void;
     /** Shown at the start of the workspace bar; the project tab leaves it out (its head says it). */
@@ -236,6 +238,7 @@ function ViewerScene({
     walkthrough: startInside = false,
     preview = false,
     lighting,
+    site = null,
     onEngine,
     projectName,
     onStructureChange,
@@ -247,8 +250,8 @@ function ViewerScene({
     const reportEngine = useRef(onEngine);
     reportEngine.current = onEngine;
     const lit = useMemo(
-        () => (lighting === undefined ? null : sceneLighting(lighting)),
-        [lighting],
+        () => (lighting === undefined ? null : sceneLighting(lighting, site)),
+        [lighting, site],
     );
     const entered = useRef(false);
     const stage = useRef<HTMLDivElement>(null);

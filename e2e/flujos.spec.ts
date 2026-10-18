@@ -211,6 +211,28 @@ test.describe("planos 2D", () => {
     });
 });
 
+test.describe("iluminación", () => {
+    test("calcula el sol con las coordenadas del terreno y la fecha", async ({ page }) => {
+        await mockApi(page);
+        await page.goto("/iluminacion");
+
+        await expect(page.getByText("5,07° N · 75,51° O")).toBeVisible();
+        await expect(page.locator(".studio-stage canvas")).toBeVisible({
+            timeout: MODEL_TIMEOUT_MS,
+        });
+
+        const caption = page.getByRole("status").filter({ hasText: "azimut" });
+        await page.getByLabel("Fecha").fill("2026-06-21");
+        await page.getByRole("slider", { name: "Hora del día" }).fill("12");
+        // Near the equator in June the noon sun is high and to the north.
+        await expect(caption).toContainText(/Sol a 7\d° · azimut \d+° \(N\)/);
+
+        await page.getByRole("slider", { name: "Hora del día" }).fill("23");
+        await expect(caption).toContainText("Noche");
+        await expect(page.getByRole("slider", { name: "Temperatura de color" })).toBeDisabled();
+    });
+});
+
 test.describe("tema y paleta de comandos", () => {
     test("cambia de tema con el botón y con la paleta, y lo recuerda al volver", async ({
         page,

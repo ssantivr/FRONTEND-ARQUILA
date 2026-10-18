@@ -1,6 +1,12 @@
 import { Color } from "three";
 
-import { kelvinToHex, skyOf, sunPosition, type LightingSettings } from "../utils/lighting";
+import {
+    kelvinToHex,
+    skyOf,
+    sunPosition,
+    type LightingSettings,
+    type SolarSite,
+} from "../utils/lighting";
 import { SCENE_PALETTES, type ScenePalette } from "./BuildingSceneManager";
 
 const SUNSET_WARMTH_K = 2300;
@@ -36,9 +42,15 @@ export interface SceneLighting {
     shadows: boolean;
 }
 
-/** Turns the settings of the lighting screen into what the engine takes. */
-export function sceneLighting(settings: LightingSettings): SceneLighting {
-    const kind = skyOf(settings);
+/**
+ * Turns the settings of the lighting screen into what the engine takes. With the site's
+ * coordinates the sun is the real one of the date and hour.
+ */
+export function sceneLighting(
+    settings: LightingSettings,
+    site: SolarSite | null = null,
+): SceneLighting {
+    const kind = skyOf(settings, site);
     const base = BASES[kind];
     const clouds = settings.clouds / 100;
     const overcast = kind === "night" ? OVERCAST_NIGHT : OVERCAST_DAY;
@@ -47,8 +59,11 @@ export function sceneLighting(settings: LightingSettings): SceneLighting {
             ? base.sun
             : kelvinToHex(settings.temperature - (kind === "sunset" ? SUNSET_WARMTH_K : 0));
 
+    const { elevation, azimuth } = sunPosition(settings, site);
+
     return {
-        ...sunPosition(settings),
+        elevation,
+        azimuth,
         exposure: settings.exposure,
         shadows: settings.shadows,
         palette: {

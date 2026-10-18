@@ -34,8 +34,8 @@ Encargo nuevo, con su complemento, sobre la misma rama: no reconstruir, sino cer
 | 2. Sistema visual (bloques A, B y C) | Hecha |
 | 3. Login y dashboard (bloques A y B) | Hecha |
 | 4. Proyectos (con cronograma), materiales y terrenos (bloques A, B y C) | Hecha |
-| 5. Editor 3D (mover y redimensionar cuartos), planos e iluminación (sol por fecha) | Pendiente: espera el «continúa» |
-| 6. Renderizado y recorridos con datos del proyecto | Pendiente |
+| 5. Editor 3D (mover y redimensionar cuartos), planos e iluminación (sol por fecha) | Hecha (bloques A, B y C) |
+| 6. Renderizado y recorridos con datos del proyecto | Pendiente: espera el «continúa» |
 | 7. Responsive, accesibilidad, animación de entrada, preferencias | Pendiente |
 | 8. Pruebas, capturas y guía de VS Code | Pendiente |
 
@@ -140,6 +140,50 @@ Revisión visual: Proyectos (las tres vistas), Materiales (las dos pestañas y l
 
 Visto y pendiente: a 768 px el título de la barra superior se corta; fase 7.
 
+
+### Fase 5. Editor 3D, planos 2D e iluminación
+
+El bloque A se confirmó en una sesión anterior del mismo día (`d055d41`); su salida de cierre no quedó apuntada aquí. La sesión siguiente encontró el bloque B a medio hacer, sin confirmar, lo terminó y siguió con el C. Las ejecuciones de B y C incluyen el código de A.
+
+| Bloque | Commit | Qué |
+|---|---|---|
+| A | `d055d41` | Editor 3D acoplado: barra con proyecto, guardado, deshacer y rehacer; herramientas en vertical; árbol; inspector; cámara y estado abajo; paneles plegables. Mover y redimensionar cuartos con `PATCH /rooms/{id}` y cuadrícula; rotar deshabilitado con motivo; un solo estado de guardado (material, cubierta, movimientos y formularios) |
+| B | `6c9dc05` | Planos 2D como tablero: láminas agrupadas, lámina grande con zoom, desplazamiento, centrar, medir, cuadrícula, reglas y escala gráfica; SVG y PDF por impresión; herramientas de dibujo deshabilitadas con motivo |
+| C | este commit | Iluminación: sol real con la latitud y longitud del terreno (NOAA), fecha, norte, intensidad, temperatura, cielo, nubosidad, exposición y sombras; pantalla como espacio de trabajo; árbol del editor como lista y paneles laterales más estrechos |
+
+Detalle en `FRONTEND.md`, «Editor 3D, planos e iluminación». Lo que la API no tiene, en `CAMBIOS_BACKEND.md` (puntos 12 a 15).
+
+Pruebas adaptadas, no eliminadas:
+
+- `src/test/a11y.test.tsx` (bloque A): ya no pasa `saving` a `StatusBar`, porque el guardado salió de la barra de estado.
+- `PlanViewport.test.tsx` (bloque B): el botón se llama «Centrar plano» en vez de «Ajustar».
+
+Pruebas nuevas: `PlansPage.test.tsx` (3), rejilla, reglas y `niceLength` de `PlanViewport`, `solarPosition`, `engineAzimuth`, `sunPosition` con lugar, `compassPoint` y la fecha de `readLighting`; e2e «mide sobre la lámina y descarga un SVG que se puede abrir» y «calcula el sol con las coordenadas del terreno y la fecha». `npm run movimiento` mide también `/planos`, `/visor` e `/iluminacion`.
+
+Resultados al cerrar cada bloque:
+
+| Comando | B | C |
+|---|---|---|
+| `npm run lint` | sin errores | sin errores |
+| `npm test` | `59 passed`, `409 passed` | `59 passed`, `416 passed` |
+| `npm run build` | `✓ built in 10.46s`, `index` 160,30 kB (50,51 kB gzip) | `✓ built in 9.26s`, `index` 160,34 kB (50,53 kB gzip) |
+| `npm run contraste` | todos ≥ 4,5:1 | igual |
+| `npm run test:e2e` | `10 passed (57.3s)` | `11 passed (1.0m)` |
+| `npm run movimiento` | todo ok; Planos 2D 0,0421 | todo ok; Iluminación 0,0177 |
+
+Comprobado en el navegador, aparte de las pruebas:
+
+- **Cada control de la luz cambia la escena.** Script con Edge: captura del visor antes y después de cada cambio, con el rótulo oculto, y recuento de píxeles distintos. Fecha 21 jun → 21 dic 12,33 %; hora 10 → 15 h 15,08 %; norte 0 → 90° 19,96 %; intensidad 100 → 160 % 53,40 %; temperatura 5600 → 3000 K 57,50 %; cielo atardecer 99,22 %; nubosidad 0 → 80 % 76,13 %; exposición 1 → 1,6 99,29 %; sin sombras 9,83 %; hora 23 h (noche) 64,37 %.
+- **Recursos de Three.js.** Contadores de búferes, texturas, programas y contextos WebGL en el navegador. Al cambiar de proyecto en el editor los búferes vuelven a su nivel (230 → 82 → 234 → 86) y el contexto anterior se pierde a propósito (`forceContextLoss`), lo que libera también sus texturas y programas; al salir de las pantallas 3D quedan 0 lienzos y los 10 contextos abiertos durante la prueba, cerrados.
+- **Carga diferida.** Ni Planos, ni Iluminación, ni Renderizado importan `three` de forma estática; `index.html` solo precarga React.
+- **Capturas** de Planos, editor 3D e Iluminación en claro y oscuro a 1440, 1024, 768 y 390 px (scratchpad de la sesión, no `docs/capturas/`): ninguna página se desplaza en horizontal y no hay errores en la consola.
+
+Visto y pendiente:
+
+- A 1440 px con el menú lateral abierto, el visor del editor mide 614 px de ancho (antes 550): menos de la mitad de la ventana. Se gana plegando el menú o los paneles; plegarlos solos al entrar es una decisión pendiente.
+- A 390 px el editor encuadra el modelo pequeño y abajo de la escena; el encuadre no tiene en cuenta la barra de herramientas en fila.
+- A 768 px la barra superior corta el título («Iluminación y …») y el texto del buscador queda bajo «Ctrl K»; fase 7.
+- Planos 2D tiene CLS 0,0421, dentro de lo aceptado pero no cero.
 
 
 ## Antes de fusionar o desplegar

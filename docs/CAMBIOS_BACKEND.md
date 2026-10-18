@@ -109,3 +109,12 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
     - `POST /plans/{id}/entities`, `PATCH /plan-entities/{id}` y `DELETE /plan-entities/{id}`.
 - **Respuesta:** `201` con la entidad; `422` si los puntos no corresponden a su tipo.
 - **Mientras tanto:** las láminas se generan con los cuartos y los terrenos y la API no guarda trazos. Planos 2D muestra esas nueve herramientas deshabilitadas con el motivo y envía al editor 3D, donde los cuartos sí se mueven y redimensionan. Medir, zoom, desplazamiento, cuadrícula, reglas, escala gráfica, centrar, el SVG y la impresión a PDF funcionan. No se ofrecen DXF ni PNG: no están hechos, y la regla es no mostrar una exportación que no genere un archivo válido.
+
+## 15. Luz de presentación y zona horaria del terreno
+
+- **Para qué:** que la luz elegida en Iluminación y clima (fecha, hora, norte, intensidad, temperatura, cielo, nubosidad, exposición, sombras) siga al proyecto en otro equipo, y que la hora sea la oficial del lugar.
+- **Rutas:**
+    - `GET /projects/{id}/lighting` y `PUT /projects/{id}/lighting` con `{ date, hour, orientation_deg, intensity, temperature_k, sky, clouds, exposure, shadows }`.
+    - `PATCH /terrains/{id}` admitiría `time_zone` (nombre IANA, p. ej. `America/Bogota`) y `north_deg`; `GET` los devolvería.
+- **Respuesta:** `200` con la luz guardada; `422` si un valor está fuera de rango.
+- **Mientras tanto:** la luz se guarda en `localStorage` por proyecto. El sol se calcula con la latitud y la longitud del primer terreno que las tenga (ecuaciones de la NOAA); la hora se toma como la del huso que corresponde a la longitud (15° por hora), que coincide con la oficial en Colombia pero no en todos los países. Sin coordenadas, el sol sigue un arco simple de 6:00 a 18:00 y la fecha queda deshabilitada con el motivo. El norte de la implantación (también en `localStorage`) se puede copiar a la luz con un botón.

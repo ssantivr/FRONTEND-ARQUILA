@@ -13,6 +13,7 @@ import { ToolHead } from "../components/ToolHead";
 import { Button } from "../components/ui/Button";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { useProjectChoice } from "../hooks/useProjectChoice";
+import { useSolarSite } from "../hooks/useSolarSite";
 import { useLighting } from "../state/lighting";
 import { formatNumber } from "../utils/format";
 import { formatHour, skyOf } from "../utils/lighting";
@@ -126,6 +127,7 @@ export function RenderPage({ onLighting }: RenderPageProps) {
     const choice = useProjectChoice();
     const projectId = choice.project?.id ?? null;
     const [lighting] = useLighting(projectId);
+    const { site } = useSolarSite(projectId);
     const engine = useRef<Engine | null>(null);
     const abort = useRef<AbortController | null>(null);
     const [ready, setReady] = useState(false);
@@ -251,6 +253,7 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                         key={projectId}
                                         projectId={projectId}
                                         lighting={lighting}
+                                        site={site}
                                         onEngine={handleEngine}
                                     />
                                 </Suspense>
@@ -260,7 +263,7 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                 <span>Arrastra para girar, rueda para acercar</span>
                                 <span>
                                     Luz de las {formatHour(lighting.hour)},{" "}
-                                    {SKY_NAMES[skyOf(lighting)]}
+                                    {SKY_NAMES[skyOf(lighting, site)]}
                                 </span>
                             </p>
                         </section>

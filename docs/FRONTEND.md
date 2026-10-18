@@ -312,7 +312,7 @@ Encargo de cerrar huecos frente a una apariencia de software profesional de arqu
 **Barra superior** (`TopBar.tsx`). Dice dónde se está (el título es el único `h1`), tiene el buscador de proyectos, un hueco para los controles de la pantalla abierta, «Nuevo proyecto» (lima salvo en Proyectos), el tema en tres opciones y un menú de cuenta con quién ha entrado, la configuración y «Cerrar sesión». Por debajo de 1280 px el nombre del usuario deja solo el avatar, y por debajo de 1100 px «Nuevo proyecto» y «Asistente» quedan como iconos con su nombre accesible. No hay notificaciones porque la API no tiene.
 
 - **Hueco de la pantalla.** `TopBar` entrega su elemento a `App`, que lo pasa con `TopBarSlotProvider` (`state/topBarSlot.ts`). Un proyecto pone ahí, con un portal, su estado de guardado y el botón «Asistente». Sin barra superior (una prueba de la pantalla sola) los dibuja encima del proyecto.
-- **Estado de guardado.** Refleja las escrituras del proyecto que pasan por `run` en `ProjectDetailPage.tsx` (terrenos, planos, cuartos, materiales, archivos, recomendaciones, estado): «Guardando…», «Cambios guardados» o «Error al guardar». No cubre lo que el visor guarda por su cuenta (material de un elemento y cubierta), que sigue en su barra de estado.
+- **Estado de guardado.** Refleja las escrituras del proyecto que pasan por `run` en `ProjectDetailPage.tsx` (terrenos, planos, cuartos, materiales, archivos, recomendaciones, estado): «Guardando…», «Cambios guardados» o «Error al guardar». Desde la fase 5 cubre también lo que guarda el editor 3D (material de un elemento, cubierta, mover y redimensionar).
 - **Asistente.** El botón dejó de flotar en la esquina, donde tapaba Editar y Eliminar de las tablas, las vistas del visor y el selector de cubierta. El panel sigue a la derecha y en el móvil sube desde encima de la barra inferior.
 - **Paleta de comandos.** El nombre accesible del botón «Ctrl K» empieza por su texto visible («Ctrl K: abrir la paleta de comandos», WCAG 2.5.3). Era el fallo grave que axe marcaba en todas las pantallas con sesión.
 
@@ -403,6 +403,44 @@ Commits `96d07d3` (CLS de Materiales), `fcdf74a` (proyectos), `234c10d` (materia
 | 8. Móvil con distribución propia | Sí: fichas, cronograma con la etiqueta sobre su pista | Sí: tarjetas en una columna, tabla en fichas | Sí: lista y hoja de detalle |
 
 Visto y pendiente: a 768 px el título de la barra superior se corta («Proye…») porque los controles de la derecha ocupan el resto; va a la fase 7 (responsive).
+
+### Editor 3D, planos e iluminación (fase 5 del 18 de octubre de 2026)
+
+Commits `d055d41` (editor 3D), `6c9dc05` (planos) y el de iluminación.
+
+**Editor 3D** (`/visor`, `StructureViewer.tsx`, `styles/workspace.css`). Los paneles se acoplan alrededor de la escena en una rejilla: barra superior (proyecto, estado de guardado, deshacer, rehacer, mostrar u ocultar Objetos e Inspector), herramientas en vertical, árbol de objetos por nivel y categoría (seleccionar, mostrar u ocultar, buscar), la escena en el centro, el inspector a la derecha (posición, medidas, material, visibilidad) y abajo la cámara (vistas frontal, lateral, superior e isométrica, zoom, perspectiva u ortográfica, encuadre, pantalla completa) y el estado. Cada lado se pliega por separado. El árbol es una lista plana (las filas no llevan borde salvo al pasar el cursor) y los paneles miden 216 y 264 px.
+
+- **Transformaciones.** X, Y, ancho, fondo y alto de un cuarto se guardan con `PATCH /rooms/{id}`, ajustados a una cuadrícula elegible (0,05 a 1 m). Mover y redimensionar se deshacen y rehacen (Ctrl+Z, Ctrl+Y) con peticiones reales. «Rotar» aparece deshabilitado: la API no guarda un ángulo (`CAMBIOS_BACKEND.md`, punto 12).
+- **Materiales.** El inspector aplica a cada elemento una de las siete superficies del motor con `PATCH …/surface`; no hay materiales propios (punto 8).
+- **Estado de guardado.** Uno por proyecto (`state/projectSave.ts`): lo alimentan los formularios de las pestañas, el material de un elemento, la cubierta y los movimientos. Se ve en la barra del editor y, fuera de él, en la barra superior. La barra de estado del visor ya no tiene su propio aviso.
+
+**Planos 2D** (`/planos`, `PlansPage.tsx`, `PlanViewport.tsx`). Un tablero: láminas a la izquierda, agrupadas en plantas (una por nivel), fachadas y corte, e implantación (una por terreno); la lámina en el centro; propiedades, exportación, ocupación del lote y herramientas de dibujo a la derecha. Por debajo de 1100 px las láminas pasan a una fila sobre el dibujo y las propiedades van debajo.
+
+- **Visor técnico** en todas las láminas: zoom (botones, + y −), desplazamiento (arrastrar o flechas), «Centrar plano», medir entre dos puntos, cuadrícula de un metro (cinco si un metro mide menos de 8 px), reglas en metros desde el borde de la lámina que siguen al zoom, y escala gráfica en la esquina. Los ejes estructurales (A, B… y 1, 2…) están en las plantas.
+- **Exportar.** SVG con sus colores (la prueba e2e comprueba que el archivo se abre como SVG y lleva el dibujo) e impresión del navegador para guardar como PDF. No hay DXF ni PNG.
+- **Herramientas de dibujo** (muros, habitaciones, puertas, ventanas, líneas, cotas, textos, duplicar, eliminar): deshabilitadas con el motivo, porque las láminas se generan con cuartos y terrenos y la API no guarda trazos (punto 14). Un botón lleva al editor 3D, donde los cuartos sí se mueven.
+
+**Iluminación y clima** (`/iluminacion`, `LightingPage.tsx`, `utils/lighting.ts`). La escena ocupa la altura de la ventana y el panel va a su lado (debajo por debajo de 900 px).
+
+- **Sol real.** Con la latitud y la longitud del primer terreno que las tenga (`useSolarSite`), `solarPosition` calcula la altura y el azimut del sol con las ecuaciones de la NOAA para la fecha y la hora. La hora es la del huso de la longitud (15° por hora): UTC−5 en Casa Mirador. El rótulo del visor dice la hora, la fecha, el cielo, «Sol a 60° · azimut 118° (SE)» y si hay sombras.
+- **Norte del terreno.** Grados desde el fondo del lote, en el sentido del reloj (la misma convención que la implantación). Si la implantación tiene otro norte guardado, el panel lo dice y ofrece usarlo.
+- **Sin coordenadas** el sol sigue el arco de 6:00 a 18:00 de antes, el control se llama «Orientación solar» y la fecha queda deshabilitada con el motivo.
+- **Controles.** Fecha, hora, norte, intensidad, temperatura (deshabilitada de noche, con el motivo), cielo, nubosidad, exposición y sombras. Se comprobó en el navegador que cada uno cambia la imagen (ver `PROGRESO.md`). Renderizado usa la misma luz y el mismo sol.
+
+**Recursos de Three.js.** El motor libera geometrías, materiales y texturas al cambiar de proyecto (`clear` y `disposeObject`) y, al desmontarse, todo lo demás y el contexto WebGL (`dispose` con `forceContextLoss`). Las pantallas sin visor no cargan three.js: el motor se importa bajo demanda.
+
+**Lista de comprobación visual** (claro y oscuro, a 1440, 1024, 768 y 390 px):
+
+| Estándar | Editor 3D | Planos 2D | Iluminación |
+|---|---|---|---|
+| 1. Misma identidad visual | Sí | Sí | Sí |
+| 2. Inicio con jerarquía y render protagonista | — | — | — |
+| 3. Editor 3D prioriza el área de trabajo | En parte: paneles acoplados y plegables, pero a 1440 px con el menú abierto la escena mide 614 px | — | Sí: la escena ocupa la altura y casi todo el ancho |
+| 4. Planos como herramienta técnica | — | Sí: reglas, cuadrícula, escala, medir, láminas | — |
+| 5. Biblioteca visual y fácil de explorar | — | — | — |
+| 6. Formularios, propiedades, tablas y listas sin saturación | Sí: árbol como lista, inspector por secciones plegables | Sí | Sí: lugar, sol, cielo, imagen y ajustes rápidos |
+| 7. Carga y error diseñados | Sí | Sí, también «Todavía no hay láminas» | Sí, y el caso sin coordenadas |
+| 8. Móvil con distribución propia | En parte: herramientas en fila y paneles debajo, pero el modelo se encuadra pequeño y en la parte baja de la escena | Sí: láminas en una fila desplazable | Sí: escena arriba, panel debajo |
 
 ### Movimiento
 

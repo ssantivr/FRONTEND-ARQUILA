@@ -10,8 +10,8 @@
  */
 
 .structure-stage.ws3d {
-    --tree-width: 248px;
-    --dock-width: 296px;
+    --tree-width: 216px;
+    --dock-width: 264px;
     --rail-width: 48px;
 
     display: grid;
@@ -101,6 +101,26 @@
 
 .ws3d .hud-dock > .hud {
     border-width: 0 0 1px;
+}
+
+/* The tree reads as a list, not as a column of fields: flat rows, a hairline only on hover. */
+.ws3d .hud-tree-row {
+    gap: 0;
+    margin-top: 1px;
+}
+
+.ws3d .hud-tree-row .hud-item {
+    min-height: 26px;
+    border-color: transparent;
+}
+
+.ws3d .hud-tree-row .hud-item:hover {
+    border-color: var(--glass-border);
+}
+
+.ws3d .hud-tree-row .hud-eye {
+    width: 26px;
+    color: var(--text-secondary);
 }
 
 .ws3d:not(.ws3d-tree) :is(.hud-levels, .hud-works),
