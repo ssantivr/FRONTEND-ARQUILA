@@ -85,3 +85,18 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
     - `PATCH /projects/{id}` y `POST /projects` admitirían `start_date`, `end_date` (`YYYY-MM-DD`, nulos) y `kind` (texto de una lista cerrada); `GET` los devolvería.
     - `POST /projects/{id}/duplicate` con `{"name": "..."}` → `201` con el proyecto nuevo, copiando terrenos, planos, cuartos, componentes y materiales (no los archivos ni las conversaciones).
 - **Mientras tanto:** el cronograma usa solo las fechas de las tareas, no hay filtro por tipo y no se ofrece duplicar.
+
+## 12. Giro y transformación de elementos en el editor 3D
+
+- **Para qué:** rotar un cuarto o un componente, y mover o redimensionar columnas, vigas y muros desde el visor, con deshacer y rehacer.
+- **Rutas:**
+    - `PATCH /rooms/{id}` admitiría `rotation_deg: number` (giro en planta, alrededor de su esquina de origen, de 0 a 360). `GET /projects/{id}/structure` lo devolvería en cada cuarto.
+    - `PATCH /components/{id}` ya admite posición y medidas; con `rotation_deg` también, el visor podría transformarlos igual que a los cuartos.
+- **Respuesta:** el objeto actualizado; `422` si el ángulo está fuera de rango.
+- **Mientras tanto:** el editor mueve y redimensiona cuartos con `PATCH /rooms/{id}` (x, y, ancho, fondo, alto), con ajuste a cuadrícula y deshacer y rehacer. «Rotar» aparece deshabilitado con el motivo. Los componentes se editan en su tabla. Un volumen sin cuartos no se transforma: sale de un plano sin cuartos.
+
+## 13. Historial de cambios del proyecto
+
+- **Para qué:** deshacer también después de recargar la página o desde otro equipo, y ver quién cambió qué.
+- **Ruta:** `GET /projects/{id}/history` → `[{ id, at, user_id, entity, entity_id, before, after }]`; `POST /projects/{id}/history/{id}/revert`.
+- **Mientras tanto:** deshacer y rehacer viven en la sesión del editor: cada paso es una petición real a la API, pero la lista se pierde al cerrar la pestaña.

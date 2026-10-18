@@ -26,11 +26,13 @@ import {
     MessageSquare,
     Minus,
     Moon,
+    Move,
     Mountain,
     PanelLeftClose,
     Pencil,
     Plus,
     Redo2,
+    RotateCw,
     Rows3,
     Scan,
     Search,
@@ -115,6 +117,8 @@ const ICONS = {
     info: Info,
     undo: Undo2,
     redo: Redo2,
+    move: Move,
+    rotate: RotateCw,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

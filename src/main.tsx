@@ -37,6 +37,7 @@ import "./styles/editor.css";
 import "./styles/rich.css";
 import "./styles/numbers.css";
 import "./styles/navigation.css";
+import "./styles/workspace.css";
 
 // The app is imported after the global sheets: the CSS Modules of its components then come later
 // in the bundle, so at equal specificity a component's own rule wins over a global one.

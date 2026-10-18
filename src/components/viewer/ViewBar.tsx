@@ -12,21 +12,10 @@ interface ViewBarProps {
     onZoom: (factor: number) => void;
     projection: Projection;
     onProjection: (projection: Projection) => void;
-    panels: boolean;
-    onTogglePanels: () => void;
 }
 
-/** One row over the scene: the four views, the zoom, the projection and the panel switch. */
-export function ViewBar({
-    view,
-    onView,
-    zoom,
-    onZoom,
-    projection,
-    onProjection,
-    panels,
-    onTogglePanels,
-}: ViewBarProps) {
+/** The camera controls of the bottom bar: the four views, the zoom and the projection. */
+export function ViewBar({ view, onView, zoom, onZoom, projection, onProjection }: ViewBarProps) {
     return (
         <div className="hud hud-views" role="group" aria-label="Vista de la cámara">
             {VIEWS.map((item) => (
@@ -74,16 +63,6 @@ export function ViewBar({
             >
                 <Icon name="parallel" />
                 <span className="hud-label">Ortográfica</span>
-            </button>
-            <button
-                type="button"
-                className="hud-item"
-                aria-pressed={panels}
-                title="Muestra u oculta los paneles laterales para despejar la escena"
-                onClick={onTogglePanels}
-            >
-                <Icon name="panels" />
-                <span className="hud-label">Paneles</span>
             </button>
         </div>
     );

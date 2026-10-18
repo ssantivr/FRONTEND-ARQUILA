@@ -129,7 +129,6 @@ describe("accessibility of the shared components (axe-core)", () => {
                     camera="Isométrica"
                     projection="perspective"
                     zoom={100}
-                    saving="saved"
                     tip="I aísla el cuarto · F lo enfoca"
                 />
                 <ViewerProblem

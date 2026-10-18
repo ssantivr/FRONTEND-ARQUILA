@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { errorMessage, useAsync } from "../hooks/useAsync";
-import { spatialApi, structureApi, walkthroughApi } from "../services/api";
+import { useAsync } from "../hooks/useAsync";
+import { useEditHistory } from "../hooks/useEditHistory";
+import { roomsApi, spatialApi, structureApi, walkthroughApi } from "../services/api";
 import { apiUrl } from "../services/http";
 import { appState, useProjectState } from "../state/appState";
+import { useProjectSave } from "../state/projectSave";
 import { saveThumbnail, shrinkCapture } from "../state/thumbnails";
 import { showToast } from "../state/toasts";
 import { useTheme } from "../state/theme";
@@ -29,6 +31,7 @@ import type {
     SpatialLayer,
     Structure,
     StructureElement,
+    StructureRoom,
 } from "../types/api";
 import {
     HIGH_COLOR,
@@ -45,6 +48,7 @@ import {
     type ElementColors,
 } from "../utils/elementColors";
 import { formatMoney, formatNumber } from "../utils/format";
+import { snapTo } from "../utils/snap";
 import {
     DEFAULT_SURFACE,
     SURFACE_MATERIALS,
@@ -64,13 +68,15 @@ import { ObjectTree } from "./viewer/ObjectTree";
 import { ShortcutsDialog } from "./viewer/ShortcutsDialog";
 import { focusAllowsShortcuts, shortcutsBlocked } from "./viewer/shortcuts";
 import { ToolRail, type RailTool } from "./viewer/ToolRail";
+import { TransformPanel, geometryOf, type RoomGeometry } from "./viewer/TransformPanel";
+import { WorkspaceBar } from "./viewer/WorkspaceBar";
 import { ScenePanel } from "./viewer/ScenePanel";
 import { StatusBar } from "./viewer/StatusBar";
 import { Toolbar } from "./viewer/Toolbar";
 import { ViewBar } from "./viewer/ViewBar";
 import { ViewerBoundary, ViewerProblem } from "./viewer/ViewerBoundary";
 import { ViewGizmo, type OrbitListener } from "./viewer/ViewGizmo";
-import { KIND_LABELS, VIEWS, itemLabel, type SaveState } from "./viewer/labels";
+import { KIND_LABELS, VIEWS, itemLabel } from "./viewer/labels";
 
 const TABLET_QUERY = "(min-width: 721px) and (max-width: 1024px)";
 
@@ -187,6 +193,12 @@ interface StructureViewerProps {
     lighting?: LightingSettings;
     /** Hands the engine to the screen that shows the viewer, and `null` when it is gone. */
     onEngine?: (engine: Viewer | null) => void;
+    /** Shown at the start of the workspace bar; the project tab leaves it out (its head says it). */
+    projectName?: string;
+    /** Asks the host to load the model again after a room was moved or resized. */
+    onStructureChange?: () => void;
+    /** Added at the end of the workspace bar. */
+    barExtra?: ReactNode;
 }
 
 /**
@@ -225,6 +237,9 @@ function ViewerScene({
     preview = false,
     lighting,
     onEngine,
+    projectName,
+    onStructureChange,
+    barExtra,
     onContextLost,
 }: StructureViewerProps & { onContextLost: () => void }) {
     const reportLost = useRef(onContextLost);
@@ -241,9 +256,12 @@ function ViewerScene({
     const viewer = useRef<Viewer | null>(null);
     const [unsupported, setUnsupported] = useState(false);
     // On a tablet the side panels would cover half the model, so they start folded there.
-    const [panels, setPanels] = useState(
-        () => typeof window.matchMedia !== "function" || !window.matchMedia(TABLET_QUERY).matches,
-    );
+    const wide = () =>
+        typeof window.matchMedia !== "function" || !window.matchMedia(TABLET_QUERY).matches;
+    const [treeOpen, setTreeOpen] = useState(wide);
+    const [inspectorOpen, setInspectorOpen] = useState(wide);
+    const [snap, setSnap] = useState(0.25);
+    const [moving, setMoving] = useState(false);
     const [objectQuery, setObjectQuery] = useState("");
     const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(() => new Set());
 
@@ -265,8 +283,6 @@ function ViewerScene({
     const [view, setView] = useState<ViewName>("isometric");
     const [zoom, setZoom] = useState(100);
     const orbitListener = useRef<OrbitListener | null>(null);
-    const [saveError, setSaveError] = useState<string | null>(null);
-    const [saving, setSaving] = useState<SaveState>("idle");
     const [projection, setProjection] = useState<Projection>("perspective");
     const [isolation, setIsolation] = useState<string | null>(null);
     const [touring, setTouring] = useState(false);
@@ -282,6 +298,10 @@ function ViewerScene({
     const [reason, setReason] = useState<string | null>(null);
     const projectId = structure.project_id;
     const theme = useTheme();
+    const save = useProjectSave(projectId);
+    const history = useEditHistory(projectId);
+    const reload = useRef(onStructureChange);
+    reload.current = onStructureChange;
     const colorMode = useProjectState(projectId, (state) => state.colorMode);
     const materials = useProjectState(projectId, (state) => state.materials);
     const recommendations = useProjectState(projectId, (state) => state.recommendations);
@@ -396,37 +416,67 @@ function ViewerScene({
         }
     }
 
-    function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
-        const key = elementKey(element);
-        const previous = surfaceOf(surfaces, key, element.kind);
+    /** The model changes at once; if the server says no, it goes back and the error is shown. */
+    function putSurface(
+        element: StructureElement,
+        surface: SurfaceMaterialId,
+        back: SurfaceMaterialId,
+    ) {
+        return async () => {
+            appState.setSurface(projectId, elementKey(element), surface);
 
-        setSaveError(null);
-        setSaving("saving");
-        appState.setSurface(projectId, key, surface);
-        structureApi
-            .setSurface(projectId, element, surface)
-            .then(() => setSaving("saved"))
-            .catch((reason: unknown) => {
-                appState.setSurface(projectId, key, previous);
-                setSaving("error");
-                setSaveError(`No se guardó el material: ${errorMessage(reason)}`);
-            });
+            try {
+                await structureApi.setSurface(projectId, element, surface);
+            } catch (reason) {
+                appState.setSurface(projectId, elementKey(element), back);
+                throw reason;
+            }
+        };
+    }
+
+    function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
+        const previous = surfaceOf(surfaces, elementKey(element), element.kind);
+
+        void history.run({
+            label: `material de ${itemLabel(element)}`,
+            apply: putSurface(element, surface, previous),
+            revert: putSurface(element, previous, surface),
+        });
+    }
+
+    function putRoof(kind: RoofKind, back: RoofKind) {
+        return async () => {
+            appState.setRoof(projectId, kind);
+
+            try {
+                await structureApi.setRoof(projectId, kind);
+            } catch (reason) {
+                appState.setRoof(projectId, back);
+                throw reason;
+            }
+        };
     }
 
     function changeRoof(next: RoofKind) {
-        const previous = roof;
+        void history.run({
+            label: "cubierta",
+            apply: putRoof(next, roof),
+            revert: putRoof(roof, next),
+        });
+    }
 
-        setSaveError(null);
-        setSaving("saving");
-        appState.setRoof(projectId, next);
-        structureApi
-            .setRoof(projectId, next)
-            .then(() => setSaving("saved"))
-            .catch((reason: unknown) => {
-                appState.setRoof(projectId, previous);
-                setSaving("error");
-                setSaveError(`No se guardó la cubierta: ${errorMessage(reason)}`);
-            });
+    /** Moves or resizes a room with PATCH /rooms/{id}; the model is then loaded again. */
+    function putRoom(room: StructureRoom, geometry: RoomGeometry) {
+        return async () => {
+            await roomsApi.update(room.id, geometry);
+            reload.current?.();
+        };
+    }
+
+    function changeRoom(room: StructureRoom, next: RoomGeometry, label: string) {
+        const before = geometryOf(room);
+
+        void history.run({ label, apply: putRoom(room, next), revert: putRoom(room, before) });
     }
 
     function visit(key: string | null, stop = stops.findIndex((item) => item.key === key)) {
@@ -509,7 +559,38 @@ function ViewerScene({
         }
     }
 
+    const selectedRoom: StructureRoom | null =
+        selected !== null && selected.kind === "room" ? selected : null;
+
+    function nudgeSelected(dx: number, dy: number) {
+        if (selectedRoom !== null) {
+            const now = geometryOf(selectedRoom);
+
+            changeRoom(
+                selectedRoom,
+                {
+                    ...now,
+                    x_m: snapTo(now.x_m + dx * snap, snap),
+                    y_m: snapTo(now.y_m + dy * snap, snap),
+                },
+                `mover ${selectedRoom.name}`,
+            );
+        }
+    }
+
     const tools: RailTool[] = [
+        {
+            id: "move",
+            label: "Mover cuarto",
+            icon: "move",
+            shortcut: "M",
+            pressed: moving && selectedRoom !== null,
+            unavailable:
+                selectedRoom === null
+                    ? "Selecciona un cuarto para moverlo; columnas, vigas y muros se editan en su tabla"
+                    : undefined,
+            onUse: () => setMoving(!moving),
+        },
         {
             id: "focus",
             label: "Enfocar",
@@ -577,7 +658,51 @@ function ViewerScene({
 
     const handleKey = useRef<(event: KeyboardEvent) => void>(() => undefined);
     handleKey.current = (event) => {
-        if (unsupported || shortcutsBlocked(event) || !focusAllowsShortcuts(stage.current)) {
+        if (unsupported || !focusAllowsShortcuts(stage.current)) {
+            return;
+        }
+
+        const key = event.key?.toLowerCase();
+
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && (key === "z" || key === "y")) {
+            event.preventDefault();
+
+            if (key === "y" || event.shiftKey) {
+                void history.redo();
+            } else {
+                void history.undo();
+            }
+
+            return;
+        }
+
+        if (shortcutsBlocked(event)) {
+            return;
+        }
+
+        const arrows: Record<string, [number, number]> = {
+            ArrowLeft: [-1, 0],
+            ArrowRight: [1, 0],
+            ArrowUp: [0, 1],
+            ArrowDown: [0, -1],
+        };
+
+        if (moving && selectedRoom !== null && event.key in arrows) {
+            event.preventDefault();
+
+            if (!history.working) {
+                nudgeSelected(...arrows[event.key]);
+            }
+
+            return;
+        }
+
+        if (key === "m") {
+            if (selectedRoom !== null) {
+                setMoving(!moving);
+                event.preventDefault();
+            }
+
             return;
         }
 
@@ -695,7 +820,7 @@ function ViewerScene({
             let left = 0;
             let right = 0;
 
-            scene.style.setProperty("--viewer-top", `${Math.round(top)}px`);
+            host.style.setProperty("--viewer-top", `${Math.round(top)}px`);
 
             for (const panel of host.querySelectorAll<HTMLElement>(".hud-layer > *")) {
                 const rect = panel.getBoundingClientRect();
@@ -727,7 +852,7 @@ function ViewerScene({
         host.querySelectorAll(".hud-layer > *").forEach((panel) => observer.observe(panel));
 
         return () => observer.disconnect();
-    }, [preview, panels, treeShown]);
+    }, [preview, treeOpen, inspectorOpen, treeShown]);
 
     useEffect(() => {
         void appState.refresh(projectId);
@@ -769,7 +894,6 @@ function ViewerScene({
     }, [roof, structure]);
 
     useEffect(() => {
-        setSaveError(null);
         setReason(null);
     }, [selectedKey, isolatedKey, pickedId]);
 
@@ -918,7 +1042,17 @@ function ViewerScene({
 
     return (
         <div
-            className={preview ? "structure-stage structure-stage-preview" : "structure-stage"}
+            className={
+                preview
+                    ? "structure-stage structure-stage-preview"
+                    : [
+                          "structure-stage ws3d",
+                          treeOpen ? "ws3d-tree" : "",
+                          inspectorOpen ? "ws3d-inspector" : "",
+                      ]
+                          .filter(Boolean)
+                          .join(" ")
+            }
             ref={stage}
         >
             <div
@@ -929,16 +1063,20 @@ function ViewerScene({
             />
             {/* The panels over the scene are dark in both themes, like an instrument panel. */}
             {!preview && (
-                <div className={panels ? "hud-layer" : "hud-layer hud-layer-min"} data-theme="dark">
-                    <ViewBar
-                        view={view}
-                        onView={chooseView}
-                        zoom={zoom}
-                        onZoom={(factor) => viewer.current?.zoomBy(factor)}
-                        projection={projection}
-                        onProjection={setProjection}
-                        panels={panels}
-                        onTogglePanels={() => setPanels((visible) => !visible)}
+                <div className="hud-layer" data-theme="dark">
+                    <WorkspaceBar
+                        projectName={projectName}
+                        save={save.state}
+                        undoLabel={history.undoLabel}
+                        redoLabel={history.redoLabel}
+                        working={history.working}
+                        onUndo={() => void history.undo()}
+                        onRedo={() => void history.redo()}
+                        tree={treeOpen}
+                        onToggleTree={() => setTreeOpen((open) => !open)}
+                        inspector={inspectorOpen}
+                        onToggleInspector={() => setInspectorOpen((open) => !open)}
+                        extra={barExtra}
                     />
                     <ToolRail tools={tools} onUnavailable={setReason} />
                     <p className="visually-hidden" role="status">
@@ -1092,9 +1230,28 @@ function ViewerScene({
                                         )}
                                     </dl>
                                 )}
-                                {saveError !== null && (
+                                {selectedRoom !== null && (
+                                    <TransformPanel
+                                        room={selectedRoom}
+                                        snap={snap}
+                                        onSnap={setSnap}
+                                        busy={history.working}
+                                        onCommit={(next, label) =>
+                                            changeRoom(selectedRoom, next, label)
+                                        }
+                                    />
+                                )}
+                                {selected !== null && selectedRoom === null && (
+                                    <p className="hud-note-quiet">
+                                        Solo los cuartos se mueven y se redimensionan aquí.
+                                        {selected.kind === "volume"
+                                            ? " Un volumen sale de un plano sin cuartos: se cambia agregando cuartos."
+                                            : " Columnas, vigas y muros se editan en su tabla, en la pestaña Modelo 3D del proyecto."}
+                                    </p>
+                                )}
+                                {save.state === "error" && save.message !== null && (
                                     <p className="message message-error" role="alert">
-                                        {saveError}
+                                        {save.message}
                                     </p>
                                 )}
                                 {selectedAlerts.length > 0 && (
@@ -1223,28 +1380,37 @@ function ViewerScene({
                         </aside>
                     </div>
                     <ViewGizmo listener={orbitListener} />
-                    <Toolbar
-                        onReset={() => chooseView(view)}
-                        onFullscreen={toggleFullscreen}
-                        hasStops={stops.length > 0}
-                        touring={touring}
-                        onToggleTour={toggleTour}
-                        onStep={step}
-                        roomLabel={
-                            isolatedRoom === null
-                                ? null
-                                : currentStop === null
-                                  ? isolatedRoom.name
-                                  : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`
-                        }
-                        onShowAll={() => visit(null)}
-                    />
+                    <div className="hud-cambar">
+                        <ViewBar
+                            view={view}
+                            onView={chooseView}
+                            zoom={zoom}
+                            onZoom={(factor) => viewer.current?.zoomBy(factor)}
+                            projection={projection}
+                            onProjection={setProjection}
+                        />
+                        <Toolbar
+                            onReset={() => chooseView(view)}
+                            onFullscreen={toggleFullscreen}
+                            hasStops={stops.length > 0}
+                            touring={touring}
+                            onToggleTour={toggleTour}
+                            onStep={step}
+                            roomLabel={
+                                isolatedRoom === null
+                                    ? null
+                                    : currentStop === null
+                                      ? isolatedRoom.name
+                                      : `${currentStop.title} · ${stopIndex + 1} de ${stops.length}`
+                            }
+                            onShowAll={() => visit(null)}
+                        />
+                    </div>
                     <StatusBar
                         selection={selected === null ? "Sin selección" : itemLabel(selected)}
                         camera={VIEWS.find((item) => item.id === view)?.label ?? ""}
                         projection={projection}
                         zoom={zoom}
-                        saving={saving}
                         tip={tip}
                     />
                     {help && (

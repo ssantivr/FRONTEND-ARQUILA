@@ -12,7 +12,7 @@ import { Icon } from "../components/Icon";
 import { MaterialsPanel } from "../components/MaterialsPanel";
 import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Panel } from "../components/ui/Panel";
-import { SaveIndicator, type SaveState } from "../components/ui/SaveIndicator";
+import { SaveIndicator } from "../components/ui/SaveIndicator";
 import { Tabs } from "../components/ui/Tabs";
 import { PlansPanel } from "../components/PlansPanel";
 import { ProjectCover } from "../components/ProjectCover";
@@ -21,6 +21,7 @@ import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
+import { trackSave, useProjectSave } from "../state/projectSave";
 import { SaveStatusProvider } from "../state/saveStatus";
 import { useTopBarSlot } from "../state/topBarSlot";
 import { projectPath, viewPath } from "../routes";
@@ -53,7 +54,7 @@ export function ProjectDetailPage({
     const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
     const [actionError, setActionError] = useState<string | null>(null);
     const [actionPending, setActionPending] = useState(false);
-    const [saveState, setSaveState] = useState<SaveState>("idle");
+    const save = useProjectSave(projectId);
     const topBarSlot = useTopBarSlot();
     const running = useRef(false);
     const [panelsVersion, setPanelsVersion] = useState(0);
@@ -82,14 +83,11 @@ export function ProjectDetailPage({
         running.current = true;
         setActionPending(true);
         setActionError(null);
-        setSaveState("saving");
 
         try {
-            await action();
-            setSaveState("saved");
+            await trackSave(projectId, action());
         } catch (reason) {
             setActionError(errorMessage(reason));
-            setSaveState("error");
             return;
         } finally {
             running.current = false;
@@ -126,7 +124,8 @@ export function ProjectDetailPage({
     const current = project.data;
     const topBarControls = (
         <>
-            <SaveIndicator state={saveState} />
+            {/* On the 3D model the workspace bar says it, next to undo and redo. */}
+            {section !== "model" && <SaveIndicator state={save.state} />}
             {section !== "assistant" && (
                 <button
                     type="button"

@@ -28,7 +28,7 @@ interface ToolRailProps {
 export function ToolRail({ tools, onUnavailable }: ToolRailProps) {
     return (
         <div
-            className={`hud ${styles.rail}`}
+            className={`hud hud-rail ${styles.rail}`}
             role="toolbar"
             aria-orientation="vertical"
             aria-label="Herramientas de selección"

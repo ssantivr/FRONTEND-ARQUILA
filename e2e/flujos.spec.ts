@@ -106,6 +106,54 @@ test.describe("ver el modelo 3D", () => {
         await expect(page.getByRole("dialog", { name: "Atajos de teclado" })).toBeVisible();
     });
 
+    test("mueve un cuarto con PATCH sobre la cuadrícula, y lo deshace y rehace", async ({
+        page,
+    }) => {
+        await mockApi(page);
+        await page.goto("/proyectos/1/modelo-3d");
+        await expect(page.locator(".structure-viewer canvas")).toBeVisible({
+            timeout: MODEL_TIMEOUT_MS,
+        });
+
+        await page.getByRole("button", { name: "Sala", exact: true }).click();
+
+        const transform = page.getByRole("region", { name: "Posición y medidas de Sala" });
+        const x = transform.getByLabel("X");
+        const sent = (body: Record<string, number>) =>
+            page.waitForRequest(
+                (request) =>
+                    request.method() === "PATCH" &&
+                    request.url().endsWith("/api/rooms/1") &&
+                    request.postDataJSON().x_m === body.x_m,
+            );
+
+        // 1,1 m lands on the grid of 0,25 m: 1 m.
+        await x.fill("1,1");
+        const moved = sent({ x_m: 1 });
+        await x.press("Enter");
+        expect((await moved).postDataJSON()).toMatchObject({ x_m: 1, y_m: 0, width_m: 6 });
+        await expect(
+            page.getByRole("status").filter({ hasText: "Cambios guardados" }),
+        ).toBeVisible();
+        await expect(x).toHaveValue("1");
+
+        const undone = sent({ x_m: 0 });
+        await page.getByRole("button", { name: "Deshacer" }).click();
+        await undone;
+        await expect(x).toHaveValue("0");
+
+        const redone = sent({ x_m: 1 });
+        await page.getByRole("button", { name: "Rehacer" }).click();
+        await redone;
+        await expect(x).toHaveValue("1");
+
+        // There is no angle in the API: rotating is offered, off, with the reason.
+        await expect(transform.getByRole("button", { name: "Rotar" })).toHaveAttribute(
+            "aria-disabled",
+            "true",
+        );
+    });
+
     test("la dirección anterior del modelo sigue abriendo", async ({ page }) => {
         await mockApi(page);
         await page.goto("/proyectos/1/modelo");
