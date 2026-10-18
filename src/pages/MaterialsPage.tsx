@@ -7,7 +7,6 @@ import { Panel } from "../components/ui/Panel";
 import { SurfaceLibrary } from "../components/SurfaceLibrary";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, materialsApi } from "../services/api";
-import { Skeleton } from "../components/ui/Skeleton";
 import { formatMoney, formatNumber } from "../utils/format";
 import { NO_CATEGORY, costByCategory, materialCost as cost } from "../utils/materials";
 
@@ -57,25 +56,7 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                               },
                           ]
                 }
-                aside={
-                    data.data === null && data.error === null ? (
-                        <section className="band-chart" aria-hidden="true">
-                            <h3>Costo por categoría</h3>
-                            <Skeleton shape="lines" count={3} label="" />
-                        </section>
-                    ) : (
-                        categories.length > 0 && (
-                            <section className="band-chart" aria-label="Costo por categoría">
-                                <h3>Costo por categoría</h3>
-                                <CostSummary
-                                    items={categories}
-                                    label="Costo por categoría de todos tus proyectos"
-                                />
-                            </section>
-                        )
-                    )
-                }
-            />{" "}
+            />
             <Panel
                 title="Listado"
                 actions={
@@ -172,6 +153,16 @@ export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
                     </div>
                 )}
             </Panel>
+            {/* Its height depends on how many categories there are, so it goes under the list:
+                nothing above it moves when it arrives. */}
+            {categories.length > 0 && (
+                <Panel title="Costo por categoría">
+                    <CostSummary
+                        items={categories}
+                        label="Costo por categoría de todos tus proyectos"
+                    />
+                </Panel>
+            )}
             <SurfaceLibrary />
         </>
     );

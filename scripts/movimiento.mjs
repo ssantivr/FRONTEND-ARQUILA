@@ -11,7 +11,10 @@ import { chromium } from "playwright-core";
 import { answer } from "./datos-de-muestra.mjs";
 
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
+// «?sin-sesion» makes the API answer 401, so the sign-in screen is measured too.
+const SIGNED_OUT = "sin-sesion";
 const SCREENS = [
+    ["inicio de sesión", `/?${SIGNED_OUT}`],
     ["inicio", "/"],
     ["proyectos", "/proyectos"],
     ["proyecto: planos", "/proyectos/1/planos"],
@@ -23,8 +26,9 @@ const SCREENS = [
 // The API answers late on purpose: every screen then shows its loading state before its content,
 // which is when a layout jumps. Without the delay the result would depend on the speed of the run.
 const API_DELAY_MS = 350;
-// The home page must not move at all; under this a shift is sub-pixel rounding of the header
-// while the font arrives. The other screens must stay within what web.dev calls «good».
+// The home page and the sign-in screen must not move at all; under this a shift is sub-pixel
+// rounding of the header while the font arrives. The other screens must stay within what web.dev
+// calls «good».
 const CLS_HOME = 0.001;
 const CLS_GOOD = 0.1;
 
@@ -51,6 +55,10 @@ async function open(browser, reducedMotion) {
         );
 
         const url = new URL(route.request().url());
+
+        if ((route.request().headers().referer ?? "").includes(SIGNED_OUT)) {
+            return route.fulfill({ status: 401, json: { detail: "Not authenticated" } });
+        }
 
         return route.fulfill({
             json: answer(url.pathname.replace(/^\/api/, ""), url.searchParams),
@@ -132,7 +140,7 @@ for (const [name, path] of SCREENS) {
     await livelyPage.waitForTimeout(2500);
 
     const shift = await livelyPage.evaluate(() => window.__shift);
-    const ok = shift <= (path === "/" ? CLS_HOME : CLS_GOOD);
+    const ok = shift <= (path === "/" || path.startsWith("/?") ? CLS_HOME : CLS_GOOD);
 
     console.log(`  ${ok ? "ok   " : "FALLA"} ${name}: CLS ${shift.toFixed(4)}`);
 
