@@ -7,6 +7,7 @@ import "@fontsource-variable/jetbrains-mono";
 
 import "./styles/tokens.css";
 import "./styles/index.css";
+import "./styles/pages/tour.css";
 
 // The app is imported after the global sheets: the CSS Modules of its components then come later
 // in the bundle, so at equal specificity a component's own rule wins over a global one.

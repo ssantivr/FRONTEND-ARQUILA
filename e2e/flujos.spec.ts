@@ -312,6 +312,80 @@ test.describe("renderizado", () => {
     });
 });
 
+test.describe("recorridos", () => {
+    test("recorre las paradas guardadas del proyecto a mano y salta a una estancia", async ({
+        page,
+    }) => {
+        await mockApi(page);
+        await page.goto("/recorrido");
+        await expect(page.locator(".tour-scene canvas")).toBeVisible({ timeout: MODEL_TIMEOUT_MS });
+
+        const caption = page.locator(".tour-caption");
+        const stops = page.getByRole("complementary", { name: "Paradas del recorrido" });
+
+        await expect(caption).toContainText("Vista inicial");
+        await expect(stops).toContainText("Paradas guardadas en el proyecto");
+        // Movement is reduced in these tests: nothing may run on its own.
+        await expect(page.getByRole("button", { name: "Reproducir" })).toBeDisabled();
+
+        await page.getByRole("button", { name: "Parada siguiente" }).click();
+        await expect(caption).toContainText("1 de 5 · Llegada a la sala");
+        await page.getByRole("button", { name: "Parada siguiente" }).click();
+        await expect(caption).toContainText("2 de 5 · Cocina abierta");
+        await expect(stops.getByRole("button", { name: /2\. Cocina abierta/ })).toHaveAttribute(
+            "aria-current",
+            "step",
+        );
+
+        await stops.getByLabel("Ir a").selectOption({ label: "Baño" });
+        await expect(caption).toContainText("Estancia fuera de las paradas");
+
+        await stops.getByRole("button", { name: "Dentro del cuarto" }).click();
+        await stops.getByRole("button", { name: /4\. Alcoba principal/ }).click();
+        await expect(caption).toContainText("4 de 5 · Alcoba principal");
+
+        await page.getByRole("button", { name: "Vista inicial" }).click();
+        await expect(caption).toContainText("Vista inicial");
+    });
+
+    test("ofrece la versión ligera sin 3D y la escena de muestra rotulada", async ({ page }) => {
+        await mockApi(page);
+        await page.goto("/recorrido");
+
+        await page.getByRole("button", { name: "Versión ligera" }).click();
+        const light = page.getByRole("region", { name: "Recorrido en versión ligera" });
+        await expect(light.getByRole("listitem")).toHaveCount(5);
+        await expect(light).toContainText("Mesón de 4,5 m");
+        await expect(page.locator(".tour-scene canvas")).toHaveCount(0);
+
+        await page.getByRole("button", { name: "Escena de muestra" }).click();
+        await expect(page.getByText("Escena de muestra", { exact: true }).last()).toBeVisible();
+    });
+});
+
+test.describe("recorrido automático", () => {
+    test.use({ reducedMotion: "no-preference" });
+
+    test("avanza solo por las paradas y se pausa", async ({ page }) => {
+        await mockApi(page);
+        await page.goto("/recorrido");
+        await expect(page.locator(".tour-scene canvas")).toBeVisible({ timeout: MODEL_TIMEOUT_MS });
+
+        const stops = page.getByRole("complementary", { name: "Paradas del recorrido" });
+        const caption = page.locator(".tour-caption");
+
+        await stops.getByRole("button", { name: "2×" }).click();
+        await page.getByRole("button", { name: "Reproducir" }).click();
+        await expect(caption).toContainText("1 de 5");
+        // The first stop lasts 6 s: at 2× the next one comes after 3 s.
+        await expect(caption).toContainText("2 de 5", { timeout: 8000 });
+
+        await page.getByRole("button", { name: "Pausa" }).click();
+        await page.waitForTimeout(3500);
+        await expect(caption).toContainText("2 de 5");
+    });
+});
+
 test.describe("tema y paleta de comandos", () => {
     test("cambia de tema con el botón y con la paleta, y lo recuerda al volver", async ({
         page,

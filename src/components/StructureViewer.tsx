@@ -15,7 +15,6 @@ import {
     elementKey,
     isSpace,
     overlayKey,
-    type CameraPose,
     type Layers,
     type OverlayLayers,
     type Projection,
@@ -24,6 +23,14 @@ import {
 } from "../three/BuildingSceneManager";
 import { sceneLighting } from "../three/lightingPalette";
 import type { LightingSettings, SolarSite } from "../utils/lighting";
+import {
+    ISOLATION_CUT_PERCENT,
+    TOUR_START_AZIMUTH,
+    TOUR_STEP_MS,
+    TOUR_TURN,
+    buildStops,
+    tourRooms,
+} from "../utils/tour";
 import type {
     RecommendationPriority,
     RoofKind,
@@ -125,15 +132,6 @@ const HIGHLIGHTS: Record<SpatialLayer, { title: string; empty: string }> = {
     },
 };
 
-interface TourStop {
-    key: string;
-    title: string;
-    description: string | null;
-    durationMs: number;
-    cut: number;
-    camera: CameraPose | null;
-}
-
 type AssetState = "loading" | "ready" | "error";
 
 const ASSET_NOTES: Record<AssetState, string> = {
@@ -141,25 +139,6 @@ const ASSET_NOTES: Record<AssetState, string> = {
     ready: "Modelo 3D del cuarto cargado.",
     error: "No se pudo cargar el modelo 3D del cuarto.",
 };
-
-function isPoint(value: unknown): boolean {
-    return (
-        Array.isArray(value) &&
-        value.length === 3 &&
-        value.every((item) => typeof item === "number")
-    );
-}
-
-function readPose(value: unknown): CameraPose | null {
-    const pose = value as Partial<CameraPose> | null | undefined;
-
-    return typeof pose === "object" &&
-        pose !== null &&
-        isPoint(pose.position) &&
-        isPoint(pose.target)
-        ? (pose as CameraPose)
-        : null;
-}
 
 function assetUrl(reference: string | null): string | null {
     if (reference === null) {
@@ -175,10 +154,6 @@ function assetUrl(reference: string | null): string | null {
 
 const NO_ELEMENTS: SpatialElement[] = [];
 const ALL_WORK_LAYERS: OverlayLayers = { structure: true, installations: true, finishes: true };
-const TOUR_STEP_MS = 5000;
-const TOUR_START_AZIMUTH = 0.6;
-const TOUR_TURN = 0.7;
-const ISOLATION_CUT_PERCENT = 80;
 const TOOL_CUT_PERCENT = 60;
 // The model needs a moment to settle (shadows, textures) before its picture is taken.
 const THUMBNAIL_DELAY_MS = 2000;
@@ -333,51 +308,13 @@ function ViewerScene({
         return colorMode === "alerts" ? alertColors(alerts) : null;
     }, [colorMode, elements, costs, alerts]);
     const selected = elements.find((element) => elementKey(element) === selectedKey) ?? null;
-    const rooms = useMemo(
-        () =>
-            structure.rooms
-                .filter((room) => room.kind === "room")
-                .sort((a, b) => a.base_m - b.base_m),
-        [structure],
-    );
+    const rooms = useMemo(() => tourRooms(structure.rooms), [structure]);
     const spatial = useAsync(() => spatialApi.get(projectId), [projectId, structure]);
     const walkthrough = useAsync(() => walkthroughApi.get(projectId), [projectId, structure]);
     const roomAssets = useAsync(() => spatialApi.rooms(projectId), [projectId, structure]);
     const works = spatial.data?.elements ?? NO_ELEMENTS;
     const steps = walkthrough.data?.steps;
-    const stops = useMemo<TourStop[]>(() => {
-        const planned = (steps ?? []).flatMap((item) => {
-            const room = rooms.find((candidate) => candidate.id === item.room_id);
-            const cut = item.view_config.cut_fraction;
-
-            return room === undefined
-                ? []
-                : [
-                      {
-                          key: elementKey(room),
-                          title: item.title,
-                          description: item.description,
-                          durationMs: item.duration_ms,
-                          cut:
-                              typeof cut === "number"
-                                  ? Math.round(cut * 100)
-                                  : ISOLATION_CUT_PERCENT,
-                          camera: readPose(item.view_config.camera),
-                      },
-                  ];
-        });
-
-        return planned.length > 0
-            ? planned
-            : rooms.map((room) => ({
-                  key: elementKey(room),
-                  title: room.name,
-                  description: null,
-                  durationMs: TOUR_STEP_MS,
-                  cut: ISOLATION_CUT_PERCENT,
-                  camera: null,
-              }));
-    }, [rooms, steps]);
+    const stops = useMemo(() => buildStops(rooms, steps).stops, [rooms, steps]);
     const isolatedRoom = rooms.find((room) => elementKey(room) === isolation) ?? null;
     const isolatedKey = isolatedRoom === null ? null : isolation;
     const stopIndex = stops.findIndex((stop) => stop.key === isolatedKey);
