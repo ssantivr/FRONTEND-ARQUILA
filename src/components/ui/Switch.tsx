@@ -33,7 +33,7 @@ export function Switch({ label, description, className, ...rest }: SwitchProps) 
                 id={id}
                 type="checkbox"
                 role="switch"
-                className="switch"
+                className={styles.switch}
                 aria-describedby={describedBy}
             />
         </div>

@@ -1,20 +1,30 @@
 import {
     Archive,
+    ArrowRight,
     Box,
     Camera,
     Check,
+    ChevronDown,
+    ChevronLeft,
     ChevronRight,
+    ChevronUp,
+    CircleAlert,
+    CircleCheck,
     CircleHelp,
     Columns2,
     Columns3,
     Command,
+    Copy,
     Crosshair,
     Cuboid,
     DraftingCompass,
     Ellipsis,
+    ExternalLink,
     Eye,
     EyeOff,
     Folder,
+    Grid3x3,
+    Hand,
     House,
     ImageDown,
     Info,
@@ -22,29 +32,39 @@ import {
     Layers,
     LayoutGrid,
     ListChecks,
+    Lock,
     LogOut,
+    Mail,
+    Maximize2,
     MessageSquare,
+    Minimize2,
     Minus,
     Moon,
-    Move,
     Mountain,
+    Move,
+    Orbit,
     PanelLeftClose,
     Pencil,
     Plus,
     Redo2,
     RotateCw,
     Rows3,
+    Ruler,
     Scan,
     Search,
     Slice,
     SlidersHorizontal,
     Sofa,
+    Star,
     Sun,
     SunMoon,
     Sunrise,
+    Trash2,
     TriangleAlert,
     Undo2,
     X,
+    ZoomIn,
+    ZoomOut,
     createLucideIcon,
     type LucideIcon,
 } from "lucide-react";
@@ -119,13 +139,39 @@ const ICONS = {
     redo: Redo2,
     move: Move,
     rotate: RotateCw,
+    arrowRight: ArrowRight,
+    chevronDown: ChevronDown,
+    chevronLeft: ChevronLeft,
+    chevronUp: ChevronUp,
+    success: CircleCheck,
+    error: CircleAlert,
+    copy: Copy,
+    external: ExternalLink,
+    gridFine: Grid3x3,
+    pan: Hand,
+    lock: Lock,
+    mail: Mail,
+    fullscreen: Maximize2,
+    exitFullscreen: Minimize2,
+    orbit: Orbit,
+    measure: Ruler,
+    star: Star,
+    trash: Trash2,
+    zoomIn: ZoomIn,
+    zoomOut: ZoomOut,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
 
 /** Every icon of the app comes from one set (lucide), with one stroke; `.icon` sets the size. */
-export function Icon({ name }: { name: IconName }) {
+export function Icon({ name, className }: { name: IconName; className?: string }) {
     const Glyph = ICONS[name];
 
-    return <Glyph className="icon" strokeWidth={1.5} aria-hidden="true" />;
+    return (
+        <Glyph
+            className={className === undefined ? "icon" : `icon ${className}`}
+            strokeWidth={1.5}
+            aria-hidden="true"
+        />
+    );
 }

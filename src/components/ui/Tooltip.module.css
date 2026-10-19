@@ -11,15 +11,17 @@
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-1) var(--space-2);
-    color: var(--on-scene);
-    font-size: var(--fs-12);
-    font-weight: 500;
+    color: var(--scene-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
     line-height: 1.4;
-    white-space: nowrap;
-    background: var(--forest);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--r-sm);
-    box-shadow: var(--shadow-float);
+    width: max-content;
+    max-width: 280px;
+    white-space: normal;
+    background: var(--brand-forest);
+    border: var(--border-width) solid var(--brand-forest-raised);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-2);
     opacity: 0;
     scale: 0.96;
     visibility: hidden;
@@ -67,12 +69,13 @@
 }
 
 .key {
+    flex: none;
     padding: 0 var(--space-1);
-    color: var(--forest-text);
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--r-sm);
+    color: var(--brand-lime);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    border: var(--border-width) solid var(--brand-forest-raised);
+    border-radius: var(--radius-sm);
 }
 
 /* On a phone a hint at the side would run off the screen: it goes above, and wraps. */

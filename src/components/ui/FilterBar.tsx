@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from "react";
 
 import { Icon } from "../Icon";
+import { Button } from "./Button";
 
 import styles from "./FilterBar.module.css";
 
@@ -53,9 +54,9 @@ export function FilterBar({
                     </span>
                 )}
                 {active && onClear !== undefined && (
-                    <button type="button" className="button-tertiary" onClick={onClear}>
+                    <Button variant="tertiary" size="sm" icon="close" onClick={onClear}>
                         Quitar filtros
-                    </button>
+                    </Button>
                 )}
             </div>
         </div>

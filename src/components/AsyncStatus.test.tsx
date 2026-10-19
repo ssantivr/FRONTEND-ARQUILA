@@ -67,6 +67,6 @@ describe("AsyncStatus", () => {
             <AsyncStatus loading={false} error={null} isEmpty emptyText="Sin datos." />,
         );
 
-        expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+        expect(container.querySelector("svg")?.closest('[aria-hidden="true"]')).not.toBeNull();
     });
 });

@@ -1,0 +1,163 @@
+/* ---- Technical grid ---- */
+
+.grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(to right, var(--color-grid-major) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--color-grid-major) 1px, transparent 1px),
+        linear-gradient(to right, var(--color-grid-minor) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--color-grid-minor) 1px, transparent 1px);
+    background-size:
+        calc(var(--cell) * 5) calc(var(--cell) * 5),
+        calc(var(--cell) * 5) calc(var(--cell) * 5),
+        var(--cell) var(--cell),
+        var(--cell) var(--cell);
+    background-position: -1px -1px;
+}
+
+.cell8 {
+    --cell: 8px;
+}
+
+.cell12 {
+    --cell: 12px;
+}
+
+.cell16 {
+    --cell: 16px;
+}
+
+.fade {
+    mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 30%, transparent 100%);
+}
+
+/* ---- Corner marks of a title block ---- */
+
+.corners {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.corners > span {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: var(--color-drawing);
+    border-style: solid;
+    border-width: 0;
+}
+
+.corners > span:nth-child(1) {
+    top: 0;
+    left: 0;
+    border-top-width: 1px;
+    border-left-width: 1px;
+}
+
+.corners > span:nth-child(2) {
+    top: 0;
+    right: 0;
+    border-top-width: 1px;
+    border-right-width: 1px;
+}
+
+.corners > span:nth-child(3) {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+}
+
+.corners > span:nth-child(4) {
+    right: 0;
+    bottom: 0;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+}
+
+/* ---- Dimension line ---- */
+
+.dimension {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    color: var(--color-text-secondary);
+}
+
+.rule {
+    flex: 1;
+    min-width: var(--space-3);
+    height: 1px;
+    background: var(--color-drawing);
+}
+
+.tick {
+    flex: none;
+    width: 1px;
+    height: 12px;
+    background: var(--color-drawing);
+    transform: rotate(45deg);
+}
+
+.measure {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.vertical {
+    flex-direction: column;
+    width: max-content;
+    height: 100%;
+}
+
+.vertical .rule {
+    width: 1px;
+    height: auto;
+    min-height: var(--space-3);
+}
+
+.vertical .measure {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+}
+
+/* ---- Grid axes ---- */
+
+.axes {
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.axis {
+    display: grid;
+    justify-items: center;
+}
+
+.axis::after {
+    content: "";
+    width: 1px;
+    height: var(--space-6);
+    background: linear-gradient(to bottom, var(--color-drawing), transparent);
+}
+
+.bubble {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--color-drawing);
+    border-radius: 50%;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}

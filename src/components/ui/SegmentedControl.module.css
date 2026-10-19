@@ -1,10 +1,10 @@
 .group {
     display: inline-flex;
-    gap: 2px;
-    padding: 2px;
-    background: var(--panel-raised);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
+    gap: var(--space-0);
+    padding: var(--space-0);
+    background: var(--color-surface-sunken);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
 }
 
 .option {
@@ -14,13 +14,14 @@
     gap: var(--space-2);
     min-height: 0;
     padding: 0 var(--space-3);
-    color: var(--text-secondary);
-    font-size: var(--fs-13);
-    font-weight: 550;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
     background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--r-sm);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-sm);
     box-shadow: none;
+    cursor: pointer;
     transition:
         background-color var(--dur-fast) var(--ease-out),
         color var(--dur-fast) var(--ease-out);
@@ -36,19 +37,23 @@
 }
 
 .option:hover:not([aria-checked="true"]) {
-    color: var(--text);
-    background: var(--hover);
+    color: var(--color-text);
+    background: var(--color-hover);
 }
 
-/* The chosen option is a white tile on the light theme and a raised green one on the dark. */
+/* The chosen option is a lime tile, like every active state; its text is the forest green. */
 .option[aria-checked="true"] {
-    color: var(--text);
-    background: var(--panel);
-    border-color: var(--border);
-    box-shadow: var(--shadow);
+    color: var(--color-on-accent);
+    background: var(--color-accent);
+    border-color: var(--color-accent-edge);
 }
 
-[data-theme="dark"] .option[aria-checked="true"] {
-    color: var(--accent);
-    background: var(--bg-secondary);
+.option:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.option :global(.icon) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
 }

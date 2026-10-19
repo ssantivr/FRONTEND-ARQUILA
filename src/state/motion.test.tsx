@@ -67,7 +67,7 @@ describe("saving feedback on the button that sent the form", () => {
 describe("movement that does not shift the layout", () => {
     it("fills a progress bar with a transform, not with its width", () => {
         const { container } = render(<ProgressBar label="Avance" value={0.4} />);
-        const fill = container.querySelector<HTMLElement>(".bar-progress > span");
+        const fill = container.querySelector<HTMLElement>('[role="progressbar"] > span');
 
         expect(fill?.style.transform).toBe("scaleX(0.4)");
         expect(fill?.style.width).toBe("");

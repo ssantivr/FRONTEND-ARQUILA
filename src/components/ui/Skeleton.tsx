@@ -1,3 +1,5 @@
+import styles from "./Skeleton.module.css";
+
 export type SkeletonShape = "lines" | "cards" | "rows";
 
 interface SkeletonProps {
@@ -7,6 +9,11 @@ interface SkeletonProps {
     count?: number;
     /** Read by screen readers while the content loads. */
     label?: string;
+    /**
+     * Height the content will take. Reserving it keeps the page still when the data arrives
+     * (cumulative layout shift 0).
+     */
+    height?: number | string;
 }
 
 const DEFAULT_COUNT: Record<SkeletonShape, number> = {
@@ -16,12 +23,17 @@ const DEFAULT_COUNT: Record<SkeletonShape, number> = {
 };
 
 /** Placeholder with the shape of the content that is loading, announced as a status. */
-export function Skeleton({ shape = "lines", count, label = "Cargando…" }: SkeletonProps) {
+export function Skeleton({ shape = "lines", count, label = "Cargando…", height }: SkeletonProps) {
     return (
-        <div className={`skeleton skeleton-${shape}`} role="status">
-            <span className="skeleton-text">{label}</span>
+        <div
+            // `skeleton` is the hook that screens not yet rebuilt use to place it (removed in R9).
+            className={`skeleton ${styles.skeleton} ${styles[shape]}`}
+            role="status"
+            style={height === undefined ? undefined : { minHeight: height }}
+        >
+            <span className="visually-hidden">{label}</span>
             {Array.from({ length: count ?? DEFAULT_COUNT[shape] }, (_, index) => (
-                <span key={index} className="skeleton-bar" aria-hidden="true" />
+                <span key={index} className={styles.bar} aria-hidden="true" />
             ))}
         </div>
     );

@@ -2,6 +2,7 @@ import * as RadixDialog from "@radix-ui/react-dialog";
 import type { ReactNode } from "react";
 
 import { useAnimatedClose } from "../../hooks/useAnimatedClose";
+import { Button } from "./Button";
 
 import styles from "./Dialog.module.css";
 
@@ -52,8 +53,10 @@ export function Dialog({
                         <RadixDialog.Title className={styles.title}>{title}</RadixDialog.Title>
                         <div className={styles.actions}>
                             {actions}
-                            <RadixDialog.Close className="button-secondary">
-                                Cerrar
+                            <RadixDialog.Close asChild>
+                                <Button variant="secondary" size="sm" icon="close">
+                                    Cerrar
+                                </Button>
                             </RadixDialog.Close>
                         </div>
                     </header>

@@ -1,0 +1,73 @@
+.mark {
+    flex: none;
+    overflow: visible;
+}
+
+/* Thin keylines between the faces, like the edges of a CAD solid. */
+.mark path {
+    stroke: var(--logo-edge, var(--brand-forest));
+    stroke-width: 0.6;
+    stroke-linejoin: round;
+}
+
+.top {
+    fill: var(--brand-face-top);
+}
+
+.left {
+    fill: var(--brand-face-left);
+}
+
+.right {
+    fill: var(--brand-face-right);
+}
+
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text);
+}
+
+.onDark {
+    color: var(--white);
+}
+
+.words {
+    display: grid;
+    gap: var(--space-0);
+}
+
+.name {
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.16em;
+    line-height: 1;
+}
+
+.tagline {
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+}
+
+.onDark .tagline {
+    color: var(--brand-forest-text);
+}
+
+.sm .name {
+    font-size: var(--text-md);
+}
+
+.md .name {
+    font-size: var(--text-lg);
+}
+
+.lg {
+    gap: var(--space-4);
+}
+
+.lg .name {
+    font-size: var(--text-3xl);
+}

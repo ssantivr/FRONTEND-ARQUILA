@@ -1,0 +1,46 @@
+.skeleton {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    min-width: 0;
+}
+
+.bar {
+    display: block;
+    border-radius: var(--radius-sm);
+    background:
+        linear-gradient(90deg, transparent 0%, var(--color-hover) 50%, transparent 100%) 0 0 / 200%
+            100%,
+        var(--color-surface-sunken);
+    animation: shimmer var(--dur-shimmer) linear infinite;
+}
+
+.lines .bar {
+    height: 14px;
+}
+
+.lines .bar:nth-child(3n + 1) {
+    width: 92%;
+}
+
+.lines .bar:nth-child(3n + 2) {
+    width: 76%;
+}
+
+.lines .bar:nth-child(3n + 3) {
+    width: 58%;
+}
+
+.rows .bar {
+    height: var(--row-height);
+}
+
+.cards {
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+    gap: var(--space-4);
+}
+
+.cards .bar {
+    aspect-ratio: 16 / 11;
+    border-radius: var(--radius-lg);
+}

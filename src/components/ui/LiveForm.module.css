@@ -2,9 +2,9 @@
 .error {
     display: block;
     margin-top: var(--space-1);
-    color: var(--error);
-    font-size: var(--fs-12);
-    font-weight: 500;
+    color: var(--color-danger);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
     line-height: 1.4;
     letter-spacing: 0;
     text-transform: none;

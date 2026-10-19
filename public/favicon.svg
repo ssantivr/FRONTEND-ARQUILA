@@ -1,4 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
     <rect width="32" height="32" rx="7" fill="#0b211a" />
-    <path d="M9 7v18h16M16 7h9v9" fill="none" stroke="#b8f36b" stroke-width="4" />
+    <g transform="translate(4.45 4.00) scale(0.4444)" stroke="#0b211a" stroke-width="0.6" stroke-linejoin="round">
+        <path d="M6.06 35.50L12.12 39.00L12.12 15.00L6.06 11.50Z" fill="#8fcf4c" />
+        <path d="M32.04 27.50L12.12 39.00L12.12 15.00L32.04 3.50Z" fill="#236b42" />
+        <path d="M25.98 0.00L32.04 3.50L12.12 15.00L6.06 11.50Z" fill="#b8f36b" />
+        <path d="M31.18 18.00L45.90 26.50L45.90 18.50L31.18 10.00Z" fill="#8fcf4c" />
+        <path d="M51.96 23.00L45.90 26.50L45.90 18.50L51.96 15.00Z" fill="#236b42" />
+        <path d="M37.24 6.50L51.96 15.00L45.90 18.50L31.18 10.00Z" fill="#b8f36b" />
+        <path d="M32.04 43.50L38.11 47.00L38.11 31.00L32.04 27.50Z" fill="#8fcf4c" />
+        <path d="M45.90 42.50L38.11 47.00L38.11 31.00L45.90 26.50Z" fill="#236b42" />
+        <path d="M39.84 23.00L45.90 26.50L38.11 31.00L32.04 27.50Z" fill="#b8f36b" />
+        <path d="M0.00 39.00L25.98 54.00L25.98 48.00L0.00 33.00Z" fill="#8fcf4c" />
+        <path d="M32.04 50.50L25.98 54.00L25.98 48.00L32.04 44.50Z" fill="#236b42" />
+        <path d="M6.06 29.50L32.04 44.50L25.98 48.00L0.00 33.00Z" fill="#b8f36b" />
+    </g>
 </svg>

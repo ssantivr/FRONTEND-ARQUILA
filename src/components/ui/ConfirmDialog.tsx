@@ -63,15 +63,14 @@ export function ConfirmDialog({
                         <div className={styles.text}>{children}</div>
                     </RadixDialog.Description>
                     <div className={styles.actions}>
-                        <button
+                        <Button
                             ref={cancel}
-                            type="button"
-                            className="button-secondary"
+                            variant="secondary"
                             disabled={pending}
                             onClick={() => closing.requestClose()}
                         >
                             {cancelLabel}
-                        </button>
+                        </Button>
                         <Button
                             variant={danger ? "danger" : "primary"}
                             loading={pending}

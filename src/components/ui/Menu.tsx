@@ -1,10 +1,22 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
-interface MenuItem {
+import { Icon, type IconName } from "../Icon";
+import { Kbd } from "./Kbd";
+
+import styles from "./Menu.module.css";
+
+export interface MenuItem {
     label: string;
     onSelect: () => void;
+    icon?: IconName;
+    /** Keys that do the same, shown at the end of the item. */
+    shortcut?: string;
     danger?: boolean;
     disabled?: boolean;
+    /** Why a disabled item cannot be chosen; shown under its label. */
+    reason?: string;
+    /** Draws a separator before this item, to start a new group. */
+    separated?: boolean;
 }
 
 interface MenuProps {
@@ -15,10 +27,58 @@ interface MenuProps {
     trigger?: ReactNode;
     /** Content above the items, such as who is signed in. */
     header?: ReactNode;
+    /** Edge of the trigger the list lines up with. */
+    align?: "start" | "end";
 }
 
-/** Context menu on a native `<details>`: it opens with the keyboard and closes on Escape or outside clicks. */
-export function Menu({ label, items, trigger, header }: MenuProps) {
+/** The items of a menu, shared by the dropdown and the context menu. */
+export function MenuItems({
+    items,
+    onDone,
+    role,
+}: {
+    items: MenuItem[];
+    onDone: () => void;
+    role?: "menuitem";
+}) {
+    return (
+        <>
+            {items.map((item) => (
+                <div key={item.label} className={styles.slot}>
+                    {item.separated === true && <hr className={styles.separator} />}
+                    <button
+                        type="button"
+                        role={role}
+                        className={
+                            item.danger === true ? `${styles.item} ${styles.danger}` : styles.item
+                        }
+                        disabled={item.disabled}
+                        onClick={() => {
+                            onDone();
+                            item.onSelect();
+                        }}
+                    >
+                        {item.icon !== undefined ? (
+                            <Icon name={item.icon} />
+                        ) : (
+                            <span className={styles.noIcon} aria-hidden="true" />
+                        )}
+                        <span className={styles.text}>
+                            <span>{item.label}</span>
+                            {item.disabled === true && item.reason !== undefined && (
+                                <span className={styles.reason}>{item.reason}</span>
+                            )}
+                        </span>
+                        {item.shortcut !== undefined && <Kbd>{item.shortcut}</Kbd>}
+                    </button>
+                </div>
+            ))}
+        </>
+    );
+}
+
+/** A dropdown on a native `<details>`: it opens with the keyboard and closes on Escape or outside clicks. */
+export function Menu({ label, items, trigger, header, align = "end" }: MenuProps) {
     const details = useRef<HTMLDetailsElement>(null);
 
     useEffect(() => {
@@ -30,6 +90,10 @@ export function Menu({ label, items, trigger, header }: MenuProps) {
 
             if (outside && details.current?.open === true) {
                 details.current.open = false;
+
+                if (event instanceof KeyboardEvent) {
+                    details.current.querySelector("summary")?.focus();
+                }
             }
         }
 
@@ -43,31 +107,21 @@ export function Menu({ label, items, trigger, header }: MenuProps) {
     }, []);
 
     return (
-        <details ref={details} className="menu">
-            <summary aria-label={label} title={label}>
-                {trigger ?? <span aria-hidden="true">⋯</span>}
+        // `menu` is the hook that screens not yet rebuilt use to place it (removed in R9).
+        <details ref={details} className={`menu ${styles.menu}`}>
+            <summary className={styles.trigger} aria-label={label} title={label}>
+                {trigger ?? <Icon name="more" />}
             </summary>
-            <div className="menu-items" role="group" aria-label={label}>
+            <div className={`${styles.list} ${styles[align]}`} role="group" aria-label={label}>
                 {header}
-                {items.map((item) => (
-                    <button
-                        key={item.label}
-                        type="button"
-                        className={
-                            item.danger === true ? "menu-item menu-item-danger" : "menu-item"
+                <MenuItems
+                    items={items}
+                    onDone={() => {
+                        if (details.current !== null) {
+                            details.current.open = false;
                         }
-                        disabled={item.disabled}
-                        onClick={() => {
-                            if (details.current !== null) {
-                                details.current.open = false;
-                            }
-
-                            item.onSelect();
-                        }}
-                    >
-                        {item.label}
-                    </button>
-                ))}
+                    }}
+                />
             </div>
         </details>
     );

@@ -1,0 +1,57 @@
+.quantity {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+    min-width: 0;
+}
+
+.value {
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-title);
+    white-space: nowrap;
+}
+
+/* The unit stays on the line of its figure: «6 × 5 m» never breaks before the «m». */
+.unit {
+    color: var(--color-text-secondary);
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+}
+
+.quantity > :last-child:not(.unit, .value) {
+    align-self: center;
+    margin-inline-start: var(--space-1);
+}
+
+.missing {
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.sm {
+    font-size: var(--text-sm);
+}
+
+.md {
+    font-size: var(--text-lg);
+}
+
+.lg {
+    font-size: var(--text-2xl);
+}
+
+.xl {
+    font-size: var(--text-4xl);
+    line-height: var(--leading-tight);
+}
+
+.lg .unit {
+    font-size: var(--text-md);
+}
+
+.xl .unit {
+    font-size: var(--text-xl);
+}

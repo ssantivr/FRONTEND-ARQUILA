@@ -24,6 +24,43 @@ Si falta tiempo se sacrifica en este orden: lo opcional, la fase 6b, lo avanzado
 
 Revisión independiente: al cerrar las fases 2, 3b y 7.
 
+## Encargo del 19 de octubre de 2026: reconstrucción completa (R1 a R9)
+
+Rama `rediseno-final`. Reconstruye la capa visual sobre los servicios, hooks, estado, utilidades y motor 3D existentes. Un commit por fase; tras cada una se valida y se espera el «continúa».
+
+| Fase | Estado |
+|---|---|
+| R1. Cimientos: inventario, tokens, temas, motivo de plano, componentes `ui/`, `/design-system` | Hecha |
+| R2. Aplicación: layout, barras, paleta, navegación móvil, transiciones, entrada del logotipo | Pendiente |
+| R3. Login inmersivo y dashboard | Pendiente |
+| R4. Proyectos (tres vistas), detalle, Terrenos, Materiales, Tareas | Pendiente |
+| R5. Espacio de trabajo 3D y `/visor` | Pendiente |
+| R6. Planos 2D como láminas, Iluminación y clima | Pendiente |
+| R7. Renderizado, Recorridos, exportación | Pendiente |
+| R8. Configuración, Análisis, accesibilidad, responsive, pulido | Pendiente |
+| R9. Consolidación, capturas y documentación final | Pendiente |
+
+### Fase R1. Cimientos
+
+**Punto de partida.** Había trabajo sin confirmar de la noche del 18: un R1 a medias (tokens nuevos, `foundation.css`, capas, ~20 componentes con su módulo CSS, `Blueprint`, `Logo`) y la pantalla de Recorridos (`TourPage.tsx`, `utils/tour.ts`, `PlanThumb.tsx`, `tour.css`, cambios en `App.tsx`, `ProjectToolPage.tsx`, `StructureViewer.tsx`, `datos-de-muestra.mjs`, `e2e/flujos.spec.ts` y el borrado de `InteriorPage.tsx`). Se conservó todo. El R1 se terminó y se confirmó; lo de Recorridos queda **sin confirmar en el árbol** para la fase R7 (copia en `git stash` «wip-recorridos»).
+
+**Hecho en R1.** Ver «Sistema de diseño Blueprint premium» en `FRONTEND.md`. Además de lo heredado: pruebas de los componentes nuevos (`ui/identity.test.tsx`, 24), favicon generado desde la geometría del logotipo (`npm run favicon`), `/design-system` reconstruida con módulo CSS (14 bloques por tema e interruptor de densidad), `MotionDemos` con módulo CSS, `design-system.css` borrada, `FilterBar` y `FocusFormButton` con `Button`, densidad aplicable a cualquier contenedor, ids de `MaterialPicker` con `useId`, la unidad de `PropertyField` en su nombre accesible.
+
+**Pruebas adaptadas** (comprobaban clases del diseño anterior; ninguna se quitó): `ui.test.tsx` («button-danger» → `data-variant="danger"` en Button y ConfirmDialog; `.skeleton-bar` → barras `aria-hidden` dentro del estado), `App.test.tsx` (clase `tab` → `aria-current` dentro de la navegación «Secciones del proyecto»), `state/motion.test.tsx` (`.bar-progress > span` → `[role=progressbar] > span`), `AsyncStatus.test.tsx` (el dibujo queda dentro de un contenedor `aria-hidden`).
+
+**Validación**, sobre el árbol exacto del commit en un worktree aparte (sin el trabajo de Recorridos):
+
+- `format:check`: «All matched files use Prettier code style!»; `lint`: sin errores.
+- `npm test`: `Test Files 61 passed (61)`, `Tests 445 passed (445)`.
+- `npm run contraste`: «Todos los pares llegan a 4.5:1.»
+- `npm run test:e2e`: `13 passed (1.6m)`. En el worktree Vite avisa de que las fuentes quedan fuera de su lista permitida (el `node_modules` es un enlace al del proyecto); no afecta a los flujos.
+- `npm run movimiento`: pasa. Sin animaciones con movimiento reducido en las 13 comprobaciones. CLS 0 en inicio de sesión, inicio, proyectos, renderizado, materiales y configuración; **no es 0** en proyecto: planos (0,0172; HEAD 0,0111), modelo 3D (0,0053; 0,0046), planos 2D (0,0423; 0,0422), editor 3D (0,0066; 0), iluminación (0,0176; 0,0177) y terrenos (0,0017; igual). El script admite hasta 0,1 fuera del inicio. Se corrige al reconstruir esas pantallas (R4 a R6).
+- Con el árbol de trabajo completo (con Recorridos) falla 1 prueba: `motion.test.ts` encuentra `@keyframes` en `styles/pages/tour.css`. Es de R7.
+
+**Peso del build** (JS + CSS de `dist/assets`): antes (HEAD `64b0727`) 1.894.937 B, con la hoja principal en 143,46 kB (28,30 kB gzip) y el JS de entrada en 160,38 kB (50,52 kB gzip). Después de R1: hoja principal 164,03 kB (32,50 kB gzip) y JS de entrada 176,91 kB (55,33 kB gzip). Sube porque conviven las hojas del diseño anterior (capa `legacy`) con los módulos nuevos; baja en R9 al borrar `legacy`.
+
+**Visto en el navegador** (`npm run demo`, Playwright): `/design-system` a 1440 y 390 px, temas claro y oscuro en la misma página; sin desplazamiento horizontal ni errores de consola. Corregido tras verlo: el campo «Escala» bajaba al fondo de su celda y el texto del ejemplo de menú contextual salía blanco por una regla de la capa `legacy`. No mirado en R1: 1024 y 768 px, y las pantallas de la aplicación (siguen con el diseño anterior hasta su fase).
+
 ## Encargo del 18 de octubre de 2026: cerrar huecos y pulir
 
 Encargo nuevo, con su complemento, sobre la misma rama: no reconstruir, sino cerrar lo que falta frente a una apariencia de software profesional de arquitectura. Tiene su propia numeración de fases, distinta de la tabla de arriba.

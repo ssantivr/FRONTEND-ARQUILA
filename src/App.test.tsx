@@ -78,8 +78,11 @@ describe("App routing", () => {
         renderAt("/proyectos/7/materiales");
 
         expect(await screen.findByRole("heading", { name: "Casa Andina" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Materiales", current: "page" })).toHaveClass(
-            "tab",
+        const tabs = screen.getByRole("navigation", { name: "Secciones del proyecto" });
+
+        expect(within(tabs).getByRole("button", { name: "Materiales" })).toHaveAttribute(
+            "aria-current",
+            "page",
         );
     });
 

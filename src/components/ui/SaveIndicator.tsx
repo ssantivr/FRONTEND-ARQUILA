@@ -25,7 +25,12 @@ export function SaveIndicator({ state }: { state: SaveState }) {
             aria-live="polite"
         >
             {state === "saving" && <Spinner size="sm" />}
-            {state === "saved" && <Icon name="check" />}
+            {state === "saved" && (
+                // The check draws itself once, like a pen stroke: the confirmation is discreet.
+                <svg className={`icon ${styles.check}`} viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" pathLength={1} />
+                </svg>
+            )}
             {state === "error" && <Icon name="alert" />}
             {TEXT[state]}
         </span>

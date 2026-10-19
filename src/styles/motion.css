@@ -193,6 +193,33 @@
     }
 }
 
+/* The volumes of the logo light up one after the other while something loads. */
+@keyframes piece-pulse {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+
+    40% {
+        opacity: 1;
+    }
+}
+
+/* A volume of the logo drops into place when the mark assembles. */
+@keyframes piece-drop {
+    from {
+        opacity: 0;
+        transform: translateY(-14px);
+    }
+}
+
+/* A selection outline traces itself around what was chosen. */
+@keyframes trace {
+    from {
+        stroke-dashoffset: var(--line-length, 1);
+    }
+}
+
 @keyframes shimmer {
     to {
         background-position: -200% 0;

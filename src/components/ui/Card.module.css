@@ -1,14 +1,14 @@
 .card {
     min-width: 0;
-    color: var(--text);
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-1);
 }
 
 .raised {
-    background: var(--panel-raised);
+    background: var(--color-surface-raised);
 }
 
 .none {

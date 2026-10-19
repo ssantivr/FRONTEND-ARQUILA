@@ -31,7 +31,7 @@ describe("Button", () => {
         const button = screen.getByRole("button", { name: "Eliminar" });
 
         expect(button).toHaveAttribute("type", "button");
-        expect(button).toHaveClass("button-danger");
+        expect(button).toHaveAttribute("data-variant", "danger");
     });
 
     it("is blocked and announced as busy while loading", async () => {
@@ -244,10 +244,12 @@ describe("Tooltip", () => {
 
 describe("Skeleton", () => {
     it("announces the loading as a status and draws the bars asked for", () => {
-        const { container } = render(<Skeleton shape="rows" count={2} />);
+        render(<Skeleton shape="rows" count={2} />);
 
-        expect(screen.getByRole("status")).toHaveTextContent("Cargando…");
-        expect(container.querySelectorAll(".skeleton-bar")).toHaveLength(2);
+        const status = screen.getByRole("status");
+
+        expect(status).toHaveTextContent("Cargando…");
+        expect(status.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
     });
 });
 
@@ -394,7 +396,7 @@ describe("ConfirmDialog", () => {
 
         const confirm = screen.getByRole("button", { name: "Eliminar" });
 
-        expect(confirm).toHaveClass("button-danger");
+        expect(confirm).toHaveAttribute("data-variant", "danger");
         await userEvent.click(confirm);
         expect(onConfirm).toHaveBeenCalledTimes(1);
     });

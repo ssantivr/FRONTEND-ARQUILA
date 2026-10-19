@@ -2,7 +2,7 @@
     position: fixed;
     inset: 0;
     z-index: var(--z-overlay);
-    background: var(--scrim);
+    background: var(--color-scrim);
     animation: fade-in var(--dur-slow) var(--ease-out);
 }
 
@@ -11,10 +11,10 @@
     z-index: var(--z-overlay);
     display: flex;
     flex-direction: column;
-    color: var(--text);
-    background: var(--panel);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-float);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-2);
 }
 
 .right,
@@ -42,7 +42,7 @@
     left: 0;
     max-height: 85dvh;
     border-width: 1px 0 0;
-    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     animation: slide-in-up var(--dur-slow) var(--ease-out);
 }
 
@@ -53,13 +53,13 @@
     gap: var(--space-3);
     min-height: var(--touch-target);
     padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .title {
     margin: 0;
-    font-size: var(--fs-16);
-    font-weight: 650;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

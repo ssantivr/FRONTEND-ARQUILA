@@ -6,38 +6,7 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
 
 import "./styles/tokens.css";
-import "./styles/motion.css";
-import "./styles/base.css";
-import "./styles/viewer.css";
-import "./styles/shell.css";
-import "./styles/interior.css";
-import "./styles/features.css";
-import "./styles/hierarchy.css";
-import "./styles/states.css";
-import "./styles/media.css";
-import "./styles/ui.css";
-import "./styles/design-system.css";
-import "./styles/projects.css";
-import "./styles/terrains.css";
-import "./styles/plans.css";
-import "./styles/shell-phone.css";
-import "./styles/identity.css";
-import "./styles/home.css";
-import "./styles/pages/head.css";
-import "./styles/pages/projects.css";
-import "./styles/pages/terrains.css";
-import "./styles/pages/materials.css";
-import "./styles/pages/settings.css";
-import "./styles/pages/home.css";
-import "./styles/pages/assistant.css";
-import "./styles/pages/studio.css";
-import "./styles/pages/responsive.css";
-import "./styles/polish.css";
-import "./styles/editor.css";
-import "./styles/rich.css";
-import "./styles/numbers.css";
-import "./styles/navigation.css";
-import "./styles/workspace.css";
+import "./styles/index.css";
 
 // The app is imported after the global sheets: the CSS Modules of its components then come later
 // in the bundle, so at equal specificity a component's own rule wins over a global one.

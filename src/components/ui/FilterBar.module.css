@@ -18,7 +18,7 @@
     left: 10px;
     width: var(--icon-md);
     height: var(--icon-md);
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transform: translateY(-50%);
     pointer-events: none;
 }
@@ -44,8 +44,8 @@
 }
 
 .count {
-    color: var(--text-secondary);
-    font-size: var(--fs-13);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }

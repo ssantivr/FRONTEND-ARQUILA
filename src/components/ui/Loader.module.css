@@ -1,0 +1,28 @@
+.loader {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-4);
+    color: var(--color-text-secondary);
+}
+
+.mark :global([data-piece]) {
+    animation: piece-pulse calc(var(--dur-spin) * 2) var(--ease-in-out) infinite;
+}
+
+.mark :global([data-piece="lintel"]) {
+    animation-delay: calc(var(--dur-spin) * 0.25);
+}
+
+.mark :global([data-piece="post"]) {
+    animation-delay: calc(var(--dur-spin) * 0.5);
+}
+
+.mark :global([data-piece="floor"]) {
+    animation-delay: calc(var(--dur-spin) * 0.75);
+}
+
+.label {
+    font-size: var(--text-sm);
+}
