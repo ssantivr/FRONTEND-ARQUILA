@@ -233,6 +233,85 @@ test.describe("iluminación", () => {
     });
 });
 
+/** Width and height written inside a PNG (IHDR) or a JPEG (its first SOF marker). */
+function imageSize(bytes: Buffer): { type: string; width: number; height: number } {
+    if (bytes.subarray(1, 4).toString("ascii") === "PNG") {
+        return { type: "png", width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+    }
+
+    if (bytes[0] === 0xff && bytes[1] === 0xd8) {
+        for (let at = 2; at < bytes.length - 9;) {
+            const marker = bytes[at + 1];
+
+            if (marker >= 0xc0 && marker <= 0xc2) {
+                return {
+                    type: "jpeg",
+                    height: bytes.readUInt16BE(at + 5),
+                    width: bytes.readUInt16BE(at + 7),
+                };
+            }
+
+            at += 2 + bytes.readUInt16BE(at + 2);
+        }
+    }
+
+    return { type: "desconocido", width: 0, height: 0 };
+}
+
+test.describe("renderizado", () => {
+    test("genera una captura de la vista y la descarga con el tamaño y el formato elegidos", async ({
+        page,
+    }) => {
+        await mockApi(page);
+        await page.goto("/renderizado");
+        await expect(page.locator(".studio-stage canvas")).toBeVisible({
+            timeout: MODEL_TIMEOUT_MS,
+        });
+
+        const panel = page.getByRole("complementary", { name: "Parámetros de la captura" });
+        await expect(panel.getByRole("status")).toContainText("En espera");
+
+        await panel.getByRole("button", { name: "4:3" }).click();
+        await panel.getByLabel("Resolución").selectOption({ label: "1280 × 960 px" });
+        await panel.getByLabel("Formato de salida").selectOption("jpeg");
+        await panel.getByRole("button", { name: "Borrador" }).click();
+        await panel.getByRole("button", { name: "Generar captura" }).click();
+
+        const result = page.getByRole("figure", { name: "Captura de la vista" });
+        await expect(result).toBeVisible({ timeout: 60_000 });
+        await expect(panel.getByRole("status")).toContainText("Captura lista");
+
+        const download = page.waitForEvent("download");
+        await result.getByRole("link", { name: "Descargar" }).click();
+        const file = await download;
+        const bytes = Buffer.concat(await (await file.createReadStream()).toArray());
+
+        expect(file.suggestedFilename()).toMatch(/-1280x960\.jpg$/);
+        expect(imageSize(bytes)).toEqual({ type: "jpeg", width: 1280, height: 960 });
+
+        await result.getByRole("button", { name: "Volver al encuadre" }).click();
+        await expect(result).toBeHidden();
+    });
+
+    test("se puede cancelar y lo dice", async ({ page }) => {
+        await mockApi(page);
+        await page.goto("/renderizado");
+        await expect(page.locator(".studio-stage canvas")).toBeVisible({
+            timeout: MODEL_TIMEOUT_MS,
+        });
+
+        const panel = page.getByRole("complementary", { name: "Parámetros de la captura" });
+        await panel.getByRole("button", { name: "Alta" }).click();
+        await panel.getByLabel("Resolución").selectOption({ index: 0 });
+        await panel.getByRole("button", { name: "Generar captura" }).click();
+        await expect(panel.getByRole("progressbar")).toBeVisible();
+        await panel.getByRole("button", { name: "Cancelar" }).click();
+
+        await expect(panel.getByRole("status")).toContainText("Cancelada");
+        await expect(page.getByRole("figure", { name: "Captura de la vista" })).toHaveCount(0);
+    });
+});
+
 test.describe("tema y paleta de comandos", () => {
     test("cambia de tema con el botón y con la paleta, y lo recuerda al volver", async ({
         page,

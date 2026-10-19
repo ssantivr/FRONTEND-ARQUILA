@@ -118,3 +118,11 @@ Lo que la interfaz no puede resolver sola. Nada de esto se ha tocado en `BACKEND
     - `PATCH /terrains/{id}` admitiría `time_zone` (nombre IANA, p. ej. `America/Bogota`) y `north_deg`; `GET` los devolvería.
 - **Respuesta:** `200` con la luz guardada; `422` si un valor está fuera de rango.
 - **Mientras tanto:** la luz se guarda en `localStorage` por proyecto. El sol se calcula con la latitud y la longitud del primer terreno que las tenga (ecuaciones de la NOAA); la hora se toma como la del huso que corresponde a la longitud (15° por hora), que coincide con la oficial en Colombia pero no en todos los países. Sin coordenadas, el sol sigue un arco simple de 6:00 a 18:00 y la fecha queda deshabilitada con el motivo. El norte de la implantación (también en `localStorage`) se puede copiar a la luz con un botón.
+
+## 16. Render fotorrealista en el servidor
+
+- **Para qué:** imágenes con trazado de rayos (reflejos, refracción, luz indirecta y profundidad de campo), que el motor del visor no hace.
+- **Rutas:**
+    - `POST /projects/{id}/renders` con `{ camera: { position, target, fov, projection }, width, height, samples, lighting: {...}, format: "png" | "jpeg" }` → `202` con `{ id, status: "queued" }`.
+    - `GET /renders/{id}` → `{ status: "queued" | "running" | "done" | "failed" | "cancelled", progress: 0..1, error? }`; `DELETE /renders/{id}` para cancelar; `GET /renders/{id}/file` con la imagen.
+- **Mientras tanto:** Renderizado genera una «Captura de la vista» con el motor del visor: el mismo encuadre, la luz del proyecto, varias pasadas promediadas (el progreso es el de esas pasadas, real) y el archivo en PNG, JPEG o WebP si el navegador lo genera. La pantalla dice que no es un render fotorrealista. Profundidad de campo y reflejos trazados no se ofrecen.

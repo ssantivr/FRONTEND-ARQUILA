@@ -190,25 +190,29 @@
     height: 8px;
 }
 
-.render-run button {
+.render-run > button {
     min-height: var(--control-lg);
 }
 
+/* The capture covers the preview, on the same mat, until the user goes back to the framing. */
 .render-result {
-    overflow: hidden;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow);
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    margin: 0;
+    background: var(--forest);
     animation: rise-in var(--dur-slow) var(--ease-out) both;
 }
 
 .render-result img {
     display: block;
     width: 100%;
-    max-height: 70vh;
+    height: 100%;
+    min-height: 0;
+    padding: 20px;
     object-fit: contain;
-    background: var(--forest);
 }
 
 .render-result-foot {
@@ -217,7 +221,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 14px 20px;
+    padding: 12px 16px;
+    color: var(--on-scene);
+    background: rgba(11, 33, 26, 0.94);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .render-result-foot p {
@@ -227,12 +234,22 @@
     font-variant-numeric: tabular-nums;
 }
 
-.render-result-foot span {
-    color: var(--text-secondary);
+.render-result-foot strong {
+    color: var(--lime);
+}
+
+.render-result-foot p span {
+    color: var(--forest-text);
     font-size: var(--fs-13);
 }
 
-.render-result-foot a {
+.render-result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.render-result-actions a {
     display: inline-flex;
     align-items: center;
     min-height: var(--control-md);
@@ -245,14 +262,86 @@
     transition: filter var(--dur-fast) var(--ease-out);
 }
 
-.render-result-foot a:hover {
+.render-result-actions a:hover {
     filter: brightness(0.95);
 }
 
-.render-result-foot a:focus-visible {
+.render-result-actions a:focus-visible {
     outline: 2px solid var(--lime);
     outline-offset: 2px;
     box-shadow: 0 0 0 4px var(--forest);
+}
+
+/* What the capture is doing: one line, with an icon when it ended. */
+.render-state {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 10px;
+    align-items: start;
+    padding: 10px 12px;
+    font-size: var(--fs-13);
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+}
+
+.render-state > p:only-child {
+    grid-column: 1 / -1;
+}
+
+.render-state p {
+    margin: 0;
+}
+
+.render-state .icon {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+}
+
+.render-state-busy {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.render-state-done {
+    border-color: var(--accent);
+}
+
+.render-state-done .icon {
+    color: var(--accent);
+}
+
+.render-state-error {
+    border-color: var(--error);
+}
+
+.render-state-error .icon {
+    color: var(--error);
+}
+
+/* Generating is always in reach, at the foot of the panel, however far it is scrolled. */
+.studio-workspace .render-run {
+    position: sticky;
+    bottom: -16px;
+    z-index: 1;
+    margin: 0 -20px -16px;
+    padding: 16px 20px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    border-bottom: 0;
+}
+
+.studio-workspace .studio-panel .segmented:has(> :nth-child(3):last-child) {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* The parameters fold away and the preview takes the whole width. */
+.studio-workspace.studio-wide {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace-head-end {
+    margin-left: auto;
 }
 
 /* ---- Tasks: one column per state ---- */
@@ -505,6 +594,38 @@
     .studio-workspace .studio-panel {
         max-height: none;
         min-height: 0;
+    }
+
+    /* The mat wraps the image instead of leaving bands around it: the frame takes the width
+       (or 60 % of the height, for a tall image) and the stage grows to fit it. */
+    .studio-workspace .studio-stage-framed {
+        display: block;
+        height: auto;
+        min-height: 0;
+        container-type: normal;
+    }
+
+    .studio-workspace .studio-stage-framed .render-frame {
+        width: min(100%, calc(60vh * var(--ratio)));
+        margin: 0 auto;
+    }
+
+    .studio-workspace .studio-stage-framed {
+        padding: 12px;
+    }
+
+    .studio-workspace .studio-stage-framed .studio-caption {
+        position: static;
+        max-width: none;
+        margin-top: 12px;
+    }
+
+    /* The panel is under the preview and the page scrolls: no fixed foot. */
+    .studio-workspace .render-run {
+        position: static;
+        margin: 0;
+        padding: 16px 0;
+        border-top: 0;
     }
 }
 

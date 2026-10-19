@@ -22,6 +22,7 @@ const SCREENS = [
     ["planos 2D", "/planos"],
     ["editor 3D", "/visor"],
     ["iluminación", "/iluminacion"],
+    ["renderizado", "/renderizado"],
     ["materiales", "/materiales"],
     ["terrenos", "/terrenos"],
     ["configuración", "/configuracion"],

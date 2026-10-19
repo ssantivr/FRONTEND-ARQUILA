@@ -285,6 +285,8 @@ export interface StructureViewer {
      * on a canvas; `null` if it was cancelled.
      */
     renderStill: (job: StillJob) => Promise<HTMLCanvasElement | null>;
+    /** Longest side, in pixels, of an image or shadow map this device can draw. */
+    maxImageSize: number;
     /** Switches between the perspective camera and a real orthographic one, keeping the framing. */
     setProjection: (projection: Projection) => void;
     dispose: () => void;
@@ -2097,6 +2099,7 @@ export function createStructureViewer(
         setShadows: changing(setShadows),
         capture,
         renderStill,
+        maxImageSize: renderer.capabilities.maxTextureSize,
         setProjection: changing(setProjection),
         dispose,
     };
