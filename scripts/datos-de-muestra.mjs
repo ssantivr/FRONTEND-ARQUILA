@@ -112,28 +112,6 @@ const rooms = [
     room(8, "Baño", 2, 0, 5, 3, 3),
 ];
 
-// The walkthrough saved for Casa Mirador: five stops, from the entrance up to the bedrooms.
-// Estudio Guadua has none, so its walkthrough goes room by room.
-const step = (id, roomId, title, description, durationMs) => ({
-    id,
-    project_id: 1,
-    room_id: roomId,
-    position: id,
-    title,
-    description,
-    duration_ms: durationMs,
-    view_config: {},
-    created_at: "2026-10-05T15:00:00Z",
-});
-
-const walkthroughSteps = [
-    step(1, 1, "Llegada a la sala", "Doble ventana hacia el lote y el sol de la tarde.", 6000),
-    step(2, 3, "Cocina abierta", "Mesón de 4,5 m y salida al patio de servicio.", 5000),
-    step(3, 4, "Estudio", "Luz norte, buena para trabajar sin reflejos en la pantalla.", 4000),
-    step(4, 6, "Alcoba principal", "Sobre la sala, con la misma vista y baño propio.", 6000),
-    step(5, 7, "Alcoba 2", "Ventana al oriente: sol de la mañana.", 4000),
-];
-
 const COLUMN_M = 0.3;
 const column = (id, name, x, y) => element("column", id, name, 1, x, y, COLUMN_M, COLUMN_M, 2.8);
 const beam = (id, name, x, y, width, depth) =>
@@ -451,13 +429,7 @@ export function answer(path, query = new URLSearchParams()) {
     }
 
     if (path.includes("interior-walkthrough")) {
-        const projectId = Number(query.get("project_id"));
-
-        return {
-            project_id: projectId,
-            steps: projectId === 1 ? walkthroughSteps : [],
-            renovation_logs: tasksOf(query.get("project_id")),
-        };
+        return { project_id: 1, steps: [], renovation_logs: tasksOf(query.get("project_id")) };
     }
 
     return [];

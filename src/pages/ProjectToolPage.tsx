@@ -12,7 +12,7 @@ const ProjectModel = lazy(() =>
 );
 
 interface ProjectToolPageProps {
-    tool: "viewer" | "assistant";
+    tool: "viewer" | "interior" | "assistant";
     onOpenProject: (projectId: number) => void;
 }
 
@@ -20,6 +20,11 @@ const TEXT = {
     viewer: {
         title: "Editor y modelos 3D",
         intro: "Elige un proyecto para ver su modelo. Los cuartos y componentes se editan en la pestaña Modelo 3D del proyecto.",
+        open: "Editar en el proyecto",
+    },
+    interior: {
+        title: "Recorridos virtuales",
+        intro: "Elige un proyecto para recorrerlo por dentro, cuarto por cuarto. El recorrido empieza dentro del primer cuarto; con «Vista interior» sales a verlo desde fuera y con «Ver todo» vuelves al modelo completo.",
         open: "Editar en el proyecto",
     },
     assistant: {
@@ -103,8 +108,19 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
                 {items.length > 0 && (
                     <ProjectPicker projects={items} value={projectId} onChange={setChosen} />
                 )}
+                {tool !== "assistant" && projectId !== null && (
+                    <Suspense fallback={<p className="message">Cargando…</p>}>
+                        <ProjectModel
+                            key={projectId}
+                            projectId={projectId}
+                            walkthrough={tool === "interior"}
+                        />
+                    </Suspense>
+                )}
             </Panel>
-            {projectId !== null && <AssistantPanel key={projectId} projectId={projectId} />}
+            {tool === "assistant" && projectId !== null && (
+                <AssistantPanel key={projectId} projectId={projectId} />
+            )}
         </>
     );
 }

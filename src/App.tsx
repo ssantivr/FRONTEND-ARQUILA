@@ -50,7 +50,10 @@ const RenderPage = page(() => import("./pages/RenderPage"), "RenderPage");
 const SettingsPage = page(() => import("./pages/SettingsPage"), "SettingsPage");
 const TasksPage = page(() => import("./pages/TasksPage"), "TasksPage");
 const TerrainsPage = page(() => import("./pages/TerrainsPage"), "TerrainsPage");
-const TourPage = page(() => import("./pages/TourPage"), "TourPage");
+
+const InteriorPage = lazy(() =>
+    import("./pages/InteriorPage").then((module) => ({ default: module.InteriorPage })),
+);
 
 // The design system page is a development tool: the production build leaves it out.
 const DesignSystemPage = import.meta.env.DEV
@@ -358,7 +361,18 @@ export function App() {
                     />
                 );
             case "interior":
-                return <TourPage onOpenProject={(id) => openProject(id, "model")} />;
+                return (
+                    <>
+                        <ProjectToolPage
+                            key="interior"
+                            tool="interior"
+                            onOpenProject={(id) => openProject(id, "model")}
+                        />
+                        <Suspense fallback={<p className="message">Cargando…</p>}>
+                            <InteriorPage />
+                        </Suspense>
+                    </>
+                );
             case "assistant":
                 return (
                     <ProjectToolPage
