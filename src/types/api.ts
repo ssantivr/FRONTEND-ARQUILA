@@ -53,6 +53,11 @@ export interface StructureTerrain {
     id: number;
     name: string;
     outline: TerrainPoint[];
+    /**
+     * Slope along the depth of the lot, in percent. The structure route does not send it yet
+     * (docs/CAMBIOS_BACKEND.md); `structureApi.get` fills it in from the list of terrains.
+     */
+    slope_percent?: number | null;
 }
 
 export interface Room {

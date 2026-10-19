@@ -48,7 +48,7 @@ import type {
     User,
     Walkthrough,
 } from "../types/api";
-import { apiUrl, request, upload } from "./http";
+import { apiUrl, onWrite, request, upload } from "./http";
 
 export const healthApi = {
     check: () => request<{ status: string }>("/health"),
@@ -85,13 +85,44 @@ export const templatesApi = {
         request<Project>(`/templates/${templateId}/projects`, { method: "POST" }),
 };
 
-export async function loadAcrossProjects<T>(
-    loader: (projectId: number) => Promise<T[]>,
-): Promise<{ projects: Project[]; items: T[] }> {
-    const projects = await projectsApi.list();
-    const lists = await Promise.all(projects.map((project) => loader(project.id)));
+const ACROSS_PROJECTS_TTL_MS = 30_000;
 
-    return { projects, items: lists.flat() };
+interface AcrossProjects<T> {
+    projects: Project[];
+    items: T[];
+}
+
+const acrossProjects = new Map<unknown, { at: number; value: Promise<AcrossProjects<unknown>> }>();
+
+// Any write may change what these lists contain, and so may a different user signing in.
+onWrite(() => acrossProjects.clear());
+
+/**
+ * The API has no route listing terrains or materials of every project, so this asks for the
+ * projects and then for each one's list, all in parallel. The answer is kept for a short while so
+ * that moving between screens does not repeat one request per project.
+ */
+export function loadAcrossProjects<T>(
+    loader: (projectId: number) => Promise<T[]>,
+): Promise<AcrossProjects<T>> {
+    const cached = acrossProjects.get(loader);
+
+    if (cached !== undefined && Date.now() - cached.at < ACROSS_PROJECTS_TTL_MS) {
+        return cached.value as Promise<AcrossProjects<T>>;
+    }
+
+    const value = (async () => {
+        const projects = await projectsApi.list();
+        const lists = await Promise.all(projects.map((project) => loader(project.id)));
+
+        return { projects, items: lists.flat() };
+    })();
+
+    acrossProjects.set(loader, { at: Date.now(), value });
+    // A failed load is not worth remembering: the retry must reach the server again.
+    value.catch(() => acrossProjects.delete(loader));
+
+    return value;
 }
 
 export const terrainsApi = {
@@ -182,7 +213,33 @@ export const componentsApi = {
 };
 
 export const structureApi = {
-    get: (projectId: number) => request<Structure>(`/projects/${projectId}/structure`),
+    /**
+     * The model of a project. The slope of each terrain is needed to draw it inclined, and the
+     * route does not include it yet: when it is missing, it is read from the list of terrains
+     * and added. If that second call fails, the model is still returned, drawn flat.
+     */
+    get: async (projectId: number): Promise<Structure> => {
+        const structure = await request<Structure>(`/projects/${projectId}/structure`);
+
+        if (
+            structure.terrains.length === 0 ||
+            structure.terrains.every((terrain) => terrain.slope_percent !== undefined)
+        ) {
+            return structure;
+        }
+
+        const slopes = await request<Terrain[]>(`/projects/${projectId}/terrains`)
+            .then((terrains) => new Map(terrains.map((item) => [item.id, item.slope_percent])))
+            .catch(() => new Map<number, number | null>());
+
+        return {
+            ...structure,
+            terrains: structure.terrains.map((terrain) => ({
+                ...terrain,
+                slope_percent: terrain.slope_percent ?? slopes.get(terrain.id) ?? null,
+            })),
+        };
+    },
     setRoof: (projectId: number, roof: RoofKind) =>
         request<void>(`/projects/${projectId}/structure/roof`, { method: "PATCH", body: { roof } }),
     setSurface: (projectId: number, element: StructureElement, surface: SurfaceMaterialId) =>
@@ -240,3 +297,10 @@ export const walkthroughApi = {
             body: { status },
         }),
 };
+
+/**
+ * The work log of one project: the tasks. A named function on purpose: the cache of
+ * `loadAcrossProjects` is keyed by it, so the Tasks screen and the projects timeline share it.
+ */
+export const loadProjectTasks = (projectId: number) =>
+    walkthroughApi.get(projectId).then((walkthrough) => walkthrough.renovation_logs);

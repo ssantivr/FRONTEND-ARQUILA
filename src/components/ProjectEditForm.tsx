@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 
 import type { Project, ProjectUpdate } from "../types/api";
 import { optionalText } from "../utils/format";
+import { LiveForm } from "./ui/LiveForm";
 
 interface ProjectEditFormProps {
     project: Project;
@@ -25,7 +26,7 @@ export function ProjectEditForm({ project, onSave, onCancel }: ProjectEditFormPr
     }
 
     return (
-        <form className="form-row" onSubmit={handleSubmit}>
+        <LiveForm className="form-row" onSubmit={handleSubmit}>
             <label>
                 Nombre
                 <input
@@ -57,6 +58,6 @@ export function ProjectEditForm({ project, onSave, onCancel }: ProjectEditFormPr
             <button type="button" className="button-secondary" onClick={onCancel}>
                 Cancelar
             </button>
-        </form>
+        </LiveForm>
     );
 }

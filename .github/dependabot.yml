@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    # Versions are pinned exactly, so every update is an explicit pull request.
+    versioning-strategy: increase
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom", "react-router"]
+      three:
+        patterns: ["three", "@types/three"]
+      pruebas:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "jsdom", "jest-axe", "@types/jest-axe", "@playwright/test", "playwright-core", "axe-core"]
+      estilo:
+        patterns: ["eslint", "@eslint/*", "eslint-*", "typescript-eslint", "prettier", "globals"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci

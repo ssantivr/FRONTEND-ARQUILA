@@ -1,0 +1,368 @@
+/* 3D editor: the viewer takes the height of the window and its panels read as instruments. */
+
+/* ---- 3D viewer status ---- */
+
+.hud-status {
+    gap: var(--space-1) var(--space-3);
+    font-size: var(--fs-12);
+}
+
+.hud-save::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+}
+
+.hud-save-saved::before {
+    background: var(--success);
+}
+
+.hud-save-saving::before {
+    background: var(--warning);
+}
+
+.hud-save-error {
+    color: var(--error);
+}
+
+.hud-save-error::before {
+    background: var(--error);
+}
+
+/* ---- The section around the viewer: a title line and a help popover, no box ---- */
+
+.viewer-section {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+.viewer-section-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.viewer-section-head h2 {
+    margin: 0;
+    font-size: var(--fs-20);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.help > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--control-sm);
+    padding: 0 10px;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition:
+        color var(--dur-fast) var(--ease-out),
+        border-color var(--dur-fast) var(--ease-out);
+}
+
+.help > summary::-webkit-details-marker {
+    display: none;
+}
+
+.help > summary:hover,
+.help[open] > summary {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+.help > summary .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.help > p {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    width: min(420px, 100%);
+    margin: 0;
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: var(--fs-13);
+    line-height: 1.5;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-float);
+}
+
+/* ---- Stage ---- */
+
+.structure-stage {
+    margin-top: 0;
+    border-radius: var(--r-lg);
+}
+
+/* Header, tabs and the title line stay in view; the scene takes the rest of the window below
+   where it starts (--viewer-top, measured by StructureViewer). */
+.structure-viewer {
+    height: calc(100dvh - var(--viewer-top, calc(var(--header-height) + 132px)) - 16px);
+    min-height: 440px;
+}
+
+.hud-layer {
+    inset: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 8px;
+    padding: 10px 10px 0;
+    color: var(--text);
+}
+
+/* ---- Panels: compact, dark, 12 and 13px type ---- */
+
+.hud {
+    padding: 8px 10px;
+    font-size: var(--fs-13);
+    background: rgba(8, 22, 16, 0.92);
+    border-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--r-md);
+    box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+}
+
+.hud summary {
+    font-size: var(--fs-12);
+    letter-spacing: 0.08em;
+}
+
+.hud-levels {
+    width: 216px;
+}
+
+.hud-dock {
+    width: 232px;
+    gap: 8px;
+}
+
+.hud-item {
+    min-height: 28px;
+    padding: 3px 8px;
+    font-size: var(--fs-13);
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: var(--r-sm);
+    transition:
+        background-color var(--dur-fast) var(--ease-out),
+        border-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
+}
+
+.hud-item[aria-pressed="true"] {
+    color: var(--lime-contrast);
+    background: var(--lime);
+    border-color: var(--lime);
+}
+
+.hud-readout,
+.hud-count,
+.hud h3,
+.hud h4,
+.hud-works small {
+    font-size: var(--fs-12);
+}
+
+.hud :is(input:not([type="range"], [type="checkbox"]), select) {
+    min-height: 28px;
+    font-size: var(--fs-13);
+    border-radius: var(--r-sm);
+}
+
+.hud .checkbox {
+    font-size: var(--fs-13);
+}
+
+/* ---- View bar: icons on one row ---- */
+
+.hud-views {
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.hud-views .hud-item {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0 8px;
+    justify-content: center;
+}
+
+.hud-views .hud-item .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.hud-views .hud-readout {
+    min-width: 46px;
+    padding: 0 2px;
+    color: var(--text);
+    text-align: center;
+}
+
+.hud-divider {
+    flex: none;
+    width: 1px;
+    height: 18px;
+    margin: 0 4px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+/* ---- Toolbar and the status bar fixed along the bottom ---- */
+
+.hud-toolbar {
+    grid-area: 3 / 1 / 4 / -1;
+    padding: 6px 8px;
+}
+
+.hud.hud-status {
+    display: flex;
+    grid-area: 4 / 1 / 5 / -1;
+    align-items: center;
+    gap: 0;
+    min-height: 30px;
+    margin: 0 -10px;
+    padding: 0 12px;
+    overflow-x: auto;
+    font-size: var(--fs-12);
+    background: rgba(5, 15, 11, 0.96);
+    border-width: 1px 0 0;
+    border-radius: 0;
+    box-shadow: none;
+    scrollbar-width: none;
+}
+
+.hud-status .hud-readout {
+    padding: 0 12px;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hud-status .hud-readout:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.hud-status .hud-status-selection {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.hud-status .hud-save {
+    margin-left: auto;
+}
+
+/* With less room the view buttons keep only their icon; the name stays for screen readers. */
+@media (max-width: 1680px) {
+    .hud-views .hud-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 720px) {
+    .structure-viewer {
+        height: min(62vh, 480px);
+        min-height: 300px;
+    }
+
+    .hud-layer {
+        padding: 0;
+        background: var(--viewport-deep);
+    }
+
+    .hud {
+        border-radius: 0;
+    }
+
+    .hud.hud-status {
+        margin: 0;
+    }
+
+    .hud-levels,
+    .hud-works,
+    .hud-dock {
+        width: auto;
+    }
+
+    .hud-item,
+    .hud-views .hud-item {
+        min-height: 44px;
+    }
+
+    .hud-views .hud-item {
+        min-width: 44px;
+    }
+}
+
+/* ---- Orientation gizmo: the axes of the plan, turning with the camera ---- */
+
+.hud-gizmo {
+    grid-area: 2 / 2;
+    align-self: end;
+    justify-self: start;
+    width: 72px;
+    height: 72px;
+    pointer-events: none;
+}
+
+.hud-gizmo-disc {
+    fill: rgba(8, 22, 16, 0.72);
+    stroke: rgba(255, 255, 255, 0.14);
+}
+
+.hud-gizmo line {
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.hud-gizmo text {
+    fill: var(--gizmo-ground);
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.hud-gizmo-x :is(line, circle) {
+    stroke: var(--axis-x);
+    fill: var(--axis-x);
+}
+
+.hud-gizmo-y :is(line, circle) {
+    stroke: var(--axis-y);
+    fill: var(--axis-y);
+}
+
+.hud-gizmo-z :is(line, circle) {
+    stroke: var(--lime);
+    fill: var(--lime);
+}
+
+@media (max-width: 720px) {
+    .hud-gizmo {
+        display: none;
+    }
+}

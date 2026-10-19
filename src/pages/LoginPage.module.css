@@ -1,0 +1,147 @@
+/* A sober form without a card: title, one line of context, the fields and one action. */
+.login {
+    width: 100%;
+    max-width: 400px;
+    margin: 0;
+}
+
+.title {
+    margin: 0;
+    font-size: var(--fs-30);
+    font-weight: 720;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+}
+
+.lead {
+    margin: var(--space-2) 0 var(--space-6);
+    color: var(--text-secondary);
+}
+
+.form {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.form label {
+    display: grid;
+    gap: 6px;
+    font-size: var(--fs-13);
+    font-weight: 550;
+}
+
+.form input {
+    min-height: 48px;
+    padding: 0 var(--space-4);
+    font-size: var(--fs-14);
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.form input:hover {
+    border-color: var(--border-strong);
+}
+
+/* The eye sits inside the field, at its right end. */
+.password {
+    position: relative;
+}
+
+.password input {
+    padding-right: 52px;
+}
+
+.reveal {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    min-height: 0;
+    padding: 0;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--r-sm);
+    box-shadow: none;
+}
+
+.reveal:hover {
+    color: var(--text);
+    background: var(--hover);
+}
+
+.reveal[aria-pressed="true"] {
+    color: var(--accent);
+}
+
+.hint {
+    margin: calc(var(--space-2) * -1) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+}
+
+.link {
+    justify-self: start;
+    min-height: 0;
+    padding: 2px 0;
+    color: var(--accent);
+    font-size: var(--fs-13);
+    font-weight: 600;
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+    background: none;
+}
+
+.form > .link {
+    justify-self: end;
+    margin-top: calc(var(--space-2) * -1);
+}
+
+.notice,
+.error {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-3);
+    border-radius: var(--r-sm);
+}
+
+.notice {
+    color: var(--text);
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--success) 40%, transparent);
+}
+
+.error {
+    background: color-mix(in srgb, var(--error) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+}
+
+.notice :global(.icon) {
+    color: var(--success);
+}
+
+.submit {
+    min-height: 50px;
+    margin-top: var(--space-2);
+    font-size: var(--fs-16);
+    font-weight: 650;
+}
+
+.switch {
+    margin: var(--space-6) 0 0;
+    padding-top: var(--space-4);
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    border-top: 1px solid var(--border);
+}

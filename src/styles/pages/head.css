@@ -1,0 +1,48 @@
+/* Page head: a typographic title with its figures and the page's actions. */
+
+/* ---- Page head: a typographic title with its figures and the page's actions, no box ---- */
+
+.page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 32px;
+    padding: 12px 0 4px;
+}
+
+.page-head h2 {
+    margin: 0;
+    font-size: clamp(32px, 3.4vw, 44px);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+}
+
+.page-head-meta {
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.page-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.page-head-actions button {
+    min-height: var(--control-lg);
+    padding: 0 20px;
+    border-radius: var(--r-md);
+}
+
+.create-panel {
+    border-color: var(--accent);
+    box-shadow: var(--ring), var(--shadow);
+    animation: rise-in var(--dur-slow) var(--ease-out) both;
+}

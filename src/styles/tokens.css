@@ -1,0 +1,218 @@
+/*
+ * Design tokens. Every colour, size, radius, shadow and duration of the interface is defined here;
+ * the other style sheets only use these variables. `npm run contraste` checks the text pairs.
+ */
+
+:root,
+[data-theme="light"] {
+    /* Surfaces: a very light grey ground, white panels and a raised tone between the two. */
+    --bg: #f4f6f2;
+    --bg-secondary: #ffffff;
+    --panel: #ffffff;
+    --panel-raised: #f8faf6;
+    --border: #dfe5de;
+    --border-strong: #7d8a80;
+    --viewport: #eef1ec;
+
+    /* Text */
+    --text: #17211b;
+    --text-secondary: #68736b;
+    --text-muted: #4d5850;
+
+    /* Interaction green and the lime accent */
+    --accent: #236b42;
+    --accent-contrast: #ffffff;
+    --accent-soft: rgba(35, 107, 66, 0.1);
+    --accent-alt: #236b42;
+    --primary: #236b42;
+    --primary-contrast: #ffffff;
+    --hover: rgba(23, 33, 27, 0.06);
+    --vignette: rgba(11, 33, 26, 0.1);
+
+    /* States */
+    --success: #1a7145;
+    --warning: #8a5d00;
+    --error: #b3261e;
+
+    /* Two shadow levels: resting cards and floating layers. Both stay soft: edges come from the
+       1 px borders, as on a drawing sheet. */
+    --shadow: 0 1px 2px rgba(11, 33, 26, 0.05);
+    --shadow-float: 0 1px 2px rgba(11, 33, 26, 0.06), 0 12px 28px -12px rgba(11, 33, 26, 0.22);
+    /* Panels laid over the 3D scene are solid, not translucent. */
+    --glass: #ffffff;
+    --glass-border: rgba(23, 33, 27, 0.14);
+    --ring: 0 0 0 3px rgba(35, 107, 66, 0.24);
+
+    color-scheme: light;
+}
+
+/* The interior walkthrough is a dusk scene, so its overlays keep the dark tokens in both themes. */
+[data-theme="dark"],
+.interior-stage {
+    --bg: #050f0b;
+    --bg-secondary: #0a1b14;
+    --panel: #0d241b;
+    --panel-raised: #163f2e;
+    --border: #23533f;
+    --border-strong: #5a8570;
+    --viewport: #07140f;
+
+    --text: #eef3ee;
+    --text-secondary: #a6b8ab;
+    --text-muted: #a6b8ab;
+
+    --accent: #b8f36b;
+    --accent-contrast: #0b211a;
+    --accent-soft: rgba(184, 243, 107, 0.12);
+    --accent-alt: #b8f36b;
+    --primary: #b8f36b;
+    --primary-contrast: #0b211a;
+    --hover: rgba(255, 255, 255, 0.06);
+    --vignette: rgba(0, 0, 0, 0.4);
+
+    --success: #6fdc9b;
+    --warning: #f2c35b;
+    --error: #ff8a80;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 32px -14px rgba(0, 0, 0, 0.6);
+    --glass: #0d241b;
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --ring: 0 0 0 3px rgba(184, 243, 107, 0.28);
+
+    color-scheme: dark;
+}
+
+/* Values that are the same in both themes. */
+:root {
+    /* Brand: the forest of the sidebar and the bands, and the lime of the main action. */
+    --forest: #0b211a;
+    --forest-raised: #12382a;
+    --forest-text: #d5e2d8;
+    --lime: #b8f36b;
+    --lime-hover: #c9f78d;
+    --lime-contrast: #0b211a;
+    --white: #ffffff;
+    --sidebar-top: #0c261d;
+    --sidebar-bottom: #06150f;
+    --scrim: rgba(5, 15, 11, 0.6);
+
+    /* Overlays of the 3D scene, which are dark in both themes. */
+    --on-scene: #eef3ee;
+    --viewport-deep: #08160f;
+    --gizmo-ground: #06110c;
+    --axis-x: #ff8a80;
+    --axis-y: #8ab4ff;
+
+    /* Neon: only the selection outline of the 3D viewer and the accent lights of its dark scene. */
+    --neon-cyan: #00f0ff;
+    --neon-magenta: #ff007f;
+
+    /* Work layers drawn over the 3D model; structure and installations use the two neons. */
+    --work-finishes: #ffc857;
+    --work-demolition: #ff5c7a;
+
+    /* Illustrations (empty states and the vector house). */
+    --art-ink: #0f2e22;
+    --art-paper: #e9eee6;
+    --art-stone: #b9c6b8;
+    --art-wood: #a8794f;
+    --art-glass: #7fb2a0;
+    --art-leaf: #236b42;
+    --art-leaf-light: #2f8a56;
+    --art-hill: #17432f;
+
+    /* Project covers, drawn like the elevation of a sheet. */
+    --cover-1: #0d2a20;
+    --cover-2: #0f3024;
+    --cover-3: #0b241b;
+    --cover-4: #11362a;
+    --cover-line: #e3efe5;
+
+    /* Type: Inter for the interface, JetBrains Mono for figures. */
+    --font-sans: "Inter Variable", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono:
+        "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "Cascadia Mono", "Consolas",
+        monospace;
+    --fs-12: 12px;
+    --fs-13: 13px;
+    --fs-14: 14px;
+    --fs-16: 16px;
+    --fs-18: 18px;
+    --fs-20: 20px;
+    --fs-24: 24px;
+    --fs-30: 30px;
+    --fs-36: 36px;
+    --fs-label: var(--fs-12);
+
+    /* Spacing in multiples of 4 px. */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 40px;
+    --space-8: 48px;
+
+    /* Radii: controls, cards and dialogs. */
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+    --r-pill: 999px;
+    --radius: var(--r-md);
+    --radius-sm: var(--r-sm);
+
+    --touch-target: 44px;
+    --icon-sm: 14px;
+    --icon-md: 18px;
+    --z-tooltip: 60;
+    --z-overlay: 100;
+    --control-sm: 32px;
+    --control-md: 40px;
+    --control-lg: 48px;
+    --control-height: var(--control-md);
+    --control-height-sm: var(--control-sm);
+    /* Rows of tables and lists. The compact density (data-density on <html>) tightens them. */
+    --row-height: 44px;
+    --row-head-height: 36px;
+    --header-height: 68px;
+    --sidebar-width: 248px;
+    --mobile-nav-height: 64px;
+
+    /* Motion: three durations. The curves and keyframes are in motion.css. */
+    --dur-fast: 120ms;
+    --dur: 180ms;
+    --dur-slow: 240ms;
+
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Compact density: shorter rows and controls, for screens full of data. */
+:root[data-density="compact"] {
+    --row-height: 36px;
+    --row-head-height: 32px;
+    --control-height: var(--control-sm);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+h1,
+h2,
+.brand {
+    font-family: inherit;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+}

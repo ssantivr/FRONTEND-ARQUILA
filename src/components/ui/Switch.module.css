@@ -1,0 +1,23 @@
+/* The track and the knob are the global `input.switch` (pages/settings.css), already in use. */
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--touch-target);
+}
+
+.text {
+    display: grid;
+    gap: 2px;
+}
+
+.label {
+    font-weight: 550;
+    cursor: pointer;
+}
+
+.description {
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+}

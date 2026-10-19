@@ -1,7 +1,7 @@
 import { useAsync } from "../hooks/useAsync";
 import { terrainsApi } from "../services/api";
 import { AsyncStatus } from "./AsyncStatus";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { SitePlan } from "./SitePlan";
 
 export function SitePlanPanel({ projectId }: { projectId: number }) {

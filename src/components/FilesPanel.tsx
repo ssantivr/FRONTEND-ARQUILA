@@ -5,7 +5,7 @@ import type { ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatFileSize } from "../utils/format";
 import { FileViewer } from "./FileViewer";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 
 const TYPE_LABELS: Record<string, string> = {
     "application/pdf": "PDF",

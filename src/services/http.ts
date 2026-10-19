@@ -76,11 +76,28 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
         throw new ApiError(response.status, await readErrorMessage(response));
     }
 
+    if (method !== "GET") {
+        for (const listener of writeListeners) {
+            listener();
+        }
+    }
+
     if (response.status === 204) {
         return undefined as T;
     }
 
     return (await response.json()) as T;
+}
+
+const writeListeners = new Set<() => void>();
+
+/** Runs `listener` after every request that changed something on the server. */
+export function onWrite(listener: () => void): () => void {
+    writeListeners.add(listener);
+
+    return () => {
+        writeListeners.delete(listener);
+    };
 }
 
 export async function upload<T>(path: string, file: File): Promise<T> {

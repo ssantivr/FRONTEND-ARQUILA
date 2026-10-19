@@ -1,0 +1,12 @@
+/* The message LiveForm writes under a field that is not right. */
+.error {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--error);
+    font-size: var(--fs-12);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-transform: none;
+    animation: fade-in var(--dur) var(--ease-out) both;
+}

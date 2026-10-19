@@ -1,0 +1,218 @@
+/* Cross-cutting detail: focus, selection, scrollbars, status badges, empty and loading states. */
+
+/* ---- Keyboard focus: a lime ring over a dark one, so it shows on light and on dark ---- */
+
+:is(button, a, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--lime);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--forest);
+}
+
+::selection {
+    color: var(--lime-contrast);
+    background: color-mix(in srgb, var(--lime) 62%, transparent);
+}
+
+* {
+    scrollbar-color: color-mix(in srgb, var(--text-secondary) 45%, transparent) transparent;
+    scrollbar-width: thin;
+}
+
+button {
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-out);
+}
+
+/* ---- Status badge: an icon and a word ---- */
+
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px 2px 6px;
+    font-size: var(--fs-label);
+    line-height: 16px;
+    border-radius: var(--r-sm);
+}
+
+.badge-status .icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2;
+}
+
+/* ---- Empty state: drawing, title, one sentence and the next step ---- */
+
+.empty-state {
+    gap: 8px;
+    padding: 40px 20px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: var(--r-lg);
+}
+
+.empty-art {
+    width: 96px;
+    height: 64px;
+    margin-bottom: 4px;
+    stroke-width: 1.5;
+    opacity: 1;
+}
+
+.empty-art-ground,
+.empty-art-soft {
+    stroke: var(--border-strong);
+}
+
+.empty-art-fill {
+    fill: var(--accent-soft);
+    stroke: none;
+}
+
+.empty-title {
+    margin: 0;
+    font-size: var(--fs-16);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.empty-state .message {
+    max-width: 46ch;
+    font-size: var(--fs-14);
+}
+
+.empty-state > button {
+    margin-top: 8px;
+}
+
+:is(.hud, .modal, td) .empty-title {
+    display: none;
+}
+
+/* ---- Loading: placeholders with the shape of what is coming ---- */
+
+.skeleton-cards,
+.skeleton-rows {
+    margin: 0;
+}
+
+:is(.skeleton-cards, .skeleton-rows) .skeleton-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.skeleton-cards {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.skeleton-cards .skeleton-bar,
+.skeleton-cards .skeleton-bar:nth-child(n) {
+    width: auto;
+    height: 266px;
+    border-radius: var(--r-lg);
+}
+
+.skeleton-rows {
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+.skeleton-rows .skeleton-bar,
+.skeleton-rows .skeleton-bar:nth-child(n) {
+    width: auto;
+    height: 56px;
+    background-clip: content-box;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    padding: 16px;
+}
+
+.skeleton-rows .skeleton-bar:last-child {
+    border-bottom: 0;
+}
+
+/* ---- A drafting grid under the work area: barely there, but it reads as a drawing board ---- */
+
+.workspace {
+    /* Faint enough that muted text over a line still meets AA. */
+    --grid-line: rgba(23, 33, 27, 0.022);
+
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+:root[data-theme="dark"] .workspace {
+    --grid-line: rgba(255, 255, 255, 0.022);
+}
+
+/* ---- Panels, tables and forms of the project tabs, in the same language as the new pages ---- */
+
+.panel {
+    border-radius: var(--r-lg);
+}
+
+.panel-header h2 {
+    font-size: var(--fs-18);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+}
+
+:is(input, select, textarea) {
+    border-radius: var(--r-md);
+}
+
+.panel table {
+    font-size: var(--fs-14);
+}
+
+.panel th {
+    height: var(--row-head-height);
+    padding: 0 12px;
+    font-size: var(--fs-label);
+    letter-spacing: 0.08em;
+}
+
+.panel td {
+    height: var(--row-height);
+    padding: 4px 12px;
+}
+
+.panel tbody tr {
+    transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.panel td button {
+    min-height: 28px;
+    padding: 2px 10px;
+    font-size: var(--fs-13);
+    border-radius: var(--r-sm);
+}
+
+/* The form that adds a row sits under its table, set apart by a hairline and a quiet surface. */
+.panel :is(table, .empty-state, ul, .skeleton) + .form-row,
+.panel > .form-row:last-child {
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.form-row label {
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.message {
+    font-size: var(--fs-14);
+    line-height: 1.5;
+}

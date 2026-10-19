@@ -13,6 +13,7 @@ import {
     frontElevation,
     parsePoints,
     polygonArea,
+    selfIntersection,
 } from "./geometry";
 
 const L_SHAPE = [
@@ -226,5 +227,75 @@ describe("parsePoints", () => {
 
     it("round-trips with formatPoints", () => {
         expect(parsePoints(formatPoints(L_SHAPE))).toEqual({ points: L_SHAPE });
+    });
+});
+
+describe("selfIntersection", () => {
+    it("accepts simple outlines, convex or not, in either direction", () => {
+        expect(selfIntersection(L_SHAPE)).toBeNull();
+        expect(selfIntersection([...L_SHAPE].reverse())).toBeNull();
+        expect(
+            selfIntersection([
+                { x: 0, y: 0 },
+                { x: 10, y: 0 },
+                { x: 5, y: 8 },
+            ]),
+        ).toBeNull();
+    });
+
+    it("finds the two sides of a bow tie that cross", () => {
+        const bowTie = [
+            { x: 0, y: 0 },
+            { x: 10, y: 10 },
+            { x: 10, y: 0 },
+            { x: 0, y: 10 },
+        ];
+
+        expect(selfIntersection(bowTie)).toEqual([1, 3]);
+    });
+
+    it("finds a side that folds back over the one before it", () => {
+        expect(
+            selfIntersection([
+                { x: 0, y: 0 },
+                { x: 10, y: 0 },
+                { x: 4, y: 0 },
+                { x: 4, y: 6 },
+            ]),
+        ).toEqual([1, 2]);
+    });
+
+    it("finds an outline that touches itself at a vertex", () => {
+        expect(
+            selfIntersection([
+                { x: 0, y: 0 },
+                { x: 10, y: 0 },
+                { x: 5, y: 5 },
+                { x: 10, y: 10 },
+                { x: 0, y: 10 },
+                { x: 5, y: 5 },
+            ]),
+        ).not.toBeNull();
+    });
+});
+
+describe("parsePoints with an outline that crosses itself", () => {
+    it("says which sides cross and how to fix it", () => {
+        const result = parsePoints("0 0\n10 10\n10 0\n0 10");
+
+        expect(result).toEqual({
+            error: "El contorno se cruza a sí mismo: el lado 1 toca o corta al lado 3. Escribe los vértices en el orden en que se recorre el borde del lote.",
+        });
+    });
+
+    it("still accepts the same corners written in order", () => {
+        expect(parsePoints("0 0\n10 0\n10 10\n0 10")).toEqual({
+            points: [
+                { x: 0, y: 0 },
+                { x: 10, y: 0 },
+                { x: 10, y: 10 },
+                { x: 0, y: 10 },
+            ],
+        });
     });
 });

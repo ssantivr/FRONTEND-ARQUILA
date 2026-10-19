@@ -1,0 +1,85 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    background: var(--scrim);
+    animation: fade-in var(--dur-slow) var(--ease-out);
+}
+
+.dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: var(--z-overlay);
+    display: flex;
+    flex-direction: column;
+    max-height: 88vh;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-float);
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    animation: dialog-in var(--dur-slow) var(--ease-out);
+}
+
+.viewer {
+    width: min(960px, 94vw);
+    height: 88vh;
+}
+
+.compact {
+    width: min(560px, 94vw);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+}
+
+.title {
+    margin: 0;
+    font-size: var(--fs-16);
+    font-weight: 650;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.viewer .body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3);
+}
+
+.compact .body {
+    padding: var(--space-4);
+}
+
+/* Leaving is quicker than arriving. Radix keeps both mounted until this ends. */
+.overlay[data-state="closed"] {
+    animation: fade-out var(--dur-fast) var(--ease-in) both;
+}
+
+.dialog[data-state="closed"] {
+    animation: dialog-out var(--dur-fast) var(--ease-in) both;
+}

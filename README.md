@@ -11,7 +11,7 @@ ARQUILA
 
 ## Tecnología
 
-TypeScript, React 18 y Vite, con Three.js para el modelo 3D. Vitest y Testing Library para las pruebas; ESLint y Prettier para el estilo.
+TypeScript, React 18 y Vite, con React Router para las direcciones, Three.js para el modelo 3D, lucide-react para los iconos y Radix Dialog para las ventanas. Vitest y Testing Library para las pruebas; ESLint y Prettier para el estilo. Playwright (`playwright-core`, solo en desarrollo) genera las capturas con el navegador ya instalado.
 
 ## Requisitos
 
@@ -25,7 +25,19 @@ npm install
 npm run dev
 ```
 
-La interfaz queda en `http://localhost:5173`.
+La interfaz queda en `http://localhost:5173`. Cada pantalla tiene su dirección (`/proyectos`, `/proyectos/7/modelo-3d`, `/terrenos`…), así que se puede enlazar a un proyecto o a una de sus pestañas.
+
+## Atajos de teclado
+
+| Tecla | Qué hace |
+|---|---|
+| `Ctrl+K` o `⌘K` | Abre la paleta de comandos: pantallas, proyectos y acciones. |
+| `/` | Lleva el cursor al buscador de proyectos. |
+| `1` a `4` | En el modelo 3D: vista isométrica, frontal, lateral y superior. |
+| `F` | Enfoca lo seleccionado. |
+| `I` | Aísla el cuarto seleccionado, o vuelve a mostrar todo. |
+| `Esc` | Retrocede un paso: vista interior, cuarto aislado, selección. |
+| `?` | Muestra esta lista dentro del visor. |
 
 ## Conexión con el backend
 
@@ -49,7 +61,8 @@ La sesión viaja en una cookie `HttpOnly` que pone el backend; la interfaz no gu
 ```text
 src/
 ├── pages/        Pantallas
-├── components/   Paneles, planos y visores
+├── components/   Paneles, planos y visores (ui/: componentes compartidos)
+├── styles/       Tokens y estilos por área, importados en orden desde main.tsx
 ├── three/        Escenas 3D
 ├── services/     Cliente HTTP y llamadas a la API
 ├── state/        Estado de la aplicación y tema
@@ -63,17 +76,30 @@ src/
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Servidor de desarrollo. |
+| `npm run demo` | La app con los datos de muestra de Casa Mirador y sin backend, en http://localhost:5174/ (MSW). |
 | `npm run build` | Comprueba los tipos y compila en `dist/`. |
 | `npm run preview` | Sirve la compilación. |
 | `npm test` | Pruebas. |
+| `npm run test:cobertura` | Pruebas con los umbrales de cobertura (globales y por archivo). |
+| `npm run test:e2e` | Flujos en el navegador con Playwright, con datos de muestra. |
+| `npm run typecheck` | Comprueba los tipos. |
+| `npm run local:wasm` | Solo en Windows con Smart App Control: Rollup en WebAssembly, sin tocar el repositorio (ver `CONTRIBUTING.md`). |
 | `npm run lint` | Reglas de ESLint. |
 | `npm run format` / `npm run format:check` | Formato con Prettier. |
+| `npm run contraste` | Comprueba el contraste AA (4,5:1) de cada par texto/fondo de los tokens, en claro y oscuro. |
+| `npm run movimiento` | Con `npm run dev` en marcha, comprueba en el navegador que con movimiento reducido nada se anima y que ninguna pantalla salta al cargar. |
+| `npm run accesibilidad` | Con `npm run dev` en marcha, pasa axe-core por las pantallas principales. |
+| `npm run capturas` | Con `npm run dev` en marcha, guarda en `docs/capturas/` las pantallas principales (claro y oscuro, a 1280, 820 y 390 px) y comprueba con clics reales el visor 3D. Usa datos de muestra, sin backend. |
 
 Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar con `demo@example.com`, contraseña `arquila-demo` (credencial pública, solo para desarrollo).
 
 ## Documentación
 
-- `docs/FRONTEND.md`: decisiones de la interfaz (esquemas del terreno, planos, modelo 3D, estados de carga, pantallas pequeñas y accesibilidad).
+- `CONTRIBUTING.md`: los comandos exactos para comprobar en local lo mismo que CI, incluido el arreglo para Windows.
+- `docs/FRONTEND.md`: decisiones de la interfaz (direcciones, sistema de diseño, esquemas del terreno, planos, modelo 3D, estados de carga, pantallas pequeñas, accesibilidad y lo que queda pendiente de backend).
+- `docs/DISENO_ARQUILA.md`: la especificación de diseño que sigue la interfaz.
+- `docs/capturas/`: capturas de las pantallas principales.
+- `/design-system` (solo con `npm run dev`): todos los componentes compartidos en los dos temas.
 - Las decisiones de la API están en `docs/BACKEND_Y_API.md` del repositorio [BACKEND-ARQUILA](https://github.com/ssantivr/BACKEND-ARQUILA).
 - La documentación general del proyecto está en el repositorio [ARQUILA](https://github.com/ssantivr/ARQUILA).
 

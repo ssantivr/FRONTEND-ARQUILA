@@ -36,8 +36,8 @@ const STEPS = 16;
 const STAIR_FLIGHTS = [0, 1, 2, 3];
 const RAIL = 1;
 const CAMERA_MARGIN = 0.35;
-const CYAN = 0x00f0ff;
-const MAGENTA = 0xff007f;
+const LIME = 0xb8f36b;
+const AMBER = 0xffb86b;
 const WARM = 0xffc38a;
 const NEON_BOOST = 3.6;
 const NEON_SIZE = 0.035;
@@ -156,8 +156,8 @@ export function buildLoftScene(): LoftScene {
         depthWrite: false,
     });
     const bulb = neonMaterial(WARM);
-    const cyan = neonMaterial(CYAN);
-    const magenta = neonMaterial(MAGENTA);
+    const cyan = neonMaterial(LIME);
+    const magenta = neonMaterial(AMBER);
 
     const shell = createAssembler();
     const width = HALF_WIDTH * 2;
@@ -318,8 +318,8 @@ export function buildLoftScene(): LoftScene {
         lamps.add(light);
     }
 
-    const cyanLight = new PointLight(CYAN, 7, 9, 1.8);
-    const magentaLight = new PointLight(MAGENTA, 7, 9, 1.8);
+    const cyanLight = new PointLight(LIME, 5, 9, 1.8);
+    const magentaLight = new PointLight(AMBER, 5, 9, 1.8);
 
     cyanLight.position.set(-HALF_WIDTH + 0.5, MEZZANINE_Y, -1.5);
     magentaLight.position.set(1.6, 4.4, HALF_DEPTH - 0.6);

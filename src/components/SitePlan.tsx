@@ -2,8 +2,12 @@ import { useRef, useState } from "react";
 
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
-import { bounds, edges, footprint, insetBounds } from "../utils/geometry";
-import { downloadSvg } from "../utils/svg";
+import { readSiteSettings, saveTerrainSite } from "../state/siteSettings";
+import { bounds, edges, footprint, type Point } from "../utils/geometry";
+import { buildableArea } from "../utils/polygons";
+import { downloadSvg, printSvg } from "../utils/svg";
+import { SHEET_COLORS } from "../utils/drawingPalette";
+import { PlanViewport } from "./PlanViewport";
 
 const VIEW_WIDTH = 470;
 const VIEW_HEIGHT = 330;
@@ -19,16 +23,7 @@ const NORTH_Y = 245;
 const NORTH_SIZE = 24;
 const DEFAULT_SETBACK = 3;
 
-const COLORS = {
-    background: "#fbfaf7",
-    text: "#1c2430",
-    muted: "#5b6675",
-    boundary: "#1c2430",
-    free: "rgba(47, 125, 79, 0.16)",
-    buildable: "rgba(31, 78, 121, 0.2)",
-    buildableLine: "#1f4e79",
-    access: "#8a5d00",
-};
+const COLORS = SHEET_COLORS;
 
 const NORTH_OPTIONS = [
     { angle: 0, label: "El fondo" },
@@ -44,59 +39,47 @@ function download(svg: SVGSVGElement, name: string) {
     downloadSvg(svg, `implantacion-${name}`);
 }
 
-export function printableDocument(svgSource: string, title: string): string {
-    const safeTitle = title.replace(/[&<>]/g, "");
-
-    return (
-        `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>${safeTitle}</title>` +
-        "<style>@page{size:A4 landscape;margin:12mm}html,body{height:100%;margin:0}" +
-        "body{display:flex;align-items:center;justify-content:center}" +
-        "svg{width:100%;height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-        `</style></head><body>${svgSource}</body></html>`
-    );
-}
-
 function print(svg: SVGSVGElement, name: string) {
-    const frame = document.createElement("iframe");
-
-    frame.style.position = "fixed";
-    frame.style.width = "0";
-    frame.style.height = "0";
-    frame.style.border = "0";
-    frame.srcdoc = printableDocument(
-        new XMLSerializer().serializeToString(svg),
-        `Plano de implantación — ${name}`,
-    );
-    frame.onload = () => {
-        const target = frame.contentWindow;
-
-        if (target === null) {
-            frame.remove();
-            return;
-        }
-
-        target.onafterprint = () => frame.remove();
-        target.focus();
-        target.print();
-    };
-    document.body.append(frame);
+    printSvg(svg, `Plano de implantación — ${name}`);
 }
 
-function initialSetback(terrain: Terrain): number {
-    if (terrain.width_m === null || terrain.length_m === null) {
+const SETBACK_STEP = 0.5;
+
+/**
+ * The setback a plan opens with: 3 m, or the widest one under it that still leaves ground to
+ * build on, so a narrow lot does not open with nothing buildable.
+ */
+function initialSetback(shape: Point[] | null): number {
+    if (shape === null) {
         return DEFAULT_SETBACK;
     }
 
-    const quarter = Math.min(terrain.width_m, terrain.length_m) / 4;
+    for (let setback = DEFAULT_SETBACK; setback > 0; setback -= SETBACK_STEP) {
+        if (buildableArea(shape, setback).area > 0) {
+            return setback;
+        }
+    }
 
-    return Math.min(DEFAULT_SETBACK, Math.floor(quarter * 2) / 2);
+    return 0;
 }
 
 export function SitePlan({ terrain }: { terrain: Terrain }) {
-    const [setback, setSetback] = useState(() => initialSetback(terrain));
-    const [north, setNorth] = useState(0);
-    const svg = useRef<SVGSVGElement>(null);
     const shape = footprint(terrain);
+    // The setback and north the user chose come back when the plan is opened again.
+    const [saved] = useState(() => readSiteSettings(terrain.project_id).terrains[terrain.id] ?? {});
+    const [setback, setSetback] = useState(() => saved.setback ?? initialSetback(shape));
+    const [north, setNorth] = useState(saved.north ?? 0);
+    const svg = useRef<SVGSVGElement>(null);
+
+    function changeSetback(next: number) {
+        setSetback(next);
+        saveTerrainSite(terrain.project_id, terrain.id, { setback: next });
+    }
+
+    function changeNorth(next: number) {
+        setNorth(next);
+        saveTerrainSite(terrain.project_id, terrain.id, { north: next });
+    }
 
     if (shape === null) {
         return (
@@ -119,12 +102,8 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
     const toX = (x: number) => left + (x - box.minX) * scale;
     const toY = (y: number) => top + (box.maxY - y) * scale;
 
-    const rectangular = terrain.points.length < 3;
-    const buildable = rectangular ? insetBounds(box, setback) : null;
-    const buildableArea =
-        buildable === null
-            ? null
-            : (buildable.maxX - buildable.minX) * (buildable.maxY - buildable.minY);
+    // The same calculation for a rectangle and for a lot drawn by its vertices.
+    const buildable = buildableArea(shape, setback);
 
     const front = shape.filter((point) => point.y === box.minY);
     const accessX = toX(front.reduce((sum, point) => sum + point.x, 0) / front.length);
@@ -136,147 +115,158 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
     const letterX = NORTH_X + Math.sin(radians) * (NORTH_SIZE + 10);
     const letterY = NORTH_Y - Math.cos(radians) * (NORTH_SIZE + 10);
 
-    const summary =
-        buildableArea === null
-            ? `Área del lote: ${formatNumber(terrain.area_m2)} m²`
-            : `Área del lote: ${formatNumber(terrain.area_m2)} m² · Área edificable: ${formatNumber(buildableArea)} m²`;
+    const summary = `Área del lote: ${formatNumber(terrain.area_m2)} m² · Área edificable: ${formatNumber(buildable.area)} m²`;
 
     return (
         <figure className="terrain-diagrams">
             <figcaption>{terrain.name}</figcaption>
             <div className="diagram site-plan">
-                <svg
-                    ref={svg}
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-                    role="img"
-                    aria-label={`Plano de implantación de ${terrain.name}: lote de ${formatNumber(width)} por ${formatNumber(height)} metros. ${summary}`}
-                >
-                    <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={COLORS.background} />
-                    <text x={DRAW_LEFT - 30} y={24} {...TEXT} fontSize={13}>
-                        Plano de implantación — {terrain.name}
-                    </text>
-                    <polygon
-                        points={shape.map((point) => `${toX(point.x)},${toY(point.y)}`).join(" ")}
-                        fill={COLORS.free}
-                        stroke={COLORS.boundary}
-                        strokeWidth={1.5}
-                    />
-                    {buildable !== null && (
-                        <rect
-                            x={toX(buildable.minX)}
-                            y={toY(buildable.maxY)}
-                            width={(buildable.maxX - buildable.minX) * scale}
-                            height={(buildable.maxY - buildable.minY) * scale}
-                            fill={COLORS.buildable}
-                            stroke={COLORS.buildableLine}
-                            strokeWidth={1}
-                            strokeDasharray="5 3"
-                        />
-                    )}
-                    {edges(shape).map((edge, index) => (
-                        <text
-                            key={index}
-                            x={toX(edge.middle.x) + edge.outward.x * LABEL_OFFSET}
-                            y={toY(edge.middle.y) - edge.outward.y * LABEL_OFFSET}
-                            textAnchor={
-                                edge.outward.x > 0.5
-                                    ? "start"
-                                    : edge.outward.x < -0.5
-                                      ? "end"
-                                      : "middle"
-                            }
-                            dominantBaseline="middle"
-                            {...TEXT}
-                        >
-                            {formatNumber(edge.length)} m
+                <PlanViewport width={VIEW_WIDTH} height={VIEW_HEIGHT} unitsPerMetre={scale}>
+                    <svg
+                        ref={svg}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+                        role="img"
+                        aria-label={`Plano de implantación de ${terrain.name}: lote de ${formatNumber(width)} por ${formatNumber(height)} metros. ${summary}`}
+                    >
+                        <rect width={VIEW_WIDTH} height={VIEW_HEIGHT} fill={COLORS.background} />
+                        <text x={DRAW_LEFT - 30} y={24} {...TEXT} fontSize={13}>
+                            Plano de implantación — {terrain.name}
                         </text>
-                    ))}
-                    <polygon
-                        points={`${accessX},${accessY} ${accessX - 6},${accessY + 10} ${accessX + 6},${accessY + 10}`}
-                        fill={COLORS.access}
-                    />
-                    <text x={accessX} y={accessY + 22} textAnchor="middle" {...TEXT}>
-                        Acceso
-                    </text>
-
-                    <line
-                        x1={LEGEND_X}
-                        y1={LEGEND_Y}
-                        x2={LEGEND_X + 18}
-                        y2={LEGEND_Y}
-                        stroke={COLORS.boundary}
-                        strokeWidth={1.5}
-                    />
-                    <text x={LEGEND_X + 26} y={LEGEND_Y} dominantBaseline="middle" {...TEXT}>
-                        Límite del terreno
-                    </text>
-                    <rect
-                        x={LEGEND_X}
-                        y={LEGEND_Y + 16}
-                        width={18}
-                        height={10}
-                        fill={COLORS.free}
-                        stroke={COLORS.muted}
-                        strokeWidth={0.5}
-                    />
-                    <text x={LEGEND_X + 26} y={LEGEND_Y + 21} dominantBaseline="middle" {...TEXT}>
-                        Área libre (retiros)
-                    </text>
-                    {buildable !== null && (
-                        <>
-                            <rect
-                                x={LEGEND_X}
-                                y={LEGEND_Y + 37}
-                                width={18}
-                                height={10}
+                        <polygon
+                            points={shape
+                                .map((point) => `${toX(point.x)},${toY(point.y)}`)
+                                .join(" ")}
+                            fill={COLORS.free}
+                            stroke={COLORS.boundary}
+                            strokeWidth={1.5}
+                        />
+                        {buildable.pieces.map((piece, index) => (
+                            <polygon
+                                key={index}
+                                points={piece
+                                    .map((point) => `${toX(point.x)},${toY(point.y)}`)
+                                    .join(" ")}
                                 fill={COLORS.buildable}
                                 stroke={COLORS.buildableLine}
                                 strokeWidth={1}
                                 strokeDasharray="5 3"
                             />
+                        ))}
+                        {edges(shape).map((edge, index) => (
                             <text
-                                x={LEGEND_X + 26}
-                                y={LEGEND_Y + 42}
+                                key={index}
+                                x={toX(edge.middle.x) + edge.outward.x * LABEL_OFFSET}
+                                y={toY(edge.middle.y) - edge.outward.y * LABEL_OFFSET}
+                                textAnchor={
+                                    edge.outward.x > 0.5
+                                        ? "start"
+                                        : edge.outward.x < -0.5
+                                          ? "end"
+                                          : "middle"
+                                }
                                 dominantBaseline="middle"
                                 {...TEXT}
                             >
-                                Área edificable
+                                {formatNumber(edge.length)} m
                             </text>
-                        </>
-                    )}
-                    <polygon
-                        points={`${LEGEND_X + 9},${LEGEND_Y + 58} ${LEGEND_X + 3},${LEGEND_Y + 68} ${LEGEND_X + 15},${LEGEND_Y + 68}`}
-                        fill={COLORS.access}
-                    />
-                    <text x={LEGEND_X + 26} y={LEGEND_Y + 63} dominantBaseline="middle" {...TEXT}>
-                        Acceso
-                    </text>
+                        ))}
+                        <polygon
+                            points={`${accessX},${accessY} ${accessX - 6},${accessY + 10} ${accessX + 6},${accessY + 10}`}
+                            fill={COLORS.access}
+                        />
+                        <text x={accessX} y={accessY + 22} textAnchor="middle" {...TEXT}>
+                            Acceso
+                        </text>
 
-                    <line
-                        x1={2 * NORTH_X - tipX}
-                        y1={2 * NORTH_Y - tipY}
-                        x2={tipX}
-                        y2={tipY}
-                        stroke={COLORS.text}
-                        strokeWidth={1.5}
-                    />
-                    <circle cx={tipX} cy={tipY} r={3} fill={COLORS.text} />
-                    <text
-                        x={letterX}
-                        y={letterY}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        {...TEXT}
-                        fontSize={12}
-                    >
-                        N
-                    </text>
+                        <line
+                            x1={LEGEND_X}
+                            y1={LEGEND_Y}
+                            x2={LEGEND_X + 18}
+                            y2={LEGEND_Y}
+                            stroke={COLORS.boundary}
+                            strokeWidth={1.5}
+                        />
+                        <text x={LEGEND_X + 26} y={LEGEND_Y} dominantBaseline="middle" {...TEXT}>
+                            Límite del terreno
+                        </text>
+                        <rect
+                            x={LEGEND_X}
+                            y={LEGEND_Y + 16}
+                            width={18}
+                            height={10}
+                            fill={COLORS.free}
+                            stroke={COLORS.muted}
+                            strokeWidth={0.5}
+                        />
+                        <text
+                            x={LEGEND_X + 26}
+                            y={LEGEND_Y + 21}
+                            dominantBaseline="middle"
+                            {...TEXT}
+                        >
+                            Área libre (retiros)
+                        </text>
+                        {buildable !== null && (
+                            <>
+                                <rect
+                                    x={LEGEND_X}
+                                    y={LEGEND_Y + 37}
+                                    width={18}
+                                    height={10}
+                                    fill={COLORS.buildable}
+                                    stroke={COLORS.buildableLine}
+                                    strokeWidth={1}
+                                    strokeDasharray="5 3"
+                                />
+                                <text
+                                    x={LEGEND_X + 26}
+                                    y={LEGEND_Y + 42}
+                                    dominantBaseline="middle"
+                                    {...TEXT}
+                                >
+                                    Área edificable
+                                </text>
+                            </>
+                        )}
+                        <polygon
+                            points={`${LEGEND_X + 9},${LEGEND_Y + 58} ${LEGEND_X + 3},${LEGEND_Y + 68} ${LEGEND_X + 15},${LEGEND_Y + 68}`}
+                            fill={COLORS.access}
+                        />
+                        <text
+                            x={LEGEND_X + 26}
+                            y={LEGEND_Y + 63}
+                            dominantBaseline="middle"
+                            {...TEXT}
+                        >
+                            Acceso
+                        </text>
 
-                    <text x={DRAW_LEFT - 30} y={VIEW_HEIGHT - 12} {...NOTE}>
-                        {summary}
-                    </text>
-                </svg>
+                        <line
+                            x1={2 * NORTH_X - tipX}
+                            y1={2 * NORTH_Y - tipY}
+                            x2={tipX}
+                            y2={tipY}
+                            stroke={COLORS.text}
+                            strokeWidth={1.5}
+                        />
+                        <circle cx={tipX} cy={tipY} r={3} fill={COLORS.text} />
+                        <text
+                            x={letterX}
+                            y={letterY}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            {...TEXT}
+                            fontSize={12}
+                        >
+                            N
+                        </text>
+
+                        <text x={DRAW_LEFT - 30} y={VIEW_HEIGHT - 12} {...NOTE}>
+                            {summary}
+                        </text>
+                    </svg>
+                </PlanViewport>
                 <div className="diagram-controls">
                     <label>
                         Retiro: {formatNumber(setback)} m
@@ -286,15 +276,14 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                             max="10"
                             step="0.5"
                             value={setback}
-                            disabled={!rectangular}
-                            onChange={(event) => setSetback(Number(event.target.value))}
+                            onChange={(event) => changeSetback(Number(event.target.value))}
                         />
                     </label>
                     <label>
                         El norte está hacia
                         <select
                             value={north}
-                            onChange={(event) => setNorth(Number(event.target.value))}
+                            onChange={(event) => changeNorth(Number(event.target.value))}
                         >
                             {NORTH_OPTIONS.map((option) => (
                                 <option key={option.angle} value={option.angle}>
@@ -317,13 +306,16 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                         Imprimir o guardar como PDF
                     </button>
                 </div>
-                {!rectangular && (
-                    <p className="message">
-                        El área edificable solo se calcula en lotes rectangulares.
+                {buildable.pieces.length === 0 && (
+                    <p className="message" role="status">
+                        Con ese retiro no queda área edificable. Prueba con uno menor.
                     </p>
                 )}
-                {rectangular && buildable === null && (
-                    <p className="message">Con ese retiro no queda área edificable.</p>
+                {buildable.pieces.length > 1 && (
+                    <p className="message" role="status">
+                        Con ese retiro el área edificable queda partida en {buildable.pieces.length}{" "}
+                        zonas separadas.
+                    </p>
                 )}
             </div>
         </figure>

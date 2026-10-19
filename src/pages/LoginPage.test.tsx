@@ -139,4 +139,37 @@ describe("LoginPage", () => {
 
         expect(screen.getByRole("status")).toHaveTextContent("Contraseña cambiada.");
     });
+
+    it("reveals and hides the password on request", async () => {
+        render(<LoginPage onAuthenticated={() => undefined} />);
+
+        // One name, and aria-pressed says whether the password is in view.
+        const toggle = screen.getByRole("button", { name: "Mostrar contraseña" });
+
+        await userEvent.click(toggle);
+        expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text");
+        expect(toggle).toHaveAttribute("aria-pressed", "true");
+
+        await userEvent.click(toggle);
+        expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
+        expect(toggle).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("explains a wrong email as soon as the field is left", async () => {
+        render(<LoginPage onAuthenticated={() => undefined} />);
+
+        const email = screen.getByLabelText("Correo");
+
+        await userEvent.type(email, "ana@");
+        await userEvent.tab();
+
+        expect(email).toHaveAttribute("aria-invalid", "true");
+        expect(email).toHaveAccessibleDescription(/correo/i);
+    });
+
+    it("offers no «remember me»: the API has no session length to choose", () => {
+        render(<LoginPage onAuthenticated={() => undefined} />);
+
+        expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    });
 });

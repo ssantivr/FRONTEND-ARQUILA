@@ -1,15 +1,39 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { projectsApi, templatesApi } from "../services/api";
-import type { Project } from "../types/api";
+import { loadAcrossProjects, projectsApi, summaryApi, templatesApi } from "../services/api";
+import type { Project, RenovationLog } from "../types/api";
 import { ProjectsPage } from "./ProjectsPage";
 
 vi.mock("../services/api", () => ({
-    projectsApi: { list: vi.fn(), create: vi.fn() },
+    projectsApi: { list: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn() },
     templatesApi: { list: vi.fn(), createProject: vi.fn() },
+    summaryApi: { get: vi.fn() },
+    loadAcrossProjects: vi.fn(),
+    loadProjectTasks: vi.fn(),
 }));
+
+function task(id: number, title: string, dates: Partial<RenovationLog>): RenovationLog {
+    return {
+        id,
+        project_id: 1,
+        room_id: null,
+        spatial_element_id: null,
+        created_by: null,
+        layer: "finishes",
+        title,
+        description: null,
+        status: "planned",
+        planned_start: null,
+        planned_end: null,
+        completed_at: null,
+        estimated_cost: null,
+        created_at: "2026-10-01T00:00:00Z",
+        updated_at: "2026-10-01T00:00:00Z",
+        ...dates,
+    };
+}
 
 function project(id: number, name: string): Project {
     return {
@@ -39,6 +63,15 @@ function renderPage() {
 beforeEach(() => {
     vi.resetAllMocks();
     templates.list.mockResolvedValue([]);
+    vi.mocked(summaryApi).get.mockResolvedValue({
+        projects: 2,
+        draft_projects: 2,
+        active_projects: 0,
+        archived_projects: 0,
+        terrains: 0,
+        total_area_m2: 0,
+        materials_total_cost: 0,
+    });
 });
 
 describe("ProjectsPage", () => {
@@ -74,7 +107,7 @@ describe("ProjectsPage", () => {
 
         renderPage();
 
-        expect(await screen.findByText("No hay proyectos.")).toBeInTheDocument();
+        expect(await screen.findByText("Todavía no hay proyectos")).toBeInTheDocument();
     });
 
     it("shows a load error and reloads when the user retries", async () => {
@@ -101,8 +134,13 @@ describe("ProjectsPage", () => {
         projects.create.mockResolvedValue(project(3, "Casa Nueva"));
 
         renderPage();
-        await screen.findByText("No hay proyectos.");
+        await screen.findByText("Todavía no hay proyectos");
 
+        expect(screen.queryByLabelText("Nombre")).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Crear proyecto" }));
+
+        expect(screen.getByLabelText("Nombre")).toHaveFocus();
         expect(screen.getByRole("button", { name: "Crear" })).toBeDisabled();
 
         await userEvent.type(screen.getByLabelText("Nombre"), " Casa Nueva ");
@@ -115,7 +153,39 @@ describe("ProjectsPage", () => {
             description: undefined,
         });
         expect(await screen.findByRole("button", { name: /Casa Nueva/ })).toBeInTheDocument();
-        expect(screen.getByLabelText("Nombre")).toHaveValue("");
+        expect(screen.queryByLabelText("Nombre")).not.toBeInTheDocument();
+    });
+
+    it("shows the real project counts of the account", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina"), project(2, "Oficina")]);
+
+        renderPage();
+
+        expect(await screen.findByRole("heading", { name: "2 proyectos" })).toBeInTheDocument();
+        expect(screen.getByText("0 activos · 2 en borrador · 0 archivados")).toBeInTheDocument();
+    });
+
+    it("offers the examples as a secondary way in and opens the one chosen", async () => {
+        projects.list.mockResolvedValue([]);
+        templates.list.mockResolvedValue([
+            {
+                id: "casa",
+                name: "Casa de ejemplo",
+                kind: "Vivienda",
+                description: "Dos niveles.",
+                levels: 2,
+                built_area_m2: 120,
+                lot_area_m2: 300,
+            },
+        ] as never);
+        templates.createProject.mockResolvedValue(project(9, "Casa de ejemplo"));
+
+        const { onOpenModel } = renderPage();
+
+        await userEvent.click(await screen.findByRole("button", { name: "Ejemplos" }));
+        await userEvent.click(await screen.findByRole("button", { name: /Casa de ejemplo/ }));
+
+        expect(onOpenModel).toHaveBeenCalledWith(9);
     });
 
     it("keeps the form and shows the error when the project cannot be created", async () => {
@@ -123,7 +193,8 @@ describe("ProjectsPage", () => {
         projects.create.mockRejectedValue(new Error("Failed to fetch"));
 
         renderPage();
-        await screen.findByText("No hay proyectos.");
+        await screen.findByText("Todavía no hay proyectos");
+        await userEvent.click(screen.getByRole("button", { name: "Crear proyecto" }));
         await userEvent.type(screen.getByLabelText("Nombre"), "Casa Nueva");
         await userEvent.click(screen.getByRole("button", { name: "Crear" }));
 
@@ -132,5 +203,132 @@ describe("ProjectsPage", () => {
         );
         expect(screen.getByLabelText("Nombre")).toHaveValue("Casa Nueva");
         expect(screen.getByRole("button", { name: "Crear" })).toBeEnabled();
+    });
+
+    it("archives a project from its card and confirms it", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.update.mockResolvedValue({ ...project(1, "Casa Andina"), status: "archived" });
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Archivar" }));
+
+        expect(projects.update).toHaveBeenCalledWith(1, { status: "archived" });
+        await waitFor(() => expect(projects.list).toHaveBeenCalledTimes(2));
+    });
+
+    it("asks before deleting and deletes only after the confirmation", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.remove.mockResolvedValue(undefined);
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+
+        expect(projects.remove).not.toHaveBeenCalled();
+        expect(screen.getByText("¿Eliminar «Casa Andina»?")).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Sí, eliminar" }));
+
+        expect(projects.remove).toHaveBeenCalledWith(1);
+    });
+
+    it("lets the user cancel a deletion", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+        expect(projects.remove).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    });
+
+    it("sorts by name on request", async () => {
+        projects.list.mockResolvedValue([project(1, "Oficina"), project(2, "Casa Andina")]);
+
+        renderPage();
+        await screen.findByRole("button", { name: /Oficina/ });
+        await userEvent.selectOptions(screen.getByLabelText("Ordenar proyectos"), "name");
+
+        const names = screen
+            .getAllByRole("button", { name: /Casa Andina|Oficina/ })
+            .map((card) => card.textContent ?? "");
+
+        expect(names[0]).toContain("Casa Andina");
+    });
+
+    it("offers to clear the filters when they leave nothing, and clears them", async () => {
+        projects.list.mockResolvedValue([]);
+
+        renderPage();
+        await userEvent.type(screen.getByLabelText("Buscar por nombre"), "zzz");
+        await userEvent.click(await screen.findByRole("button", { name: "Quitar los filtros" }));
+
+        expect(screen.getByLabelText("Buscar por nombre")).toHaveValue("");
+        expect(await screen.findByText("Todavía no hay proyectos")).toBeInTheDocument();
+    });
+
+    it("shows the list as rows with the same data when asked", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+
+        renderPage();
+        await screen.findByRole("button", { name: /Casa Andina/ });
+        await userEvent.click(screen.getByRole("radio", { name: "Lista" }));
+
+        const row = screen.getByRole("row", { name: /Casa Andina/ });
+
+        expect(row).toHaveTextContent("Quito");
+        expect(row).toHaveTextContent("Borrador");
+        expect(within(row).getByRole("button", { name: "Archivar" })).toBeInTheDocument();
+    });
+
+    it("asks for the tasks only when the timeline is opened, and places them by their dates", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina"), project(2, "Oficina")]);
+        vi.mocked(loadAcrossProjects).mockResolvedValue({
+            projects: [project(1, "Casa Andina"), project(2, "Oficina")],
+            items: [
+                task(1, "Pintar fachada", {
+                    planned_start: "2026-10-01",
+                    planned_end: "2026-10-20",
+                }),
+                task(2, "Cambiar tejas", { planned_end: "2026-11-05" }),
+                task(3, "Revisar desagües", {}),
+            ],
+        });
+
+        renderPage();
+        await screen.findByRole("button", { name: /Casa Andina/ });
+
+        expect(loadAcrossProjects).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole("radio", { name: "Cronograma" }));
+
+        const group = await screen.findByRole("region", { name: /Casa Andina/ });
+
+        expect(within(group).getByText("Pintar fachada").closest("li")).toHaveTextContent(
+            "del 01/10/2026 al 20/10/2026",
+        );
+        // One planned date only: it is said so, and no start is made up.
+        expect(within(group).getByText("Cambiar tejas").closest("li")).toHaveTextContent(
+            "termina el 05/11/2026, sin la otra fecha",
+        );
+
+        const undated = screen.getByRole("region", { name: "Tareas sin fechas" });
+
+        expect(undated).toHaveTextContent("Revisar desagües");
+        expect(screen.getByText(/Sin tareas registradas: Oficina/)).toBeInTheDocument();
+    });
+
+    it("deletes from a confirmation window that opens on «Cancelar»", async () => {
+        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.remove.mockResolvedValue(undefined);
+
+        renderPage();
+        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+
+        const dialog = screen.getByRole("alertdialog", { name: "¿Eliminar «Casa Andina»?" });
+
+        expect(within(dialog).getByRole("button", { name: "Cancelar" })).toHaveFocus();
+        await userEvent.click(within(dialog).getByRole("button", { name: "Sí, eliminar" }));
+        expect(projects.remove).toHaveBeenCalledWith(1);
     });
 });

@@ -2,14 +2,18 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { terrainsApi } from "../services/api";
+import { rememberDeletedTerrain } from "../services/terrainUndo";
 import type { Terrain } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatNumber, optionalNumber, optionalText } from "../utils/format";
 import { formatPoints, parsePoints, polygonArea } from "../utils/geometry";
 import { AsyncStatus } from "./AsyncStatus";
-import { Panel } from "./Panel";
+import { FocusFormButton } from "./ui/EmptyState";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { TerrainDiagrams } from "./TerrainDiagrams";
+import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 export function TerrainsPanel({ projectId, run }: SectionProps) {
     const terrains = useAsync(() => terrainsApi.listByProject(projectId), [projectId]);
@@ -47,7 +51,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
 
     function startEdit(terrain: Terrain) {
         setEditingId(terrain.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setName(terrain.name);
         setWidth(String(terrain.width_m ?? ""));
         setLength(String(terrain.length_m ?? ""));
@@ -93,6 +97,9 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
         run(
             () => terrainsApi.remove(terrain.id),
             () => {
+                // Undoing brings the terrain back without its vertices: keep them to restore.
+                rememberDeletedTerrain(terrain);
+
                 if (editingId === terrain.id) {
                     resetForm();
                 }
@@ -110,7 +117,9 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                 error={terrains.error}
                 onRetry={terrains.reload}
                 isEmpty={items.length === 0}
+                emptyTitle="Sin terrenos todavía"
                 emptyText="Este proyecto no tiene terrenos."
+                emptyAction={<FocusFormButton>Agregar el primer terreno</FocusFormButton>}
             />
             {items.length > 0 && (
                 <table>
@@ -158,7 +167,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
             {items.map((terrain) => (
                 <TerrainDiagrams key={terrain.id} terrain={terrain} />
             ))}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Nombre
                     <input
@@ -241,7 +250,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                     disabled={"error" in parsed}
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

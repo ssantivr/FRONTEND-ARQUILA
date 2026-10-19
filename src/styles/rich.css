@@ -1,0 +1,218 @@
+/* Depth and movement across the whole app: the shell, the cards, the home and the empty states. */
+
+/* ---- Shell: a flat forest sidebar; the open module is marked in navigation.css ---- */
+
+.sidebar {
+    background: var(--forest);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-item {
+    transition:
+        background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
+}
+
+.header {
+    background: var(--bg-secondary);
+}
+
+/* ---- Buttons: flat fills; the main actions are told apart by colour, not by glow ---- */
+
+.button-lime:hover:not(:disabled),
+button:not([class]):hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+/* ---- Lists arrive one after another ---- */
+
+:is(.project-grid, .terrain-list, .quick-list) > li {
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+}
+
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(2) {
+    animation-delay: calc(var(--stagger) * 1);
+}
+
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(3) {
+    animation-delay: calc(var(--stagger) * 2);
+}
+
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(4) {
+    animation-delay: calc(var(--stagger) * 3);
+}
+
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(5) {
+    animation-delay: calc(var(--stagger) * 4);
+}
+
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(6) {
+    animation-delay: calc(var(--stagger) * 5);
+}
+
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(7) {
+    animation-delay: calc(var(--stagger) * 6);
+}
+
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(8) {
+    animation-delay: calc(var(--stagger) * 7);
+}
+
+/* From the ninth on, items are simply there: a long list does not make the user wait. */
+:is(.project-grid, .terrain-list, .quick-list) > li:nth-child(n + 9) {
+    animation: none;
+}
+
+/* ---- Cards: layered shadow, the drawing moves closer and a lime line draws itself ---- */
+
+.project-item {
+    box-shadow: var(--shadow);
+}
+
+.project-grid:not(.card-list-rows) .project-item:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    box-shadow: var(--shadow-float);
+    transform: translateY(-2px);
+}
+
+.project-card .project-cover {
+    overflow: hidden;
+}
+
+.project-card .project-cover-art {
+    transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.project-item:hover .project-cover-art {
+    transform: scale(1.06);
+}
+
+.project-card:not(.project-row) .project-cover::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    height: 2px;
+    background: var(--lime);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.project-item:hover .project-cover::before {
+    transform: scaleX(1);
+}
+
+.terrain-list .terrain-card:hover {
+    box-shadow: var(--shadow-float);
+    transform: translateY(-2px);
+}
+
+.panel {
+    box-shadow: var(--shadow);
+}
+
+/* ---- Page titles: a lime mark draws under the figure ---- */
+
+.page-head h2::after {
+    content: "";
+    display: block;
+    width: 56px;
+    height: 4px;
+    margin-top: 12px;
+    background: var(--lime);
+    border-radius: 2px;
+    transform-origin: left;
+    animation: grow-in var(--dur-slow) var(--ease-out) var(--dur-fast) backwards;
+}
+
+.continue-card {
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+.continue-cover {
+    position: relative;
+    overflow: hidden;
+}
+
+/* The real model, drawn over the cover; it can be turned with the pointer. */
+.structure-stage.structure-stage-preview {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+}
+
+.structure-stage-preview .structure-viewer {
+    height: 100%;
+    min-height: 0;
+}
+
+.continue-cover:has(.structure-stage-preview)::after {
+    content: "Modelo 3D en vivo";
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 3px 10px;
+    color: var(--lime-contrast);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--lime);
+    border-radius: var(--r-pill);
+    pointer-events: none;
+}
+
+.status-bar span {
+    transform-origin: left;
+    animation: grow-in var(--dur-show) var(--ease-out) backwards;
+}
+
+.quick-main {
+    box-shadow: var(--shadow-float);
+}
+
+/* ---- Empty states: a larger drawing on a drafting disc ---- */
+
+.empty-state {
+    position: relative;
+    padding: 48px 20px;
+    overflow: hidden;
+    background:
+        linear-gradient(var(--hover) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg, var(--hover) 1px, transparent 1px) 0 0 / 24px 24px;
+    background-color: var(--panel);
+}
+
+.empty-art {
+    width: 132px;
+    height: 88px;
+}
+
+.empty-title {
+    font-size: var(--fs-18);
+}
+
+:is(.hud, .modal, td) .empty-state {
+    background: none;
+}
+
+/* Muted text set straight on the drafting grid is a step darker than on a panel. */
+:root:not([data-theme="dark"])
+    :is(
+        .page-head-meta,
+        .stat-strip dt,
+        .list-count,
+        .settings-account p,
+        .settings-section-head p,
+        .setting-text,
+        .theme-option-note,
+        .project-rows-head
+    ) {
+    color: var(--text-muted);
+}

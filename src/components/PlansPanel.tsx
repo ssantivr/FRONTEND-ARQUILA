@@ -6,9 +6,12 @@ import type { Plan, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
+import { FocusFormButton } from "./ui/EmptyState";
 import { FileAttachment } from "./FileAttachment";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
+import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 interface PlansPanelProps extends SectionProps {
     files: ProjectFile[];
@@ -31,7 +34,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
 
     function startEdit(plan: Plan) {
         setEditingId(plan.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setTitle(plan.title);
         setLevel(plan.level ?? "");
         setScale(plan.scale ?? "");
@@ -79,7 +82,9 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                 error={plans.error}
                 onRetry={plans.reload}
                 isEmpty={items.length === 0}
+                emptyTitle="Sin planos todavía"
                 emptyText="Este proyecto no tiene planos."
+                emptyAction={<FocusFormButton>Agregar el primer plano</FocusFormButton>}
             />
             {items.length > 0 && (
                 <table>
@@ -129,7 +134,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                     </tbody>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input
@@ -163,7 +168,7 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                     disabled={title.trim() === ""}
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

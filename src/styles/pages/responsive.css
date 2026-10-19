@@ -1,0 +1,107 @@
+/* Narrow screens, for every page of this folder. */
+
+@media (max-width: 900px) {
+    .project-head {
+        padding: 16px 20px 20px;
+    }
+
+    .project-head-text {
+        white-space: normal;
+    }
+
+    /* On a narrow head the text runs over the whole drawing, so the drawing steps back. */
+    .project-head-art {
+        opacity: 0.2;
+    }
+
+    .list-toolbar .segmented {
+        margin-left: 0;
+    }
+
+    .project-rows-head {
+        display: none;
+    }
+
+    .project-card.project-row {
+        grid-template-columns: 56px minmax(0, 1fr) auto;
+        gap: 2px 12px;
+        padding: 8px 12px;
+    }
+
+    .project-row .project-cover,
+    .card-list-rows .project-row .project-cover {
+        grid-row: span 3;
+        width: 56px;
+        height: 56px;
+    }
+
+    .project-row :is(.project-row-place, .project-row-date) {
+        grid-column: 2;
+    }
+
+    .project-row .badge-status {
+        grid-row: 1;
+        grid-column: 3;
+    }
+
+    .card-list-rows .project-item {
+        flex-wrap: wrap;
+    }
+
+    .card-list-rows .project-actions {
+        flex: 1 1 100%;
+        justify-content: flex-end;
+        width: auto;
+    }
+
+    .stat-strip > div {
+        padding: 0 16px;
+    }
+
+    .table-scroll {
+        max-height: none;
+        border: 0;
+    }
+
+    .table-dense td {
+        height: auto;
+        padding: 6px 0;
+    }
+
+    .home-row,
+    .continue-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .continue-cover {
+        min-height: 140px;
+        max-height: 160px;
+    }
+
+    .continue-body,
+    .status-card {
+        padding: 20px;
+    }
+
+    .theme-options {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .theme-option {
+        grid-template-columns: 96px minmax(0, 1fr);
+        column-gap: 12px;
+    }
+
+    .theme-preview {
+        grid-row: span 2;
+    }
+}
+
+/* Phone: every target of the navigation and the header is at least 44px. */
+@media (max-width: 720px) {
+    .sidebar-item,
+    .user-menu .icon-button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}

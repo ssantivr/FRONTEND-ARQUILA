@@ -8,6 +8,14 @@ const moneyFormat = new Intl.NumberFormat("es", {
     useGrouping: "always",
 });
 
+const dateFormat = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
+
+export function formatDate(value: string): string {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? "—" : dateFormat.format(date);
+}
+
 export function formatNumber(value: number | null): string {
     return value === null ? "—" : numberFormat.format(value);
 }
@@ -35,4 +43,11 @@ export function formatFileSize(bytes: number): string {
     }
 
     return `${numberFormat.format(bytes / (1024 * 1024))} MB`;
+}
+
+/** A `YYYY-MM-DD` day as `DD/MM/YYYY`, without going through a time zone. */
+export function formatDay(day: string): string {
+    const [year, month, date] = day.split("-");
+
+    return `${date}/${month}/${year}`;
 }

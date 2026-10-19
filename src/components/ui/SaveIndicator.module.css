@@ -1,0 +1,23 @@
+.indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    white-space: nowrap;
+}
+
+.indicator :global(.icon) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+}
+
+.saved {
+    color: var(--success);
+    animation: fade-in var(--dur) var(--ease-out);
+}
+
+.error {
+    color: var(--error);
+    font-weight: 550;
+}

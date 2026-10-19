@@ -1,0 +1,24 @@
+.card {
+    min-width: 0;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+}
+
+.raised {
+    background: var(--panel-raised);
+}
+
+.none {
+    padding: 0;
+}
+
+.compact {
+    padding: var(--space-3);
+}
+
+.regular {
+    padding: var(--space-4);
+}

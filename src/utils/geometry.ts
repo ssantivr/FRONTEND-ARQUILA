@@ -128,6 +128,83 @@ export function frontElevation(points: Point[], slopePercent: number): Point[] {
     }));
 }
 
+/** Twice the signed area of the triangle a-b-c: positive when c is to the left of a→b. */
+function turn(a: Point, b: Point, c: Point): number {
+    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+/** True when c, known to be on the line through a and b, lies between them. */
+function between(a: Point, b: Point, c: Point): boolean {
+    return (
+        Math.min(a.x, b.x) <= c.x &&
+        c.x <= Math.max(a.x, b.x) &&
+        Math.min(a.y, b.y) <= c.y &&
+        c.y <= Math.max(a.y, b.y)
+    );
+}
+
+/** True when the segments a-b and c-d share at least one point. */
+function segmentsMeet(a: Point, b: Point, c: Point, d: Point): boolean {
+    const d1 = turn(c, d, a);
+    const d2 = turn(c, d, b);
+    const d3 = turn(a, b, c);
+    const d4 = turn(a, b, d);
+
+    if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+        return true;
+    }
+
+    return (
+        (d1 === 0 && between(c, d, a)) ||
+        (d2 === 0 && between(c, d, b)) ||
+        (d3 === 0 && between(a, b, c)) ||
+        (d4 === 0 && between(a, b, d))
+    );
+}
+
+/**
+ * Looks for two sides of an outline that cross or touch, which makes it not a simple polygon:
+ * its area and its setback would mean nothing. Returns the positions of the two sides, counted
+ * from 1 as the user wrote them (side 1 goes from the first vertex to the second), or `null`
+ * when the outline is fine.
+ *
+ * Two sides in a row always share their common vertex; they are only a fault when one folds
+ * back over the other. Every pair of sides is compared: O(n²), with n at most 50.
+ */
+export function selfIntersection(points: Point[]): [number, number] | null {
+    const count = points.length;
+
+    for (let first = 0; first < count; first += 1) {
+        const a = points[first];
+        const b = points[(first + 1) % count];
+
+        for (let second = first + 1; second < count; second += 1) {
+            const c = points[second];
+            const d = points[(second + 1) % count];
+            const neighbours = second === first + 1 || (first === 0 && second === count - 1);
+
+            if (neighbours) {
+                // b is c (or a is d): a fault only if the far ends lie along the same line and
+                // on the same side of the shared vertex.
+                const [shared, farA, farB] = second === first + 1 ? [b, a, d] : [a, b, c];
+                const folded =
+                    turn(farA, shared, farB) === 0 &&
+                    (farA.x - shared.x) * (farB.x - shared.x) +
+                        (farA.y - shared.y) * (farB.y - shared.y) >
+                        0;
+
+                if (folded) {
+                    return [first + 1, second + 1];
+                }
+            } else if (segmentsMeet(a, b, c, d)) {
+                return [first + 1, second + 1];
+            }
+        }
+    }
+
+    return null;
+}
+
 export type ParsedPoints = { points: Point[] } | { error: string };
 
 export function parsePoints(text: string): ParsedPoints {
@@ -156,8 +233,21 @@ export function parsePoints(text: string): ParsedPoints {
         return { error: "Un lote admite como máximo 50 vértices." };
     }
 
-    if (points.length >= 3 && polygonArea(points) === 0) {
+    const crossing = points.length >= 3 ? selfIntersection(points) : null;
+    // Points all on one line also «fold back», but what is wrong with them is simpler to say.
+    const apart =
+        crossing !== null &&
+        crossing[1] - crossing[0] > 1 &&
+        !(crossing[0] === 1 && crossing[1] === points.length);
+
+    if (points.length >= 3 && polygonArea(points) === 0 && !apart) {
         return { error: "Los vértices no encierran ningún área." };
+    }
+
+    if (crossing !== null) {
+        return {
+            error: `El contorno se cruza a sí mismo: el lado ${crossing[0]} toca o corta al lado ${crossing[1]}. Escribe los vértices en el orden en que se recorre el borde del lote.`,
+        };
     }
 
     return { points };

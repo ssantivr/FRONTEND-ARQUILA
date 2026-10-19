@@ -1,0 +1,33 @@
+/*
+ * Figures (areas, dimensions, costs, levels and counts) are set in JetBrains Mono with tabular
+ * digits, so columns of numbers line up and a figure reads as data, not as prose. The list is
+ * inside :where(), which has no specificity: any rule that sets a font on purpose still wins.
+ */
+:where(
+    :not(th).numeric,
+    .figure,
+    .metric-value,
+    output,
+    .hud-readout,
+    .hud-count,
+    .status-legend dd,
+    .stat-strip dd,
+    .range-value,
+    .task-count,
+    .terrain-card-figures
+) {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+/* The status bar of the 3D viewer is mostly words (selection, camera, tip): it stays in Inter. */
+.hud-status .hud-readout {
+    font-family: var(--font-sans);
+    letter-spacing: 0;
+}
+
+/* A long figure in a metric card wraps instead of being cut off. */
+.metric-value {
+    overflow-wrap: anywhere;
+}

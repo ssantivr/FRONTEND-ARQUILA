@@ -2,7 +2,7 @@ import { Suspense, lazy, useState } from "react";
 
 import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
-import { Panel } from "../components/Panel";
+import { Panel } from "../components/ui/Panel";
 import { ProjectPicker } from "../components/ProjectPicker";
 import { useAsync } from "../hooks/useAsync";
 import { projectsApi } from "../services/api";
@@ -18,12 +18,12 @@ interface ProjectToolPageProps {
 
 const TEXT = {
     viewer: {
-        title: "Visualización 3D",
+        title: "Editor y modelos 3D",
         intro: "Elige un proyecto para ver su modelo. Los cuartos y componentes se editan en la pestaña Modelo 3D del proyecto.",
         open: "Editar en el proyecto",
     },
     interior: {
-        title: "Recorrido interior",
+        title: "Recorridos virtuales",
         intro: "Elige un proyecto para recorrerlo por dentro, cuarto por cuarto. El recorrido empieza dentro del primer cuarto; con «Vista interior» sales a verlo desde fuera y con «Ver todo» vuelves al modelo completo.",
         open: "Editar en el proyecto",
     },
@@ -40,6 +40,46 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
     const items = projects.data ?? [];
     const projectId = chosen ?? items[0]?.id ?? null;
     const text = TEXT[tool];
+    const chosenName = items.find((project) => project.id === projectId)?.name;
+
+    // The 3D editor is a workspace, not a page: one line to pick the project, then the editor.
+    if (tool === "viewer") {
+        return (
+            <section className="workspace-page" aria-label={text.title}>
+                <div className="workspace-head">
+                    <AsyncStatus
+                        loading={projects.loading}
+                        error={projects.error}
+                        onRetry={projects.reload}
+                        isEmpty={items.length === 0}
+                        emptyText="Todavía no tienes proyectos. Crea el primero desde Proyectos."
+                    />
+                    {items.length > 0 && (
+                        <ProjectPicker projects={items} value={projectId} onChange={setChosen} />
+                    )}
+                    {projectId !== null && (
+                        <button
+                            type="button"
+                            className="button-secondary"
+                            title="Los cuartos y componentes también se editan en tablas, en la pestaña Modelo 3D del proyecto"
+                            onClick={() => onOpenProject(projectId)}
+                        >
+                            {text.open}
+                        </button>
+                    )}
+                </div>
+                {projectId !== null && (
+                    <Suspense fallback={<p className="message">Cargando…</p>}>
+                        <ProjectModel
+                            key={projectId}
+                            projectId={projectId}
+                            projectName={chosenName}
+                        />
+                    </Suspense>
+                )}
+            </section>
+        );
+    }
 
     return (
         <>

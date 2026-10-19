@@ -1,0 +1,101 @@
+.scroll {
+    container: table-host / inline-size;
+    max-width: 100%;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+}
+
+.table th {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-align: left;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+}
+
+.table td {
+    border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:hover {
+    background: var(--hover);
+}
+
+.table :is(th, td):global(.numeric) {
+    text-align: right;
+}
+
+.sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+
+.sort:hover {
+    color: var(--text);
+}
+
+.arrow {
+    font-size: var(--fs-12);
+    opacity: 0.7;
+}
+
+.empty {
+    padding: var(--space-6) var(--space-4);
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+@container table-host (max-width: 760px) {
+    .table {
+        background: transparent;
+    }
+
+    .table tbody tr:hover {
+        background: transparent;
+    }
+}
+
+/* The name that opens the row's record: a link in look, a button in kind. */
+.table :global(.table-link) {
+    min-height: 0;
+    padding: 0;
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+
+.table :global(.table-link):hover {
+    color: var(--accent);
+    text-decoration: underline;
+    background: none;
+}
+
+/* Row actions sit on the line, without the rule that separates them under a card. */
+.table :global(.project-actions) {
+    justify-content: flex-end;
+    padding: 0;
+    border: 0;
+}
