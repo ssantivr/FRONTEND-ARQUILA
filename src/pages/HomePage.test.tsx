@@ -132,6 +132,25 @@ describe("HomePage", () => {
         expect(within(figures).queryByText("Costo de materiales")).not.toBeInTheDocument();
     });
 
+    it("takes «Editar» of a recent project to its edit form", async () => {
+        const onEditProject = vi.fn();
+
+        vi.mocked(projectsApi).list.mockResolvedValue([project(1, "Casa Andina", "active")]);
+        render(
+            <HomePage
+                user={user}
+                onOpenProject={() => undefined}
+                onEditProject={onEditProject}
+                onNavigate={() => undefined}
+            />,
+        );
+
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Editar" }));
+
+        expect(onEditProject).toHaveBeenCalledWith(1);
+    });
+
     it("duplicates a recent project from its menu", async () => {
         vi.mocked(projectsApi).list.mockResolvedValue([project(1, "Casa Andina", "active")]);
         vi.mocked(projectsApi).duplicate.mockResolvedValue(

@@ -99,6 +99,21 @@ describe("App routing", () => {
         expect(screen.getByRole("heading", { level: 1, name: "Inicio" })).toBeInTheDocument();
     });
 
+    it("opens the edit form of a project from «Editar» on the dashboard", async () => {
+        const answer = vi.mocked(request).getMockImplementation();
+
+        vi.mocked(request).mockImplementation((path: string, options) =>
+            path === "/projects" ? Promise.resolve([project]) : answer!(path, options),
+        );
+        renderAt("/");
+
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Editar" }));
+
+        expect(await screen.findByRole("heading", { name: "Editar proyecto" })).toBeInTheDocument();
+        expect(screen.getByTestId("path")).toHaveTextContent("/proyectos/7/terreno");
+    });
+
     it("puts the open tab of a project in the address", async () => {
         renderAt("/proyectos/7/materiales");
 

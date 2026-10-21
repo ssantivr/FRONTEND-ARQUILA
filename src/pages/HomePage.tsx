@@ -40,6 +40,8 @@ interface HomePageProps {
     user: User;
     onOpenProject: (projectId: number, section?: SectionId) => void;
     onNavigate: (view: View) => void;
+    /** Opens the project's page with its edit form; without it the menu has no «Editar». */
+    onEditProject?: (projectId: number) => void;
     /** Opens the creation form; without it «Crear proyecto» only goes to the projects screen. */
     onCreateProject?: () => void;
 }
@@ -140,7 +142,13 @@ function figuresOf(summary: Summary): Figure[] {
  * to pick up again, the recent ones and a way into every module. Everything shown comes from the
  * API; what it does not return (a project type, or a figure of an older API) is not shown.
  */
-export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: HomePageProps) {
+export function HomePage({
+    user,
+    onOpenProject,
+    onEditProject,
+    onNavigate,
+    onCreateProject,
+}: HomePageProps) {
     const summary = useAsync(() => summaryApi.get(), []);
     const projects = useAsync(() => projectsApi.list(), []);
 
@@ -474,6 +482,16 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                                                     onSelect: () =>
                                                         onOpenProject(project.id, "model"),
                                                 },
+                                                ...(onEditProject === undefined
+                                                    ? []
+                                                    : [
+                                                          {
+                                                              label: "Editar",
+                                                              icon: "edit" as const,
+                                                              onSelect: () =>
+                                                                  onEditProject(project.id),
+                                                          },
+                                                      ]),
                                                 {
                                                     label: "Duplicar",
                                                     icon: "copy",

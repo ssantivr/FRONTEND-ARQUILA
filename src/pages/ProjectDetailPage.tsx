@@ -41,6 +41,8 @@ interface ProjectDetailPageProps {
     /** When given, the open tab follows `initialSection` and every change is reported here. */
     onSectionChange?: (section: SectionId) => void;
     onBack: () => void;
+    /** Opens with the form of the project's name, description, place and state unfolded. */
+    startEditing?: boolean;
 }
 
 export function ProjectDetailPage({
@@ -48,6 +50,7 @@ export function ProjectDetailPage({
     initialSection = "terrain",
     onSectionChange,
     onBack,
+    startEditing = false,
 }: ProjectDetailPageProps) {
     const project = useAsync(() => projectsApi.get(projectId), [projectId]);
     const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
@@ -66,7 +69,7 @@ export function ProjectDetailPage({
         setLocalSection(next);
         onSectionChange?.(next);
     }
-    const [editingProject, setEditingProject] = useState(false);
+    const [editingProject, setEditingProject] = useState(startEditing);
     const [assistantOpen, setAssistantOpen] = useState(false);
     const projectFiles = files.data ?? [];
 

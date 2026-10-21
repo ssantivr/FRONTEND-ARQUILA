@@ -248,6 +248,11 @@ export function App() {
         go(projectPath(id, section));
     }
 
+    /** The project's page with its edit form already open. */
+    function editProject(id: number) {
+        go(projectPath(id, "terrain"), { state: { edit: true } });
+    }
+
     const commands = useMemo<Command[]>(
         () => [
             ...(project === null
@@ -300,6 +305,7 @@ export function App() {
                     initialSection={project.section}
                     onSectionChange={(section) => go(projectPath(project.id, section))}
                     onBack={() => navigate("projects")}
+                    startEditing={(location.state as { edit?: boolean } | null)?.edit === true}
                 />
             );
         }
@@ -334,6 +340,7 @@ export function App() {
                     <HomePage
                         user={user}
                         onOpenProject={openProject}
+                        onEditProject={editProject}
                         onNavigate={navigate}
                         onCreateProject={() =>
                             go(viewPath("projects"), { state: { create: true } })
