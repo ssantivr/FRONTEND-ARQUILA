@@ -21,6 +21,9 @@ export const projects = [
         status: "active",
         created_at: "2026-09-01T10:00:00Z",
         updated_at: "2026-10-04T10:00:00Z",
+        progress: 40,
+        archived_at: null,
+        cover_file_id: null,
     },
     {
         id: 2,
@@ -31,6 +34,9 @@ export const projects = [
         status: "draft",
         created_at: "2026-09-20T10:00:00Z",
         updated_at: "2026-09-28T10:00:00Z",
+        progress: 0,
+        archived_at: null,
+        cover_file_id: null,
     },
 ];
 
@@ -350,6 +356,13 @@ export const summary = {
         (sum, material) => sum + material.quantity * material.unit_cost,
         0,
     ),
+    // The same rules as the API's summary: active and under 100 %, and at 100 %.
+    in_progress_projects: projects.filter(
+        (project) => project.status === "active" && project.progress < 100,
+    ).length,
+    completed_projects: projects.filter((project) => project.progress === 100).length,
+    materials: allMaterials.length,
+    plans: Object.values(BY_PROJECT).reduce((sum, data) => sum + data.plans.length, 0),
 };
 
 /** A room or component as its own list gives it, without the fields only the model has. */

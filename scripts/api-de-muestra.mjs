@@ -54,6 +54,9 @@ export function createSampleApi({ signedIn = true } = {}) {
                 status: data.status ?? "draft",
                 created_at: "2026-10-13T12:00:00Z",
                 updated_at: "2026-10-13T12:00:00Z",
+                progress: 0,
+                archived_at: null,
+                cover_file_id: null,
             };
 
             created.push(project);
@@ -70,6 +73,30 @@ export function createSampleApi({ signedIn = true } = {}) {
                     project.name.toLowerCase().includes(wanted),
                 ),
             };
+        }
+
+        const copied = /^\/projects\/(\d+)\/duplicate$/.exec(path);
+
+        if (copied !== null && method === "POST") {
+            const source = [...created, ...projects].find(
+                (project) => project.id === Number(copied[1]),
+            );
+
+            if (source === undefined) {
+                return { status: 404, json: { detail: "Project not found" } };
+            }
+
+            const project = {
+                ...source,
+                id: 100 + created.length,
+                name: `${source.name} (copia)`,
+                status: "draft",
+                updated_at: "2026-10-13T12:00:00Z",
+            };
+
+            created.push(project);
+
+            return { status: 201, json: project };
         }
 
         const own = created.find((project) => path === `/projects/${project.id}`);

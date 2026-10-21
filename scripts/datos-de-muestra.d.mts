@@ -8,6 +8,9 @@ export interface SampleProject {
     status: string;
     created_at: string;
     updated_at: string;
+    progress?: number;
+    archived_at?: string | null;
+    cover_file_id?: number | null;
 }
 
 export const user: { id: number; name: string; email: string; created_at: string };
