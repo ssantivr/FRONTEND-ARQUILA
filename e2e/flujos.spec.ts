@@ -67,7 +67,8 @@ test.describe("crear un proyecto", () => {
         await palette.getByRole("combobox").fill("guadua");
         await palette.getByRole("option", { name: /Estudio Guadua/ }).click();
 
-        await expect(page).toHaveURL(/\/proyectos\/2\/terreno$/);
+        // A project opens on its summary.
+        await expect(page).toHaveURL(/\/proyectos\/2\/resumen$/);
     });
 });
 
