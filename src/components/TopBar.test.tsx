@@ -7,6 +7,7 @@ import { TopBar } from "./TopBar";
 
 vi.mock("../services/api", () => ({
     projectsApi: { list: vi.fn().mockResolvedValue([]) },
+    notificationsApi: { list: vi.fn().mockResolvedValue([]) },
 }));
 
 function renderBar(overrides: Partial<Parameters<typeof TopBar>[0]> = {}) {
@@ -97,7 +98,7 @@ describe("TopBar", () => {
         );
     });
 
-    it("says there are no notifications instead of inventing them", async () => {
+    it("says there are no notifications when the API has none", async () => {
         renderBar();
 
         const bell = screen.getByRole("button", { name: "Notificaciones" });
@@ -109,8 +110,7 @@ describe("TopBar", () => {
         const panel = screen.getByRole("region", { name: "Notificaciones" });
 
         expect(bell).toHaveAttribute("aria-expanded", "true");
-        expect(panel).toHaveTextContent("Sin notificaciones");
-        expect(panel).toHaveTextContent("todavía no envía avisos");
+        expect(await within(panel).findByText("Sin notificaciones")).toBeInTheDocument();
 
         await userEvent.keyboard("{Escape}");
 

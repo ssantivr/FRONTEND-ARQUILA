@@ -11,6 +11,7 @@ import type {
     ElevationCreate,
     ElevationUpdate,
     LoginRequest,
+    Notification,
     Material,
     MaterialCreate,
     MaterialUpdate,
@@ -273,6 +274,13 @@ export const conversationsApi = {
             body: { content },
         }),
     remove: (id: number) => request<void>(`/conversations/${id}`, { method: "DELETE" }),
+};
+
+export const notificationsApi = {
+    list: () => request<Notification[]>("/notifications", { query: { limit: 30 } }),
+    markRead: (id: number) =>
+        request<Notification>(`/notifications/${id}/read`, { method: "POST" }),
+    markAllRead: () => request<{ updated: number }>("/notifications/read-all", { method: "POST" }),
 };
 
 export const summaryApi = {

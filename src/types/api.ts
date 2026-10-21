@@ -318,6 +318,14 @@ export interface Summary {
     materials_total_cost: number;
 }
 
+export interface Notification {
+    id: number;
+    title: string;
+    body: string | null;
+    read_at: string | null;
+    created_at: string;
+}
+
 export type SpatialLayer = "structure" | "installations" | "finishes";
 export type WorkStatus = "existing" | "planned" | "demolition";
 export type RenovationStatus = "planned" | "in_progress" | "completed" | "cancelled";
