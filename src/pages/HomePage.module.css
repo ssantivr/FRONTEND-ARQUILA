@@ -163,6 +163,13 @@
     grid-column: 1 / -1;
 }
 
+/* Six figures fit on one row only on a wide window; below, they go in two rows of three. */
+@media (min-width: 1500px) {
+    .figures:has(> :nth-child(6)) {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
 /* ---- The project to pick up again, and the projects by state ---- */
 
 .row {
@@ -534,8 +541,13 @@
     }
 
     .figures {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-3);
         min-height: 0;
+    }
+
+    .figure {
+        padding: var(--space-3) var(--space-4);
     }
 
     .value {

@@ -193,6 +193,11 @@ export interface Project {
     status: ProjectStatus;
     created_at: string;
     updated_at: string;
+    /** 0 to 100. Optional: an API older than the contract of 20 October does not send it. */
+    progress?: number;
+    archived_at?: string | null;
+    /** An image of the project's files chosen as its cover, read from `GET /files/{id}/content`. */
+    cover_file_id?: number | null;
 }
 
 export interface ProjectTemplate {
@@ -316,6 +321,11 @@ export interface Summary {
     terrains: number;
     total_area_m2: number;
     materials_total_cost: number;
+    // Added to the API on 20 October; an older one leaves them out, and then they are not shown.
+    in_progress_projects?: number;
+    completed_projects?: number;
+    materials?: number;
+    plans?: number;
 }
 
 export interface Notification {

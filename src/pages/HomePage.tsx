@@ -2,7 +2,7 @@ import { Suspense, lazy, useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { CountUp } from "../components/CountUp";
-import { Icon } from "../components/Icon";
+import { Icon, type IconName } from "../components/Icon";
 import { ProjectTile } from "../components/ProjectTile";
 import { RenderImage } from "../components/RenderImage";
 import { MODULES, type View } from "../components/Sidebar";
@@ -16,7 +16,7 @@ import { SegmentedControl, type Segment } from "../components/ui/SegmentedContro
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi } from "../services/api";
 import { showToast } from "../state/toasts";
-import type { Project, ProjectStatus, User } from "../types/api";
+import type { Project, ProjectStatus, Summary, User } from "../types/api";
 import { formatDate, formatMoney, formatNumber } from "../utils/format";
 import type { SectionId } from "./sections";
 
@@ -49,10 +49,96 @@ function count(value: number, one: string, many: string): string {
     return `${formatNumber(value)} ${value === 1 ? one : many}`;
 }
 
+interface Figure {
+    label: string;
+    icon: IconName;
+    value: number;
+    format: (value: number) => string;
+    detail: string;
+}
+
+/**
+ * The cards of GET /summary. «En progreso», «Completados», «Materiales» and «Planos» came to the
+ * API on 20 October: an API without them shows the earlier three, with the cost on its own card.
+ */
+function figuresOf(summary: Summary): Figure[] {
+    const figures: Figure[] = [
+        {
+            label: "Proyectos",
+            icon: "projects",
+            value: summary.projects,
+            format: formatNumber,
+            detail: [
+                count(summary.active_projects, "activo", "activos"),
+                `${formatNumber(summary.draft_projects)} en borrador`,
+                count(summary.archived_projects, "archivado", "archivados"),
+            ].join(" · "),
+        },
+    ];
+
+    if (summary.in_progress_projects !== undefined) {
+        figures.push({
+            label: "En progreso",
+            icon: "tasks",
+            value: summary.in_progress_projects,
+            format: formatNumber,
+            detail: "Activos con avance menor al 100 %",
+        });
+    }
+
+    if (summary.completed_projects !== undefined) {
+        figures.push({
+            label: "Completados",
+            icon: "success",
+            value: summary.completed_projects,
+            format: formatNumber,
+            detail: "Con el avance al 100 %",
+        });
+    }
+
+    figures.push({
+        label: "Terrenos",
+        icon: "terrains",
+        value: summary.terrains,
+        format: formatNumber,
+        detail: `${formatNumber(summary.total_area_m2)} m² en total`,
+    });
+
+    if (summary.materials === undefined) {
+        figures.push({
+            label: "Costo de materiales",
+            icon: "materials",
+            value: summary.materials_total_cost,
+            format: formatMoney,
+            detail: "Suma de todos los proyectos",
+        });
+    } else {
+        figures.push({
+            label: "Materiales",
+            icon: "materials",
+            value: summary.materials,
+            format: formatNumber,
+            detail: `${formatMoney(summary.materials_total_cost)} en total`,
+        });
+    }
+
+    if (summary.plans !== undefined) {
+        figures.push({
+            label: "Planos",
+            icon: "plans",
+            value: summary.plans,
+            format: formatNumber,
+            detail: "En todos tus proyectos",
+        });
+    }
+
+    return figures;
+}
+
 /**
  * The start of the day: a greeting with the main action, the figures of GET /summary, the project
  * to pick up again, the recent ones and a way into every module. Everything shown comes from the
- * API; what it does not return (plans created, completed projects, a project type) is not shown.
+ * API; what it does not return (a project type, or a figure of an older API) is not shown.
  */
 export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: HomePageProps) {
     const summary = useAsync(() => summaryApi.get(), []);
@@ -114,6 +200,20 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
         }
     }
 
+    async function duplicate(project: Project) {
+        setActionError(null);
+
+        try {
+            const copy = await projectsApi.duplicate(project.id);
+
+            projects.reload();
+            summary.reload();
+            showToast(`Proyecto duplicado como «${copy.name}».`);
+        } catch (reason) {
+            setActionError(errorMessage(reason));
+        }
+    }
+
     async function changeStatus(project: Project, next: ProjectStatus) {
         setActionError(null);
 
@@ -159,8 +259,7 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                 </div>
             </section>
 
-            {/* Only the figures GET /summary returns. There is no count of plans or of saved
-                materials, nor a «completed» state, so none of them is shown. */}
+            {/* Only the figures GET /summary returns; those an older API leaves out are not shown. */}
             <dl className={styles.figures} aria-label="Resumen de tu cuenta">
                 {summary.data === null ? (
                     <div className={styles.figuresWaiting}>
@@ -173,53 +272,18 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                         />
                     </div>
                 ) : (
-                    <>
-                        <div className={styles.figure}>
+                    figuresOf(summary.data).map((figure) => (
+                        <div key={figure.label} className={styles.figure}>
                             <dt>
-                                <Icon name="projects" />
-                                Proyectos
+                                <Icon name={figure.icon} />
+                                {figure.label}
                             </dt>
                             <dd className={styles.value}>
-                                <CountUp value={summary.data.projects} format={formatNumber} />
+                                <CountUp value={figure.value} format={figure.format} />
                             </dd>
-                            <dd className={styles.detail}>
-                                {[
-                                    count(summary.data.active_projects, "activo", "activos"),
-                                    `${formatNumber(summary.data.draft_projects)} en borrador`,
-                                    count(
-                                        summary.data.archived_projects,
-                                        "archivado",
-                                        "archivados",
-                                    ),
-                                ].join(" · ")}
-                            </dd>
+                            <dd className={styles.detail}>{figure.detail}</dd>
                         </div>
-                        <div className={styles.figure}>
-                            <dt>
-                                <Icon name="terrains" />
-                                Terrenos
-                            </dt>
-                            <dd className={styles.value}>
-                                <CountUp value={summary.data.terrains} format={formatNumber} />
-                            </dd>
-                            <dd className={styles.detail}>
-                                {formatNumber(summary.data.total_area_m2)} m² en total
-                            </dd>
-                        </div>
-                        <div className={styles.figure}>
-                            <dt>
-                                <Icon name="materials" />
-                                Costo de materiales
-                            </dt>
-                            <dd className={styles.value}>
-                                <CountUp
-                                    value={summary.data.materials_total_cost}
-                                    format={formatMoney}
-                                />
-                            </dd>
-                            <dd className={styles.detail}>Suma de todos los proyectos</dd>
-                        </div>
-                    </>
+                    ))
                 )}
             </dl>
 
@@ -409,6 +473,11 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                                                     icon: "viewer",
                                                     onSelect: () =>
                                                         onOpenProject(project.id, "model"),
+                                                },
+                                                {
+                                                    label: "Duplicar",
+                                                    icon: "copy",
+                                                    onSelect: () => void duplicate(project),
                                                 },
                                                 {
                                                     label:

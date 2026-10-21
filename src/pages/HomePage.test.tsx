@@ -7,7 +7,7 @@ import type { Project, User } from "../types/api";
 import { HomePage } from "./HomePage";
 
 vi.mock("../services/api", () => ({
-    projectsApi: { list: vi.fn(), update: vi.fn(), remove: vi.fn() },
+    projectsApi: { list: vi.fn(), update: vi.fn(), remove: vi.fn(), duplicate: vi.fn() },
     summaryApi: { get: vi.fn() },
 }));
 
@@ -98,11 +98,54 @@ describe("HomePage", () => {
             await screen.findByText("2 activos · 1 en borrador · 1 archivado"),
         ).toBeInTheDocument();
         expect(screen.getByText("480 m² en total")).toBeInTheDocument();
-        // Only what GET /summary returns: no count of plans nor a «completed» state.
+        // An API older than 20 October sends no count of plans nor a «completed» figure.
         const figures = screen.getByLabelText("Resumen de tu cuenta");
 
         expect(within(figures).queryByText(/planos/i)).not.toBeInTheDocument();
         expect(within(figures).queryByText(/completad/i)).not.toBeInTheDocument();
+    });
+
+    it("shows the figures of progress, materials and plans when the API sends them", async () => {
+        vi.mocked(summaryApi).get.mockResolvedValue({
+            projects: 4,
+            draft_projects: 1,
+            active_projects: 2,
+            archived_projects: 1,
+            terrains: 3,
+            total_area_m2: 480,
+            materials_total_cost: 1200,
+            in_progress_projects: 2,
+            completed_projects: 1,
+            materials: 9,
+            plans: 5,
+        });
+        render(
+            <HomePage user={user} onOpenProject={() => undefined} onNavigate={() => undefined} />,
+        );
+
+        const figures = await screen.findByLabelText("Resumen de tu cuenta");
+
+        for (const label of ["En progreso", "Completados", "Materiales", "Planos"]) {
+            expect(await within(figures).findByText(label)).toBeInTheDocument();
+        }
+        // The cost moves under the count of materials instead of a card of its own.
+        expect(within(figures).queryByText("Costo de materiales")).not.toBeInTheDocument();
+    });
+
+    it("duplicates a recent project from its menu", async () => {
+        vi.mocked(projectsApi).list.mockResolvedValue([project(1, "Casa Andina", "active")]);
+        vi.mocked(projectsApi).duplicate.mockResolvedValue(
+            project(9, "Casa Andina (copia)", "draft"),
+        );
+        render(
+            <HomePage user={user} onOpenProject={() => undefined} onNavigate={() => undefined} />,
+        );
+
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Duplicar" }));
+
+        expect(projectsApi.duplicate).toHaveBeenCalledWith(1);
+        expect(projectsApi.list).toHaveBeenCalledTimes(2);
     });
 
     it("deletes a recent project only after confirming it", async () => {

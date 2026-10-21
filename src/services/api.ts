@@ -78,6 +78,9 @@ export const projectsApi = {
     update: (id: number, data: ProjectUpdate) =>
         request<Project>(`/projects/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
+    /** A copy with its terrains, plans, rooms and materials; the API names it «… (copia)». */
+    duplicate: (id: number) =>
+        request<Project>(`/projects/${id}/duplicate`, { method: "POST", body: {} }),
 };
 
 export const templatesApi = {

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -52,6 +52,34 @@ describe("ProjectTile", () => {
         expect(container.querySelector("img")).toHaveAttribute(
             "src",
             "data:image/jpeg;base64,AAAA",
+        );
+    });
+
+    it("prefers the cover chosen in the API and falls back to the model if it fails", () => {
+        window.localStorage.setItem("arquila:thumb:3", "data:image/jpeg;base64,AAAA");
+
+        const { container } = render(
+            <ProjectTile project={project({ cover_file_id: 12 })} onOpen={() => undefined} />,
+        );
+        const image = container.querySelector("img");
+
+        expect(image?.getAttribute("src")).toMatch(/\/files\/12\/content$/);
+        fireEvent.error(image as HTMLImageElement);
+        expect(container.querySelector("img")).toHaveAttribute(
+            "src",
+            "data:image/jpeg;base64,AAAA",
+        );
+    });
+
+    it("shows the progress only when the API sends it", () => {
+        const { rerender } = render(<ProjectTile project={project()} onOpen={() => undefined} />);
+
+        expect(screen.queryByRole("progressbar")).toBeNull();
+
+        rerender(<ProjectTile project={project({ progress: 45 })} onOpen={() => undefined} />);
+        expect(screen.getByRole("progressbar", { name: "Avance" })).toHaveAttribute(
+            "aria-valuenow",
+            "45",
         );
     });
 });

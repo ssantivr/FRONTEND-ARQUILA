@@ -1,10 +1,12 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
+import { filesApi } from "../services/api";
 import { useThumbnail } from "../state/thumbnails";
 import type { Project } from "../types/api";
 import { formatDate } from "../utils/format";
 import { StatusBadge } from "./ui/Badge";
 import { BlueprintGrid } from "./ui/Blueprint";
+import { ProgressBar } from "./ui/ProgressBar";
 
 import styles from "./ProjectTile.module.css";
 
@@ -27,25 +29,35 @@ function initials(name: string): string {
 }
 
 /**
- * A project as the API gives it: its name, state and last change, and its place only when it
- * has one. The picture is the project's own 3D model, taken the last time it was opened in this
- * browser (the API stores no cover). Until then the card shows a blank sheet with the initials,
- * which does not pretend to be the building. The API has no project type, so none is shown.
+ * A project as the API gives it: its name, state, progress and last change, and its place only
+ * when it has one. The picture is the cover chosen among its files; without one (or if it cannot
+ * be read), the project's own 3D model as it was last opened in this browser; and without that, a
+ * blank sheet with the initials, which does not pretend to be the building. `ProjectRead` has no
+ * project type, so none is shown.
  */
 export function ProjectTile({ project, onOpen, layout = "grid", actions }: ProjectTileProps) {
     const thumbnail = useThumbnail(project.id);
+    const [coverFailed, setCoverFailed] = useState(false);
+    const coverId = project.cover_file_id ?? null;
+    const picture = coverId !== null && !coverFailed ? filesApi.contentUrl(coverId) : thumbnail;
 
     return (
         <article className={`${styles.tile} ${styles[layout]}`}>
             <button type="button" className={styles.open} onClick={() => onOpen(project.id)}>
                 <span className={styles.cover} aria-hidden="true">
-                    {thumbnail === null ? (
+                    {picture === null ? (
                         <span className={styles.blank}>
                             <BlueprintGrid cell={12} />
                             <span className={styles.monogram}>{initials(project.name)}</span>
                         </span>
                     ) : (
-                        <img className={styles.image} src={thumbnail} alt="" loading="lazy" />
+                        <img
+                            className={styles.image}
+                            src={picture}
+                            alt=""
+                            loading="lazy"
+                            onError={picture === thumbnail ? undefined : () => setCoverFailed(true)}
+                        />
                     )}
                 </span>
                 <span className={styles.body}>
@@ -62,6 +74,11 @@ export function ProjectTile({ project, onOpen, layout = "grid", actions }: Proje
                             </time>
                         </span>
                     </span>
+                    {project.progress !== undefined && (
+                        <span className={styles.progress}>
+                            <ProgressBar label="Avance" value={project.progress / 100} showValue />
+                        </span>
+                    )}
                 </span>
             </button>
             {actions !== undefined && <div className={styles.actions}>{actions}</div>}

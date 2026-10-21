@@ -103,6 +103,12 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* Clear of the menu of actions, which sits at the bottom right of a card. */
+.grid .progress {
+    display: block;
+    padding-right: var(--space-8);
+}
+
 .actions {
     position: absolute;
     right: var(--space-2);
