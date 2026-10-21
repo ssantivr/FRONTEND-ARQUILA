@@ -10,9 +10,10 @@ import {
 import { AuthScreen } from "./components/AuthScreen";
 import { CommandPalette, type Command } from "./components/CommandPalette";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Icon } from "./components/Icon";
 import { MobileNav } from "./components/MobileNav";
-import { Panel } from "./components/ui/Panel";
+import { Button } from "./components/ui/Button";
+import { EmptyState } from "./components/ui/EmptyState";
+import { Loader } from "./components/ui/Loader";
 import { Skeleton } from "./components/ui/Skeleton";
 import { Toasts } from "./components/Toasts";
 import { MODULES, Sidebar, type View } from "./components/Sidebar";
@@ -30,6 +31,8 @@ import { TopBarSlotProvider } from "./state/topBarSlot";
 import { withViewTransition } from "./state/viewTransition";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
+
+import styles from "./App.module.css";
 
 // Only the screens someone lands on (home, sign-in, the list of projects) come with the app.
 // Each of the others is a file of its own that the browser asks for when it is opened, so the
@@ -99,6 +102,7 @@ export function App() {
     const [loginNotice, setLoginNotice] = useState<string | undefined>(undefined);
     const theme = useTheme();
     const [commandsOpen, setCommandsOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
     const [topBarSlot, setTopBarSlot] = useState<HTMLElement | null>(null);
     const signedIn = session.state === "authenticated" && resetToken === null;
     const canonical = canonicalPath(location.pathname);
@@ -135,16 +139,23 @@ export function App() {
         return () => window.removeEventListener("keydown", handleShortcut);
     }, [signedIn]);
 
-    const [collapsed, setCollapsed] = useState(
-        () => window.localStorage.getItem(SIDEBAR_KEY) === "collapsed",
-    );
+    // A blocked storage throws on access; the sidebar then simply opens expanded.
+    const [collapsed, setCollapsed] = useState(() => {
+        try {
+            return window.localStorage.getItem(SIDEBAR_KEY) === "collapsed";
+        } catch {
+            return false;
+        }
+    });
 
     function toggleSidebar() {
-        setCollapsed((previous) => {
-            window.localStorage.setItem(SIDEBAR_KEY, previous ? "expanded" : "collapsed");
+        const next = !collapsed;
 
-            return !previous;
-        });
+        setCollapsed(next);
+
+        try {
+            window.localStorage.setItem(SIDEBAR_KEY, next ? "collapsed" : "expanded");
+        } catch {}
     }
 
     const screenName =
@@ -163,6 +174,9 @@ export function App() {
             window.history.replaceState(null, "", window.location.pathname);
         }
     }, []);
+
+    // Asking for the session again after a failure (the API was down) is the «Reintentar».
+    const [sessionAttempt, setSessionAttempt] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
@@ -189,7 +203,12 @@ export function App() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [sessionAttempt]);
+
+    function retrySession() {
+        setSession({ state: "loading" });
+        setSessionAttempt((attempt) => attempt + 1);
+    }
 
     useEffect(() => {
         // The address stays as it is, so signing in again returns to the same screen.
@@ -295,15 +314,17 @@ export function App() {
 
         if (view === null) {
             return (
-                <Panel title="Página no encontrada">
-                    <p className="message">
-                        La dirección <code>{location.pathname}</code> no corresponde a ninguna
-                        pantalla de ARQUILA.
-                    </p>
-                    <button type="button" onClick={() => navigate("home")}>
-                        Ir al inicio
-                    </button>
-                </Panel>
+                <EmptyState
+                    title="Página no encontrada"
+                    titleAs="h2"
+                    art="plan"
+                    text={`La dirección ${location.pathname} no corresponde a ninguna pantalla de ARQUILA.`}
+                    action={
+                        <Button icon="home" onClick={() => navigate("home")}>
+                            Ir al inicio
+                        </Button>
+                    }
+                />
             );
         }
 
@@ -386,23 +407,15 @@ export function App() {
         }
     }
 
-    const themeToggle = (
-        <button
-            type="button"
-            className="button-secondary icon-button"
-            aria-pressed={theme === "dark"}
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        >
-            <Icon name={theme === "dark" ? "sun" : "moon"} />
-            {theme === "dark" ? "Modo claro" : "Modo oscuro"}
-        </button>
-    );
-
     if (resetToken === null && session.state === "authenticated") {
         const current = MODULES.find((item) => item.id === view);
 
         return (
-            <div className={collapsed ? "shell shell-collapsed" : "shell"}>
+            <div
+                className={
+                    collapsed ? `shell shell-collapsed ${styles.shell}` : `shell ${styles.shell}`
+                }
+            >
                 <a className="skip-link" href="#content">
                     Saltar al contenido
                 </a>
@@ -431,6 +444,7 @@ export function App() {
                         onOpenSettings={() => navigate("settings")}
                         onLogout={() => void handleLogout()}
                         onSlot={setTopBarSlot}
+                        onOpenMenu={() => setMenuOpen(true)}
                     />
                     <main id="content" className="content" tabIndex={-1}>
                         <ErrorBoundary
@@ -449,8 +463,11 @@ export function App() {
                 <MobileNav
                     current={view}
                     onNavigate={navigate}
+                    onOpenSettings={() => navigate("settings")}
                     onLogout={() => void handleLogout()}
                     user={session.user}
+                    menuOpen={menuOpen}
+                    onMenuChange={setMenuOpen}
                 />
                 {commandsOpen && (
                     <CommandPalette
@@ -478,36 +495,33 @@ export function App() {
         );
     }
 
-    return (
-        <div className="layout">
-            <a className="skip-link" href="#content">
-                Saltar al contenido
-            </a>
-            <header className="header">
-                <span className="brand">ARQUILA</span>
-                <div className="user-menu">{themeToggle}</div>
-            </header>
+    if (resetToken !== null) {
+        return (
+            <AuthScreen>
+                <ResetPasswordPage token={resetToken} onDone={handleResetDone} />
+            </AuthScreen>
+        );
+    }
 
-            {resetToken !== null ? (
-                <main id="content" className="content" tabIndex={-1}>
-                    <ResetPasswordPage token={resetToken} onDone={handleResetDone} />
-                </main>
+    // Before the session is known, or when the API cannot be reached: one calm screen, with the
+    // way out when there is one.
+    return (
+        <main id="content" className={styles.waiting} tabIndex={-1}>
+            {session.state === "error" ? (
+                <EmptyState
+                    title="No se pudo conectar con ARQUILA"
+                    titleAs="h2"
+                    art="site"
+                    text={`${session.message} Revisa tu conexión e inténtalo de nuevo.`}
+                    action={
+                        <Button icon="rotate" onClick={retrySession}>
+                            Reintentar
+                        </Button>
+                    }
+                />
             ) : (
-                <main id="content" className="content" tabIndex={-1}>
-                    {session.state === "loading" && (
-                        <Panel title="ARQUILA">
-                            <p className="message">Cargando…</p>
-                        </Panel>
-                    )}
-                    {session.state === "error" && (
-                        <Panel title="Conexión con la API">
-                            <p className="message message-error" role="alert">
-                                {session.message}
-                            </p>
-                        </Panel>
-                    )}
-                </main>
+                <Loader label="Comprobando la sesión…" />
             )}
-        </div>
+        </main>
     );
 }

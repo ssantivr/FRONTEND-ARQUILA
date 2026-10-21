@@ -1,13 +1,12 @@
-import { useState } from "react";
-
-import { setThemePreference, useThemePreference } from "../state/theme";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { setThemePreference, useThemePreference, type ThemePreference } from "../state/theme";
 import type { User } from "../types/api";
 import { Icon } from "./Icon";
-import { MODULES, type View } from "./Sidebar";
+import { MODULES, NavGroups, type View } from "./Sidebar";
+import { Avatar } from "./ui/Avatar";
+import { Button } from "./ui/Button";
 import { Drawer } from "./ui/Drawer";
 import { SegmentedControl, type Segment } from "./ui/SegmentedControl";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import type { ThemePreference } from "../state/theme";
 
 import styles from "./MobileNav.module.css";
 
@@ -31,25 +30,36 @@ export const PHONE_QUERY = "(max-width: 720px)";
 interface MobileNavProps {
     current: View | null;
     onNavigate: (view: View) => void;
+    onOpenSettings: () => void;
     onLogout: () => void;
     user: Pick<User, "name" | "email">;
+    /** The menu: every module, the theme and the account, in a drawer from the left. */
+    menuOpen: boolean;
+    onMenuChange: (open: boolean) => void;
 }
 
 /**
  * The navigation of small screens (up to 720 px, where the sidebar is hidden): a bar at the
- * bottom with the four main modules and «Más», which opens the other modules, the theme and the
- * account in a sheet from below.
+ * bottom with the four main modules and «Más», which opens the menu. The menu is the sidebar in a
+ * drawer, with the theme and the account; the menu button of the top bar opens it too.
  */
-export function MobileNav({ current, onNavigate, onLogout, user }: MobileNavProps) {
-    const [open, setOpen] = useState(false);
+export function MobileNav({
+    current,
+    onNavigate,
+    onOpenSettings,
+    onLogout,
+    user,
+    menuOpen,
+    onMenuChange,
+}: MobileNavProps) {
     const theme = useThemePreference();
     // Drawn only on a phone, so a desktop page and its screen reader have one navigation.
     const phone = useMediaQuery(PHONE_QUERY);
     const inMore = current !== null && !PRIMARY.some((item) => item.id === current);
 
-    function go(view: View) {
-        setOpen(false);
-        onNavigate(view);
+    function close(then: () => void) {
+        onMenuChange(false);
+        then();
     }
 
     if (!phone) {
@@ -79,32 +89,22 @@ export function MobileNav({ current, onNavigate, onLogout, user }: MobileNavProp
                     type="button"
                     className={styles.item}
                     aria-haspopup="dialog"
-                    aria-expanded={open}
+                    aria-expanded={menuOpen}
                     data-active={inMore || undefined}
-                    onClick={() => setOpen(true)}
+                    onClick={() => onMenuChange(true)}
                 >
                     <Icon name="more" />
                     <span>Más</span>
                 </button>
             </nav>
-            {open && (
-                <Drawer title="Más" side="bottom" onClose={() => setOpen(false)}>
-                    <nav className={styles.more} aria-label="Otros módulos">
-                        {MODULES.filter(
-                            (module) => !PRIMARY.some((item) => item.id === module.id),
-                        ).map((module) => (
-                            <button
-                                key={module.id}
-                                type="button"
-                                className={styles.moreItem}
-                                aria-current={module.id === current ? "page" : undefined}
-                                onClick={() => go(module.id)}
-                            >
-                                <Icon name={module.icon} />
-                                <span>{module.label}</span>
-                            </button>
-                        ))}
-                    </nav>
+            {menuOpen && (
+                <Drawer title="Menú" side="left" onClose={() => onMenuChange(false)}>
+                    <NavGroups
+                        current={current}
+                        onNavigate={(view) => close(() => onNavigate(view))}
+                        label="Todos los módulos"
+                        tone="surface"
+                    />
                     <div className={styles.section}>
                         <span className={styles.sectionLabel} aria-hidden="true">
                             Tema
@@ -118,20 +118,30 @@ export function MobileNav({ current, onNavigate, onLogout, user }: MobileNavProp
                     </div>
                     <div className={styles.section}>
                         <p className={styles.who}>
-                            <strong>{user.name}</strong>
-                            <span>{user.email}</span>
+                            <Avatar name={user.name} />
+                            <span className={styles.whoText}>
+                                <strong>{user.name}</strong>
+                                <span>{user.email}</span>
+                            </span>
                         </p>
-                        <button
-                            type="button"
-                            className="button-secondary icon-button"
-                            onClick={() => {
-                                setOpen(false);
-                                onLogout();
-                            }}
-                        >
-                            <Icon name="logout" />
-                            Cerrar sesión
-                        </button>
+                        <div className={styles.accountActions}>
+                            <Button
+                                variant="secondary"
+                                icon="settings"
+                                block
+                                onClick={() => close(onOpenSettings)}
+                            >
+                                Cuenta y configuración
+                            </Button>
+                            <Button
+                                variant="tertiary"
+                                icon="logout"
+                                block
+                                onClick={() => close(onLogout)}
+                            >
+                                Cerrar sesión
+                            </Button>
+                        </div>
                     </div>
                 </Drawer>
             )}

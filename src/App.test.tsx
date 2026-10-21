@@ -130,6 +130,33 @@ describe("App routing", () => {
         expect(await screen.findByLabelText("Nombre")).toHaveFocus();
     });
 
+    it("says when the API cannot be reached and asks for the session again", async () => {
+        let reachable = false;
+
+        vi.mocked(request).mockImplementation((path: string) => {
+            if (path === "/auth/me") {
+                return reachable
+                    ? Promise.resolve(user)
+                    : Promise.reject(new Error("Failed to fetch"));
+            }
+
+            return Promise.resolve(path === "/summary" ? summary : []);
+        });
+        renderAt("/");
+
+        expect(
+            await screen.findByRole("heading", { name: "No se pudo conectar con ARQUILA" }),
+        ).toBeInTheDocument();
+        expect(screen.getByText(/No se pudo conectar con el servidor/)).toBeInTheDocument();
+
+        reachable = true;
+        await userEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+
+        expect(
+            await screen.findByRole("heading", { level: 1, name: "Inicio" }),
+        ).toBeInTheDocument();
+    });
+
     it("says so when the address is not a screen of the app", async () => {
         renderAt("/no-existe");
 

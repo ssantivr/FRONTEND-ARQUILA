@@ -9,13 +9,13 @@
         right: 0;
         bottom: 0;
         left: 0;
-        z-index: 40;
+        z-index: var(--z-dock);
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
         padding-bottom: env(safe-area-inset-bottom, 0px);
-        background: var(--forest);
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: var(--border-width) solid var(--brand-forest-raised);
+        background: var(--brand-forest);
     }
 }
 
@@ -24,25 +24,28 @@
     display: grid;
     place-items: center;
     align-content: center;
-    gap: 2px;
+    gap: var(--space-0);
     min-height: var(--touch-target);
+    margin: 0;
     padding: var(--space-1) 0;
-    color: var(--forest-text);
-    font-size: var(--fs-12);
-    font-weight: 550;
-    background: transparent;
     border: 0;
     border-radius: 0;
+    background: transparent;
+    color: var(--brand-forest-text);
+    font: inherit;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
     box-shadow: none;
+    transition: none;
 }
 
 .item :global(.icon) {
-    width: 22px;
-    height: 22px;
+    width: var(--icon-lg);
+    height: var(--icon-lg);
 }
 
 .item:focus-visible {
-    outline: 2px solid var(--lime);
+    outline: 2px solid var(--brand-lime);
     outline-offset: -4px;
 }
 
@@ -54,70 +57,56 @@
 
 .item[aria-current="page"] :global(.icon),
 .item[data-active] :global(.icon) {
-    color: var(--lime);
+    color: var(--brand-lime);
 }
 
 .item[aria-current="page"]::before,
 .item[data-active]::before {
-    content: "";
     position: absolute;
     top: 0;
-    left: 28%;
     right: 28%;
+    left: 28%;
     height: 3px;
-    background: var(--lime);
-    border-radius: 0 0 3px 3px;
-}
-
-.more {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-}
-
-.moreItem {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    min-height: 52px;
-    padding: var(--space-2) var(--space-3);
-    color: var(--text);
-    font-weight: 550;
-    text-align: left;
-    background: var(--panel-raised);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    box-shadow: none;
-}
-
-.moreItem[aria-current="page"] {
-    border-color: var(--accent);
-    box-shadow: inset 3px 0 0 var(--accent);
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+    background: var(--brand-lime);
+    content: "";
 }
 
 .section {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+    display: grid;
     gap: var(--space-3);
     margin-top: var(--space-5);
     padding-top: var(--space-4);
-    border-top: 1px solid var(--border);
+    border-top: var(--border-width) solid var(--color-border);
 }
 
 .sectionLabel {
-    font-weight: 600;
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
 }
 
 .who {
-    display: grid;
-    gap: 2px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     margin: 0;
-    font-size: var(--fs-13);
 }
 
-.who span {
-    color: var(--text-secondary);
+.whoText {
+    display: grid;
+    min-width: 0;
+    font-size: var(--text-sm);
+}
+
+.whoText span {
+    color: var(--color-text-secondary);
     overflow-wrap: anywhere;
+}
+
+.accountActions {
+    display: grid;
+    gap: var(--space-2);
 }
