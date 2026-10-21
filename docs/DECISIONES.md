@@ -165,3 +165,6 @@ El encargo pedía un token `accent-hi`. `--color-accent` ya era el lima de relle
 
 `ui/Toast.tsx` es la pieza visual y `components/Toasts.tsx` la conecta con `state/toasts.ts`. `showToast(texto, tono)` admite `success` (por defecto), `error` e `info`, cada uno con un icono de forma distinta. Antes todos llevaban la marca de éxito, incluido el fallo al guardar la imagen del modelo en `StructureViewer`, que ahora usa `error`. Los errores de un formulario siguen junto al campo; el aviso es para lo que no tiene sitio propio en pantalla.
 
+### Sin React Hook Form, Zod ni TanStack Query (21 de octubre)
+
+Los formularios de acceso tienen como mucho tres campos. `utils/authForm.ts` repite las reglas del backend (`app/schemas.py`) y `hooks/useFieldErrors.ts` decide cuándo se ve cada error (al salir del campo con algo escrito, o al enviar). Son unas 100 líneas con pruebas; React Hook Form y Zod añadirían dos dependencias para lo mismo. La carga y los errores siguen con `useAsync` y `AsyncStatus`, que ya usan todas las pantallas: pasar a TanStack Query solo en el dashboard dejaría dos mecanismos. Se reconsidera si llega un formulario largo (proyecto con muchos campos) o caché compartida entre pantallas.

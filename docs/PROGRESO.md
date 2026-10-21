@@ -31,14 +31,32 @@ Rama `rediseno-final`. Reconstruye la capa visual sobre los servicios, hooks, es
 | Fase | Estado |
 |---|---|
 | R1. Cimientos: inventario, tokens, temas, motivo de plano, componentes `ui/`, `/design-system` | Hecha |
-| R2. Aplicación: layout, barras, paleta, navegación móvil, transiciones, entrada del logotipo | Pendiente |
-| R3. Login inmersivo y dashboard | Pendiente |
+| R2. Aplicación: layout, barras, paleta, navegación móvil, transiciones, entrada del logotipo | Hecha, sin confirmar (21 de octubre) |
+| R3. Login inmersivo y dashboard | Hecha, sin confirmar (21 de octubre) |
 | R4. Proyectos (tres vistas), detalle, Terrenos, Materiales, Tareas | Pendiente |
 | R5. Espacio de trabajo 3D y `/visor` | Pendiente |
 | R6. Planos 2D como láminas, Iluminación y clima | Pendiente |
 | R7. Renderizado, Recorridos, exportación | Pendiente |
 | R8. Configuración, Análisis, accesibilidad, responsive, pulido | Pendiente |
 | R9. Consolidación, capturas y documentación final | Pendiente |
+
+### Fases R2 y R3. Aplicación, acceso y dashboard (21 de octubre)
+
+**Punto de partida.** El árbol traía sin confirmar casi todo R2 y R3 (barra lateral con módulo CSS, barra superior, `MobileNav` con cajón, `ProjectTile`, validación de formularios con `utils/authForm.ts` y `useFieldErrors`, `Avatar`, `Toast`). Se conservó y se completó con lo que el backend ya ofrece según `BACKEND-ARQUILA/docs/API_CONTRATO.md`:
+
+- **Notificaciones reales**: la campana lee `GET /notifications`, cuenta las no leídas, marca una al abrirla (`POST /notifications/{id}/read`) o todas (`/read-all`). Un 404 (API anterior) dice que aún no envía avisos, sin error.
+- **Dashboard**: `/summary` con `in_progress_projects`, `completed_projects`, `materials` y `plans` cuando vienen (seis tarjetas); sin ellos, las tres de antes. El tipo de proyecto no se muestra: `ProjectRead` no lo trae.
+- **Proyectos recientes**: portada desde `cover_file_id` (`/files/{id}/content`; si falla, la miniatura del modelo o la hoja con iniciales), barra de avance con `progress`, y «Duplicar» (`POST /projects/{id}/duplicate`).
+- **Corregido al verlo**: el globo oculto de la campana sobresalía 15 px a 390 px de ancho (desplazamiento horizontal); ahora se alinea al borde derecho (`Tooltip align="end"`). En la barra contraída, el nombre emergente quedaba debajo del contenido; la barra lateral tiene ahora `z-index: var(--z-dock)`.
+- Datos de muestra: `progress`, cifras nuevas de `/summary` y la ruta de duplicar.
+- **Editar un proyecto**: se edita en su ficha (botón «Editar» junto al estado, panel «Editar proyecto» con `ProjectEditForm`). El menú de la tarjeta del dashboard tiene ahora «Editar», que abre esa ficha con el panel desplegado.
+- **E2e intermitente** «el renderizado se puede cancelar»: la captura podía acabar antes de pulsar «Cancelar». La prueba detiene el reloj de la página antes de generar y espera a ver «pasada 1 de»; 10 de 10 seguidas.
+- **`tokens.test.ts`** fallaba en una copia recién sacada en Windows (`core.autocrlf`, CRLF): ahora normaliza el fin de línea.
+- Lo que la API no permite (recordar sesión, tipo de proyecto) está en `PENDIENTE.md`.
+
+**Commits.** La sesión anterior y esta van separadas. Sesión anterior: `7ee8353` (tema, movimiento y avisos), `abfec33` (notificaciones, provisional), `2716557` (barra lateral y superior), `6d2ffa7` (menú móvil y montaje en `App.tsx`), `b4549ac` (acceso), `0845d73` (dashboard), `c915154` (entrada del logotipo), `76395e1` (docs). Esta sesión: `0235695` (barras), `228a7d4` (notificaciones reales), `32d84bc` y `0182456` (dashboard y «Editar»), `52ef0a9` (demo), `5fc333e` (e2e), `0d87df3` (tokens) y el de docs. Cada commit pasa `tsc` por separado. El hook `pre-commit` de `.git/hooks` apunta a `Desktop\BACKEND-ARQUILA\.venv`, la ruta de antes de mover los repos: se ejecutó con el Python de `ARQUILA\BACKEND-ARQUILA\.venv` (`python -m pre_commit`) y conviene reinstalarlo (`pre-commit install`).
+
+**Validación** (al cerrar, sobre la rama): `npm run build` correcto (`index` 193,24 kB, 61,36 kB gzip; CSS 188,98 kB, 36,08 kB gzip); `lint` sin errores; `format:check` «All matched files use Prettier code style!»; `npm test` `Test Files 67 passed (67)`, `Tests 493 passed (493)`; `npm run test:e2e` `13 passed (1.6m)`; `npm run contraste` «Todos los pares llegan a 4.5:1». Visto en el navegador a 1280 y 390 px, en claro y en oscuro: sin desplazamiento horizontal en inicio, proyectos, terrenos, configuración y recorrido, y sin errores de consola.
 
 ### Fase R1. Cimientos
 
