@@ -294,6 +294,10 @@ test.describe("renderizado", () => {
     });
 
     test("se puede cancelar y lo dice", async ({ page }) => {
+        // The capture waits for a timer between passes. With the page's clock stopped it stays
+        // after the first pass until the clock goes on, so «Cancelar» is always pressed while it
+        // is still working, however fast the machine draws.
+        await page.clock.install();
         await mockApi(page);
         await page.goto("/renderizado");
         await expect(page.locator(".studio-stage canvas")).toBeVisible({
@@ -303,9 +307,11 @@ test.describe("renderizado", () => {
         const panel = page.getByRole("complementary", { name: "Parámetros de la captura" });
         await panel.getByRole("button", { name: "Alta" }).click();
         await panel.getByLabel("Resolución").selectOption({ index: 0 });
+        await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1000));
         await panel.getByRole("button", { name: "Generar captura" }).click();
-        await expect(panel.getByRole("progressbar")).toBeVisible();
+        await expect(panel.getByRole("status")).toContainText("pasada 1 de");
         await panel.getByRole("button", { name: "Cancelar" }).click();
+        await page.clock.resume();
 
         await expect(panel.getByRole("status")).toContainText("Cancelada");
         await expect(page.getByRole("figure", { name: "Captura de la vista" })).toHaveCount(0);
