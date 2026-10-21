@@ -13,6 +13,8 @@ Es el sistema vigente. Las secciones que siguen a esta describen el diseño ante
 - *Tema* (`--color-*`, `--shadow-*`, `--focus-ring`), escrito entero para claro y para oscuro. El oscuro no es una inversión: niveles de verde casi negro (`#050f0b`, `#0b1d16`, `#10291f`), bordes `#1f4434` y lima solo en acción, selección y foco.
 - *Escalas*, iguales en los dos temas: marca (`--brand-forest`, `--brand-forest-raised`, `--brand-lime`, caras del logotipo), tipografía (12 a 60 px, nada por debajo de 12), espacio en pasos de 4 px (`--space-0` a `--space-10`), radios de 2 a 14 px, alturas de control (28, 32, 40, 48; objetivo táctil 44), capas (`--z-*`) y duraciones (80, 120, 180 y 240 ms).
 - *Densidad*: `data-density="compact"` en cualquier contenedor baja filas y controles (44→36 px y 40→32 px).
+- *Tema automático*: `state/theme.ts` guarda la preferencia (`claro`, `oscuro` o `automático`) en `localStorage` (`arquila:theme`), resuelve `automático` con `prefers-color-scheme`, escribe `data-theme` antes del primer render y sigue al sistema si cambia. Antes de que corra el script, un `@media (prefers-color-scheme: dark)` sobre `:root:not([data-theme])` evita el destello blanco. El cambio no recarga la página y se funde con una View Transition (ver «Solo `transform` y `opacity`» en `DECISIONES.md`).
+- `--color-accent-hi`: el acento como línea, icono o texto (lima en oscuro, `#236b42` en claro). `--band-danger` y `--band-info`: estados sobre la banda verde de los avisos.
 - Los nombres del diseño anterior (`--panel`, `--accent`, `--fs-*`…) apuntan a los nuevos y desaparecen en R9; el código nuevo no los usa.
 
 **Lima.** Relleno de la acción principal, selección, progreso y estados activos. Sobre fondo claro no es legible como texto (1,31:1 sobre blanco): ahí solo es relleno, con texto `--color-on-accent` (`#0B211A`, 12,89:1). Sobre oscuro puede ser texto o contorno. `npm run contraste` comprueba todos los pares texto/fondo de los dos temas (mínimo 4,5:1).
@@ -32,12 +34,12 @@ Es el sistema vigente. Las secciones que siguen a esta describen el diseño ante
 | Formularios | `Field`, `Input` (con unidad), `PasswordInput` (mostrar/ocultar con `aria-pressed`), `Select`, `Textarea`, `Checkbox`, `Range` (valor con unidad y motivo si está deshabilitado), `Switch`, `SegmentedControl`, `MaterialPicker` |
 | Navegación | `Tabs` (barra lima que se desliza con `transform`), `Breadcrumbs`, `Menu`, `ContextMenu` (clic derecho, Mayús+F10 o tecla de menú; flechas, Escape devuelve el foco) |
 | Superficies | `Panel`, `Card`, `MetricCard`, `PropertyPanel` / `PropertySection` / `PropertyRow` / `PropertyField` (valores que se envían solo al confirmar, admiten coma decimal, avisan si salen de rango y vuelven con Escape) |
-| Capas | `Dialog`, `Drawer`, `ConfirmDialog` (abre en «Cancelar»), `Tooltip`, avisos (`Toasts.tsx`) |
+| Capas | `Dialog`, `Drawer`, `ConfirmDialog` (abre en «Cancelar»), `Tooltip`, `Toast` / `ToastRegion` (éxito, error o información; los conecta `components/Toasts.tsx`) |
 | Estado | `ProgressBar` (se llena con `transform`), `Spinner`, `Loader` (el logotipo se ilumina pieza a pieza), `Skeleton` (reserva el alto), `SaveIndicator`, `Tag` / `StatusBadge`, `EmptyState` |
 | Datos | `DataTable` (pasa a fichas según el ancho de su panel), `FilterBar` |
 | 3D | `CameraControls` (solo dibuja los controles a los que la vista responde; una parada de tabulación y flechas dentro) |
 
-Todos se muestran en claro y en oscuro, con interruptor de densidad compacta, en `/design-system` (solo en desarrollo). Pruebas: `ui/ui.test.tsx` y `ui/identity.test.tsx`.
+Todos se muestran en claro y en oscuro, con interruptor de densidad compacta, en `/design-system` (solo en desarrollo). Pruebas: `ui/ui.test.tsx`, `ui/identity.test.tsx` y `ui/feedback.test.tsx`; los tokens, en `styles/tokens.test.ts`, y la regla de movimiento, en `styles/motion.test.ts`. Hover, foco y pulsación no animan colores: solo `transform` y `opacity`.
 
 ## Esquemas del terreno
 

@@ -144,3 +144,24 @@ MSW se aprobó el 14 de octubre para `npm run demo`: la app en el navegador con 
 ### Capturas a 1280, 820 y 390 px (14 de octubre)
 
 Las de la entrega, como decía la decisión 8. Antes eran 1440 × 900 y 1024 × 768. La tablet se toma en vertical (820 × 1180), que es como se usa al revisar planos.
+
+### Radix solo en `Dialog` (20 de octubre)
+
+`@radix-ui/react-dialog` es la única pieza de Radix y la usan `ui/Dialog`, `ui/Drawer` y `ui/ConfirmDialog` (y la paleta de comandos, a través de `Dialog`). Una ventana modal accesible tiene que mantener el foco dentro, devolverlo al control que la abrió, cerrarse con Escape y con un clic fuera, marcar `aria-modal` y dejar el resto de la página inerte para los lectores de pantalla. Escribirlo a mano es fácil de hacer mal; Radix lo resuelve en un paquete pequeño sin estilos propios, y `ui/ui.test.tsx` comprueba el foco atrapado y el cierre con Escape. El resto de las piezas (`Tooltip`, `Menu`, `ContextMenu`, `Tabs`, `SegmentedControl`, `Select`, `Toast`) son propias o nativas: con `aria-describedby`, `role="menu"`, `role="tablist"`, un `<select>` del sistema y una región `aria-live` alcanza, y no hace falta otra dependencia. No se añade ningún otro paquete de Radix.
+
+### Solo `transform` y `opacity`, también al cambiar de tema (20 de octubre)
+
+Los componentes de `ui/` hacían una transición de color en hover (fondo, borde y texto), y el cambio de tema fundía los colores de toda la página con `transition` sobre `background-color`, `border-color`, `color`, `fill` y `stroke`. Ahora:
+
+- **Hover, foco y pulsación** cambian el color al instante; lo único que se anima es la pulsación (`transform`/`scale`), la flecha del botón, la barra de las pestañas, el interruptor y el progreso, todo con `transform`.
+- **El cambio de tema** usa una View Transition: el navegador toma una imagen de la página con los colores anteriores y otra con los nuevos, y funde las dos cambiando su `opacity` (`motion.css`, `html[data-theme-switching]::view-transition-*(root)`). Donde no hay View Transitions (Firefox hasta hoy) o el movimiento está reducido, el tema cambia al instante. En los dos casos, sin recargar.
+- Una prueba (`styles/motion.test.ts`) falla si una hoja de `components/ui/`, `foundation.css` o `motion.css` anima otra propiedad. Las hojas de la capa `legacy` y los módulos de pantallas (por ejemplo `SurfaceLibrary.module.css`) todavía tienen transiciones de color; se quitan al reconstruir cada pantalla.
+
+### `--color-accent-hi` (20 de octubre)
+
+El encargo pedía un token `accent-hi`. `--color-accent` ya era el lima de relleno y lo usan los componentes de R1, así que no cambia. `--color-accent-hi` es el acento **cuando tiene que verse como línea, icono o texto** sobre las superficies del tema: en oscuro es el lima (`#b8f36b`); en claro, donde el lima no se lee (1,31:1), es el verde de interacción (`#236b42`). `npm run contraste` lo comprueba sobre todas las superficies.
+
+### Avisos con tono (20 de octubre)
+
+`ui/Toast.tsx` es la pieza visual y `components/Toasts.tsx` la conecta con `state/toasts.ts`. `showToast(texto, tono)` admite `success` (por defecto), `error` e `info`, cada uno con un icono de forma distinta. Antes todos llevaban la marca de éxito, incluido el fallo al guardar la imagen del modelo en `StructureViewer`, que ahora usa `error`. Los errores de un formulario siguen junto al campo; el aviso es para lo que no tiene sitio propio en pantalla.
+
