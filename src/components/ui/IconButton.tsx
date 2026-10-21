@@ -17,6 +17,7 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
     /** Why it cannot be used now; it is disabled but reachable, and the tooltip says why. */
     disabledReason?: string;
     tooltipSide?: "top" | "right" | "bottom";
+    tooltipAlign?: "center" | "end";
 }
 
 /**
@@ -31,6 +32,7 @@ export function IconButton({
     size = "md",
     disabledReason,
     tooltipSide = "top",
+    tooltipAlign = "center",
     type = "button",
     className,
     disabled,
@@ -44,6 +46,7 @@ export function IconButton({
             text={explained ? `${label}: ${disabledReason}` : label}
             shortcut={explained ? undefined : shortcut}
             side={tooltipSide}
+            align={tooltipAlign}
             describes={explained}
         >
             <button

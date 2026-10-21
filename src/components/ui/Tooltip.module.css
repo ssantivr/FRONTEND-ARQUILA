@@ -68,6 +68,13 @@
     transform: translateY(-50%);
 }
 
+.top.end,
+.bottom.end {
+    right: 0;
+    left: auto;
+    transform: none;
+}
+
 .key {
     flex: none;
     padding: 0 var(--space-1);

@@ -2,6 +2,9 @@
 .sidebar {
     position: sticky;
     top: 0;
+    /* Sticky makes its own stacking layer: above the page, so the names of a collapsed menu
+       are drawn over the content and not under it. */
+    z-index: var(--z-dock);
     display: flex;
     flex-direction: column;
     gap: var(--space-5);
