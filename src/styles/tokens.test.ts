@@ -2,10 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const css = readFileSync(join(process.cwd(), "src/styles/tokens.css"), "utf8").replace(
-    /\/\*[\s\S]*?\*\//g,
-    "",
-);
+// Line ends as LF: a Windows checkout (core.autocrlf) has CRLF, and the selectors span lines.
+const css = readFileSync(join(process.cwd(), "src/styles/tokens.css"), "utf8")
+    .replace(/\r\n/g, "\n")
+    .replace(/\/\*[\s\S]*?\*\//g, "");
 
 /** The declarations of the first block whose selector is exactly `selector`. */
 function block(selector: string): string {
