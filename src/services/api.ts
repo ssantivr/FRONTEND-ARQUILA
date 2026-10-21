@@ -107,11 +107,12 @@ export const projectsApi = {
         });
 
         if (Array.isArray(data)) {
+            const found = pageLocally(data, query);
             const start = (query.page - 1) * query.page_size;
 
             return {
-                items: data.slice(start, start + query.page_size),
-                total: data.length,
+                items: found.slice(start, start + query.page_size),
+                total: found.length,
                 page: query.page,
                 page_size: query.page_size,
                 paged: false,
@@ -176,6 +177,38 @@ export const activityApi = {
             query: { page, page_size: pageSize },
         }),
 };
+
+/**
+ * What the paged list does on the server, done on every project of an API that has no paged
+ * list: the same search (name, description and place), filters and order.
+ */
+function pageLocally(projects: Project[], query: ProjectQuery): Project[] {
+    const wanted = query.q?.trim().toLowerCase() ?? "";
+    const sort = query.sort ?? "id";
+    const sign = query.order === "desc" ? -1 : 1;
+
+    return projects
+        .filter(
+            (project) =>
+                (query.status === undefined || project.status === query.status) &&
+                (query.archived === undefined ||
+                    (project.status === "archived") === query.archived) &&
+                (wanted === "" ||
+                    [project.name, project.description, project.location].some((text) =>
+                        text?.toLowerCase().includes(wanted),
+                    )),
+        )
+        .sort((first, second) => {
+            const a = first[sort] ?? 0;
+            const b = second[sort] ?? 0;
+            const order =
+                typeof a === "string" && typeof b === "string"
+                    ? a.localeCompare(b, "es", { sensitivity: "base" })
+                    : Number(a) - Number(b);
+
+            return (order || first.id - second.id) * sign;
+        });
+}
 
 export const templatesApi = {
     list: () => request<ProjectTemplate[]>("/templates"),

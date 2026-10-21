@@ -7,7 +7,15 @@ import type { Project, RenovationLog } from "../types/api";
 import { ProjectsPage } from "./ProjectsPage";
 
 vi.mock("../services/api", () => ({
-    projectsApi: { list: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn() },
+    projectsApi: {
+        page: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        remove: vi.fn(),
+        duplicate: vi.fn(),
+        archive: vi.fn(),
+        unarchive: vi.fn(),
+    },
     templatesApi: { list: vi.fn(), createProject: vi.fn() },
     summaryApi: { get: vi.fn() },
     loadAcrossProjects: vi.fn(),
@@ -51,6 +59,11 @@ function project(id: number, name: string): Project {
 const projects = vi.mocked(projectsApi);
 const templates = vi.mocked(templatesApi);
 
+/** One page of GET /projects with these projects and nothing more. */
+function pageOf(items: Project[]) {
+    return { items, total: items.length, page: 1, page_size: 12, paged: true };
+}
+
 function renderPage() {
     const onOpenProject = vi.fn();
     const onOpenModel = vi.fn();
@@ -76,8 +89,8 @@ beforeEach(() => {
 
 describe("ProjectsPage", () => {
     it("shows a loading state and then the projects", async () => {
-        let finish: (items: Project[]) => void = () => undefined;
-        projects.list.mockReturnValue(new Promise<Project[]>((resolve) => (finish = resolve)));
+        let finish: (page: ReturnType<typeof pageOf>) => void = () => undefined;
+        projects.page.mockReturnValue(new Promise((resolve) => (finish = resolve)));
 
         renderPage();
 
@@ -85,16 +98,17 @@ describe("ProjectsPage", () => {
             true,
         );
 
-        finish([project(1, "Casa Andina"), project(2, "Oficina")]);
+        finish(pageOf([project(1, "Casa Andina"), project(2, "Oficina")]));
 
         expect(await screen.findByRole("button", { name: /Casa Andina/ })).toHaveTextContent(
             "Quito",
         );
-        expect(screen.getByRole("button", { name: /Oficina/ })).toHaveTextContent("Sin ubicación");
+        // No place recorded: the card leaves it out instead of writing a placeholder.
+        expect(screen.getByRole("button", { name: /Oficina/ })).not.toHaveTextContent("Quito");
     });
 
     it("opens a project when its card is activated", async () => {
-        projects.list.mockResolvedValue([project(7, "Casa Andina")]);
+        projects.page.mockResolvedValue(pageOf([project(7, "Casa Andina")]));
 
         const { onOpenProject } = renderPage();
         await userEvent.click(await screen.findByRole("button", { name: /Casa Andina/ }));
@@ -103,7 +117,7 @@ describe("ProjectsPage", () => {
     });
 
     it("says so when there are no projects", async () => {
-        projects.list.mockResolvedValue([]);
+        projects.page.mockResolvedValue(pageOf([]));
 
         renderPage();
 
@@ -111,8 +125,8 @@ describe("ProjectsPage", () => {
     });
 
     it("shows a load error and reloads when the user retries", async () => {
-        projects.list.mockRejectedValueOnce(new Error("Failed to fetch"));
-        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.page.mockRejectedValueOnce(new Error("Failed to fetch"));
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina")]));
 
         renderPage();
 
@@ -129,8 +143,8 @@ describe("ProjectsPage", () => {
     });
 
     it("creates a project from the labelled form and reloads the list", async () => {
-        projects.list.mockResolvedValueOnce([]);
-        projects.list.mockResolvedValue([project(3, "Casa Nueva")]);
+        projects.page.mockResolvedValueOnce(pageOf([]));
+        projects.page.mockResolvedValue(pageOf([project(3, "Casa Nueva")]));
         projects.create.mockResolvedValue(project(3, "Casa Nueva"));
 
         renderPage();
@@ -157,7 +171,7 @@ describe("ProjectsPage", () => {
     });
 
     it("shows the real project counts of the account", async () => {
-        projects.list.mockResolvedValue([project(1, "Casa Andina"), project(2, "Oficina")]);
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina"), project(2, "Oficina")]));
 
         renderPage();
 
@@ -166,7 +180,7 @@ describe("ProjectsPage", () => {
     });
 
     it("offers the examples as a secondary way in and opens the one chosen", async () => {
-        projects.list.mockResolvedValue([]);
+        projects.page.mockResolvedValue(pageOf([]));
         templates.list.mockResolvedValue([
             {
                 id: "casa",
@@ -189,7 +203,7 @@ describe("ProjectsPage", () => {
     });
 
     it("keeps the form and shows the error when the project cannot be created", async () => {
-        projects.list.mockResolvedValue([]);
+        projects.page.mockResolvedValue(pageOf([]));
         projects.create.mockRejectedValue(new Error("Failed to fetch"));
 
         renderPage();
@@ -205,23 +219,73 @@ describe("ProjectsPage", () => {
         expect(screen.getByRole("button", { name: "Crear" })).toBeEnabled();
     });
 
-    it("archives a project from its card and confirms it", async () => {
-        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
-        projects.update.mockResolvedValue({ ...project(1, "Casa Andina"), status: "archived" });
+    it("archives a project from its menu and asks for the list again", async () => {
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina")]));
+        projects.archive.mockResolvedValue({ ...project(1, "Casa Andina"), status: "archived" });
 
         renderPage();
-        await userEvent.click(await screen.findByRole("button", { name: "Archivar" }));
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Archivar" }));
 
-        expect(projects.update).toHaveBeenCalledWith(1, { status: "archived" });
-        await waitFor(() => expect(projects.list).toHaveBeenCalledTimes(2));
+        expect(projects.archive).toHaveBeenCalledWith(1);
+        await waitFor(() => expect(projects.page).toHaveBeenCalledTimes(2));
+    });
+
+    it("unarchives an archived project and duplicates another", async () => {
+        projects.page.mockResolvedValue(
+            pageOf([{ ...project(1, "Casa Andina"), status: "archived" }, project(2, "Oficina")]),
+        );
+        projects.unarchive.mockResolvedValue(project(1, "Casa Andina"));
+        projects.duplicate.mockResolvedValue(project(3, "Oficina (copia)"));
+
+        renderPage();
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Desarchivar" }));
+        await waitFor(() => expect(projects.unarchive).toHaveBeenCalledWith(1));
+        await userEvent.click(screen.getByTitle("Acciones de Oficina"));
+        await userEvent.click(
+            within(screen.getByRole("group", { name: "Acciones de Oficina" })).getByRole("button", {
+                name: "Duplicar",
+            }),
+        );
+
+        await waitFor(() => expect(projects.duplicate).toHaveBeenCalledWith(2));
+    });
+
+    it("edits a project in a window and saves only what the form says", async () => {
+        projects.page.mockResolvedValue(pageOf([{ ...project(1, "Casa Andina"), progress: 20 }]));
+        projects.update.mockResolvedValue(project(1, "Casa Andes"));
+
+        renderPage();
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Editar…" }));
+
+        const dialog = screen.getByRole("dialog", { name: "Editar «Casa Andina»" });
+        const name = within(dialog).getByLabelText("Nombre");
+        const progress = within(dialog).getByLabelText("Avance (%)");
+
+        await userEvent.clear(name);
+        await userEvent.type(name, "Casa Andes");
+        await userEvent.clear(progress);
+        await userEvent.type(progress, "45");
+        await userEvent.click(within(dialog).getByRole("button", { name: "Guardar cambios" }));
+
+        expect(projects.update).toHaveBeenCalledWith(1, {
+            name: "Casa Andes",
+            location: "Quito",
+            description: null,
+            progress: 45,
+        });
+        await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     });
 
     it("asks before deleting and deletes only after the confirmation", async () => {
-        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina")]));
         projects.remove.mockResolvedValue(undefined);
 
         renderPage();
-        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Eliminar…" }));
 
         expect(projects.remove).not.toHaveBeenCalled();
         expect(screen.getByText("¿Eliminar «Casa Andina»?")).toBeInTheDocument();
@@ -232,43 +296,91 @@ describe("ProjectsPage", () => {
     });
 
     it("lets the user cancel a deletion", async () => {
-        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina")]));
 
         renderPage();
-        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Eliminar…" }));
         await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
 
         expect(projects.remove).not.toHaveBeenCalled();
-        expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+        expect(screen.getByTitle("Acciones de Casa Andina")).toBeInTheDocument();
     });
 
-    it("sorts by name on request", async () => {
-        projects.list.mockResolvedValue([project(1, "Oficina"), project(2, "Casa Andina")]);
+    it("asks the API for the order, the filter and the search chosen", async () => {
+        projects.page.mockResolvedValue(pageOf([project(1, "Oficina")]));
 
         renderPage();
         await screen.findByRole("button", { name: /Oficina/ });
+
+        expect(projects.page).toHaveBeenLastCalledWith({
+            page: 1,
+            page_size: 12,
+            q: undefined,
+            archived: false,
+            sort: "updated_at",
+            order: "desc",
+        });
+
         await userEvent.selectOptions(screen.getByLabelText("Ordenar proyectos"), "name");
+        await userEvent.selectOptions(screen.getByLabelText("Qué proyectos mostrar"), "archived");
+        await userEvent.type(
+            screen.getByLabelText("Buscar por nombre, descripción o lugar"),
+            "casa",
+        );
 
-        const names = screen
-            .getAllByRole("button", { name: /Casa Andina|Oficina/ })
-            .map((card) => card.textContent ?? "");
+        await waitFor(() =>
+            expect(projects.page).toHaveBeenLastCalledWith({
+                page: 1,
+                page_size: 12,
+                q: "casa",
+                archived: true,
+                sort: "name",
+                order: "asc",
+            }),
+        );
+    });
 
-        expect(names[0]).toContain("Casa Andina");
+    it("moves between pages with the total the API gives", async () => {
+        const many = Array.from({ length: 12 }, (_, index) => project(index + 1, `P${index + 1}`));
+
+        projects.page.mockResolvedValue({ ...pageOf(many), total: 30 });
+
+        renderPage();
+        await screen.findByText("P1");
+
+        expect(screen.getByText("1–12 de 30 proyectos")).toBeInTheDocument();
+        await userEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+
+        await waitFor(() =>
+            expect(projects.page).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 })),
+        );
+    });
+
+    it("says so when the API in use does not page the list", async () => {
+        projects.page.mockResolvedValue({ ...pageOf([project(1, "Casa Andina")]), paged: false });
+
+        renderPage();
+
+        expect(await screen.findByRole("note")).toHaveTextContent("no pagina la lista");
     });
 
     it("offers to clear the filters when they leave nothing, and clears them", async () => {
-        projects.list.mockResolvedValue([]);
+        projects.page.mockResolvedValue(pageOf([]));
 
         renderPage();
-        await userEvent.type(screen.getByLabelText("Buscar por nombre"), "zzz");
+        await userEvent.type(
+            screen.getByLabelText("Buscar por nombre, descripción o lugar"),
+            "zzz",
+        );
         await userEvent.click(await screen.findByRole("button", { name: "Quitar los filtros" }));
 
-        expect(screen.getByLabelText("Buscar por nombre")).toHaveValue("");
+        expect(screen.getByLabelText("Buscar por nombre, descripción o lugar")).toHaveValue("");
         expect(await screen.findByText("Todavía no hay proyectos")).toBeInTheDocument();
     });
 
     it("shows the list as rows with the same data when asked", async () => {
-        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina")]));
 
         renderPage();
         await screen.findByRole("button", { name: /Casa Andina/ });
@@ -278,11 +390,11 @@ describe("ProjectsPage", () => {
 
         expect(row).toHaveTextContent("Quito");
         expect(row).toHaveTextContent("Borrador");
-        expect(within(row).getByRole("button", { name: "Archivar" })).toBeInTheDocument();
+        expect(within(row).getByTitle("Acciones de Casa Andina")).toBeInTheDocument();
     });
 
     it("asks for the tasks only when the timeline is opened, and places them by their dates", async () => {
-        projects.list.mockResolvedValue([project(1, "Casa Andina"), project(2, "Oficina")]);
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina"), project(2, "Oficina")]));
         vi.mocked(loadAcrossProjects).mockResolvedValue({
             projects: [project(1, "Casa Andina"), project(2, "Oficina")],
             items: [
@@ -319,11 +431,12 @@ describe("ProjectsPage", () => {
     });
 
     it("deletes from a confirmation window that opens on «Cancelar»", async () => {
-        projects.list.mockResolvedValue([project(1, "Casa Andina")]);
+        projects.page.mockResolvedValue(pageOf([project(1, "Casa Andina")]));
         projects.remove.mockResolvedValue(undefined);
 
         renderPage();
-        await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
+        await userEvent.click(screen.getByRole("button", { name: "Eliminar…" }));
 
         const dialog = screen.getByRole("alertdialog", { name: "¿Eliminar «Casa Andina»?" });
 

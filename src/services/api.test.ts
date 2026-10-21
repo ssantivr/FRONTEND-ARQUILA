@@ -182,6 +182,30 @@ describe("projectsApi.page", () => {
         expect(page.items.map((item) => item.id)).toEqual([3, 4]);
         expect(page).toMatchObject({ total: 5, paged: false });
     });
+
+    it("searches, filters and sorts like the API when it has to do it itself", async () => {
+        http.requestWithTotal.mockResolvedValue({
+            data: [
+                { id: 1, name: "Casa Andina", status: "active", location: "Quito" },
+                { id: 2, name: "Oficina", status: "archived", location: "Quito" },
+                { id: 3, name: "Bodega", status: "draft", location: "Quito" },
+                { id: 4, name: "Estudio", status: "draft", location: "Pasto" },
+            ],
+            total: null,
+        });
+
+        const page = await projectsApi.page({
+            page: 1,
+            page_size: 10,
+            q: "quito",
+            archived: false,
+            sort: "name",
+            order: "asc",
+        });
+
+        expect(page.items.map((item) => item.name)).toEqual(["Bodega", "Casa Andina"]);
+        expect(page.total).toBe(2);
+    });
 });
 
 describe("projectsApi.archive", () => {
