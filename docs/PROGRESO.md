@@ -33,12 +33,25 @@ Rama `rediseno-final`. Reconstruye la capa visual sobre los servicios, hooks, es
 | R1. Cimientos: inventario, tokens, temas, motivo de plano, componentes `ui/`, `/design-system` | Hecha |
 | R2. Aplicación: layout, barras, paleta, navegación móvil, transiciones, entrada del logotipo | Hecha, sin confirmar (21 de octubre) |
 | R3. Login inmersivo y dashboard | Hecha, sin confirmar (21 de octubre) |
-| R4. Proyectos (tres vistas), detalle, Terrenos, Materiales, Tareas | Pendiente |
+| R4. Proyectos (tres vistas), detalle, Terrenos, Materiales, Tareas | Hecha, sin subir (21 de octubre) |
 | R5. Espacio de trabajo 3D y `/visor` | Pendiente |
 | R6. Planos 2D como láminas, Iluminación y clima | Pendiente |
 | R7. Renderizado, Recorridos, exportación | Pendiente |
 | R8. Configuración, Análisis, accesibilidad, responsive, pulido | Pendiente |
 | R9. Consolidación, capturas y documentación final | Pendiente |
+
+### Fase R4. Proyectos, materiales y terrenos (21 de octubre)
+
+Encargo: secciones 7, 10 y 14 de `DISENO_ARQUILA.md` (el «PROMPT MAESTRO») y `BACKEND-ARQUILA/docs/API_CONTRATO.md`. **El encargo citaba también la sección 26.2 (puntos 3, 7 y 8): no existe** en ningún documento de los tres repositorios (`DISENO_ARQUILA.md` acaba en la 25 y `docs/PROMPT_MAESTRO.md` no existe), así que no se aplicó.
+
+- **API** (`8f915f1`): `GET /projects` paginado (page, page_size, q, status, archived, sort, order) con el total de `X-Total-Count`; archivar y desarchivar; tareas, versiones e historial. Con una API sin paginación, lo mismo en el navegador. `isUnavailable` reconoce una ruta que la API no tiene (404 «Not Found» o 405) y cada pantalla dice «No disponible» en vez de un error. Errores del contrato y 422 de validación traducidos campo por campo.
+- **Proyectos** (`18de7e4`): búsqueda con espera, qué mostrar, orden y páginas de 12 en la API; menú por proyecto con abrir, editar (ventana, con el avance), duplicar, archivar/desarchivar y eliminar con confirmación.
+- **Ficha** (`c87d2b1`, `dcbfd80`): pestañas Resumen (por defecto), Tareas (CRUD; hecha = 100 %), Versiones (guardar, ver, restaurar) e Historial (paginado). La portada se elige entre las imágenes del proyecto.
+- **Materiales** (`a5d282a`): categorías de biblioteca para las 7 superficies del motor y «Aplicar a un elemento» con `PATCH …/surface` sobre un cuarto o componente real.
+- **Terrenos** (`f63c332`): filtro y cifra de coordenadas; con dos o más terrenos con coordenadas, situación relativa (no es un mapa: ver `DECISIONES.md`).
+- **Demo y e2e** (`3abc8cb`, `bdb8c84`): la API de muestra responde las rutas nuevas; 7 pruebas e2e nuevas en `e2e/gestion.spec.ts`. Abrir un proyecto lleva ahora a `/resumen` (se actualizó la expectativa de `flujos.spec.ts`).
+
+Visto en el navegador (demo, Playwright) a 1280 px en claro y a 390 px en oscuro: proyectos, resumen, tareas, versiones, historial, materiales y terrenos sin desplazamiento horizontal ni errores de consola. Corregido tras verlo: la etiqueta visible de las barras de avance repetía el nombre de la tarea.
 
 ### Fases R2 y R3. Aplicación, acceso y dashboard (21 de octubre)
 

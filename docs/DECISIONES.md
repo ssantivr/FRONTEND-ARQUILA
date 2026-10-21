@@ -168,3 +168,20 @@ El encargo pedía un token `accent-hi`. `--color-accent` ya era el lima de relle
 ### Sin React Hook Form, Zod ni TanStack Query (21 de octubre)
 
 Los formularios de acceso tienen como mucho tres campos. `utils/authForm.ts` repite las reglas del backend (`app/schemas.py`) y `hooks/useFieldErrors.ts` decide cuándo se ve cada error (al salir del campo con algo escrito, o al enviar). Son unas 100 líneas con pruebas; React Hook Form y Zod añadirían dos dependencias para lo mismo. La carga y los errores siguen con `useAsync` y `AsyncStatus`, que ya usan todas las pantallas: pasar a TanStack Query solo en el dashboard dejaría dos mecanismos. Se reconsidera si llega un formulario largo (proyecto con muchos campos) o caché compartida entre pantallas.
+
+### Proyectos: el resumen como pestaña de entrada (21 de octubre)
+
+Un proyecto abre en «Resumen» (`/proyectos/:id/resumen`), no en «Terreno»: es donde están su estado, avance, portada y el camino a tareas, versiones e historial. `/proyectos/:id` sin pestaña muestra el resumen sin reescribir la dirección, como antes con el terreno.
+
+### Lista de proyectos en el servidor, con plan B (21 de octubre)
+
+La búsqueda, los filtros, el orden y la paginación van a `GET /projects` (contrato del 20 de octubre). Si la API desplegada es anterior y devuelve todos los proyectos como una lista, `projectsApi.page` hace lo mismo en el navegador con las mismas reglas y la pantalla lo dice. Igual con archivar: sin la ruta `/archive`, se usa `PATCH status`.
+
+### «No disponible» frente a «error» (21 de octubre)
+
+FastAPI responde 404 «Not Found» a una ruta que no existe y 405 a un método que la ruta no tiene; un registro que falta dice cuál («Task not found»). `isUnavailable` separa los dos casos: lo primero es una API vieja y se muestra «No disponible» sin botón de reintentar; lo segundo es un error normal.
+
+### Terrenos: situación relativa, no un mapa (21 de octubre)
+
+La CSP (`img-src 'self' data: blob:`) no deja cargar teselas de un servicio de mapas, y no hay librería cartográfica. Con dos o más terrenos con coordenadas reales se dibuja su posición relativa (norte arriba, distancia por haversine) y se dice que no es cartografía. Con uno solo, el detalle enlaza a OpenStreetMap en otra pestaña, como antes. Un mapa de verdad necesitaría ampliar la CSP a un proveedor de teselas.
+
