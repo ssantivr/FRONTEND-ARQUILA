@@ -82,6 +82,15 @@
     font-weight: var(--weight-semibold);
 }
 
+/* The figure of a progress bar: its accessible name says the rest. */
+.progress {
+    display: grid;
+    gap: var(--space-1);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+}
+
 .rowActions {
     display: flex;
     flex-wrap: wrap;

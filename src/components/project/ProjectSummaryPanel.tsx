@@ -92,11 +92,13 @@ export function ProjectSummaryPanel({
                             <div>
                                 <dt>Avance</dt>
                                 <dd>
-                                    <ProgressBar
-                                        label="Avance del proyecto"
-                                        value={project.progress / 100}
-                                        showValue
-                                    />
+                                    <div className={styles.progress}>
+                                        <span aria-hidden="true">{project.progress} %</span>
+                                        <ProgressBar
+                                            label="Avance del proyecto"
+                                            value={project.progress / 100}
+                                        />
+                                    </div>
                                 </dd>
                             </div>
                         )}

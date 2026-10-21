@@ -317,11 +317,13 @@ export function ProjectTasksPanel({ projectId, run, ownerId, today }: ProjectTas
                                     {task.description !== null && (
                                         <p className={styles.meta}>{task.description}</p>
                                     )}
-                                    <ProgressBar
-                                        label={`Avance de «${task.title}»`}
-                                        value={task.progress / 100}
-                                        showValue
-                                    />
+                                    <div className={styles.progress}>
+                                        <span aria-hidden="true">Avance {task.progress} %</span>
+                                        <ProgressBar
+                                            label={`Avance de «${task.title}»`}
+                                            value={task.progress / 100}
+                                        />
+                                    </div>
                                 </div>
                                 <div className={styles.rowActions}>
                                     <SelectControl
