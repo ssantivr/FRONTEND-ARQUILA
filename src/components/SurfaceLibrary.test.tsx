@@ -2,12 +2,44 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { projectsApi, structureApi } from "../services/api";
+import type { Project, Structure } from "../types/api";
 import { SURFACE_MATERIAL_IDS } from "../utils/surfaceMaterials";
 import { ProjectCover } from "./ProjectCover";
 import { SurfaceLibrary } from "./SurfaceLibrary";
 
+vi.mock("../services/api", () => ({
+    projectsApi: { list: vi.fn() },
+    structureApi: { get: vi.fn(), setSurface: vi.fn() },
+}));
+
+const sala = {
+    kind: "room" as const,
+    id: 11,
+    plan_id: 1,
+    plan_title: "Planta baja",
+    name: "Sala",
+    level: "Planta baja",
+    x_m: 0,
+    y_m: 0,
+    base_m: 0,
+    width_m: 4,
+    depth_m: 5,
+    height_m: 2.6,
+    surface: null,
+};
+
 beforeEach(() => {
     window.localStorage.clear();
+    vi.resetAllMocks();
+    vi.mocked(projectsApi.list).mockResolvedValue([{ id: 7, name: "Casa Andina" } as Project]);
+    vi.mocked(structureApi.get).mockResolvedValue({
+        project_id: 7,
+        roof: "gable",
+        terrains: [],
+        rooms: [sala],
+        components: [],
+    } as Structure);
 });
 
 describe("SurfaceLibrary", () => {
@@ -46,11 +78,11 @@ describe("SurfaceLibrary", () => {
 });
 
 describe("SurfaceLibrary catalogue", () => {
-    it("filters by finish, searches by name and sorts by a value", async () => {
+    it("filters by category, searches by name and sorts by a value", async () => {
         render(<SurfaceLibrary />);
 
-        await userEvent.selectOptions(screen.getByLabelText("Filtrar por acabado"), "Metálicas");
-        // Glass is metallic too, but its opacity puts it among the translucent ones.
+        await userEvent.selectOptions(screen.getByLabelText("Filtrar por categoría"), "Metal");
+        // Glass is metallic in the engine, but it is a category of its own.
         expect(screen.getAllByRole("button", { name: /Rugosidad/ })).toHaveLength(1);
         expect(screen.getByRole("button", { name: /Rugosidad/ })).toHaveTextContent("Acero");
 
@@ -78,6 +110,48 @@ describe("SurfaceLibrary catalogue", () => {
 
         await userEvent.click(within(panel).getByRole("button", { name: "Abrir el editor 3D" }));
         expect(onOpenViewer).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("SurfaceApply", () => {
+    it("puts the surface on an element of a project's model and saves it there", async () => {
+        vi.mocked(structureApi.setSurface).mockResolvedValue(undefined);
+        render(<SurfaceLibrary />);
+        await userEvent.click(screen.getByRole("button", { name: /^Ladrillo/ }));
+
+        const panel = screen.getByRole("dialog", { name: "Ladrillo" });
+
+        await userEvent.selectOptions(await within(panel).findByLabelText("Proyecto"), "7");
+        await userEvent.selectOptions(
+            await within(panel).findByLabelText("Elemento del modelo"),
+            "room:11",
+        );
+
+        // A room without a surface of its own is drawn in brick: there is nothing to change.
+        expect(within(panel).getByRole("status")).toHaveTextContent("Ahora: Ladrillo");
+        expect(
+            within(panel).getByRole("button", { name: /Aplicar «Ladrillo» a Sala/ }),
+        ).toHaveAttribute("aria-disabled", "true");
+        expect(structureApi.setSurface).not.toHaveBeenCalled();
+    });
+
+    it("applies another surface and tells so", async () => {
+        vi.mocked(structureApi.setSurface).mockResolvedValue(undefined);
+        render(<SurfaceLibrary />);
+        await userEvent.click(screen.getByRole("button", { name: /^Madera/ }));
+
+        const panel = screen.getByRole("dialog", { name: "Madera" });
+
+        await userEvent.selectOptions(await within(panel).findByLabelText("Proyecto"), "7");
+        await userEvent.selectOptions(
+            await within(panel).findByLabelText("Elemento del modelo"),
+            "room:11",
+        );
+        await userEvent.click(
+            within(panel).getByRole("button", { name: /Aplicar «Madera» a Sala/ }),
+        );
+
+        expect(structureApi.setSurface).toHaveBeenCalledWith(7, sala, "wood");
     });
 });
 

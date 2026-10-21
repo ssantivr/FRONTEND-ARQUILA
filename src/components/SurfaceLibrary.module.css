@@ -169,3 +169,9 @@
     gap: var(--space-2);
     opacity: 0.7;
 }
+
+.apply {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}

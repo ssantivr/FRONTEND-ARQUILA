@@ -8,6 +8,7 @@ import {
     type SurfaceMaterialId,
 } from "../utils/surfaceMaterials";
 import { Icon } from "./Icon";
+import { SurfaceApply } from "./SurfaceApply";
 import { SurfaceSwatch, cssColor } from "./SurfaceSwatch";
 import { Drawer } from "./ui/Drawer";
 import { FilterBar } from "./ui/FilterBar";
@@ -18,8 +19,26 @@ import styles from "./SurfaceLibrary.module.css";
 
 const FAVORITES_KEY = "arquila:favorite-surfaces";
 
-const GROUPS = ["Con relieve", "Lisas", "Metálicas", "Translúcidas"] as const;
-type Group = (typeof GROUPS)[number];
+/** How the surface looks, read from the values the engine draws it with: shown as its tag. */
+type Group = "Con relieve" | "Lisas" | "Metálicas" | "Translúcidas";
+
+/**
+ * The family of each surface, in the categories of a materials library. Only the ones the engine
+ * has: there is no ceramic, marble or textile surface to show, so those categories are not offered.
+ */
+export const SURFACE_CATEGORIES: Record<SurfaceMaterialId, string> = {
+    concrete: "Concreto",
+    brick: "Ladrillo",
+    plaster: "Pinturas y revoques",
+    glass: "Vidrio",
+    steel: "Metal",
+    wood: "Madera",
+    stone: "Piedra",
+};
+
+const CATEGORIES = [...new Set(Object.values(SURFACE_CATEGORIES))].sort((a, b) =>
+    a.localeCompare(b, "es"),
+);
 type Order = "name" | "roughness" | "metalness";
 
 /** The group is read from the values the engine renders with; the API has no category for them. */
@@ -68,7 +87,7 @@ interface SurfaceLibraryProps {
 export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
     const favorites = useFavorites(FAVORITES_KEY);
     const [search, setSearch] = useState("");
-    const [group, setGroup] = useState<Group | "">("");
+    const [category, setCategory] = useState("");
     const [order, setOrder] = useState<Order>("name");
     const [onlyFavorites, setOnlyFavorites] = useState(false);
     const [openId, setOpenId] = useState<SurfaceMaterialId | null>(null);
@@ -76,7 +95,7 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
     const shown = SURFACE_MATERIAL_IDS.filter(
         (id) =>
             (!onlyFavorites || favorites.isFavorite(id)) &&
-            (group === "" || groupOf(id) === group) &&
+            (category === "" || SURFACE_CATEGORIES[id] === category) &&
             (wanted === "" || SURFACE_MATERIALS[id].label.toLowerCase().includes(wanted)),
     ).sort((first, second) => {
         const a = SURFACE_MATERIALS[first];
@@ -84,7 +103,7 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
 
         return order === "name" ? a.label.localeCompare(b.label, "es") : b[order] - a[order];
     });
-    const narrowed = wanted !== "" || group !== "" || onlyFavorites;
+    const narrowed = wanted !== "" || category !== "" || onlyFavorites;
     const open = openId === null ? null : SURFACE_MATERIALS[openId];
 
     return (
@@ -106,17 +125,17 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
                 active={narrowed}
                 onClear={() => {
                     setSearch("");
-                    setGroup("");
+                    setCategory("");
                     setOnlyFavorites(false);
                 }}
             >
                 <select
-                    aria-label="Filtrar por acabado"
-                    value={group}
-                    onChange={(event) => setGroup(event.target.value as Group | "")}
+                    aria-label="Filtrar por categoría"
+                    value={category}
+                    onChange={(event) => setCategory(event.target.value)}
                 >
-                    <option value="">Todos los acabados</option>
-                    {GROUPS.map((item) => (
+                    <option value="">Todas las categorías</option>
+                    {CATEGORIES.map((item) => (
                         <option key={item} value={item}>
                             {item}
                         </option>
@@ -143,7 +162,7 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
 
             {shown.length === 0 && (
                 <p className="message" role="status">
-                    {onlyFavorites && !wanted && group === ""
+                    {onlyFavorites && !wanted && category === ""
                         ? "Todavía no marcaste ninguna superficie como favorita."
                         : "Ninguna superficie coincide con el filtro."}
                 </p>
@@ -165,7 +184,9 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
                                 <SurfaceSwatch id={id} className={styles.swatch} />
                                 <span className={styles.body}>
                                     <span className={styles.name}>{surface.label}</span>
-                                    <span className={styles.group}>{groupOf(id)}</span>
+                                    <span className={styles.group}>
+                                        {SURFACE_CATEGORIES[id]} · {groupOf(id)}
+                                    </span>
                                     <span className={styles.values}>
                                         Rugosidad {figure(surface.roughness)} · Metal{" "}
                                         {figure(surface.metalness)}
@@ -194,6 +215,9 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
                     <div className={styles.detail}>
                         <SurfaceSwatch id={openId} className={styles.swatchLarge} />
 
+                        <p className={styles.group}>
+                            {SURFACE_CATEGORIES[openId]} · {groupOf(openId)}
+                        </p>
                         <h4>Valores con que la dibuja el motor</h4>
                         <dl className={styles.values}>
                             <dt>Color base</dt>
@@ -267,10 +291,11 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
 
                         <h4>Aplicar a un elemento</h4>
                         <p className="message">
-                            Se aplica en el editor 3D de un proyecto: selecciona un cuarto o un
-                            componente y elige «{open.label}» en «Material» del inspector. Queda
-                            guardado en el proyecto.
+                            Elige un cuarto o un componente del modelo de uno de tus proyectos. Se
+                            guarda en el proyecto, igual que desde «Material» en el inspector del
+                            editor 3D.
                         </p>
+                        <SurfaceApply surfaceId={openId} />
                         {onOpenViewer !== undefined && (
                             <button
                                 type="button"
