@@ -17,6 +17,10 @@ import { Tabs } from "../components/ui/Tabs";
 import { PlansPanel } from "../components/PlansPanel";
 import { ProjectCover } from "../components/ProjectCover";
 import { ProjectEditForm } from "../components/ProjectEditForm";
+import { ProjectActivityPanel } from "../components/project/ProjectActivityPanel";
+import { ProjectSummaryPanel } from "../components/project/ProjectSummaryPanel";
+import { ProjectTasksPanel } from "../components/project/ProjectTasksPanel";
+import { ProjectVersionsPanel } from "../components/project/ProjectVersionsPanel";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
@@ -29,7 +33,7 @@ import { SECTIONS, type SectionId } from "./sections";
 import { filesApi, projectsApi, undoApi } from "../services/api";
 import { undoLastDeletion } from "../services/terrainUndo";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
-import { formatDate } from "../utils/format";
+import { formatDate, localDay } from "../utils/format";
 
 const StructurePanel = lazy(() =>
     import("../components/StructurePanel").then((module) => ({ default: module.StructurePanel })),
@@ -47,7 +51,7 @@ interface ProjectDetailPageProps {
 
 export function ProjectDetailPage({
     projectId,
-    initialSection = "terrain",
+    initialSection = "summary",
     onSectionChange,
     onBack,
     startEditing = false,
@@ -167,7 +171,7 @@ export function ProjectDetailPage({
                             {
                                 label: current.name,
                                 href: projectPath(current.id),
-                                onSelect: () => setSection("terrain"),
+                                onSelect: () => setSection("summary"),
                             },
                             { label: SECTIONS.find((item) => item.id === section)?.label ?? "" },
                         ]}
@@ -272,6 +276,17 @@ export function ProjectDetailPage({
                 </p>
             )}
             <Fragment key={panelsVersion}>
+                {section === "summary" && (
+                    <ProjectSummaryPanel
+                        projectId={projectId}
+                        run={run}
+                        project={current}
+                        files={projectFiles}
+                        onChanged={project.reload}
+                        onEdit={() => setEditingProject(true)}
+                        onSection={setSection}
+                    />
+                )}
                 {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}
                 {section === "plans" && (
                     <>
@@ -299,6 +314,27 @@ export function ProjectDetailPage({
                     </>
                 )}
                 {section === "materials" && <MaterialsPanel projectId={projectId} run={run} />}
+                {section === "tasks" && (
+                    <ProjectTasksPanel
+                        projectId={projectId}
+                        run={run}
+                        ownerId={current.owner_id}
+                        today={localDay()}
+                    />
+                )}
+                {section === "versions" && (
+                    <ProjectVersionsPanel
+                        projectId={projectId}
+                        run={run}
+                        onRestored={() => {
+                            // A restore replaces every list of the project: all of it is read again.
+                            project.reload();
+                            files.reload();
+                            setPanelsVersion((version) => version + 1);
+                        }}
+                    />
+                )}
+                {section === "activity" && <ProjectActivityPanel projectId={projectId} />}
                 {section === "analysis" && <RecommendationsPanel projectId={projectId} run={run} />}
             </Fragment>
 
@@ -346,6 +382,10 @@ export type { SectionId };
 
 /** What the assistant is asked first from each tab: it is about what is on screen. */
 const SECTION_QUESTIONS: Record<Exclude<SectionId, "assistant">, readonly string[]> = {
+    summary: ["¿Qué le falta a este proyecto para avanzar?"],
+    tasks: ["¿Qué tareas debería hacer primero?"],
+    versions: ["¿Qué cambió desde la última versión guardada?"],
+    activity: ["¿Qué se cambió últimamente en este proyecto?"],
     terrain: ["¿Qué debo considerar por la pendiente y el suelo de este terreno?"],
     plans: ["¿Qué planos o niveles le faltan a este proyecto?"],
     model: ["¿Cómo podría mejorar la distribución de los cuartos?"],

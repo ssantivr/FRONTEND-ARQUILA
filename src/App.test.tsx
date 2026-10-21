@@ -111,7 +111,7 @@ describe("App routing", () => {
         await userEvent.click(screen.getByRole("button", { name: "Editar" }));
 
         expect(await screen.findByRole("heading", { name: "Editar proyecto" })).toBeInTheDocument();
-        expect(screen.getByTestId("path")).toHaveTextContent("/proyectos/7/terreno");
+        expect(screen.getByTestId("path")).toHaveTextContent("/proyectos/7/resumen");
     });
 
     it("puts the open tab of a project in the address", async () => {

@@ -18,11 +18,15 @@ const VIEW_PATHS: Record<View, string> = {
 };
 
 const SECTION_SLUGS: Record<SectionId, string> = {
+    summary: "resumen",
     terrain: "terreno",
     plans: "planos",
     model: "modelo-3d",
     elevations: "elevaciones",
     materials: "materiales",
+    tasks: "tareas",
+    versions: "versiones",
+    activity: "historial",
     analysis: "analisis",
     files: "archivos",
     assistant: "asistente",
@@ -43,13 +47,13 @@ export function viewPath(view: View): string {
     return VIEW_PATHS[view];
 }
 
-export function projectPath(id: number, section: SectionId = "terrain"): string {
+export function projectPath(id: number, section: SectionId = "summary"): string {
     return `${VIEW_PATHS.projects}/${id}/${SECTION_SLUGS[section]}`;
 }
 
 function sectionOf(slug: string | undefined): SectionId | null {
     if (slug === undefined) {
-        return "terrain";
+        return "summary";
     }
 
     const found = (Object.keys(SECTION_SLUGS) as SectionId[]).find(

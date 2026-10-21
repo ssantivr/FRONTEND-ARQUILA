@@ -244,13 +244,13 @@ export function App() {
         go(viewPath(next));
     }
 
-    function openProject(id: number, section: SectionId = "terrain") {
+    function openProject(id: number, section: SectionId = "summary") {
         go(projectPath(id, section));
     }
 
     /** The project's page with its edit form already open. */
     function editProject(id: number) {
-        go(projectPath(id, "terrain"), { state: { edit: true } });
+        go(projectPath(id, "summary"), { state: { edit: true } });
     }
 
     const commands = useMemo<Command[]>(

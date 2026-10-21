@@ -22,7 +22,20 @@ describe("routes", () => {
             id: 7,
             section: "model",
         });
-        expect(parsePath("/proyectos/7")).toEqual({ kind: "project", id: 7, section: "terrain" });
+        // A project opens on its summary.
+        expect(projectPath(7)).toBe("/proyectos/7/resumen");
+        expect(parsePath("/proyectos/7")).toEqual({ kind: "project", id: 7, section: "summary" });
+    });
+
+    it("gives the tasks, versions and history of a project their own address", () => {
+        expect(projectPath(7, "tasks")).toBe("/proyectos/7/tareas");
+        expect(projectPath(7, "versions")).toBe("/proyectos/7/versiones");
+        expect(projectPath(7, "activity")).toBe("/proyectos/7/historial");
+        expect(parsePath("/proyectos/7/historial")).toEqual({
+            kind: "project",
+            id: 7,
+            section: "activity",
+        });
     });
 
     it("rewrites the old address of the 3D model and leaves the others alone", () => {
