@@ -1,0 +1,242 @@
+/* The navigation keeps the forest band in both themes: it is the constant of the brand. */
+.sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    height: 100vh;
+    height: 100dvh;
+    padding: var(--space-4) var(--space-3);
+    overflow: hidden auto;
+    border-right: var(--border-width) solid var(--brand-forest-raised);
+    background: var(--brand-forest);
+    color: var(--brand-forest-text);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--control-md);
+    padding: 0 var(--space-2);
+    color: var(--white);
+    font-size: var(--text-md);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+}
+
+.nav {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.group {
+    display: grid;
+    gap: var(--space-0);
+}
+
+.groupLabel {
+    margin: 0 0 var(--space-1);
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+}
+
+.item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--control-md);
+    margin: 0;
+    padding: 0 var(--space-3);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: var(--weight-medium);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: none;
+    transition: none;
+}
+
+.item :global(.icon) {
+    flex: none;
+    width: var(--icon-md);
+    height: var(--icon-md);
+}
+
+.label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* The open module: a rule at the edge, the icon in the accent and a raised band behind. */
+.item[aria-current="page"]::before {
+    position: absolute;
+    top: var(--space-2);
+    bottom: var(--space-2);
+    left: calc(-1 * var(--space-3));
+    width: 3px;
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    content: "";
+}
+
+/* ---- On the forest band ---- */
+
+.sidebar .groupLabel {
+    color: var(--brand-forest-text);
+}
+
+.sidebar .item:hover,
+.sidebar .item[aria-current="page"] {
+    background: var(--brand-forest-raised);
+    color: var(--white);
+}
+
+.sidebar .item[aria-current="page"]::before {
+    background: var(--brand-lime);
+}
+
+.sidebar .item[aria-current="page"] :global(.icon) {
+    color: var(--brand-lime);
+}
+
+.sidebar .item:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--brand-lime);
+}
+
+/* ---- On a panel of the theme: the menu of a phone ---- */
+
+.surface .groupLabel {
+    color: var(--color-text-secondary);
+}
+
+.surface .item {
+    min-height: var(--touch-target);
+    color: var(--color-text);
+}
+
+.surface .item:hover {
+    background: var(--color-hover);
+}
+
+.surface .item[aria-current="page"] {
+    background: var(--color-action-soft);
+}
+
+.surface .item[aria-current="page"]::before {
+    left: 0;
+    background: var(--color-accent-hi);
+}
+
+.surface .item[aria-current="page"] :global(.icon) {
+    color: var(--color-accent-hi);
+}
+
+.surface .item:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+/* ---- Foot: the account, sign-out and the toggle ---- */
+
+.foot {
+    display: grid;
+    gap: var(--space-0);
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: var(--border-width) solid var(--brand-forest-raised);
+}
+
+.user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: var(--space-2);
+}
+
+.userText {
+    display: grid;
+    min-width: 0;
+    line-height: var(--leading-snug);
+}
+
+.userText strong {
+    overflow: hidden;
+    color: var(--white);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.userText span {
+    overflow: hidden;
+    font-size: var(--text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---- Only the icons: collapsed, or between 721 and 1024 px ---- */
+
+.iconsOnly .label,
+.iconsOnly .groupLabel,
+.iconsOnly .userText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.iconsOnly .brand,
+.iconsOnly .item,
+.iconsOnly .user {
+    justify-content: center;
+    padding-inline: 0;
+}
+
+.iconsOnly .group + .group {
+    padding-top: var(--space-3);
+    border-top: var(--border-width) solid var(--brand-forest-raised);
+}
+
+.iconsOnly .toggle :global(.icon) {
+    transform: rotate(180deg);
+}
+
+/* The name of a module beside its icon. Fixed, so the scrolling list does not clip it. */
+.tip {
+    position: fixed;
+    z-index: var(--z-tooltip);
+    margin-left: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+    box-shadow: var(--shadow-2);
+    transform: translateY(-50%);
+    pointer-events: none;
+    animation: fade-in var(--dur-fast) var(--ease-out) both;
+}
+
+@media (max-width: 720px) {
+    .sidebar {
+        display: none;
+    }
+}

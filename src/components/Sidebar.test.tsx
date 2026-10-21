@@ -97,10 +97,10 @@ describe("Sidebar", () => {
         );
 
         act(() => screen.getByRole("button", { name: "Terrenos" }).focus());
-        expect(container.querySelector(".sidebar-tip")).toHaveTextContent("Terrenos");
+        expect(container.querySelector("[data-sidebar-tip]")).toHaveTextContent("Terrenos");
 
         await user.keyboard("{Escape}");
-        expect(container.querySelector(".sidebar-tip")).toBeNull();
+        expect(container.querySelector("[data-sidebar-tip]")).toBeNull();
     });
 
     it("shows no names beside the icons while the labels are in view", () => {
@@ -108,7 +108,7 @@ describe("Sidebar", () => {
 
         act(() => screen.getByRole("button", { name: "Terrenos" }).focus());
 
-        expect(container.querySelector(".sidebar-tip")).toBeNull();
+        expect(container.querySelector("[data-sidebar-tip]")).toBeNull();
     });
 
     it("names the toggle after what it will do once collapsed", () => {
@@ -125,5 +125,15 @@ describe("Sidebar", () => {
             "aria-expanded",
             "false",
         );
+    });
+
+    it("names the brand and keeps every module named while only the icons show", () => {
+        render(<Sidebar current="home" onNavigate={() => undefined} collapsed />);
+
+        expect(screen.getByText("ARQUILA")).toBeInTheDocument();
+
+        for (const module of MODULES) {
+            expect(screen.getByRole("button", { name: module.label })).toBeInTheDocument();
+        }
     });
 });

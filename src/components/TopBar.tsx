@@ -1,7 +1,10 @@
 import { setThemePreference, useThemePreference, type ThemePreference } from "../state/theme";
 import type { User } from "../types/api";
 import { GlobalSearch } from "./GlobalSearch";
-import { Icon } from "./Icon";
+import { Notifications } from "./Notifications";
+import { Avatar } from "./ui/Avatar";
+import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 import { Menu } from "./ui/Menu";
 import { SegmentedControl, type Segment } from "./ui/SegmentedControl";
 
@@ -27,12 +30,13 @@ interface TopBarProps {
     onLogout: () => void;
     /** Receives the element where the open screen puts its own controls (`TopBarSlotProvider`). */
     onSlot: (element: HTMLElement | null) => void;
+    /** Opens the menu with every module; the button is only shown on a phone. */
+    onOpenMenu?: () => void;
 }
 
 /**
  * The bar over every screen: where you are, the search, what the open screen adds (the save state
- * and the assistant of a project), the main action, the theme and the account.
- * There are no notifications: the API has none to show.
+ * and the assistant of a project), the main action, the notifications, the theme and the account.
  */
 export function TopBar({
     eyebrow,
@@ -45,33 +49,41 @@ export function TopBar({
     onOpenSettings,
     onLogout,
     onSlot,
+    onOpenMenu,
 }: TopBarProps) {
     const theme = useThemePreference();
-    const initial = user.name.trim().charAt(0).toUpperCase();
 
     return (
-        <header className={`header ${styles.bar}`}>
+        <header className={styles.bar}>
+            {onOpenMenu !== undefined && (
+                <span className={styles.menuButton}>
+                    <IconButton
+                        label="Abrir el menú"
+                        icon="menu"
+                        size="touch"
+                        tooltipSide="bottom"
+                        onClick={onOpenMenu}
+                    />
+                </span>
+            )}
             <div className={styles.where}>
-                <p className="header-eyebrow">{eyebrow}</p>
-                <h1>{title}</h1>
+                <p className={styles.eyebrow}>{eyebrow}</p>
+                <h1 className={styles.title}>{title}</h1>
             </div>
             <div className={styles.search}>
                 <GlobalSearch onOpenProject={onOpenProject} onOpenCommands={onOpenCommands} />
             </div>
             <div className={styles.actions}>
                 <div ref={onSlot} className={styles.slot} />
-                <button
-                    type="button"
-                    className={
-                        createIsSecondary
-                            ? `button-secondary icon-button ${styles.create}`
-                            : `button-lime icon-button ${styles.create}`
-                    }
+                <Button
+                    variant={createIsSecondary ? "secondary" : "primary"}
+                    icon="plus"
+                    className={styles.create}
                     onClick={onCreateProject}
                 >
-                    <Icon name="plus" />
                     <span className={styles.createLabel}>Nuevo proyecto</span>
-                </button>
+                </Button>
+                <Notifications />
                 <div className={styles.theme}>
                     <SegmentedControl
                         label="Tema"
@@ -86,12 +98,10 @@ export function TopBar({
                     <Menu
                         label={`${user.name}: cuenta y sesión`}
                         trigger={
-                            <>
-                                <span className="avatar" aria-hidden="true">
-                                    {initial}
-                                </span>
+                            <span className={styles.accountTrigger}>
+                                <Avatar name={user.name} />
                                 <span className={styles.userName}>{user.name}</span>
-                            </>
+                            </span>
                         }
                         header={
                             <p className={styles.who}>
@@ -100,8 +110,18 @@ export function TopBar({
                             </p>
                         }
                         items={[
-                            { label: "Cuenta y configuración", onSelect: onOpenSettings },
-                            { label: "Cerrar sesión", danger: true, onSelect: onLogout },
+                            {
+                                label: "Cuenta y configuración",
+                                icon: "settings",
+                                onSelect: onOpenSettings,
+                            },
+                            {
+                                label: "Cerrar sesión",
+                                icon: "logout",
+                                danger: true,
+                                separated: true,
+                                onSelect: onLogout,
+                            },
                         ]}
                     />
                 </div>

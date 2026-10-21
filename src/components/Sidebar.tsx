@@ -3,6 +3,10 @@ import { useState, type FocusEvent, type KeyboardEvent, type PointerEvent } from
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import type { User } from "../types/api";
 import { Icon, type IconName } from "./Icon";
+import { Avatar } from "./ui/Avatar";
+import { LogoMark } from "./ui/Logo";
+
+import styles from "./Sidebar.module.css";
 
 export type View =
     | "home"
@@ -26,9 +30,9 @@ export interface Module {
     group: GroupId;
 }
 
-type GroupId = "work" | "design" | "view" | "account";
+export type GroupId = "work" | "design" | "view" | "account";
 
-const GROUPS: { id: GroupId; label: string }[] = [
+export const GROUPS: { id: GroupId; label: string }[] = [
     { id: "work", label: "Trabajo" },
     { id: "design", label: "Diseño" },
     { id: "view", label: "Visualización" },
@@ -123,19 +127,10 @@ export const MODULES: Module[] = [
     },
 ];
 
-interface SidebarProps {
-    current: View | null;
-    onNavigate: (view: View) => void;
-    collapsed?: boolean;
-    onToggle?: () => void;
-    onLogout?: () => void;
-    user?: Pick<User, "name" | "email">;
-}
-
 /** Arrow keys move between the modules, as in a list; Tab still visits them one by one. */
 function moveFocus(event: KeyboardEvent<HTMLElement>) {
     const step = event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
-    const items = [...event.currentTarget.querySelectorAll<HTMLButtonElement>(".sidebar-item")];
+    const items = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("[data-nav-item]")];
     const at = items.indexOf(document.activeElement as HTMLButtonElement);
 
     if (at === -1 || (step === 0 && event.key !== "Home" && event.key !== "End")) {
@@ -153,6 +148,68 @@ function moveFocus(event: KeyboardEvent<HTMLElement>) {
     items[next]?.focus();
 }
 
+interface NavGroupsProps {
+    current: View | null;
+    onNavigate: (view: View) => void;
+    label: string;
+    /** `band` on the forest sidebar; `surface` on a panel of the theme, such as the phone menu. */
+    tone?: "band" | "surface";
+    iconsOnly?: boolean;
+}
+
+/** Every module, in its group. The sidebar and the menu of a phone draw the same list. */
+export function NavGroups({
+    current,
+    onNavigate,
+    label,
+    tone = "band",
+    iconsOnly = false,
+}: NavGroupsProps) {
+    return (
+        <nav
+            className={[styles.nav, styles[tone], iconsOnly && styles.iconsOnly]
+                .filter(Boolean)
+                .join(" ")}
+            aria-label={label}
+            onKeyDown={moveFocus}
+        >
+            {GROUPS.map((group) => (
+                <div key={group.id} className={styles.group}>
+                    <p className={styles.groupLabel}>{group.label}</p>
+                    {MODULES.filter((item) => item.group === group.id).map((item) => (
+                        <button
+                            key={item.id}
+                            type="button"
+                            data-nav-item
+                            className={styles.item}
+                            aria-current={item.id === current ? "page" : undefined}
+                            data-name={item.label}
+                            onClick={() => onNavigate(item.id)}
+                        >
+                            <Icon name={item.icon} />
+                            <span className={styles.label}>{item.label}</span>
+                        </button>
+                    ))}
+                </div>
+            ))}
+        </nav>
+    );
+}
+
+interface SidebarProps {
+    current: View | null;
+    onNavigate: (view: View) => void;
+    collapsed?: boolean;
+    onToggle?: () => void;
+    onLogout?: () => void;
+    user?: Pick<User, "name" | "email">;
+}
+
+/**
+ * The navigation of wide screens, on the forest band in both themes: the mark, the modules by
+ * group and, at the foot, the account, sign-out and the toggle that leaves only the icons. On a
+ * phone it is not drawn: `MobileNav` and its menu take its place.
+ */
 export function Sidebar({
     current,
     onNavigate,
@@ -161,15 +218,15 @@ export function Sidebar({
     onLogout,
     user,
 }: SidebarProps) {
-    // With the menu collapsed only icons are left: the name of the one under the pointer or the
-    // focus is shown beside it. It is drawn fixed, so the scrolling list does not clip it.
-    const [tip, setTip] = useState<{ text: string; top: number } | null>(null);
+    // With only icons left, the name of the one under the pointer or the focus is shown beside
+    // it. It is drawn fixed, so the scrolling list does not clip it.
+    const [tip, setTip] = useState<{ text: string; top: number; left: number } | null>(null);
     // Between 721 and 1024 px the menu shows only its icons even when it is not collapsed.
     const narrow = useMediaQuery("(min-width: 721px) and (max-width: 1024px)");
     const iconsOnly = collapsed || narrow;
 
     function showTip(event: FocusEvent<HTMLElement> | PointerEvent<HTMLElement>) {
-        const item = (event.target as HTMLElement).closest<HTMLElement>("[data-tip]");
+        const item = (event.target as HTMLElement).closest<HTMLElement>("[data-name]");
 
         if (!iconsOnly || item === null) {
             return;
@@ -177,12 +234,12 @@ export function Sidebar({
 
         const box = item.getBoundingClientRect();
 
-        setTip({ text: item.dataset.tip ?? "", top: box.top + box.height / 2 });
+        setTip({ text: item.dataset.name ?? "", top: box.top + box.height / 2, left: box.right });
     }
 
     return (
         <aside
-            className="sidebar"
+            className={iconsOnly ? `${styles.sidebar} ${styles.iconsOnly}` : styles.sidebar}
             onPointerOver={showTip}
             onFocus={showTip}
             onPointerLeave={() => setTip(null)}
@@ -193,35 +250,22 @@ export function Sidebar({
                 }
             }}
         >
-            <span className="brand">ARQUILA</span>
-            <nav className="sidebar-nav" aria-label="Navegación principal" onKeyDown={moveFocus}>
-                {GROUPS.map((group) => (
-                    <div key={group.id} className="sidebar-section">
-                        <p className="sidebar-group sidebar-label">{group.label}</p>
-                        {MODULES.filter((item) => item.group === group.id).map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                className="sidebar-item"
-                                aria-current={item.id === current ? "page" : undefined}
-                                data-tip={item.label}
-                                onClick={() => onNavigate(item.id)}
-                            >
-                                <Icon name={item.icon} />
-                                <span className="sidebar-label">{item.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                ))}
-            </nav>
-            {(onToggle !== undefined || onLogout !== undefined) && (
-                <div className="sidebar-foot">
+            <span className={styles.brand}>
+                <LogoMark size={24} />
+                <span className={styles.label}>ARQUILA</span>
+            </span>
+            <NavGroups
+                current={current}
+                onNavigate={onNavigate}
+                label="Navegación principal"
+                iconsOnly={iconsOnly}
+            />
+            {(onToggle !== undefined || onLogout !== undefined || user !== undefined) && (
+                <div className={styles.foot}>
                     {user !== undefined && (
-                        <div className="sidebar-user" data-tip={user.name}>
-                            <span className="avatar" aria-hidden="true">
-                                {user.name.trim().charAt(0).toUpperCase()}
-                            </span>
-                            <span className="sidebar-label sidebar-user-text">
+                        <div className={styles.user} data-name={user.name}>
+                            <Avatar name={user.name} tone="onDark" />
+                            <span className={styles.userText}>
                                 <strong>{user.name}</strong>
                                 <span>{user.email}</span>
                             </span>
@@ -230,24 +274,24 @@ export function Sidebar({
                     {onLogout !== undefined && (
                         <button
                             type="button"
-                            className="sidebar-item"
-                            data-tip="Cerrar sesión"
+                            className={styles.item}
+                            data-name="Cerrar sesión"
                             onClick={onLogout}
                         >
                             <Icon name="logout" />
-                            <span className="sidebar-label">Cerrar sesión</span>
+                            <span className={styles.label}>Cerrar sesión</span>
                         </button>
                     )}
                     {onToggle !== undefined && (
                         <button
                             type="button"
-                            className="sidebar-item sidebar-toggle"
+                            className={`${styles.item} ${styles.toggle}`}
                             aria-expanded={!collapsed}
-                            data-tip="Expandir el menú"
+                            data-name="Expandir el menú"
                             onClick={onToggle}
                         >
                             <Icon name="collapse" />
-                            <span className="sidebar-label">
+                            <span className={styles.label}>
                                 {collapsed ? "Expandir el menú" : "Contraer el menú"}
                             </span>
                         </button>
@@ -255,7 +299,12 @@ export function Sidebar({
                 </div>
             )}
             {iconsOnly && tip !== null && (
-                <span className="sidebar-tip" aria-hidden="true" style={{ top: tip.top }}>
+                <span
+                    className={styles.tip}
+                    data-sidebar-tip
+                    aria-hidden="true"
+                    style={{ top: tip.top, left: tip.left }}
+                >
                     {tip.text}
                 </span>
             )}

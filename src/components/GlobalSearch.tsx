@@ -5,6 +5,8 @@ import { StatusBadge } from "./ui/Badge";
 import { Icon } from "./Icon";
 import { COMMANDS_KEY } from "./viewer/shortcuts";
 
+import styles from "./GlobalSearch.module.css";
+
 interface GlobalSearchProps {
     onOpenProject: (projectId: number) => void;
     /** Opens the command palette; without it the field only shows its own shortcut. */
@@ -45,7 +47,7 @@ export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProp
 
     return (
         <div
-            className="global-search"
+            className={styles.search}
             role="search"
             onKeyDown={(event) => {
                 if (event.key === "Escape") {
@@ -53,8 +55,9 @@ export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProp
                 }
             }}
         >
-            <Icon name="search" />
+            <Icon name="search" className={styles.lead} />
             <input
+                className={styles.input}
                 ref={input}
                 type="search"
                 aria-keyshortcuts="/"
@@ -66,13 +69,13 @@ export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProp
             />
             {query === "" &&
                 (onOpenCommands === undefined ? (
-                    <kbd className="global-search-key" aria-hidden="true">
+                    <kbd className={styles.key} aria-hidden="true">
                         /
                     </kbd>
                 ) : (
                     <button
                         type="button"
-                        className="global-search-key global-search-commands"
+                        className={`${styles.key} ${styles.commands}`}
                         aria-label={`${COMMANDS_KEY}: abrir la paleta de comandos`}
                         aria-keyshortcuts="Control+K Meta+K"
                         title="Paleta de comandos: pantallas, proyectos y acciones"
@@ -82,19 +85,19 @@ export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProp
                     </button>
                 ))}
             {results.state !== "idle" && (
-                <div id={listId} className="global-search-results">
+                <div id={listId} className={styles.results}>
                     {results.state === "loading" && (
-                        <p className="message" role="status">
+                        <p className={styles.message} role="status">
                             Buscando…
                         </p>
                     )}
                     {results.state === "error" && (
-                        <p className="message message-error" role="alert">
+                        <p className={`${styles.message} ${styles.error}`} role="alert">
                             {results.message}
                         </p>
                     )}
                     {results.state === "ready" && results.projects.length === 0 && (
-                        <p className="message" role="status">
+                        <p className={styles.message} role="status">
                             Ningún proyecto coincide con «{wanted}».
                         </p>
                     )}
@@ -103,14 +106,14 @@ export function GlobalSearch({ onOpenProject, onOpenCommands }: GlobalSearchProp
                             <button
                                 key={project.id}
                                 type="button"
-                                className="global-search-item"
+                                className={styles.item}
                                 onClick={() => open(project.id)}
                             >
-                                <span>
-                                    <span className="card-title">{project.name}</span>
-                                    <span className="card-subtitle">
-                                        {project.location ?? "Sin ubicación"}
-                                    </span>
+                                <span className={styles.itemText}>
+                                    <span className={styles.itemName}>{project.name}</span>
+                                    {project.location !== null && (
+                                        <span className={styles.itemPlace}>{project.location}</span>
+                                    )}
                                 </span>
                                 <StatusBadge status={project.status} />
                             </button>

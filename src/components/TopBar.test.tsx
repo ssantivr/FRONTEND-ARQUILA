@@ -59,7 +59,7 @@ describe("TopBar", () => {
 
         const create = screen.getByRole("button", { name: "Nuevo proyecto" });
 
-        expect(create).toHaveClass("button-lime");
+        expect(create).toHaveAttribute("data-variant", "primary");
         create.click();
         expect(props.onCreateProject).toHaveBeenCalledTimes(1);
     });
@@ -86,5 +86,44 @@ describe("TopBar", () => {
         const props = renderBar();
 
         expect(props.onSlot).toHaveBeenCalledWith(expect.any(HTMLDivElement));
+    });
+
+    it("gives «Nuevo proyecto» the secondary look where the screen has its own main action", () => {
+        renderBar({ createIsSecondary: true });
+
+        expect(screen.getByRole("button", { name: "Nuevo proyecto" })).toHaveAttribute(
+            "data-variant",
+            "secondary",
+        );
+    });
+
+    it("says there are no notifications instead of inventing them", async () => {
+        renderBar();
+
+        const bell = screen.getByRole("button", { name: "Notificaciones" });
+
+        expect(bell).toHaveAttribute("aria-expanded", "false");
+
+        await userEvent.click(bell);
+
+        const panel = screen.getByRole("region", { name: "Notificaciones" });
+
+        expect(bell).toHaveAttribute("aria-expanded", "true");
+        expect(panel).toHaveTextContent("Sin notificaciones");
+        expect(panel).toHaveTextContent("todavía no envía avisos");
+
+        await userEvent.keyboard("{Escape}");
+
+        expect(screen.queryByRole("region", { name: "Notificaciones" })).not.toBeInTheDocument();
+        expect(bell).toHaveFocus();
+    });
+
+    it("opens the menu of a phone when the shell gives it one", async () => {
+        const onOpenMenu = vi.fn();
+
+        renderBar({ onOpenMenu });
+        await userEvent.click(screen.getByRole("button", { name: "Abrir el menú" }));
+
+        expect(onOpenMenu).toHaveBeenCalledTimes(1);
     });
 });
