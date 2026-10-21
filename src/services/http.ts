@@ -62,6 +62,36 @@ function notifyIfSessionEnded(path: string, status: number): void {
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    return (await send<T>(path, options)).data;
+}
+
+/**
+ * Like `request`, with the total of a list the API sends in `X-Total-Count` (the number of
+ * results with the filters applied, whatever page was asked for), or `null` without the header.
+ */
+export async function requestWithTotal<T>(
+    path: string,
+    options: RequestOptions = {},
+): Promise<{ data: T; total: number | null }> {
+    return send<T>(path, options);
+}
+
+/**
+ * Whether a failure means that the API in use does not have the route at all: FastAPI answers
+ * an unknown path with 404 «Not Found» and a known path with another method with 405. A missing
+ * record of a route that exists says what is missing («Project not found»), so it is not this.
+ */
+export function isUnavailable(reason: unknown): boolean {
+    return (
+        reason instanceof ApiError &&
+        ((reason.status === 404 && reason.message === "Not Found") || reason.status === 405)
+    );
+}
+
+async function send<T>(
+    path: string,
+    options: RequestOptions,
+): Promise<{ data: T; total: number | null }> {
     const { method = "GET", query, body } = options;
 
     const response = await fetch(buildUrl(path, query), {
@@ -82,11 +112,14 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
         }
     }
 
+    const header = response.headers.get("X-Total-Count");
+    const total = header === null || !/^\d+$/.test(header) ? null : Number(header);
+
     if (response.status === 204) {
-        return undefined as T;
+        return { data: undefined as T, total };
     }
 
-    return (await response.json()) as T;
+    return { data: (await response.json()) as T, total };
 }
 
 const writeListeners = new Set<() => void>();

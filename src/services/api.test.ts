@@ -2,11 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const http = vi.hoisted(() => ({
     request: vi.fn(),
+    requestWithTotal: vi.fn(),
     writeListeners: [] as (() => void)[],
 }));
 
-vi.mock("./http", () => ({
+vi.mock("./http", async (original) => ({
+    ApiError: (await original<typeof import("./http")>()).ApiError,
+    isUnavailable: (await original<typeof import("./http")>()).isUnavailable,
     request: http.request,
+    requestWithTotal: http.requestWithTotal,
     upload: vi.fn(),
     apiUrl: (path: string) => path,
     onWrite: (listener: () => void) => {
@@ -16,7 +20,8 @@ vi.mock("./http", () => ({
     },
 }));
 
-import { loadAcrossProjects, structureApi } from "./api";
+import { ApiError } from "./http";
+import { loadAcrossProjects, projectsApi, structureApi } from "./api";
 
 const projects = [{ id: 1 }, { id: 2 }];
 
@@ -132,5 +137,74 @@ describe("structureApi.get", () => {
         const structure = await structureApi.get(3);
 
         expect(structure.terrains[0].slope_percent).toBeNull();
+    });
+});
+
+describe("projectsApi.page", () => {
+    const project = (id: number) => ({ id, name: `P${id}` });
+
+    it("asks the API for one page and takes the total from its header", async () => {
+        http.requestWithTotal.mockResolvedValue({
+            data: { items: [project(3)], total: 9, page: 2, page_size: 1 },
+            total: 9,
+        });
+
+        const page = await projectsApi.page({
+            page: 2,
+            page_size: 1,
+            q: "casa",
+            archived: false,
+            sort: "updated_at",
+            order: "desc",
+        });
+
+        expect(http.requestWithTotal).toHaveBeenCalledWith("/projects", {
+            query: {
+                page: 2,
+                page_size: 1,
+                q: "casa",
+                archived: "false",
+                sort: "updated_at",
+                order: "desc",
+            },
+        });
+        expect(page).toMatchObject({ total: 9, page: 2, paged: true });
+    });
+
+    it("cuts the page itself when an older API sends every project", async () => {
+        http.requestWithTotal.mockResolvedValue({
+            data: [1, 2, 3, 4, 5].map(project),
+            total: null,
+        });
+
+        const page = await projectsApi.page({ page: 2, page_size: 2 });
+
+        expect(page.items.map((item) => item.id)).toEqual([3, 4]);
+        expect(page).toMatchObject({ total: 5, paged: false });
+    });
+});
+
+describe("projectsApi.archive", () => {
+    it("falls back to the state of the project when the API has no archive route", async () => {
+        http.request
+            .mockRejectedValueOnce(new ApiError(404, "Not Found"))
+            .mockResolvedValueOnce({ id: 7, status: "archived" });
+
+        await projectsApi.archive(7);
+
+        expect(http.request).toHaveBeenNthCalledWith(1, "/projects/7/archive", {
+            method: "POST",
+        });
+        expect(http.request).toHaveBeenNthCalledWith(2, "/projects/7", {
+            method: "PATCH",
+            body: { status: "archived" },
+        });
+    });
+
+    it("does not hide a project that is missing", async () => {
+        http.request.mockRejectedValueOnce(new ApiError(404, "Project not found"));
+
+        await expect(projectsApi.archive(7)).rejects.toThrow("Project not found");
+        expect(http.request).toHaveBeenCalledTimes(1);
     });
 });

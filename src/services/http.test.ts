@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, SESSION_ENDED_EVENT, apiUrl, request, upload } from "./http";
+import {
+    ApiError,
+    SESSION_ENDED_EVENT,
+    apiUrl,
+    isUnavailable,
+    request,
+    requestWithTotal,
+    upload,
+} from "./http";
 
 const fetchMock = vi.fn();
 const dispatchEvent = vi.fn();
@@ -137,5 +145,26 @@ describe("upload", () => {
 describe("apiUrl", () => {
     it("prefixes the path with the API base", () => {
         expect(apiUrl("/files/4/content")).toBe("/api/files/4/content");
+    });
+});
+
+describe("requestWithTotal", () => {
+    it("reads the total of the list from X-Total-Count", async () => {
+        fetchMock.mockResolvedValueOnce(
+            new Response(JSON.stringify([]), { status: 200, headers: { "X-Total-Count": "42" } }),
+        );
+        fetchMock.mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }));
+
+        await expect(requestWithTotal("/projects")).resolves.toEqual({ data: [], total: 42 });
+        await expect(requestWithTotal("/projects")).resolves.toEqual({ data: [], total: null });
+    });
+});
+
+describe("isUnavailable", () => {
+    it("tells a route the API lacks from a record that is missing", () => {
+        expect(isUnavailable(new ApiError(404, "Not Found"))).toBe(true);
+        expect(isUnavailable(new ApiError(405, "Method Not Allowed"))).toBe(true);
+        expect(isUnavailable(new ApiError(404, "Project not found"))).toBe(false);
+        expect(isUnavailable(new Error("Not Found"))).toBe(false);
     });
 });

@@ -1,4 +1,5 @@
 import type {
+    ActivityPage,
     AssistantStatus,
     ComponentCreate,
     ComponentKind,
@@ -23,6 +24,8 @@ import type {
     ProjectCreate,
     ProjectFile,
     ProjectFilters,
+    ProjectPage,
+    ProjectQuery,
     ProjectTemplate,
     ProjectUpdate,
     RegisterRequest,
@@ -30,6 +33,12 @@ import type {
     RenovationLogCreate,
     RenovationStatus,
     SpatialData,
+    Task,
+    TaskCreate,
+    TaskStatus,
+    TaskUpdate,
+    Version,
+    VersionDetail,
     Summary,
     Recommendation,
     RecommendationCreate,
@@ -49,7 +58,7 @@ import type {
     User,
     Walkthrough,
 } from "../types/api";
-import { apiUrl, onWrite, request, upload } from "./http";
+import { apiUrl, isUnavailable, onWrite, request, requestWithTotal, upload } from "./http";
 
 export const healthApi = {
     check: () => request<{ status: string }>("/health"),
@@ -79,8 +88,93 @@ export const projectsApi = {
         request<Project>(`/projects/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
     /** A copy with its terrains, plans, rooms and materials; the API names it «… (copia)». */
-    duplicate: (id: number) =>
-        request<Project>(`/projects/${id}/duplicate`, { method: "POST", body: {} }),
+    duplicate: (id: number, name?: string) =>
+        request<Project>(`/projects/${id}/duplicate`, {
+            method: "POST",
+            body: name === undefined ? {} : { name },
+        }),
+    /**
+     * One page of projects, searched, filtered and sorted by the API, with the total of results.
+     * An API older than the paged list ignores the parameters and sends every project as an
+     * array: then the page is cut here and `paged` is false, so the screen can say so.
+     */
+    page: async (query: ProjectQuery): Promise<ProjectPage & { paged: boolean }> => {
+        const { data, total } = await requestWithTotal<ProjectPage | Project[]>("/projects", {
+            query: {
+                ...query,
+                archived: query.archived === undefined ? undefined : String(query.archived),
+            },
+        });
+
+        if (Array.isArray(data)) {
+            const start = (query.page - 1) * query.page_size;
+
+            return {
+                items: data.slice(start, start + query.page_size),
+                total: data.length,
+                page: query.page,
+                page_size: query.page_size,
+                paged: false,
+            };
+        }
+
+        return { ...data, total: total ?? data.total, paged: true };
+    },
+    /**
+     * Archives through its own route, which keeps the state it had to restore it later; an API
+     * without the route gets the same through the state of the project.
+     */
+    archive: (id: number) =>
+        request<Project>(`/projects/${id}/archive`, { method: "POST" }).catch((reason) => {
+            if (isUnavailable(reason)) {
+                return request<Project>(`/projects/${id}`, {
+                    method: "PATCH",
+                    body: { status: "archived" },
+                });
+            }
+
+            throw reason;
+        }),
+    /** Gives back the state it had before archiving (the API knows it); without the route, active. */
+    unarchive: (id: number) =>
+        request<Project>(`/projects/${id}/unarchive`, { method: "POST" }).catch((reason) => {
+            if (isUnavailable(reason)) {
+                return request<Project>(`/projects/${id}`, {
+                    method: "PATCH",
+                    body: { status: "active" },
+                });
+            }
+
+            throw reason;
+        }),
+};
+
+export const tasksApi = {
+    listByProject: (projectId: number, status?: TaskStatus) =>
+        request<Task[]>(`/projects/${projectId}/tasks`, { query: { status } }),
+    create: (projectId: number, data: TaskCreate) =>
+        request<Task>(`/projects/${projectId}/tasks`, { method: "POST", body: data }),
+    update: (id: number, data: TaskUpdate) =>
+        request<Task>(`/tasks/${id}`, { method: "PATCH", body: data }),
+    remove: (id: number) => request<void>(`/tasks/${id}`, { method: "DELETE" }),
+};
+
+export const versionsApi = {
+    listByProject: (projectId: number) => request<Version[]>(`/projects/${projectId}/versions`),
+    create: (projectId: number, label?: string) =>
+        request<Version>(`/projects/${projectId}/versions`, {
+            method: "POST",
+            body: label === undefined ? {} : { label },
+        }),
+    get: (id: number) => request<VersionDetail>(`/versions/${id}`),
+    restore: (id: number) => request<Project>(`/versions/${id}/restore`, { method: "POST" }),
+};
+
+export const activityApi = {
+    listByProject: (projectId: number, page = 1, pageSize = 50) =>
+        request<ActivityPage>(`/projects/${projectId}/activity`, {
+            query: { page, page_size: pageSize },
+        }),
 };
 
 export const templatesApi = {

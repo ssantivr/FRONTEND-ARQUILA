@@ -217,7 +217,91 @@ export interface ProjectCreate {
     status?: ProjectStatus;
 }
 
-export type ProjectUpdate = Partial<ProjectCreate>;
+export type ProjectUpdate = Partial<ProjectCreate> & {
+    progress?: number;
+    cover_file_id?: number | null;
+};
+
+export type ProjectSort = "id" | "name" | "created_at" | "updated_at" | "status" | "progress";
+
+/** The parameters of `GET /projects` that turn its answer into a page (contract of 20 October). */
+export interface ProjectQuery {
+    page: number;
+    page_size: number;
+    /** Searches the name, description and place. */
+    q?: string;
+    status?: ProjectStatus;
+    archived?: boolean;
+    sort?: ProjectSort;
+    order?: "asc" | "desc";
+}
+
+export interface ProjectPage {
+    items: Project[];
+    total: number;
+    page: number;
+    page_size: number;
+}
+
+export type TaskStatus = "todo" | "in_progress" | "done";
+
+export interface Task {
+    id: number;
+    project_id: number;
+    title: string;
+    description: string | null;
+    status: TaskStatus;
+    assignee_id: number | null;
+    due_date: string | null;
+    progress: number;
+    created_by: number | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TaskCreate {
+    title: string;
+    description?: string | null;
+    status?: TaskStatus;
+    assignee_id?: number | null;
+    due_date?: string | null;
+    progress?: number;
+}
+
+export type TaskUpdate = Partial<TaskCreate>;
+
+export interface Version {
+    id: number;
+    project_id: number;
+    version_number: number;
+    label: string | null;
+    created_by: number | null;
+    created_at: string;
+    /** How many of each kind of content the copy holds, such as `{"plans": 2}`. */
+    contents: Record<string, number>;
+}
+
+export interface VersionDetail extends Version {
+    snapshot: Record<string, unknown>;
+}
+
+export interface Activity {
+    id: number;
+    project_id: number;
+    user_id: number | null;
+    action: string;
+    entity_type: string | null;
+    entity_id: number | null;
+    detail: { label?: string; fields?: string[]; [key: string]: unknown };
+    created_at: string;
+}
+
+export interface ActivityPage {
+    items: Activity[];
+    total: number;
+    page: number;
+    page_size: number;
+}
 
 export interface ProjectFilters {
     status?: ProjectStatus;
