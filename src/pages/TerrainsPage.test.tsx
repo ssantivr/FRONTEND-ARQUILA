@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { loadAcrossProjects } from "../services/api";
 import type { Terrain } from "../types/api";
+import { distanceKm } from "../components/TerrainSituation";
 import { TerrainsPage } from "./TerrainsPage";
 
 vi.mock("../services/api", () => ({
@@ -133,5 +134,52 @@ describe("TerrainsPage", () => {
         await userEvent.click(within(detail).getByRole("button", { name: "Abrir en su proyecto" }));
 
         expect(onOpenProject).toHaveBeenCalledWith(2);
+    });
+
+    it("places the terrains with coordinates relative to one another, and only those", async () => {
+        vi.mocked(loadAcrossProjects).mockResolvedValue({
+            projects: [{ id: 1, name: "Casa Andina" }] as never,
+            items: [
+                { ...terrain(1, "Lote norte", 1, null), latitude: -0.18, longitude: -78.47 },
+                { ...terrain(2, "Lote sur", 1, null), latitude: -0.25, longitude: -78.52 },
+                terrain(3, "Lote sin datos", 1, null),
+            ],
+        });
+
+        render(<TerrainsPage onOpenProject={() => undefined} />);
+
+        const situation = await screen.findByRole("group", {
+            name: "Situación relativa de los terrenos con coordenadas",
+        });
+
+        expect(within(situation).getAllByRole("button")).toHaveLength(2);
+        expect(screen.getByText(/2 de 3 terrenos con coordenadas/)).toBeInTheDocument();
+
+        await userEvent.click(within(situation).getByRole("button", { name: /^Lote sur/ }));
+        expect(screen.getByRole("complementary", { name: "Detalle de Lote sur" })).toBeVisible();
+
+        await userEvent.click(screen.getByLabelText("Solo con coordenadas"));
+        expect(screen.queryByRole("button", { name: /Lote sin datos/ })).not.toBeInTheDocument();
+    });
+
+    it("draws no situation with fewer than two terrains with coordinates", async () => {
+        render(<TerrainsPage onOpenProject={() => undefined} />);
+
+        await screen.findByRole("button", { name: /Lote norte/ });
+
+        expect(screen.queryByRole("group", { name: /Situación relativa/ })).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("Solo con coordenadas")).not.toBeInTheDocument();
+    });
+});
+
+describe("distanceKm", () => {
+    it("measures along the surface of the Earth", () => {
+        const at = (latitude: number, longitude: number) =>
+            ({ ...terrain(1, "", 1, null), latitude, longitude }) as Parameters<
+                typeof distanceKm
+            >[0];
+
+        // Quito to Guayaquil is about 270 km in a straight line.
+        expect(distanceKm(at(-0.18, -78.47), at(-2.19, -79.89))).toBeCloseTo(270, -1);
     });
 });

@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
+import { TerrainSituation, hasCoordinates } from "../components/TerrainSituation";
 import { Button } from "../components/ui/Button";
 import { FilterBar } from "../components/ui/FilterBar";
 import { Skeleton } from "../components/ui/Skeleton";
@@ -118,6 +119,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
     const [query, setQuery] = useState("");
     const [projectId, setProjectId] = useState("");
     const [soil, setSoil] = useState("");
+    const [onlyLocated, setOnlyLocated] = useState(false);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [order, setOrder] = useState<Order>("name");
     const terrains = data.data?.items ?? [];
@@ -131,13 +133,15 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
     );
     const steepest = slopes.length === 0 ? null : Math.max(...slopes);
     const wanted = query.trim().toLowerCase();
-    const filtered = wanted !== "" || projectId !== "" || soil !== "";
+    const located = terrains.filter(hasCoordinates).length;
+    const filtered = wanted !== "" || projectId !== "" || soil !== "" || onlyLocated;
     const shown = terrains
         .filter(
             (terrain) =>
                 (wanted === "" || terrain.name.toLowerCase().includes(wanted)) &&
                 (projectId === "" || terrain.project_id === Number(projectId)) &&
-                (soil === "" || terrain.soil_type === soil),
+                (soil === "" || terrain.soil_type === soil) &&
+                (!onlyLocated || hasCoordinates(terrain)),
         )
         .sort((first, second) =>
             order === "area"
@@ -184,6 +188,10 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                             <dt>Con pendiente registrada</dt>
                             <dd>{arriving ? "—" : `${slopes.length} de ${terrains.length}`}</dd>
                         </div>
+                        <div>
+                            <dt>Con coordenadas</dt>
+                            <dd>{arriving ? "—" : `${located} de ${terrains.length}`}</dd>
+                        </div>
                     </dl>
                 )}
             </header>
@@ -229,6 +237,16 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                 ))}
                             </select>
                         )}
+                        {located > 0 && (
+                            <label className="checkbox">
+                                <input
+                                    type="checkbox"
+                                    checked={onlyLocated}
+                                    onChange={(event) => setOnlyLocated(event.target.checked)}
+                                />
+                                Solo con coordenadas
+                            </label>
+                        )}
                         <select
                             aria-label="Ordenar terrenos"
                             disabled={arriving}
@@ -271,12 +289,18 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                 setQuery("");
                                 setProjectId("");
                                 setSoil("");
+                                setOnlyLocated(false);
                             }}
                         >
                             Quitar los filtros
                         </button>
                     </div>
                 )}
+                <TerrainSituation
+                    terrains={shown}
+                    selectedId={selected?.id ?? null}
+                    onSelect={setSelectedId}
+                />
                 <div
                     className={
                         selected === null ? "terrain-layout" : "terrain-layout terrain-layout-open"
