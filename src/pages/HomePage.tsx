@@ -1,23 +1,24 @@
 import { Suspense, lazy, useState } from "react";
 
-import { RenderImage } from "../components/RenderImage";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { CountUp } from "../components/CountUp";
-import { StatusBadge } from "../components/ui/Badge";
-import { ProjectCover } from "../components/ProjectCover";
 import { Icon } from "../components/Icon";
-import { Panel } from "../components/ui/Panel";
-import { ProjectCard } from "../components/ProjectCard";
+import { ProjectTile } from "../components/ProjectTile";
+import { RenderImage } from "../components/RenderImage";
 import { MODULES, type View } from "../components/Sidebar";
+import { StatusBadge } from "../components/ui/Badge";
+import { BlueprintGrid } from "../components/ui/Blueprint";
 import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { SelectControl } from "../components/ui/Input";
 import { Menu } from "../components/ui/Menu";
+import { SegmentedControl, type Segment } from "../components/ui/SegmentedControl";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi } from "../services/api";
 import { showToast } from "../state/toasts";
 import type { Project, ProjectStatus, User } from "../types/api";
-import type { SectionId } from "./sections";
 import { formatDate, formatMoney, formatNumber } from "../utils/format";
+import type { SectionId } from "./sections";
 
 import styles from "./HomePage.module.css";
 
@@ -29,6 +30,11 @@ const ProjectPreview = lazy(() =>
 const CAN_DRAW_3D = typeof window !== "undefined" && "WebGL2RenderingContext" in window;
 // The one shortcut that gets the large tile: the 3D viewer is what sets the product apart.
 const MAIN_MODULE = MODULES.find((module) => module.id === "viewer") ?? MODULES[0];
+
+const LAYOUTS: readonly Segment<"grid" | "list">[] = [
+    { value: "grid", label: "Cuadrícula", icon: "grid" },
+    { value: "list", label: "Lista", icon: "rows" },
+];
 
 interface HomePageProps {
     user: User;
@@ -43,6 +49,11 @@ function count(value: number, one: string, many: string): string {
     return `${formatNumber(value)} ${value === 1 ? one : many}`;
 }
 
+/**
+ * The start of the day: a greeting with the main action, the figures of GET /summary, the project
+ * to pick up again, the recent ones and a way into every module. Everything shown comes from the
+ * API; what it does not return (plans created, completed projects, a project type) is not shown.
+ */
 export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: HomePageProps) {
     const summary = useAsync(() => summaryApi.get(), []);
     const projects = useAsync(() => projectsApi.list(), []);
@@ -77,6 +88,14 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
           ]
         : [];
 
+    function create() {
+        if (onCreateProject === undefined) {
+            onNavigate("projects");
+        } else {
+            onCreateProject();
+        }
+    }
+
     async function remove(project: Project) {
         setDeletePending(true);
         setActionError(null);
@@ -109,35 +128,30 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
     }
 
     return (
-        <>
+        <div className={styles.home}>
             <section className={styles.hero} aria-labelledby="home-greeting">
                 <div className={styles.copy}>
+                    <BlueprintGrid className={styles.heroGrid} />
                     <span className={styles.eyebrow}>Tu espacio de trabajo</span>
-                    <h2 id="home-greeting">Hola, {user.name}</h2>
-                    <p>
+                    <h2 id="home-greeting" className={styles.greeting}>
+                        Hola, {user.name}
+                    </h2>
+                    <p className={styles.lead}>
                         Proyectos, terrenos, planos, materiales y modelo 3D en un solo lugar, con un
                         asistente que conoce cada proyecto.
                     </p>
-                    <div className={styles.actions}>
-                        <button
-                            type="button"
-                            className="button-lime icon-button"
-                            onClick={() =>
-                                onCreateProject === undefined
-                                    ? onNavigate("projects")
-                                    : onCreateProject()
-                            }
-                        >
-                            <Icon name="plus" />
+                    <div className={styles.heroActions}>
+                        <Button size="lg" icon="plus" onClick={create}>
                             Crear proyecto
-                        </button>
-                        <button
-                            type="button"
-                            className="button-ghost"
+                        </Button>
+                        <Button
+                            size="lg"
+                            variant="secondary"
+                            className={styles.onForest}
                             onClick={() => onNavigate("projects")}
                         >
                             Explorar proyectos
-                        </button>
+                        </Button>
                     </div>
                 </div>
                 <div className={styles.picture}>
@@ -149,7 +163,7 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                 materials, nor a «completed» state, so none of them is shown. */}
             <dl className={styles.figures} aria-label="Resumen de tu cuenta">
                 {summary.data === null ? (
-                    <div className={styles.figuresLoading}>
+                    <div className={styles.figuresWaiting}>
                         <AsyncStatus
                             loading={summary.loading}
                             error={summary.error}
@@ -212,66 +226,64 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
             {/* While the projects are on their way the row already takes its place, so the blocks
                 under it do not jump when it arrives. */}
             {projects.loading && projects.data === null && (
-                <div className="home-row home-row-arriving" aria-hidden="true">
-                    <div className="continue-card" />
-                    <div className="status-card" />
+                <div className={`${styles.row} ${styles.arriving}`} aria-hidden="true">
+                    <div className={styles.continue} />
+                    <div className={styles.states} />
                 </div>
             )}
             {latest !== null && (
-                <div className="home-row">
-                    <section className="continue-card" aria-label="Continuar donde lo dejaste">
-                        <div className="continue-cover">
-                            <ProjectCover id={latest.id} name={latest.name} />
+                <div className={styles.row}>
+                    <section className={styles.continue} aria-label="Continuar donde lo dejaste">
+                        <div className={styles.continueCover}>
+                            <BlueprintGrid cell={12} />
                             {CAN_DRAW_3D && (
                                 <Suspense fallback={null}>
                                     <ProjectPreview key={latest.id} projectId={latest.id} />
                                 </Suspense>
                             )}
                         </div>
-                        <div className="continue-body">
-                            <span className="eyebrow">Continuar donde lo dejaste</span>
-                            <h3>{latest.name}</h3>
-                            <p className="continue-meta">
+                        <div className={styles.continueBody}>
+                            <span className={styles.label}>Continuar donde lo dejaste</span>
+                            <h3 className={styles.continueName}>{latest.name}</h3>
+                            <p className={styles.continueMeta}>
                                 <StatusBadge status={latest.status} />
-                                <span>{latest.location ?? "Sin ubicación"}</span>
+                                {latest.location !== null && <span>{latest.location}</span>}
                                 <span>Actualizado {formatDate(latest.updated_at)}</span>
                             </p>
-                            <div className="continue-actions">
-                                <button
-                                    type="button"
+                            <div className={styles.continueActions}>
+                                <Button
+                                    icon="viewer"
                                     onClick={() => onOpenProject(latest.id, "model")}
                                 >
                                     Abrir el modelo 3D
-                                </button>
-                                <button
-                                    type="button"
-                                    className="button-secondary"
+                                </Button>
+                                <Button
+                                    variant="secondary"
                                     onClick={() => onOpenProject(latest.id, "plans")}
                                 >
                                     Planos
-                                </button>
-                                <button
-                                    type="button"
-                                    className="button-secondary"
+                                </Button>
+                                <Button
+                                    variant="secondary"
                                     onClick={() => onOpenProject(latest.id, "materials")}
                                 >
                                     Materiales
-                                </button>
-                                <button
-                                    type="button"
-                                    className="button-tertiary"
+                                </Button>
+                                <Button
+                                    variant="tertiary"
+                                    iconEnd="arrowRight"
                                     onClick={() => onOpenProject(latest.id)}
                                 >
                                     Abrir el proyecto
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </section>
                     {summary.data && summary.data.projects > 0 && (
-                        <section className="status-card" aria-label="Proyectos por estado">
-                            <span className="eyebrow">Proyectos por estado</span>
+                        <section className={styles.states} aria-label="Proyectos por estado">
+                            <span className={styles.label}>Proyectos por estado</span>
                             <div
-                                className="status-bar"
+                                className={styles.stateBar}
                                 role="img"
                                 aria-label={shares
                                     .map((share) => `${share.label}: ${share.count}`)
@@ -282,17 +294,17 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                                     .map((share) => (
                                         <span
                                             key={share.id}
-                                            className={`status-bar-${share.id}`}
+                                            className={styles[share.id]}
                                             style={{ flexGrow: share.count }}
                                         />
                                     ))}
                             </div>
-                            <dl className="status-legend">
+                            <dl className={styles.legend}>
                                 {shares.map((share) => (
                                     <div key={share.id}>
                                         <dt>
                                             <span
-                                                className={`status-dot status-bar-${share.id}`}
+                                                className={`${styles.dot} ${styles[share.id]}`}
                                                 aria-hidden="true"
                                             />
                                             {share.label}
@@ -309,114 +321,125 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                 </div>
             )}
 
-            <Panel
-                title="Proyectos recientes"
-                actions={
-                    <div className="filters">
-                        <input
-                            type="search"
-                            placeholder="Buscar en recientes"
-                            aria-label="Buscar en proyectos recientes"
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                        />
-                        <select
+            <section className={styles.section} aria-labelledby="home-recent">
+                <header className={styles.sectionHead}>
+                    <h2 id="home-recent" className={styles.sectionTitle}>
+                        Proyectos recientes
+                    </h2>
+                    <div className={styles.filters} role="search">
+                        <span className={styles.search}>
+                            <Icon name="search" />
+                            <input
+                                type="search"
+                                className={styles.searchInput}
+                                placeholder="Buscar en recientes"
+                                aria-label="Buscar en proyectos recientes"
+                                value={query}
+                                onChange={(event) => setQuery(event.target.value)}
+                            />
+                        </span>
+                        <SelectControl
                             aria-label="Filtrar recientes por estado"
                             value={status}
                             onChange={(event) =>
                                 setStatus(event.target.value as ProjectStatus | "")
                             }
                         >
-                            <option value="">Todos</option>
+                            <option value="">Todos los estados</option>
                             <option value="draft">Borrador</option>
                             <option value="active">Activo</option>
                             <option value="archived">Archivado</option>
-                        </select>
-                        <div className="segmented" role="group" aria-label="Vista de recientes">
-                            <button
-                                type="button"
-                                aria-pressed={layout === "grid"}
-                                onClick={() => setLayout("grid")}
-                            >
-                                Cuadrícula
-                            </button>
-                            <button
-                                type="button"
-                                aria-pressed={layout === "list"}
-                                onClick={() => setLayout("list")}
-                            >
-                                Lista
-                            </button>
-                        </div>
+                        </SelectControl>
+                        <SegmentedControl
+                            label="Vista de recientes"
+                            iconOnly
+                            options={LAYOUTS}
+                            value={layout}
+                            onChange={setLayout}
+                        />
                         <Button variant="secondary" onClick={() => onNavigate("projects")}>
                             Ver todos
                         </Button>
                     </div>
-                }
-            >
+                </header>
                 <AsyncStatus
                     loading={projects.loading}
                     error={projects.error}
                     onRetry={projects.reload}
                     isEmpty={recent.length === 0}
+                    skeleton="cards"
                     emptyText={
                         all.length === 0
-                            ? "Todavía no tienes proyectos. Crea el primero con «Nuevo proyecto»."
+                            ? "Todavía no tienes proyectos. Crea el primero y aparecerá aquí."
                             : "Ningún proyecto reciente coincide con el filtro."
+                    }
+                    emptyAction={
+                        all.length === 0 ? (
+                            <Button icon="plus" onClick={create}>
+                                Crear proyecto
+                            </Button>
+                        ) : undefined
                     }
                 />
                 {actionError && (
-                    <p className="message message-error" role="alert">
+                    <p className={styles.actionError} role="alert">
+                        <Icon name="error" />
                         {actionError}
                     </p>
                 )}
-                <ul
-                    className={
-                        layout === "grid"
-                            ? "card-list project-grid"
-                            : "card-list card-list-rows project-grid"
-                    }
-                >
-                    {recent.map((project) => (
-                        <li key={project.id} className="project-item">
-                            <ProjectCard project={project} onOpen={onOpenProject} layout={layout} />
-                            <div className="project-actions">
-                                <Menu
-                                    label={`Acciones de ${project.name}`}
-                                    items={[
-                                        {
-                                            label: "Abrir",
-                                            onSelect: () => onOpenProject(project.id),
-                                        },
-                                        {
-                                            label: "Ver el modelo 3D",
-                                            onSelect: () => onOpenProject(project.id, "model"),
-                                        },
-                                        {
-                                            label:
-                                                project.status === "archived"
-                                                    ? "Reactivar"
-                                                    : "Archivar",
-                                            onSelect: () =>
-                                                void changeStatus(
-                                                    project,
-                                                    project.status === "archived"
-                                                        ? "active"
-                                                        : "archived",
-                                                ),
-                                        },
-                                        {
-                                            label: "Eliminar…",
-                                            danger: true,
-                                            onSelect: () => setDeleting(project),
-                                        },
-                                    ]}
+                {recent.length > 0 && (
+                    <ul className={layout === "grid" ? styles.grid : styles.list}>
+                        {recent.map((project) => (
+                            <li key={project.id}>
+                                <ProjectTile
+                                    project={project}
+                                    layout={layout}
+                                    onOpen={onOpenProject}
+                                    actions={
+                                        <Menu
+                                            label={`Acciones de ${project.name}`}
+                                            items={[
+                                                {
+                                                    label: "Abrir",
+                                                    icon: "projects",
+                                                    onSelect: () => onOpenProject(project.id),
+                                                },
+                                                {
+                                                    label: "Ver el modelo 3D",
+                                                    icon: "viewer",
+                                                    onSelect: () =>
+                                                        onOpenProject(project.id, "model"),
+                                                },
+                                                {
+                                                    label:
+                                                        project.status === "archived"
+                                                            ? "Reactivar"
+                                                            : "Archivar",
+                                                    icon: "archive",
+                                                    onSelect: () =>
+                                                        void changeStatus(
+                                                            project,
+                                                            project.status === "archived"
+                                                                ? "active"
+                                                                : "archived",
+                                                        ),
+                                                },
+                                                {
+                                                    label: "Eliminar…",
+                                                    icon: "trash",
+                                                    danger: true,
+                                                    separated: true,
+                                                    onSelect: () => setDeleting(project),
+                                                },
+                                            ]}
+                                        />
+                                    }
                                 />
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </Panel>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </section>
 
             {deleting !== null && (
                 <ConfirmDialog
@@ -434,36 +457,44 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                 </ConfirmDialog>
             )}
 
-            <Panel title="Accesos rápidos">
-                <div className="quick">
+            <section className={styles.section} aria-labelledby="home-quick">
+                <header className={styles.sectionHead}>
+                    <h2 id="home-quick" className={styles.sectionTitle}>
+                        Accesos rápidos
+                    </h2>
+                </header>
+                <div className={styles.quick}>
                     <button
                         type="button"
-                        className="quick-main"
+                        className={styles.quickMain}
                         onClick={() => onNavigate(MAIN_MODULE.id)}
                     >
+                        <BlueprintGrid cell={16} />
                         <Icon name={MAIN_MODULE.icon} />
-                        <span className="quick-main-title">{MAIN_MODULE.label}</span>
-                        <span className="quick-main-text">{MAIN_MODULE.description}</span>
+                        <span className={styles.quickMainTitle}>{MAIN_MODULE.label}</span>
+                        <span className={styles.quickMainText}>{MAIN_MODULE.description}</span>
                     </button>
-                    <ul className="quick-list">
+                    <ul className={styles.quickList}>
                         {MODULES.filter(
                             (module) => module.id !== "home" && module.id !== MAIN_MODULE.id,
                         ).map((module) => (
                             <li key={module.id}>
                                 <button
                                     type="button"
-                                    className="quick-row"
+                                    className={styles.quickRow}
                                     onClick={() => onNavigate(module.id)}
                                 >
                                     <Icon name={module.icon} />
-                                    <span className="quick-row-title">{module.label}</span>
-                                    <span className="quick-row-text">{module.description}</span>
+                                    <span className={styles.quickRowTitle}>{module.label}</span>
+                                    <span className={styles.quickRowText}>
+                                        {module.description}
+                                    </span>
                                 </button>
                             </li>
                         ))}
                     </ul>
                 </div>
-            </Panel>
-        </>
+            </section>
+        </div>
     );
 }
