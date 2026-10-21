@@ -447,3 +447,92 @@ export function answer(path, query = new URLSearchParams()) {
 
     return [];
 }
+
+// ---- Tasks, versions and history of Casa Mirador (routes of the contract of 20 October) ----
+
+export const projectTasks = [
+    {
+        id: 1,
+        project_id: 1,
+        title: "Contratar el estudio de suelos",
+        description: "Laboratorio con ensayo de penetración estándar.",
+        status: "done",
+        assignee_id: 1,
+        due_date: "2026-09-15",
+        progress: 100,
+        created_by: 1,
+        created_at: "2026-09-02T10:00:00",
+        updated_at: "2026-09-14T10:00:00",
+    },
+    {
+        id: 2,
+        project_id: 1,
+        title: "Pedir la licencia de construcción",
+        description: null,
+        status: "in_progress",
+        assignee_id: 1,
+        due_date: "2026-10-30",
+        progress: 40,
+        created_by: 1,
+        created_at: "2026-09-20T10:00:00",
+        updated_at: "2026-10-04T10:00:00",
+    },
+    {
+        id: 3,
+        project_id: 1,
+        title: "Cotizar la ventanería",
+        description: null,
+        status: "todo",
+        assignee_id: null,
+        due_date: null,
+        progress: 0,
+        created_by: 1,
+        created_at: "2026-10-01T10:00:00",
+        updated_at: "2026-10-01T10:00:00",
+    },
+];
+
+export const projectVersions = [
+    {
+        id: 1,
+        project_id: 1,
+        version_number: 1,
+        label: "Anteproyecto",
+        created_by: 1,
+        created_at: "2026-09-25T18:00:00",
+        contents: { terrains: 1, plans: 2, rooms: 8, components: 6, materials: 9, tasks: 2 },
+    },
+];
+
+export const projectActivity = [
+    {
+        id: 3,
+        project_id: 1,
+        user_id: 1,
+        action: "updated",
+        entity_type: "task",
+        entity_id: 2,
+        detail: { label: "Pedir la licencia de construcción", fields: ["progress"] },
+        created_at: "2026-10-04T10:00:00",
+    },
+    {
+        id: 2,
+        project_id: 1,
+        user_id: 1,
+        action: "version_saved",
+        entity_type: "version",
+        entity_id: 1,
+        detail: { version_number: 1 },
+        created_at: "2026-09-25T18:00:00",
+    },
+    {
+        id: 1,
+        project_id: 1,
+        user_id: 1,
+        action: "created",
+        entity_type: "project",
+        entity_id: 1,
+        detail: { label: "Casa Mirador" },
+        created_at: "2026-09-01T10:00:00",
+    },
+];

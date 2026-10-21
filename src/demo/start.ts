@@ -15,7 +15,7 @@ export async function startDemo(): Promise<void> {
             const url = new URL(request.url);
             const body: unknown =
                 request.method === "GET" ? undefined : await request.json().catch(() => undefined);
-            const { status, json } = respond(
+            const { status, json, headers } = respond(
                 request.method,
                 url.pathname.replace(/^.*?\/api/, ""),
                 url.searchParams,
@@ -23,8 +23,8 @@ export async function startDemo(): Promise<void> {
             );
 
             return json === undefined
-                ? new HttpResponse(null, { status })
-                : HttpResponse.json(json, { status });
+                ? new HttpResponse(null, { status, headers })
+                : HttpResponse.json(json, { status, headers });
         }),
     );
 

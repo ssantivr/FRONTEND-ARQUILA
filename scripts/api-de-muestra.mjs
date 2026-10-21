@@ -3,6 +3,7 @@
 // and by `npm run demo` (MSW answers them in the browser). Nothing in this file ships with the
 // app: the demo only loads it in `--mode demo`.
 import { answer, projects, user } from "./datos-de-muestra.mjs";
+import { createProjectWork } from "./gestion-de-muestra.mjs";
 
 /** @param {{ signedIn?: boolean }} [options] */
 export function createSampleApi({ signedIn = true } = {}) {
@@ -11,6 +12,19 @@ export function createSampleApi({ signedIn = true } = {}) {
     /** Position and size of each room moved or resized with PATCH /rooms/{id}. */
     const roomEdits = new Map();
     const FIELDS = ["x_m", "y_m", "width_m", "depth_m", "height_m"];
+    /** What was changed on each sample project during the visit (PATCH, archive…). */
+    const projectEdits = new Map();
+
+    function listProjects() {
+        return [...created, ...projects].map((project) => ({
+            ...project,
+            ...projectEdits.get(project.id),
+        }));
+    }
+
+    const work = createProjectWork(listProjects, (id, changes) =>
+        projectEdits.set(id, { ...projectEdits.get(id), ...changes }),
+    );
 
     /** A room as the sample data has it, with what was changed on it since. */
     function edited(room) {
@@ -24,7 +38,7 @@ export function createSampleApi({ signedIn = true } = {}) {
      * @param {string} path the path after /api, such as /projects/1/terrains
      * @param {URLSearchParams} query
      * @param {() => unknown} readBody the JSON body, read only when the request needs it
-     * @returns {{ status: number, json?: unknown }}
+     * @returns {{ status: number, json?: unknown, headers?: Record<string, string> }}
      */
     return function respond(method, path, query, readBody) {
         if (path === "/auth/login" && method === "POST") {
@@ -41,6 +55,12 @@ export function createSampleApi({ signedIn = true } = {}) {
 
         if (!session) {
             return { status: 401, json: { detail: "Not authenticated" } };
+        }
+
+        const managed = work(method, path, query, readBody);
+
+        if (managed !== null) {
+            return managed;
         }
 
         if (path === "/projects" && method === "POST") {
@@ -69,7 +89,7 @@ export function createSampleApi({ signedIn = true } = {}) {
 
             return {
                 status: 200,
-                json: [...created, ...projects].filter((project) =>
+                json: listProjects().filter((project) =>
                     project.name.toLowerCase().includes(wanted),
                 ),
             };

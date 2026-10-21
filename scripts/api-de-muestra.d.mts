@@ -2,6 +2,7 @@
 export interface SampleAnswer {
     status: number;
     json?: unknown;
+    headers?: Record<string, string>;
 }
 
 export function createSampleApi(options?: {

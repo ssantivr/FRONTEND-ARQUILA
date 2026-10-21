@@ -17,3 +17,6 @@ export const user: { id: number; name: string; email: string; created_at: string
 export const projects: SampleProject[];
 export const summary: Record<string, number>;
 export function answer(path: string, query?: URLSearchParams): unknown;
+export const projectTasks: Record<string, unknown>[];
+export const projectVersions: Record<string, unknown>[];
+export const projectActivity: Record<string, unknown>[];

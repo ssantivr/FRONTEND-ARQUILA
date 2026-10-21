@@ -14,7 +14,7 @@ export async function mockApi(page: Page, { signedIn = true }: MockOptions = {})
     await page.route("**/api/**", async (route) => {
         const request = route.request();
         const url = new URL(request.url());
-        const { status, json } = respond(
+        const { status, json, headers } = respond(
             request.method(),
             url.pathname.replace(/^\/api/, ""),
             url.searchParams,
@@ -22,7 +22,7 @@ export async function mockApi(page: Page, { signedIn = true }: MockOptions = {})
         );
 
         return json === undefined
-            ? route.fulfill({ status, body: "" })
-            : route.fulfill({ status, json });
+            ? route.fulfill({ status, headers, body: "" })
+            : route.fulfill({ status, headers, json });
     });
 }
