@@ -320,17 +320,19 @@
 ::view-transition-new(content) {
     animation: fade-in var(--dur) var(--ease-out) both;
 }
-/* ---- Change of theme: colours cross over instead of snapping; the 3D canvas is left alone ---- */
+/*
+ * ---- Change of theme ----
+ * The browser takes a picture of the page in the old colours and one in the new, and the two
+ * cross-fade: only their opacity changes, never a colour of the page. The content area has its
+ * own pictures, which already cross-fade (above). Without view transitions, or with reduced
+ * motion, theme.ts changes the colours at once.
+ */
+html[data-theme-switching]::view-transition-old(root) {
+    animation: fade-out var(--dur) var(--ease-in-out) both;
+}
 
-html[data-theme-switching] *:not(canvas),
-html[data-theme-switching] *:not(canvas)::before,
-html[data-theme-switching] *:not(canvas)::after {
-    transition:
-        background-color var(--dur) var(--ease-in-out),
-        border-color var(--dur) var(--ease-in-out),
-        color var(--dur) var(--ease-in-out),
-        fill var(--dur) var(--ease-in-out),
-        stroke var(--dur) var(--ease-in-out) !important;
+html[data-theme-switching]::view-transition-new(root) {
+    animation: fade-in var(--dur) var(--ease-in-out) both;
 }
 
 /* ---- Pressing a control ---- */

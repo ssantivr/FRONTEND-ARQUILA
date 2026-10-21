@@ -88,19 +88,44 @@ describe("change of theme", () => {
         setReduceMotion(false);
     });
 
-    it("marks the page for one colour transition and then lets go", () => {
-        vi.useFakeTimers();
+    it("changes at once where the browser has no view transitions", () => {
         setTheme("light");
-        act(() => vi.advanceTimersByTime(1000));
-
         setTheme("dark");
 
         expect(document.documentElement.dataset.theme).toBe("dark");
-        expect(document.documentElement).toHaveAttribute("data-theme-switching");
-
-        act(() => vi.advanceTimersByTime(220));
-
         expect(document.documentElement).not.toHaveAttribute("data-theme-switching");
+    });
+
+    it("cross-fades inside a view transition and lets go of the mark when it ends", async () => {
+        let end = () => undefined as void;
+        const finished = new Promise<void>((resolve) => {
+            end = resolve;
+        });
+        const start = vi.fn((run: () => void) => {
+            run();
+
+            return { finished };
+        });
+
+        setTheme("light");
+        Object.defineProperty(document, "startViewTransition", {
+            configurable: true,
+            value: start,
+        });
+
+        try {
+            setTheme("dark");
+
+            expect(start).toHaveBeenCalledTimes(1);
+            expect(document.documentElement.dataset.theme).toBe("dark");
+            expect(document.documentElement).toHaveAttribute("data-theme-switching");
+
+            await act(async () => end());
+
+            expect(document.documentElement).not.toHaveAttribute("data-theme-switching");
+        } finally {
+            Reflect.deleteProperty(document, "startViewTransition");
+        }
     });
 });
 

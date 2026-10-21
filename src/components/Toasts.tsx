@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 import {
     TOAST_EXIT_MS,
     TOAST_LIFETIME_MS,
@@ -8,45 +6,29 @@ import {
     resumeToast,
     useToasts,
 } from "../state/toasts";
-import { Icon } from "./Icon";
-
-import styles from "./Toasts.module.css";
+import { Toast, ToastRegion } from "./ui/Toast";
 
 // The bar empties in exactly the time the toast stays before it starts to leave.
-const LIFE = { "--toast-life": `${TOAST_LIFETIME_MS - TOAST_EXIT_MS}ms` } as CSSProperties;
+const LIFE_MS = TOAST_LIFETIME_MS - TOAST_EXIT_MS;
 
-/**
- * Short confirmations at the bottom right. Each one slides in from the edge, shows the time it
- * has left as a bar, waits while the pointer or the focus is on it, and slides out.
- */
+/** The toasts of `showToast`, at the bottom right of every screen. */
 export function Toasts() {
     const toasts = useToasts();
 
     return (
-        <div className={styles.toasts} role="status" aria-live="polite">
+        <ToastRegion>
             {toasts.map((toast) => (
-                <div
+                <Toast
                     key={toast.id}
-                    className={toast.leaving ? `${styles.toast} ${styles.leaving}` : styles.toast}
-                    style={LIFE}
-                    onPointerEnter={() => pauseToast(toast.id, "pointer")}
-                    onPointerLeave={() => resumeToast(toast.id, "pointer")}
-                    onFocus={() => pauseToast(toast.id, "focus")}
-                    onBlur={() => resumeToast(toast.id, "focus")}
-                >
-                    <Icon name="success" className={styles.mark} />
-                    <span className={styles.text}>{toast.text}</span>
-                    <button
-                        type="button"
-                        className={styles.close}
-                        aria-label="Cerrar el aviso"
-                        onClick={() => leaveToast(toast.id)}
-                    >
-                        <Icon name="close" />
-                    </button>
-                    <span className={styles.timer} aria-hidden="true" />
-                </div>
+                    text={toast.text}
+                    tone={toast.tone}
+                    leaving={toast.leaving}
+                    lifeMs={LIFE_MS}
+                    onClose={() => leaveToast(toast.id)}
+                    onHold={(cause) => pauseToast(toast.id, cause)}
+                    onRelease={(cause) => resumeToast(toast.id, cause)}
+                />
             ))}
-        </div>
+        </ToastRegion>
     );
 }

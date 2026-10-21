@@ -14,7 +14,6 @@
     color: var(--color-text-secondary);
     list-style: none;
     cursor: pointer;
-    transition: background-color var(--dur-fast) var(--ease-out);
 }
 
 .trigger::-webkit-details-marker {

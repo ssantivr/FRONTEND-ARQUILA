@@ -43,6 +43,9 @@
     --color-accent-hover: #a6e655;
     --color-on-accent: #0b211a;
     --color-accent-edge: rgba(11, 33, 26, 0.22);
+    /* The accent where it must be seen as a line, an icon or text on this theme's surfaces. Lime
+       cannot (1.31:1 on paper), so in light it is the interaction green. */
+    --color-accent-hi: #236b42;
     /* The selection outline: lime needs a dark keyline beside it to be seen on paper. */
     --color-selection: #b8f36b;
     --color-selection-keyline: #0b211a;
@@ -102,6 +105,7 @@
     --color-accent-hover: #c9f78d;
     --color-on-accent: #0b211a;
     --color-accent-edge: rgba(184, 243, 107, 0);
+    --color-accent-hi: #b8f36b;
     --color-selection: #b8f36b;
     --color-selection-keyline: #050f0b;
     --color-focus: #b8f36b;
@@ -128,6 +132,18 @@
     color-scheme: dark;
 }
 
+/* ---- 1. Theme: automatic, before the script has run ----
+   theme.ts resolves «automático» with prefers-color-scheme and writes data-theme before the first
+   render, and follows the system when it changes. Until then (the first paint of a slow load) a
+   system in dark mode gets a dark page instead of a white flash. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --color-bg: #050f0b;
+        --color-text: #eef3ee;
+        color-scheme: dark;
+    }
+}
+
 /* ---- 2. Scales, the same in both themes ---- */
 :root {
     /* Brand surfaces that do not change with the theme: the forest of the sidebar and the bands. */
@@ -137,6 +153,9 @@
     --brand-lime: #b8f36b;
     --brand-lime-hover: #c9f78d;
     --brand-on-lime: #0b211a;
+    /* States on the forest band (toasts), which is dark in both themes. */
+    --band-danger: #ff8a80;
+    --band-info: #8ab4ff;
     --white: #ffffff;
     /* The faces of the isometric mark: top, left and right. */
     --brand-face-top: #b8f36b;

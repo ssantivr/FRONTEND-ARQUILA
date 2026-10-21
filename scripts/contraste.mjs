@@ -52,6 +52,7 @@ const TEXTS = [
     "color-text-secondary",
     "color-text-muted",
     "color-action",
+    "color-accent-hi",
     "color-success",
     "color-warning",
     "color-danger",
@@ -75,6 +76,8 @@ const PAIRS = [
     ["brand-lime", "brand-forest"],
     ["brand-lime", "brand-forest-raised"],
     ["brand-on-lime", "brand-lime"],
+    ["band-danger", "brand-forest"],
+    ["band-info", "brand-forest"],
     ["scene-text", "scene-panel"],
 ];
 

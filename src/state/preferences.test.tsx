@@ -1,3 +1,4 @@
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 let systemLight = false;
@@ -39,6 +40,30 @@ describe("theme preference", () => {
 
         theme.setThemePreference("auto");
         expect(theme.getTheme()).toBe("light");
+    });
+
+    it("comes back as it was left, from the stored preference", async () => {
+        systemLight = true;
+        window.localStorage.setItem("arquila:theme", "dark");
+
+        const theme = await import("./theme");
+
+        expect(theme.getThemePreference()).toBe("dark");
+        expect(document.documentElement.dataset.theme).toBe("dark");
+    });
+
+    it("updates what is on screen without a reload", async () => {
+        systemLight = true;
+
+        const theme = await import("./theme");
+        const { result } = renderHook(() => theme.useTheme());
+
+        expect(result.current).toBe("light");
+
+        act(() => theme.setThemePreference("dark"));
+
+        expect(result.current).toBe("dark");
+        expect(document.documentElement.dataset.theme).toBe("dark");
     });
 });
 

@@ -35,9 +35,6 @@
     background: var(--color-surface-sunken);
     appearance: none;
     cursor: pointer;
-    transition:
-        background-color var(--dur-fast) var(--ease-out),
-        border-color var(--dur-fast) var(--ease-out);
 }
 
 .switch::before {

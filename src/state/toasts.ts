@@ -1,8 +1,12 @@
 import { useSyncExternalStore } from "react";
 
+/** What the toast tells: an action that worked, one that failed, or a plain notice. */
+export type ToastTone = "success" | "error" | "info";
+
 export interface Toast {
     id: number;
     text: string;
+    tone: ToastTone;
     /** True for the last moment of a toast, while it slides away. */
     leaving: boolean;
 }
@@ -102,12 +106,15 @@ export function resumeToast(id: number, cause: PauseCause): void {
     clock.timer = window.setTimeout(() => leaveToast(id), clock.remaining);
 }
 
-/** Confirms an action that already succeeded; errors stay next to the control that failed. */
-export function showToast(text: string): void {
+/**
+ * Tells the outcome of an action that has no place of its own on screen. An error of a form stays
+ * next to the control that failed; a toast is for what has none, such as a download.
+ */
+export function showToast(text: string, tone: ToastTone = "success"): void {
     const id = nextId++;
     const remaining = TOAST_LIFETIME_MS - TOAST_EXIT_MS;
 
-    publish([...toasts, { id, text, leaving: false }]);
+    publish([...toasts, { id, text, tone, leaving: false }]);
     clocks.set(id, {
         timer: window.setTimeout(() => leaveToast(id), remaining),
         startedAt: Date.now(),

@@ -1,5 +1,5 @@
 /* Toasts sit at the bottom right on the forest band, the same in both themes. */
-.toasts {
+.region {
     position: fixed;
     right: var(--space-5);
     bottom: var(--space-5);
@@ -32,7 +32,16 @@
 }
 
 .mark {
+    flex: none;
     color: var(--brand-lime);
+}
+
+.toast[data-tone="error"] .mark {
+    color: var(--band-danger);
+}
+
+.toast[data-tone="info"] .mark {
+    color: var(--band-info);
 }
 
 .text {
@@ -81,7 +90,7 @@
 }
 
 @media (max-width: 720px) {
-    .toasts {
+    .region {
         right: var(--space-4);
         bottom: calc(var(--mobile-nav-height) + var(--space-3));
         left: var(--space-4);

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-import { prefersReducedMotion } from "./motion";
+import { canTransition, withViewTransition } from "./viewTransition";
 
 export type Theme = "light" | "dark";
 /** What the user chose: a fixed theme, or "auto" to follow the system. */
@@ -9,10 +9,9 @@ export type ThemePreference = Theme | "auto";
 const STORAGE_KEY = "arquila:theme";
 const SYSTEM_QUERY = "(prefers-color-scheme: light)";
 const SWITCH_ATTRIBUTE = "themeSwitching";
-/** A little longer than `--dur` (180 ms), the colour transition it leaves room for. */
-const SWITCH_MS = 220;
 const listeners = new Set<() => void>();
-let switchTimer = 0;
+/** Changes still cross-fading: a second one may start before the first has ended. */
+let switching = 0;
 
 function readStored(): ThemePreference | null {
     try {
@@ -36,27 +35,39 @@ let preference: ThemePreference = readStored() ?? "auto";
 let theme: Theme = preference === "auto" ? systemTheme() : preference;
 
 /**
- * Sets the theme on the page. When it changes while the app is in use, the page is marked for a
- * moment so `motion.css` can cross the colours over; on the first paint nothing is animated.
+ * Sets the theme on the page, without reloading it. When it changes while the app is in use and
+ * the browser can, the page is marked for the change so `motion.css` cross-fades a picture of the
+ * old colours into the new ones (opacity only); otherwise, and on the first paint, it is at once.
  */
 function apply(animate = false): void {
     const previous = theme;
+    const root = document.documentElement;
 
     theme = preference === "auto" ? systemTheme() : preference;
 
-    if (animate && previous !== theme && !prefersReducedMotion()) {
-        document.documentElement.dataset[SWITCH_ATTRIBUTE] = "";
-        window.clearTimeout(switchTimer);
-        switchTimer = window.setTimeout(() => {
-            delete document.documentElement.dataset[SWITCH_ATTRIBUTE];
-        }, SWITCH_MS);
+    function commit() {
+        root.dataset.theme = theme;
+
+        for (const listener of listeners) {
+            listener();
+        }
     }
 
-    document.documentElement.dataset.theme = theme;
+    if (!animate || previous === theme || !canTransition()) {
+        commit();
 
-    for (const listener of listeners) {
-        listener();
+        return;
     }
+
+    switching += 1;
+    root.dataset[SWITCH_ATTRIBUTE] = "";
+    void withViewTransition(commit).then(() => {
+        switching -= 1;
+
+        if (switching === 0) {
+            delete root.dataset[SWITCH_ATTRIBUTE];
+        }
+    });
 }
 
 apply();

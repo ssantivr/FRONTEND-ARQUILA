@@ -62,6 +62,31 @@ describe("motion system", () => {
         expect(layout).toEqual([]);
     });
 
+    it("animates nothing but transform and opacity in the shared components", () => {
+        // `scale` and `translate` are transforms; `visibility 0s` only waits, it does not move.
+        const allowed = /^(?:none|transform|opacity|scale|translate|rotate|visibility)$/;
+        const shared = files.filter(
+            (file) =>
+                file.name.startsWith("components/ui/") ||
+                ["styles/foundation.css", "styles/motion.css"].includes(file.name),
+        );
+        const other = shared.flatMap((file) =>
+            movingDeclarations(file.css)
+                .filter((line) => /transition(?:-property)?\s*:/.test(line))
+                .flatMap((line) =>
+                    line
+                        .slice(line.indexOf(":") + 1)
+                        .replace(/!important/, "")
+                        .split(",")
+                        .map((part) => part.trim().split(/\s+/)[0])
+                        .filter((property) => !allowed.test(property))
+                        .map((property) => `${file.name}: ${property}`),
+                ),
+        );
+
+        expect(other).toEqual([]);
+    });
+
     it("has the three curves and keeps the interface at 240 ms or less", () => {
         const tokens = files.find((file) => file.name === "styles/tokens.css")?.css ?? "";
 

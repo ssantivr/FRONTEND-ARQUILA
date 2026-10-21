@@ -998,7 +998,7 @@ function ViewerScene({
         const image = viewer.current?.capture();
 
         if (typeof image !== "string" || !image.startsWith("data:image/")) {
-            showToast("No se pudo guardar la imagen del modelo. Inténtalo de nuevo.");
+            showToast("No se pudo guardar la imagen del modelo. Inténtalo de nuevo.", "error");
 
             return;
         }

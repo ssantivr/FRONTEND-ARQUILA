@@ -17,9 +17,6 @@
     color: var(--color-text);
     font-size: var(--text-md);
     box-shadow: none;
-    transition:
-        border-color var(--dur-fast) var(--ease-out),
-        background-color var(--dur-fast) var(--ease-out);
 }
 
 .control::placeholder {

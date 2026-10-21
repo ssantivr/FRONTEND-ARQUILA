@@ -11,6 +11,8 @@ export type EmptyArt = "plan" | "section" | "volume" | "site";
 interface EmptyStateProps {
     /** Short headline; the text below it explains what to do. */
     title?: string;
+    /** `h2` when the empty state is the whole screen and its title names it. */
+    titleAs?: "p" | "h2";
     text: string;
     /** Optional next step, such as the button that creates the first item. */
     action?: ReactNode;
@@ -74,6 +76,7 @@ function Art({ art }: { art: EmptyArt }) {
 
 export function EmptyState({
     title,
+    titleAs: Title = "p",
     text,
     action,
     art = "plan",
@@ -89,7 +92,7 @@ export function EmptyState({
                     <Art art={art} />
                 </svg>
             </span>
-            {title !== undefined && <p className={styles.title}>{title}</p>}
+            {title !== undefined && <Title className={styles.title}>{title}</Title>}
             <p className={styles.text}>{text}</p>
             {action !== undefined && <div className={styles.action}>{action}</div>}
         </div>

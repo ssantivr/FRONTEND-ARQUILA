@@ -40,7 +40,6 @@
     white-space: nowrap;
     cursor: pointer;
     box-shadow: none;
-    transition: color var(--dur-fast) var(--ease-out);
 }
 
 .tab:hover {
