@@ -3,7 +3,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(400px, 1fr);
     min-height: 100dvh;
-    background: var(--panel);
+    background: var(--color-surface);
 }
 
 .auth:focus {
@@ -15,7 +15,7 @@
     flex-direction: column;
     gap: var(--space-6);
     padding: var(--space-6) var(--space-7);
-    background: var(--panel);
+    background: var(--color-surface);
     animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
 
@@ -24,16 +24,6 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-4);
-}
-
-.brand {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-3);
-    color: var(--text);
-    font-size: var(--fs-16);
-    font-weight: 750;
-    letter-spacing: 0.22em;
 }
 
 .body {
@@ -53,7 +43,7 @@
     min-height: 100%;
     overflow: hidden;
     color: var(--white);
-    background: var(--forest);
+    background: var(--brand-forest);
 }
 
 .picture {
@@ -61,7 +51,7 @@
     flex: 1 1 auto;
     min-height: 240px;
     overflow: hidden;
-    background: var(--forest-raised);
+    background: var(--brand-forest-raised);
 }
 
 .picture :global(.render),
@@ -84,7 +74,7 @@
 .claim {
     flex: none;
     padding: var(--space-7) var(--space-8) var(--space-8);
-    border-top: 2px solid var(--lime);
+    border-top: 2px solid var(--brand-lime);
 }
 
 .claim h2 {
@@ -99,8 +89,8 @@
 .claim p {
     max-width: 46ch;
     margin: 0;
-    color: var(--forest-text);
-    font-size: var(--fs-16);
+    color: var(--brand-forest-text);
+    font-size: var(--text-lg);
     line-height: 1.5;
 }
 
@@ -118,8 +108,8 @@
     display: grid;
     align-content: start;
     gap: var(--space-2);
-    color: var(--forest-text);
-    font-size: var(--fs-13);
+    color: var(--brand-forest-text);
+    font-size: var(--text-sm);
     line-height: 1.45;
 }
 
@@ -127,7 +117,7 @@
     width: 20px;
     height: 20px;
     margin-top: 1px;
-    color: var(--lime);
+    color: var(--brand-lime);
 }
 
 .features strong {

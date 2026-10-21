@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 import { setThemePreference, useThemePreference } from "../state/theme";
-import { BrandMark } from "./BrandMark";
 import { Icon } from "./Icon";
 import { RenderImage } from "./RenderImage";
 import { THEME_OPTIONS } from "./TopBar";
+import { Logo } from "./ui/Logo";
 import { SegmentedControl } from "./ui/SegmentedControl";
 
 import styles from "./AuthScreen.module.css";
@@ -40,9 +40,8 @@ export function AuthScreen({ children }: { children: ReactNode }) {
         <main id="content" className={styles.auth} tabIndex={-1}>
             <section className={styles.formSide} aria-labelledby="auth-brand">
                 <div className={styles.top}>
-                    <span id="auth-brand" className={styles.brand}>
-                        <BrandMark size={26} />
-                        ARQUILA
+                    <span id="auth-brand">
+                        <Logo size="sm" />
                     </span>
                     <SegmentedControl
                         label="Tema"

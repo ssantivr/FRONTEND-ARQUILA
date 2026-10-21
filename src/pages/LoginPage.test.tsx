@@ -172,4 +172,61 @@ describe("LoginPage", () => {
 
         expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     });
+
+    it("shows every missing field when sent empty, takes the cursor to the first and calls nothing", async () => {
+        render(<LoginPage onAuthenticated={() => undefined} />);
+
+        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+
+        const email = screen.getByLabelText("Correo");
+
+        expect(email).toHaveFocus();
+        expect(email).toHaveAccessibleDescription("Escribe tu correo.");
+        expect(screen.getByLabelText("Contraseña")).toHaveAccessibleDescription(
+            "Escribe tu contraseña.",
+        );
+        expect(api.login).not.toHaveBeenCalled();
+    });
+
+    it("clears a message as soon as the value is right", async () => {
+        render(<LoginPage onAuthenticated={() => undefined} />);
+
+        const email = screen.getByLabelText("Correo");
+
+        await userEvent.type(email, "ana@");
+        await userEvent.tab();
+        expect(email).toHaveAttribute("aria-invalid", "true");
+
+        await userEvent.type(email, "example.com");
+
+        expect(email).not.toHaveAttribute("aria-invalid");
+    });
+
+    it("refuses a short password when registering, before asking the API", async () => {
+        render(<LoginPage onAuthenticated={() => undefined} />);
+        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta nueva" }));
+
+        await userEvent.type(screen.getByLabelText("Nombre"), "Ana");
+        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Contraseña"), "corta");
+        await userEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+        expect(screen.getByLabelText("Contraseña")).toHaveAccessibleDescription(
+            "Usa al menos 8 caracteres.",
+        );
+        expect(api.register).not.toHaveBeenCalled();
+    });
+
+    it("explains too many failed attempts in plain words", async () => {
+        api.login.mockRejectedValue(new Error("Too many failed attempts, try again in a minute"));
+
+        render(<LoginPage onAuthenticated={() => undefined} />);
+        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Contraseña"), "wrong-password");
+        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent(
+            "Demasiados intentos fallidos. Espera un minuto e inténtalo de nuevo.",
+        );
+    });
 });
