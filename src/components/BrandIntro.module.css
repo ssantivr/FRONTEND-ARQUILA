@@ -1,11 +1,12 @@
-/* Over everything for under a second, but clicks go through: nothing waits for it. */
+/* Over everything for under a second, but clicks go through: nothing waits for it. Any key or
+   click ends it at once, and with reduced motion it is not drawn at all (BrandIntro.tsx). */
 .intro {
     position: fixed;
     inset: 0;
     z-index: 1000;
     display: grid;
     place-items: center;
-    background: var(--forest);
+    background: var(--brand-forest);
     pointer-events: none;
     animation: fade-out var(--dur-slow) var(--ease-in) calc(var(--dur-show) + var(--dur-fast)) both;
 }
@@ -16,35 +17,28 @@
     gap: var(--space-4);
 }
 
-/* Each bar grows from where it is anchored: the floor from the left, the walls upwards. */
-.mark rect {
+/* The four volumes rise into place one after the other, like a building going up. */
+.mark [data-piece] {
     transform-box: fill-box;
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
 
-.mark [data-piece="floor"] {
-    transform-origin: left;
-    animation: grow-in var(--dur-slow) var(--ease-out) backwards;
+.mark [data-piece]:nth-child(2) {
+    animation-delay: var(--dur-fast);
 }
 
-.mark [data-piece="wall"] {
-    transform-origin: bottom;
-    animation: grow-in-y var(--dur-slow) var(--ease-out) var(--dur-fast) backwards;
+.mark [data-piece]:nth-child(3) {
+    animation-delay: calc(var(--dur-fast) * 2);
 }
 
-.mark [data-piece="lintel"] {
-    transform-origin: right;
-    animation: grow-in var(--dur-slow) var(--ease-out) calc(var(--dur-fast) * 2) backwards;
-}
-
-.mark [data-piece="post"] {
-    transform-origin: top;
-    animation: grow-in-y var(--dur) var(--ease-out) calc(var(--dur-fast) * 3) backwards;
+.mark [data-piece]:nth-child(4) {
+    animation-delay: calc(var(--dur-fast) * 3);
 }
 
 .word {
     color: var(--white);
-    font-size: var(--fs-24);
-    font-weight: 750;
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
     letter-spacing: 0.3em;
     animation: fade-in var(--dur-slow) var(--ease-out) var(--dur-slow) backwards;
 }

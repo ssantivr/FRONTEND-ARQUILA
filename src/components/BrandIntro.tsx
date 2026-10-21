@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { prefersReducedMotion } from "../state/motion";
-import { BrandMark } from "./BrandMark";
+import { LogoMark } from "./ui/Logo";
 
 import styles from "./BrandIntro.module.css";
 
@@ -23,8 +23,8 @@ export function shouldPlayIntro(): boolean {
 }
 
 /**
- * The entry of the app: the four bars of the mark are laid one after the other, like walls on a
- * plan, and the name appears; then it all fades. It lasts under a second, does not catch clicks
+ * The entry of the app: the four volumes of the mark settle one after the other, like a building
+ * going up, and the name appears; then it all fades. It lasts under a second, does not catch clicks
  * (the page under it is already usable) and any key or click ends it at once.
  */
 export function BrandIntro() {
@@ -59,7 +59,7 @@ export function BrandIntro() {
     return (
         <div className={styles.intro} aria-hidden="true" data-testid="brand-intro">
             <div className={styles.lockup}>
-                <BrandMark size={56} className={styles.mark} />
+                <LogoMark size={56} className={styles.mark} />
                 <span className={styles.word}>ARQUILA</span>
             </div>
         </div>
