@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright-core";
 
-import { answer } from "./datos-de-muestra.mjs";
+import { answer } from "./datos-de-muestra.ts";
 
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
 // CAPTURAS_SALIDA=C:\otra\carpeta writes somewhere else, to compare two runs without touching the docs.

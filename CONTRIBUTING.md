@@ -44,7 +44,7 @@ npm run test:e2e
 ```
 
 - `test:cobertura` falla si la cobertura baja de los umbrales de `vite.config.ts`: los globales y los de cada utilidad crítica (`geometry`, `building`, `elevations`, `errors`, `appState`, `services/http`). Los umbrales solo se suben.
-- `test:e2e` levanta su propio servidor en el puerto 5180 y responde la API con los datos de muestra de `scripts/datos-de-muestra.mjs`, así que no necesita backend. En local usa Edge. Para usar el Chromium de Playwright, como CI:
+- `test:e2e` levanta su propio servidor en el puerto 5180 y responde la API con los datos de muestra de `scripts/datos-de-muestra.ts`, así que no necesita backend. En local usa Edge. Para usar el Chromium de Playwright, como CI:
 
     ```sh
     npx playwright install chromium

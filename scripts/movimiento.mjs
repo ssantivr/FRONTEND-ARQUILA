@@ -8,7 +8,7 @@
 /* global document, window -- used inside the page */
 import { chromium } from "playwright-core";
 
-import { answer } from "./datos-de-muestra.mjs";
+import { answer } from "./datos-de-muestra.ts";
 
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
 // «?sin-sesion» makes the API answer 401, so the sign-in screen is measured too.

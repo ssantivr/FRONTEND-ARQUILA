@@ -9,7 +9,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 
-import { answer } from "./datos-de-muestra.mjs";
+import { answer } from "./datos-de-muestra.ts";
 
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
 const OUT = new URL("../src/assets/renders/", import.meta.url);

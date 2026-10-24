@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-import { createSampleApi } from "../scripts/api-de-muestra.mjs";
+import { createSampleApi } from "../scripts/api-de-muestra.ts";
 
 interface MockOptions {
     /** False to start without a session, as someone who has not signed in yet. */

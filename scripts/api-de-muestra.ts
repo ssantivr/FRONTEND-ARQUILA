@@ -2,20 +2,31 @@
 // projects were created and where the rooms moved in the 3D editor now are. Shared by the browser tests (Playwright answers each request with it)
 // and by `npm run demo` (MSW answers them in the browser). Nothing in this file ships with the
 // app: the demo only loads it in `--mode demo`.
-import { answer, projects, user } from "./datos-de-muestra.mjs";
-import { createProjectWork } from "./gestion-de-muestra.mjs";
+import type { Project, ProjectCreate, Room, Structure } from "../src/types/api.ts";
+import { answer, projects, user } from "./datos-de-muestra.ts";
+import { createProjectWork } from "./gestion-de-muestra.ts";
 
-/** @param {{ signedIn?: boolean }} [options] */
-export function createSampleApi({ signedIn = true } = {}) {
+/** What the sample API answers to one request. */
+export interface SampleAnswer {
+    status: number;
+    json?: unknown;
+    headers?: Record<string, string>;
+}
+
+const FIELDS = ["x_m", "y_m", "width_m", "depth_m", "height_m"] as const;
+
+/** The position and size of a room, as far as PATCH /rooms/{id} changed them. */
+type RoomEdit = Partial<Pick<Room, (typeof FIELDS)[number]>>;
+
+export function createSampleApi({ signedIn = true }: { signedIn?: boolean } = {}) {
     let session = signedIn;
-    const created = [];
+    const created: Project[] = [];
     /** Position and size of each room moved or resized with PATCH /rooms/{id}. */
-    const roomEdits = new Map();
-    const FIELDS = ["x_m", "y_m", "width_m", "depth_m", "height_m"];
+    const roomEdits = new Map<number, RoomEdit>();
     /** What was changed on each sample project during the visit (PATCH, archive…). */
-    const projectEdits = new Map();
+    const projectEdits = new Map<number, Partial<Project>>();
 
-    function listProjects() {
+    function listProjects(): Project[] {
         return [...created, ...projects].map((project) => ({
             ...project,
             ...projectEdits.get(project.id),
@@ -27,20 +38,22 @@ export function createSampleApi({ signedIn = true } = {}) {
     );
 
     /** A room as the sample data has it, with what was changed on it since. */
-    function edited(room) {
+    function edited<Item extends { id: number }>(room: Item): Item {
         const edit = roomEdits.get(room.id);
 
         return edit === undefined ? room : { ...room, ...edit };
     }
 
     /**
-     * @param {string} method
-     * @param {string} path the path after /api, such as /projects/1/terrains
-     * @param {URLSearchParams} query
-     * @param {() => unknown} readBody the JSON body, read only when the request needs it
-     * @returns {{ status: number, json?: unknown, headers?: Record<string, string> }}
+     * @param path the path after /api, such as /projects/1/terrains
+     * @param readBody the JSON body, read only when the request needs it
      */
-    return function respond(method, path, query, readBody) {
+    return function respond(
+        method: string,
+        path: string,
+        query: URLSearchParams,
+        readBody: () => unknown,
+    ): SampleAnswer {
         if (path === "/auth/login" && method === "POST") {
             session = true;
 
@@ -64,8 +77,8 @@ export function createSampleApi({ signedIn = true } = {}) {
         }
 
         if (path === "/projects" && method === "POST") {
-            const data = readBody() ?? {};
-            const project = {
+            const data = (readBody() ?? {}) as Partial<ProjectCreate>;
+            const project: Project = {
                 id: 100 + created.length,
                 owner_id: user.id,
                 name: data.name ?? "Sin nombre",
@@ -106,7 +119,7 @@ export function createSampleApi({ signedIn = true } = {}) {
                 return { status: 404, json: { detail: "Project not found" } };
             }
 
-            const project = {
+            const project: Project = {
                 ...source,
                 id: 100 + created.length,
                 name: `${source.name} (copia)`,
@@ -128,13 +141,15 @@ export function createSampleApi({ signedIn = true } = {}) {
         const roomPatch = /^\/rooms\/(\d+)$/.exec(path);
 
         if (roomPatch !== null && method === "PATCH") {
-            const body = readBody() ?? {};
+            const body = (readBody() ?? {}) as Record<string, unknown>;
             const id = Number(roomPatch[1]);
-            const edit = { ...roomEdits.get(id) };
+            const edit: RoomEdit = { ...roomEdits.get(id) };
 
             for (const field of FIELDS) {
-                if (typeof body[field] === "number") {
-                    edit[field] = body[field];
+                const value = body[field];
+
+                if (typeof value === "number") {
+                    edit[field] = value;
                 }
             }
 
@@ -149,18 +164,25 @@ export function createSampleApi({ signedIn = true } = {}) {
 
         const json = answer(path, query);
 
-        if (/^\/projects\/\d+\/structure$/.test(path) && Array.isArray(json?.rooms)) {
+        if (
+            /^\/projects\/\d+\/structure$/.test(path) &&
+            Array.isArray((json as Partial<Structure> | null)?.rooms)
+        ) {
+            const structure = json as Structure;
+
             return {
                 status: 200,
                 json: {
-                    ...json,
-                    rooms: json.rooms.map((room) => (room.kind === "room" ? edited(room) : room)),
+                    ...structure,
+                    rooms: structure.rooms.map((room) =>
+                        room.kind === "room" ? edited(room) : room,
+                    ),
                 },
             };
         }
 
         if (/^\/projects\/\d+\/rooms$/.test(path) && Array.isArray(json)) {
-            return { status: 200, json: json.map(edited) };
+            return { status: 200, json: (json as Room[]).map((room) => edited(room)) };
         }
 
         return { status: 200, json };

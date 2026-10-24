@@ -19,7 +19,7 @@ export default tseslint.config(
         },
     },
     {
-        files: ["*.{js,ts}", "scripts/**/*.mjs"],
+        files: ["*.{js,ts}", "scripts/**/*.{mjs,ts}"],
         languageOptions: { globals: globals.node },
     },
     prettier,

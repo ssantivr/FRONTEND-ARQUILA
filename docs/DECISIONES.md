@@ -136,7 +136,7 @@ Espiar `console.error` no basta: en modo desarrollo React 18 vuelve a lanzar el 
 
 MSW se aprobó el 14 de octubre para `npm run demo`: la app en el navegador con Casa Mirador y sin backend. Se fijó en **2.15.0**. La 3.x es una versión mayor de finales de septiembre y su 3.0.3 tenía cuatro días.
 
-- **Una sola API de muestra.** `scripts/api-de-muestra.mjs` guarda la sesión y los proyectos creados, y responde con `datos-de-muestra.mjs`. La usan MSW (`src/demo/start.ts`) y Playwright (`e2e/api.ts`), así que la demo y las pruebas ven lo mismo.
+- **Una sola API de muestra.** `scripts/api-de-muestra.ts` guarda la sesión y los proyectos creados, y responde con `datos-de-muestra.ts`. La usan MSW (`src/demo/start.ts`) y Playwright (`e2e/api.ts`), así que la demo y las pruebas ven lo mismo.
 - **Las pruebas y las capturas siguen con Playwright** (`page.route`) y no se migraron a MSW. `page.route` responde desde la primera petición de cada contexto. Con MSW, cada contexto nuevo tendría que registrar el service worker y esperar a que controle la página antes de pedir nada. Además, `movimiento.mjs` mete un retraso fijo que con `page.route` es una línea.
 - **Nada llega a producción.** `main.tsx` solo importa la demo cuando `MODE === "demo"`, que es una constante del build. El worker (`mockServiceWorker.js`) no se copia a `public/`: lo sirve un plugin del servidor de desarrollo, solo en ese modo. Se comprobó que `dist/` no contiene `setupWorker`, ni los datos de muestra, ni el worker.
 - **El script de instalación de MSW está denegado** (`"msw": false` en `allowScripts`): solo copia el worker a la carpeta que se le configure, y aquí no hace falta.

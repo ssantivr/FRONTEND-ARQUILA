@@ -1,16 +1,30 @@
 // The routes of the contract of 20 October in the sample API: the paged list of projects, its
 // edits and archiving, and the tasks, versions and history of a project. They keep their state
 // for the visit, like the rest of the sample API. Nothing in this file ships with the app.
-import { projectActivity, projectTasks, projectVersions } from "./datos-de-muestra.mjs";
+import type {
+    Activity,
+    ActivityPage,
+    Project,
+    ProjectPage,
+    ProjectSort,
+    ProjectStatus,
+    Task,
+    TaskCreate,
+    TaskUpdate,
+    Version,
+    VersionDetail,
+} from "../src/types/api.ts";
+import type { SampleAnswer } from "./api-de-muestra.ts";
+import { projectActivity, projectTasks, projectVersions } from "./datos-de-muestra.ts";
 
 const NOW = "2026-10-21T12:00:00";
 
 /** The same search, filters and order as GET /projects of the API (project_repository.py). */
-function pageOf(all, query) {
+function pageOf(all: Project[], query: URLSearchParams): SampleAnswer {
     const wanted = (query.get("q") ?? "").trim().toLowerCase();
     const status = query.get("status");
     const archived = query.get("archived");
-    const sort = query.get("sort") ?? "id";
+    const sort = (query.get("sort") ?? "id") as ProjectSort;
     const sign = query.get("order") === "desc" ? -1 : 1;
     const page = Number(query.get("page") ?? 1);
     const size = Number(query.get("page_size") ?? 20);
@@ -28,34 +42,42 @@ function pageOf(all, query) {
             const a = first[sort] ?? 0;
             const b = second[sort] ?? 0;
             const order =
-                typeof a === "string" ? a.localeCompare(b, "es", { sensitivity: "base" }) : a - b;
+                typeof a === "string"
+                    ? a.localeCompare(b as string, "es", { sensitivity: "base" })
+                    : a - (b as number);
 
             return (order || first.id - second.id) * sign;
         });
-
-    return {
-        status: 200,
-        json: {
-            items: found.slice((page - 1) * size, page * size),
-            total: found.length,
-            page,
-            page_size: size,
-        },
-        headers: { "X-Total-Count": String(found.length) },
+    const json: ProjectPage = {
+        items: found.slice((page - 1) * size, page * size),
+        total: found.length,
+        page,
+        page_size: size,
     };
+
+    return { status: 200, json, headers: { "X-Total-Count": String(found.length) } };
 }
 
 /**
- * @param {() => Record<string, unknown>[]} listProjects every project of the visit, as they are now
- * @param {(id: number, changes: Record<string, unknown>) => void} changeProject
+ * @param listProjects every project of the visit, as they are now
+ * @param changeProject keeps a change to one of them for the rest of the visit
  */
-export function createProjectWork(listProjects, changeProject) {
-    const tasks = projectTasks.map((task) => ({ ...task }));
-    const versions = projectVersions.map((version) => ({ ...version }));
-    const activity = projectActivity.map((item) => ({ ...item }));
-    const previousStatus = new Map();
+export function createProjectWork(
+    listProjects: () => Project[],
+    changeProject: (id: number, changes: Partial<Project>) => void,
+) {
+    const tasks: Task[] = projectTasks.map((task) => ({ ...task }));
+    const versions: Version[] = projectVersions.map((version) => ({ ...version }));
+    const activity: Activity[] = projectActivity.map((item) => ({ ...item }));
+    const previousStatus = new Map<number, ProjectStatus>();
 
-    function log(projectId, action, entityType, entityId, detail) {
+    function log(
+        projectId: number,
+        action: string,
+        entityType: string,
+        entityId: number,
+        detail: Activity["detail"],
+    ): void {
         activity.unshift({
             id: activity.length + 1,
             project_id: projectId,
@@ -68,12 +90,17 @@ export function createProjectWork(listProjects, changeProject) {
         });
     }
 
-    function projectOf(id) {
+    function projectOf(id: number): Project | undefined {
         return listProjects().find((project) => project.id === id);
     }
 
     /** The answer to the request, or `null` when it is not one of these routes. */
-    return function respond(method, path, query, readBody) {
+    return function respond(
+        method: string,
+        path: string,
+        query: URLSearchParams,
+        readBody: () => unknown,
+    ): SampleAnswer | null {
         if (
             path === "/projects" &&
             method === "GET" &&
@@ -89,16 +116,17 @@ export function createProjectWork(listProjects, changeProject) {
             return null;
         }
 
+        // From here on a route with a project id names one that exists.
         if (projectText !== undefined && rest === undefined) {
             if (method === "GET") {
                 return { status: 200, json: projectOf(projectId) };
             }
 
             if (method === "PATCH") {
-                const changes = { ...(readBody() ?? {}) };
+                const changes: Partial<Project> = { ...((readBody() ?? {}) as Partial<Project>) };
 
                 if (changes.status === "archived") {
-                    previousStatus.set(projectId, projectOf(projectId).status);
+                    previousStatus.set(projectId, projectOf(projectId)!.status);
                     changes.archived_at = NOW;
                 } else if (changes.status !== undefined) {
                     changes.archived_at = null;
@@ -106,7 +134,7 @@ export function createProjectWork(listProjects, changeProject) {
 
                 changeProject(projectId, { ...changes, updated_at: NOW });
                 log(projectId, "updated", "project", projectId, {
-                    label: projectOf(projectId).name,
+                    label: projectOf(projectId)!.name,
                     fields: Object.keys(readBody() ?? {}),
                 });
 
@@ -115,7 +143,7 @@ export function createProjectWork(listProjects, changeProject) {
         }
 
         if (rest === "archive" && method === "POST") {
-            const project = projectOf(projectId);
+            const project = projectOf(projectId)!;
 
             if (project.status !== "archived") {
                 previousStatus.set(projectId, project.status);
@@ -129,7 +157,7 @@ export function createProjectWork(listProjects, changeProject) {
         }
 
         if (rest === "unarchive" && method === "POST") {
-            if (projectOf(projectId).status === "archived") {
+            if (projectOf(projectId)!.status === "archived") {
                 changeProject(projectId, {
                     status: previousStatus.get(projectId) ?? "active",
                     archived_at: null,
@@ -156,9 +184,9 @@ export function createProjectWork(listProjects, changeProject) {
             }
 
             if (method === "POST") {
-                const data = readBody() ?? {};
+                const data = (readBody() ?? {}) as TaskCreate;
                 const status = data.status ?? "todo";
-                const task = {
+                const task: Task = {
                     id: Math.max(0, ...tasks.map((item) => item.id)) + 1,
                     project_id: projectId,
                     title: data.title,
@@ -191,7 +219,7 @@ export function createProjectWork(listProjects, changeProject) {
             const task = tasks[index];
 
             if (method === "PATCH") {
-                const data = readBody() ?? {};
+                const data = (readBody() ?? {}) as TaskUpdate;
 
                 if (
                     data.status === "done" &&
@@ -238,11 +266,11 @@ export function createProjectWork(listProjects, changeProject) {
 
             if (method === "POST") {
                 const own = versions.filter((version) => version.project_id === projectId);
-                const version = {
+                const version: Version = {
                     id: Math.max(0, ...versions.map((item) => item.id)) + 1,
                     project_id: projectId,
                     version_number: own.length + 1,
-                    label: (readBody() ?? {}).label ?? null,
+                    label: ((readBody() ?? {}) as { label?: string | null }).label ?? null,
                     created_by: 1,
                     created_at: NOW,
                     contents: {
@@ -269,26 +297,24 @@ export function createProjectWork(listProjects, changeProject) {
             }
 
             if (versionMatch[2] === undefined && method === "GET") {
-                const project = projectOf(version.project_id);
-
-                return {
-                    status: 200,
-                    json: {
-                        ...version,
-                        snapshot: {
-                            project: {
-                                description: project.description,
-                                location: project.location,
-                                progress: project.progress ?? 0,
-                            },
+                const project = projectOf(version.project_id)!;
+                const json: VersionDetail = {
+                    ...version,
+                    snapshot: {
+                        project: {
+                            description: project.description,
+                            location: project.location,
+                            progress: project.progress ?? 0,
                         },
                     },
                 };
+
+                return { status: 200, json };
             }
 
             if (versionMatch[2] !== undefined && method === "POST") {
                 const own = versions.filter((item) => item.project_id === version.project_id);
-                const backup = {
+                const backup: Version = {
                     ...version,
                     id: Math.max(0, ...versions.map((item) => item.id)) + 1,
                     version_number: own.length + 1,
@@ -310,16 +336,14 @@ export function createProjectWork(listProjects, changeProject) {
             const page = Number(query.get("page") ?? 1);
             const size = Number(query.get("page_size") ?? 50);
             const own = activity.filter((item) => item.project_id === projectId);
-
-            return {
-                status: 200,
-                json: {
-                    items: own.slice((page - 1) * size, page * size),
-                    total: own.length,
-                    page,
-                    page_size: size,
-                },
+            const json: ActivityPage = {
+                items: own.slice((page - 1) * size, page * size),
+                total: own.length,
+                page,
+                page_size: size,
             };
+
+            return { status: 200, json };
         }
 
         return null;

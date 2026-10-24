@@ -6,12 +6,43 @@
 // an irregular lot of six vertices with a gentle slope, with its structure, its materials and
 // costs and its recommendations. A second, simpler project («Estudio Guadua») shows how the
 // lists look with more than one.
+import type {
+    Activity,
+    Elevation,
+    Material,
+    Orientation,
+    Plan,
+    Project,
+    Recommendation,
+    RecommendationPriority,
+    RecommendationSource,
+    RenovationLog,
+    RenovationStatus,
+    Room,
+    SpatialLayer,
+    StructuralComponent,
+    Structure,
+    StructureComponent,
+    StructureElement,
+    StructureRoom,
+    Summary,
+    Task,
+    Terrain,
+    User,
+    Version,
+} from "../src/types/api.ts";
+
 const NOW = "2026-10-05T10:00:00Z";
 
 /** The demo account of the README; the password never reaches this file. */
-export const user = { id: 1, name: "Usuario demo", email: "demo@example.com", created_at: NOW };
+export const user: User = {
+    id: 1,
+    name: "Usuario demo",
+    email: "demo@example.com",
+    created_at: NOW,
+};
 
-export const projects = [
+export const projects: Project[] = [
     {
         id: 1,
         owner_id: 1,
@@ -42,8 +73,10 @@ export const projects = [
 
 // ---- Casa Mirador ----
 
+type Vertex = [number, number];
+
 // The lot as the user wrote it in the Terreno tab: six vertices from its own origin.
-const LOT = [
+const LOT: Vertex[] = [
     [2, 0],
     [24, 0],
     [26, 12],
@@ -52,10 +85,10 @@ const LOT = [
     [0, 12],
 ];
 // In the model the house starts at (0, 0), 7 m in from the left of the lot and 6 m from its front.
-const LOT_OFFSET = [-7, -6];
+const LOT_OFFSET: Vertex = [-7, -6];
 
 /** Gauss's area formula, so the figure shown is the one of the outline drawn. */
-function areaOf(points) {
+function areaOf(points: Vertex[]): number {
     return Math.abs(
         points.reduce((sum, [x, y], index) => {
             const [nextX, nextY] = points[(index + 1) % points.length];
@@ -65,7 +98,7 @@ function areaOf(points) {
     );
 }
 
-const terrainsOfMirador = [
+const terrainsOfMirador: Terrain[] = [
     {
         id: 1,
         project_id: 1,
@@ -82,10 +115,21 @@ const terrainsOfMirador = [
     },
 ];
 
-const LEVELS = { 1: "Planta baja", 2: "Planta alta" };
+const LEVELS: Record<number, string> = { 1: "Planta baja", 2: "Planta alta" };
 const STOREY_M = 3;
 
-function element(kind, id, name, level, x_m, y_m, width_m, depth_m, height_m, base_m) {
+function element<Kind extends StructureElement["kind"]>(
+    kind: Kind,
+    id: number,
+    name: string,
+    level: number,
+    x_m: number,
+    y_m: number,
+    width_m: number,
+    depth_m: number,
+    height_m: number,
+    base_m?: number,
+) {
     return {
         kind,
         id,
@@ -103,11 +147,18 @@ function element(kind, id, name, level, x_m, y_m, width_m, depth_m, height_m, ba
     };
 }
 
-const room = (id, name, level, x, y, width, depth) =>
-    element("room", id, name, level, x, y, width, depth, 2.8);
+const room = (
+    id: number,
+    name: string,
+    level: number,
+    x: number,
+    y: number,
+    width: number,
+    depth: number,
+): StructureRoom => element("room", id, name, level, x, y, width, depth, 2.8);
 
 // Eight rooms, 161.5 m² built: 100 m² on the ground and 61.5 m² above.
-const rooms = [
+const rooms: StructureRoom[] = [
     room(1, "Sala", 1, 0, 0, 6, 5),
     room(2, "Comedor", 1, 6, 0, 4.5, 5),
     room(3, "Cocina", 1, 0, 5, 4.5, 5),
@@ -119,11 +170,18 @@ const rooms = [
 ];
 
 const COLUMN_M = 0.3;
-const column = (id, name, x, y) => element("column", id, name, 1, x, y, COLUMN_M, COLUMN_M, 2.8);
-const beam = (id, name, x, y, width, depth) =>
-    element("beam", id, name, 1, x, y, width, depth, 0.4, 2.4);
+const column = (id: number, name: string, x: number, y: number): StructureComponent =>
+    element("column", id, name, 1, x, y, COLUMN_M, COLUMN_M, 2.8);
+const beam = (
+    id: number,
+    name: string,
+    x: number,
+    y: number,
+    width: number,
+    depth: number,
+): StructureComponent => element("beam", id, name, 1, x, y, width, depth, 0.4, 2.4);
 
-const components = [
+const components: StructureComponent[] = [
     column(1, "C1", 0, 0),
     column(2, "C2", 10.2, 0),
     column(3, "C3", 0, 9.7),
@@ -135,21 +193,27 @@ const components = [
     element("wall", 8, "M1", 1, 0, 10, 10.5, 0.2, 1.4),
 ];
 
-const structureOfMirador = {
+const structureOfMirador: Structure = {
     project_id: 1,
     roof: "gable",
     terrains: [
         {
             id: 1,
             name: "Lote Mirador",
-            outline: LOT.map(([x, y]) => ({ x_m: x + LOT_OFFSET[0], y_m: y + LOT_OFFSET[1] })),
+            outline: LOT.map(([x, y]) => ({
+                x_m: x + LOT_OFFSET[0],
+                y_m: y + LOT_OFFSET[1],
+            })),
         },
     ],
     rooms,
     components,
 };
 
-const materialsOfMirador = [
+/** Name, category, unit, quantity and unit cost. */
+type MaterialRow = [string, string, string, number, number];
+
+const materialRowsOfMirador: MaterialRow[] = [
     ["Concreto de 3000 psi", "Estructura", "m³", 38, 115],
     ["Acero de refuerzo", "Estructura", "kg", 2400, 1.25],
     ["Ladrillo tolete", "Mampostería", "u", 9800, 0.32],
@@ -160,19 +224,28 @@ const materialsOfMirador = [
     ["Pintura para interiores", "Acabados", "gal", 36, 28],
     ["Tubería de PVC", "Instalaciones", "m", 180, 3.2],
     ["Cable eléctrico", "Instalaciones", "m", 620, 0.9],
-].map(([name, category, unit, quantity, unit_cost], index) => ({
-    id: index + 1,
-    project_id: 1,
-    name,
-    category,
-    unit,
-    quantity,
-    unit_cost,
-    created_at: NOW,
-}));
+];
+
+const materialsOfMirador: Material[] = materialRowsOfMirador.map(
+    ([name, category, unit, quantity, unit_cost], index) => ({
+        id: index + 1,
+        project_id: 1,
+        name,
+        category,
+        unit,
+        quantity,
+        unit_cost,
+        created_at: NOW,
+    }),
+);
 
 // They name elements of the model (C1, M1, Sala…), so the «Alertas» colour mode has what to show.
-const recommendationsOfMirador = [
+const recommendationRowsOfMirador: [
+    string,
+    RecommendationPriority,
+    RecommendationSource,
+    string,
+][] = [
     [
         "Estructura",
         "high",
@@ -209,17 +282,21 @@ const recommendationsOfMirador = [
         "ai",
         "El Baño social no tiene ventana al exterior: considera un ducto de ventilación.",
     ],
-].map(([category, priority, source, content], index) => ({
-    id: index + 1,
-    project_id: 1,
-    category,
-    content,
-    source,
-    priority,
-    created_at: NOW,
-}));
+];
 
-const plansOfMirador = Object.entries(LEVELS).map(([level, title]) => ({
+const recommendationsOfMirador: Recommendation[] = recommendationRowsOfMirador.map(
+    ([category, priority, source, content], index) => ({
+        id: index + 1,
+        project_id: 1,
+        category,
+        content,
+        source,
+        priority,
+        created_at: NOW,
+    }),
+);
+
+const plansOfMirador: Plan[] = Object.entries(LEVELS).map(([level, title]) => ({
     id: Number(level),
     project_id: 1,
     file_id: null,
@@ -229,46 +306,64 @@ const plansOfMirador = Object.entries(LEVELS).map(([level, title]) => ({
     created_at: NOW,
 }));
 
-const elevationsOfMirador = [
+const elevationRowsOfMirador: [string, Orientation][] = [
     ["Fachada principal", "south"],
     ["Fachada posterior", "north"],
-].map(([title, orientation], index) => ({
-    id: index + 1,
-    project_id: 1,
-    file_id: null,
-    title,
-    orientation,
-    created_at: NOW,
-}));
+];
 
-const tasks = [
+const elevationsOfMirador: Elevation[] = elevationRowsOfMirador.map(
+    ([title, orientation], index) => ({
+        id: index + 1,
+        project_id: 1,
+        file_id: null,
+        title,
+        orientation,
+        created_at: NOW,
+    }),
+);
+
+/** Title, layer, status, planned start and end, and estimated cost. */
+type TaskRow = [
+    string,
+    SpatialLayer,
+    RenovationStatus,
+    string | null,
+    string | null,
+    number | null,
+];
+
+const taskRows: TaskRow[] = [
     ["Replanteo y excavación", "structure", "completed", "2026-09-01", "2026-09-12", 1800],
     ["Fundir la losa de entrepiso", "structure", "in_progress", "2026-09-20", "2026-10-02", 5200],
     ["Tubería de agua potable", "installations", "in_progress", "2026-10-01", "2026-10-20", 940],
     ["Cableado eléctrico", "installations", "planned", "2026-10-15", "2026-11-05", 1300],
     ["Porcelanato de la sala", "finishes", "planned", null, null, null],
     ["Cielo raso de yeso", "finishes", "cancelled", null, null, null],
-].map(([title, layer, status, planned_start, planned_end, estimated_cost], index) => ({
-    id: index + 1,
-    project_id: 1,
-    room_id: null,
-    spatial_element_id: null,
-    created_by: 1,
-    layer,
-    title,
-    description: null,
-    status,
-    planned_start,
-    planned_end,
-    completed_at: status === "completed" ? NOW : null,
-    estimated_cost,
-    created_at: NOW,
-    updated_at: NOW,
-}));
+];
+
+const tasks: RenovationLog[] = taskRows.map(
+    ([title, layer, status, planned_start, planned_end, estimated_cost], index) => ({
+        id: index + 1,
+        project_id: 1,
+        room_id: null,
+        spatial_element_id: null,
+        created_by: 1,
+        layer,
+        title,
+        description: null,
+        status,
+        planned_start,
+        planned_end,
+        completed_at: status === "completed" ? NOW : null,
+        estimated_cost,
+        created_at: NOW,
+        updated_at: NOW,
+    }),
+);
 
 // ---- Estudio Guadua: one level, two rooms, a rectangular lot ----
 
-const terrainsOfGuadua = [
+const terrainsOfGuadua: Terrain[] = [
     {
         id: 2,
         project_id: 2,
@@ -285,7 +380,7 @@ const terrainsOfGuadua = [
     },
 ];
 
-const structureOfGuadua = {
+const structureOfGuadua: Structure = {
     project_id: 2,
     roof: "flat",
     terrains: [
@@ -307,23 +402,36 @@ const structureOfGuadua = {
     components: [],
 };
 
-const materialsOfGuadua = [
+const materialRowsOfGuadua: MaterialRow[] = [
     ["Guadua tratada", "Estructura", "m", 320, 4.5],
     ["Lámina de cubierta", "Cubierta", "m²", 48, 11],
-].map(([name, category, unit, quantity, unit_cost], index) => ({
-    id: materialsOfMirador.length + index + 1,
-    project_id: 2,
-    name,
-    category,
-    unit,
-    quantity,
-    unit_cost,
-    created_at: NOW,
-}));
+];
+
+const materialsOfGuadua: Material[] = materialRowsOfGuadua.map(
+    ([name, category, unit, quantity, unit_cost], index) => ({
+        id: materialsOfMirador.length + index + 1,
+        project_id: 2,
+        name,
+        category,
+        unit,
+        quantity,
+        unit_cost,
+        created_at: NOW,
+    }),
+);
 
 // ---- What each route answers ----
 
-const BY_PROJECT = {
+interface ProjectData {
+    structure: Structure;
+    terrains: Terrain[];
+    materials: Material[];
+    recommendations: Recommendation[];
+    plans: Plan[];
+    elevations: Elevation[];
+}
+
+const BY_PROJECT: Record<string, ProjectData> = {
     1: {
         structure: structureOfMirador,
         terrains: terrainsOfMirador,
@@ -345,7 +453,7 @@ const BY_PROJECT = {
 const allTerrains = [...terrainsOfMirador, ...terrainsOfGuadua];
 const allMaterials = [...materialsOfMirador, ...materialsOfGuadua];
 
-export const summary = {
+export const summary: Summary = {
     projects: projects.length,
     draft_projects: projects.filter((project) => project.status === "draft").length,
     active_projects: projects.filter((project) => project.status === "active").length,
@@ -358,15 +466,29 @@ export const summary = {
     ),
     // The same rules as the API's summary: active and under 100 %, and at 100 %.
     in_progress_projects: projects.filter(
-        (project) => project.status === "active" && project.progress < 100,
+        (project) =>
+            project.status === "active" && project.progress !== undefined && project.progress < 100,
     ).length,
     completed_projects: projects.filter((project) => project.progress === 100).length,
     materials: allMaterials.length,
     plans: Object.values(BY_PROJECT).reduce((sum, data) => sum + data.plans.length, 0),
 };
 
-/** A room or component as its own list gives it, without the fields only the model has. */
-function plain(item, projectId) {
+/** A room as its own list gives it, without the fields only the model has. */
+function plainRoom(item: StructureRoom, projectId: number): Room {
+    const { kind, plan_title, level, base_m, surface, ...rest } = item;
+
+    void kind;
+    void plan_title;
+    void level;
+    void base_m;
+    void surface;
+
+    return { ...rest, project_id: projectId, created_at: NOW };
+}
+
+/** A component as its own list gives it: like a room, but it keeps its kind. */
+function plainComponent(item: StructureComponent, projectId: number): StructuralComponent {
     const { kind, plan_title, level, base_m, surface, ...rest } = item;
 
     void plan_title;
@@ -374,21 +496,16 @@ function plain(item, projectId) {
     void base_m;
     void surface;
 
-    return {
-        ...rest,
-        ...(kind === "room" ? {} : { kind }),
-        project_id: projectId,
-        created_at: NOW,
-    };
+    return { ...rest, kind, project_id: projectId, created_at: NOW };
 }
 
 // The project's own screens ask without a query; only Casa Mirador has tasks.
-function tasksOf(projectId) {
+function tasksOf(projectId: string | null): RenovationLog[] {
     return projectId === null || projectId === "1" ? tasks : [];
 }
 
 /** What the API would answer to a GET of `path`. Unknown lists come back empty. */
-export function answer(path, query = new URLSearchParams()) {
+export function answer(path: string, query = new URLSearchParams()): unknown {
     if (path === "/auth/me") return user;
     if (path === "/summary") return summary;
     if (path === "/health") return { status: "ok" };
@@ -403,7 +520,7 @@ export function answer(path, query = new URLSearchParams()) {
     const [, projectId, list] = /^\/projects\/(\d+)(?:\/([\w-]+))?$/.exec(path) ?? [];
 
     if (projectId !== undefined) {
-        const data = BY_PROJECT[projectId];
+        const data: ProjectData | undefined = BY_PROJECT[projectId];
 
         if (list === undefined) {
             return projects.find((project) => String(project.id) === projectId) ?? projects[0];
@@ -423,14 +540,14 @@ export function answer(path, query = new URLSearchParams()) {
         }
 
         if (list === "rooms") {
-            return data.structure.rooms.map((item) => plain(item, Number(projectId)));
+            return data.structure.rooms.map((item) => plainRoom(item, Number(projectId)));
         }
 
         if (list === "components") {
-            return data.structure.components.map((item) => plain(item, Number(projectId)));
+            return data.structure.components.map((item) => plainComponent(item, Number(projectId)));
         }
 
-        return data[list] ?? [];
+        return data[list as keyof ProjectData] ?? [];
     }
 
     if (path.includes("spatial-data")) {
@@ -442,7 +559,11 @@ export function answer(path, query = new URLSearchParams()) {
     }
 
     if (path.includes("interior-walkthrough")) {
-        return { project_id: 1, steps: [], renovation_logs: tasksOf(query.get("project_id")) };
+        return {
+            project_id: 1,
+            steps: [],
+            renovation_logs: tasksOf(query.get("project_id")),
+        };
     }
 
     return [];
@@ -450,7 +571,7 @@ export function answer(path, query = new URLSearchParams()) {
 
 // ---- Tasks, versions and history of Casa Mirador (routes of the contract of 20 October) ----
 
-export const projectTasks = [
+export const projectTasks: Task[] = [
     {
         id: 1,
         project_id: 1,
@@ -492,7 +613,7 @@ export const projectTasks = [
     },
 ];
 
-export const projectVersions = [
+export const projectVersions: Version[] = [
     {
         id: 1,
         project_id: 1,
@@ -500,11 +621,18 @@ export const projectVersions = [
         label: "Anteproyecto",
         created_by: 1,
         created_at: "2026-09-25T18:00:00",
-        contents: { terrains: 1, plans: 2, rooms: 8, components: 6, materials: 9, tasks: 2 },
+        contents: {
+            terrains: 1,
+            plans: 2,
+            rooms: 8,
+            components: 6,
+            materials: 9,
+            tasks: 2,
+        },
     },
 ];
 
-export const projectActivity = [
+export const projectActivity: Activity[] = [
     {
         id: 3,
         project_id: 1,
@@ -512,7 +640,10 @@ export const projectActivity = [
         action: "updated",
         entity_type: "task",
         entity_id: 2,
-        detail: { label: "Pedir la licencia de construcción", fields: ["progress"] },
+        detail: {
+            label: "Pedir la licencia de construcción",
+            fields: ["progress"],
+        },
         created_at: "2026-10-04T10:00:00",
     },
     {

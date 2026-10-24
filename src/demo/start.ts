@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { setupWorker } from "msw/browser";
 
-import { createSampleApi } from "../../scripts/api-de-muestra.mjs";
+import { createSampleApi } from "../../scripts/api-de-muestra.ts";
 
 /**
  * `npm run demo`: the app with Casa Mirador and no backend. MSW answers /api in the browser with

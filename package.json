@@ -9,9 +9,9 @@
     "scripts": {
         "dev": "vite",
         "demo": "vite --mode demo --port 5174 --strictPort --open",
-        "build": "tsc --noEmit && vite build",
+        "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && vite build",
         "preview": "vite preview",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "tsc --noEmit && tsc -p tsconfig.scripts.json",
         "test": "vitest run",
         "test:cobertura": "vitest run --coverage",
         "test:e2e": "playwright test",

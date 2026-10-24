@@ -6,7 +6,7 @@
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 
-import { answer } from "./datos-de-muestra.mjs";
+import { answer } from "./datos-de-muestra.ts";
 
 const BASE = process.env.CAPTURAS_URL ?? "http://localhost:5173";
 const AXE = fileURLToPath(new URL("../node_modules/axe-core/axe.min.js", import.meta.url));
