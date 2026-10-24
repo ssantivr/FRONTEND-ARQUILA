@@ -21,7 +21,10 @@ if (process.platform !== "win32" && !process.argv.includes("--force")) {
     process.exit(0);
 }
 
-const installed = JSON.parse(readFileSync(join(ROLLUP, "package.json"), "utf8"));
+const installed = JSON.parse(readFileSync(join(ROLLUP, "package.json"), "utf8")) as {
+    name: string;
+    version: string;
+};
 
 if (installed.name === "@rollup/wasm-node") {
     console.log(`node_modules/rollup ya es @rollup/wasm-node ${installed.version}.`);
@@ -45,7 +48,7 @@ try {
             cwd: work,
             encoding: "utf8",
         }),
-    );
+    ) as { filename: string }[];
     // A relative name, so neither tar of Windows nor that of Git Bash reads a drive letter.
     execFileSync("tar", ["-xzf", packed.filename], { cwd: work });
 

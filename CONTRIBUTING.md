@@ -21,7 +21,7 @@ npm ci
 npm run local:wasm
 ```
 
-`local:wasm` (`scripts/local-wasm.mjs`) cambia `node_modules/rollup` por `@rollup/wasm-node` de la misma versión, que es el mismo Rollup compilado a WebAssembly. No cambia ningún archivo del repositorio: `package.json` y `package-lock.json` siguen con el Rollup nativo que usan CI y Vercel, y el siguiente `npm ci` lo vuelve a poner. Fuera de Windows no hace nada. Si `git status` muestra cambios en esos dos archivos después de usarlo, algo salió mal: no los subas.
+`local:wasm` (`scripts/local-wasm.ts`) cambia `node_modules/rollup` por `@rollup/wasm-node` de la misma versión, que es el mismo Rollup compilado a WebAssembly. No cambia ningún archivo del repositorio: `package.json` y `package-lock.json` siguen con el Rollup nativo que usan CI y Vercel, y el siguiente `npm ci` lo vuelve a poner. Fuera de Windows no hace nada. Si `git status` muestra cambios en esos dos archivos después de usarlo, algo salió mal: no los subas.
 
 ## Ver la app sin backend
 
