@@ -1,0 +1,362 @@
+/*
+ * Design tokens of ARQUILA, «Blueprint premium». Every colour, size, radius, shadow and duration
+ * of the interface is defined here; style sheets and components only name these variables.
+ * `npm run contraste` reads this file and checks every text/background pair of both themes.
+ *
+ * Two levels:
+ *   1. Theme: what each colour is for (--color-*, --shadow-*), once for light and once for dark.
+ *      The values are written out here so `npm run contraste` can check them.
+ *   2. Scales: brand, type, space, radii, controls, layers and motion, the same in both themes.
+ *
+ * The lime accent is for main actions, selection, progress and active states. On a light
+ * background it is not readable as text (1.31:1): there it is only a fill, with --color-on-accent
+ * text. On a dark background it may be text or an outline.
+ */
+
+/* ---- 1. Theme: light (the default) ---- */
+:root,
+[data-theme="light"] {
+    /* Surfaces, from the page to what floats above it. */
+    --color-bg: #f4f6f2;
+    --color-surface: #ffffff;
+    --color-surface-raised: #f8faf6;
+    --color-surface-sunken: #eef1ec;
+    --color-surface-inverse: #0b211a;
+    --color-border: #dfe5de;
+    --color-border-strong: #8a968d;
+    --color-hover: rgba(23, 33, 27, 0.05);
+    --color-pressed: rgba(23, 33, 27, 0.09);
+    --color-scrim: rgba(5, 15, 11, 0.56);
+
+    /* Text */
+    --color-text: #17211b;
+    --color-text-secondary: #68736b;
+    --color-text-muted: #545f57;
+    --color-text-inverse: #eef3ee;
+
+    /* Interaction: green for links, focus and secondary emphasis; lime fill for the main action. */
+    --color-action: #236b42;
+    --color-action-hover: #1d5c38;
+    --color-on-action: #ffffff;
+    --color-action-soft: rgba(35, 107, 66, 0.1);
+    --color-accent: #b8f36b;
+    --color-accent-hover: #a6e655;
+    --color-on-accent: #0b211a;
+    --color-accent-edge: rgba(11, 33, 26, 0.22);
+    /* The accent where it must be seen as a line, an icon or text on this theme's surfaces. Lime
+       cannot (1.31:1 on paper), so in light it is the interaction green. */
+    --color-accent-hi: #236b42;
+    /* The selection outline: lime needs a dark keyline beside it to be seen on paper. */
+    --color-selection: #b8f36b;
+    --color-selection-keyline: #0b211a;
+    --color-focus: #236b42;
+
+    /* States: always with an icon or a word next to the colour. */
+    --color-success: #1a7145;
+    --color-success-soft: rgba(26, 113, 69, 0.1);
+    --color-warning: #8a5d00;
+    --color-warning-soft: rgba(138, 93, 0, 0.1);
+    --color-danger: #b3261e;
+    --color-danger-soft: rgba(179, 38, 30, 0.08);
+    --color-on-danger: #ffffff;
+    --color-info: #2459a8;
+    --color-info-soft: rgba(36, 89, 168, 0.08);
+
+    /* The blueprint motif: technical grid, dimension lines and corner marks. */
+    --color-grid-minor: rgba(35, 107, 66, 0.07);
+    --color-grid-major: rgba(35, 107, 66, 0.13);
+    --color-drawing: rgba(23, 33, 27, 0.42);
+
+    /* Shadows: edges come from the 1 px borders; shadows only lift what floats. */
+    --shadow-1: 0 1px 2px rgba(11, 33, 26, 0.05);
+    --shadow-2: 0 1px 2px rgba(11, 33, 26, 0.06), 0 8px 20px -10px rgba(11, 33, 26, 0.2);
+    --shadow-3: 0 2px 4px rgba(11, 33, 26, 0.06), 0 18px 40px -16px rgba(11, 33, 26, 0.32);
+    --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #236b42;
+
+    color-scheme: light;
+}
+
+/* ---- 1. Theme: dark, the CAD/BIM environment ---- */
+/* It is designed on its own, not inverted: levels of deep green and lime only where it matters.
+   The interior walkthrough is a dusk scene, so its overlays keep these tokens in both themes. */
+[data-theme="dark"],
+.interior-stage {
+    --color-bg: #050f0b;
+    --color-surface: #0b1d16;
+    --color-surface-raised: #10291f;
+    --color-surface-sunken: #07140f;
+    --color-surface-inverse: #f4f6f2;
+    --color-border: #1f4434;
+    --color-border-strong: #4f7a65;
+    --color-hover: rgba(238, 243, 238, 0.06);
+    --color-pressed: rgba(238, 243, 238, 0.1);
+    --color-scrim: rgba(0, 0, 0, 0.62);
+
+    --color-text: #eef3ee;
+    --color-text-secondary: #a6b8ab;
+    --color-text-muted: #a6b8ab;
+    --color-text-inverse: #17211b;
+
+    --color-action: #b8f36b;
+    --color-action-hover: #c9f78d;
+    --color-on-action: #0b211a;
+    --color-action-soft: rgba(184, 243, 107, 0.1);
+    --color-accent: #b8f36b;
+    --color-accent-hover: #c9f78d;
+    --color-on-accent: #0b211a;
+    --color-accent-edge: rgba(184, 243, 107, 0);
+    --color-accent-hi: #b8f36b;
+    --color-selection: #b8f36b;
+    --color-selection-keyline: #050f0b;
+    --color-focus: #b8f36b;
+
+    --color-success: #6fdc9b;
+    --color-success-soft: rgba(111, 220, 155, 0.1);
+    --color-warning: #f2c35b;
+    --color-warning-soft: rgba(242, 195, 91, 0.1);
+    --color-danger: #ff8a80;
+    --color-danger-soft: rgba(255, 138, 128, 0.1);
+    --color-on-danger: #1b0503;
+    --color-info: #8ab4ff;
+    --color-info-soft: rgba(138, 180, 255, 0.1);
+
+    --color-grid-minor: rgba(184, 243, 107, 0.045);
+    --color-grid-major: rgba(184, 243, 107, 0.09);
+    --color-drawing: rgba(196, 214, 201, 0.5);
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.32);
+    --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 24px -12px rgba(0, 0, 0, 0.6);
+    --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.36), 0 20px 44px -16px rgba(0, 0, 0, 0.72);
+    --focus-ring: 0 0 0 2px #050f0b, 0 0 0 4px #b8f36b;
+
+    color-scheme: dark;
+}
+
+/* ---- 1. Theme: automatic, before the script has run ----
+   theme.ts resolves «automático» with prefers-color-scheme and writes data-theme before the first
+   render, and follows the system when it changes. Until then (the first paint of a slow load) a
+   system in dark mode gets a dark page instead of a white flash. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --color-bg: #050f0b;
+        --color-text: #eef3ee;
+        color-scheme: dark;
+    }
+}
+
+/* ---- 2. Scales, the same in both themes ---- */
+:root {
+    /* Brand surfaces that do not change with the theme: the forest of the sidebar and the bands. */
+    --brand-forest: #0b211a;
+    --brand-forest-raised: #12382a;
+    --brand-forest-text: #d5e2d8;
+    --brand-lime: #b8f36b;
+    --brand-lime-hover: #c9f78d;
+    --brand-on-lime: #0b211a;
+    /* States on the forest band (toasts), which is dark in both themes. */
+    --band-danger: #ff8a80;
+    --band-info: #8ab4ff;
+    --white: #ffffff;
+    /* The faces of the isometric mark: top, left and right. */
+    --brand-face-top: #b8f36b;
+    --brand-face-left: #8fcf4c;
+    --brand-face-right: #236b42;
+
+    /* Overlays of the 3D scene, which are dark in both themes. */
+    --scene-text: #eef3ee;
+    --scene-panel: #08160f;
+    --scene-ground: #06110c;
+    --axis-x: #ff8a80;
+    --axis-y: #8ab4ff;
+    --axis-z: #b8f36b;
+
+    /* Type: Inter for the interface (tabular figures where data is shown), JetBrains Mono for
+       coordinates and codes. Nothing below 12 px. */
+    --font-sans: "Inter Variable", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono:
+        "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "Cascadia Mono", "Consolas",
+        monospace;
+    --text-xs: 12px;
+    --text-sm: 13px;
+    --text-md: 14px;
+    --text-lg: 16px;
+    --text-xl: 18px;
+    --text-2xl: 22px;
+    --text-3xl: 28px;
+    --text-4xl: 36px;
+    --text-5xl: 48px;
+    --text-6xl: 60px;
+    --leading-tight: 1.1;
+    --leading-snug: 1.3;
+    --leading-body: 1.5;
+    --weight-regular: 420;
+    --weight-medium: 520;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --tracking-display: -0.025em;
+    --tracking-title: -0.012em;
+    --tracking-label: 0.08em;
+
+    /* Space in steps of 4 px. */
+    --space-0: 2px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 40px;
+    --space-8: 48px;
+    --space-9: 64px;
+    --space-10: 80px;
+
+    /* Radii: small and precise, like a drawing; pills only for chips and toggles. */
+    --radius-xs: 2px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --radius-xl: 14px;
+    --radius-pill: 999px;
+
+    /* Controls. 44 px is the smallest target for touch. */
+    --control-xs: 28px;
+    --control-sm: 32px;
+    --control-md: 40px;
+    --control-lg: 48px;
+    --control-height: var(--control-md);
+    --touch-target: 44px;
+    --row-height: 44px;
+    --row-head-height: 36px;
+    --icon-sm: 14px;
+    --icon-md: 18px;
+    --icon-lg: 22px;
+    --border-width: 1px;
+    --keyline: 1.5px;
+
+    /* Layout */
+    --header-height: 68px;
+    --sidebar-width: 248px;
+    --sidebar-collapsed: 68px;
+    --mobile-nav-height: 64px;
+    --panel-width: 300px;
+    --content-max: 1440px;
+
+    /* Layers */
+    --z-raised: 1;
+    --z-sticky: 10;
+    --z-dock: 20;
+    --z-tooltip: 60;
+    --z-overlay: 100;
+    --z-toast: 120;
+
+    /* Motion: three durations for the interface. The curves and keyframes are in motion.css. */
+    --dur-instant: 80ms;
+    --dur-fast: 120ms;
+    --dur: 180ms;
+    --dur-slow: 240ms;
+
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Compact density: shorter rows and controls, for screens full of data. */
+[data-density="compact"] {
+    --row-height: 36px;
+    --row-head-height: 32px;
+    --control-height: var(--control-sm);
+}
+
+/*
+ * ---- Names of the previous design ----
+ * The screens that have not been rebuilt yet still read these names. Each one points at a token
+ * above, so they already take the new palette. They go away, with the sheets that use them, when
+ * the last of those screens is rebuilt (phase R9); new code never uses them.
+ */
+:root,
+[data-theme="light"],
+[data-theme="dark"],
+.interior-stage {
+    --bg: var(--color-bg);
+    --bg-secondary: var(--color-surface);
+    --panel: var(--color-surface);
+    --panel-raised: var(--color-surface-raised);
+    --border: var(--color-border);
+    --border-strong: var(--color-border-strong);
+    --viewport: var(--color-surface-sunken);
+    --text: var(--color-text);
+    --text-secondary: var(--color-text-secondary);
+    --text-muted: var(--color-text-muted);
+    --accent: var(--color-action);
+    --accent-contrast: var(--color-on-action);
+    --accent-soft: var(--color-action-soft);
+    --accent-alt: var(--color-action);
+    --primary: var(--color-action);
+    --primary-contrast: var(--color-on-action);
+    --hover: var(--color-hover);
+    --success: var(--color-success);
+    --warning: var(--color-warning);
+    --error: var(--color-danger);
+    --shadow: var(--shadow-1);
+    --shadow-float: var(--shadow-2);
+    --glass: var(--color-surface);
+    --ring: var(--focus-ring);
+}
+
+:root {
+    --vignette: rgba(11, 33, 26, 0.1);
+    --glass-border: rgba(23, 33, 27, 0.14);
+    --forest: var(--brand-forest);
+    --forest-raised: var(--brand-forest-raised);
+    --forest-text: var(--brand-forest-text);
+    --lime: var(--brand-lime);
+    --lime-hover: var(--brand-lime-hover);
+    --lime-contrast: var(--brand-on-lime);
+    --sidebar-top: #0c261d;
+    --sidebar-bottom: #06150f;
+    --scrim: var(--color-scrim);
+    --on-scene: var(--scene-text);
+    --viewport-deep: var(--scene-panel);
+    --gizmo-ground: var(--scene-ground);
+    --neon-cyan: #00f0ff;
+    --neon-magenta: #ff007f;
+    --work-finishes: #ffc857;
+    --work-demolition: #ff5c7a;
+    --art-ink: #0f2e22;
+    --art-paper: #e9eee6;
+    --art-stone: #b9c6b8;
+    --art-wood: #a8794f;
+    --art-glass: #7fb2a0;
+    --art-leaf: #236b42;
+    --art-leaf-light: #2f8a56;
+    --art-hill: #17432f;
+    --cover-1: #0d2a20;
+    --cover-2: #0f3024;
+    --cover-3: #0b241b;
+    --cover-4: #11362a;
+    --cover-line: #e3efe5;
+    --fs-12: var(--text-xs);
+    --fs-13: var(--text-sm);
+    --fs-14: var(--text-md);
+    --fs-16: var(--text-lg);
+    --fs-18: var(--text-xl);
+    --fs-20: 20px;
+    --fs-24: 24px;
+    --fs-30: 30px;
+    --fs-36: var(--text-4xl);
+    --fs-label: var(--text-xs);
+    --r-sm: var(--radius-sm);
+    --r-md: var(--radius-md);
+    --r-lg: var(--radius-lg);
+    --r-pill: var(--radius-pill);
+    --radius: var(--radius-md);
+    --control-height-sm: var(--control-sm);
+}
+
+[data-theme="dark"],
+.interior-stage {
+    --vignette: rgba(0, 0, 0, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.12);
+}

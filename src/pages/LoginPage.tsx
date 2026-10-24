@@ -1,9 +1,25 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
-import { Panel } from "../components/Panel";
+import { Icon } from "../components/Icon";
+import { Button } from "../components/ui/Button";
+import { Input, PasswordInput } from "../components/ui/Input";
 import { errorMessage } from "../hooks/useAsync";
+import { useFieldErrors } from "../hooks/useFieldErrors";
 import { authApi } from "../services/api";
 import type { User } from "../types/api";
+import {
+    MAX_EMAIL_LENGTH,
+    MAX_NAME_LENGTH,
+    MAX_PASSWORD_LENGTH,
+    MIN_PASSWORD_LENGTH,
+    checkEmail,
+    checkName,
+    checkPassword,
+} from "../utils/authForm";
+
+import styles from "./LoginPage.module.css";
+
+export { MIN_PASSWORD_LENGTH };
 
 interface LoginPageProps {
     notice?: string;
@@ -11,8 +27,13 @@ interface LoginPageProps {
 }
 
 type Mode = "login" | "register" | "forgot";
+type FieldName = "name" | "email" | "password";
 
-export const MIN_PASSWORD_LENGTH = 8;
+const FIELDS: Record<Mode, readonly FieldName[]> = {
+    login: ["email", "password"],
+    register: ["name", "email", "password"],
+    forgot: ["email"],
+};
 
 const TITLES: Record<Mode, string> = {
     login: "Iniciar sesión",
@@ -20,6 +41,24 @@ const TITLES: Record<Mode, string> = {
     forgot: "Recuperar contraseña",
 };
 
+const LEADS: Record<Mode, string> = {
+    login: "Entra con tu correo para volver a tus proyectos.",
+    register: "Con una cuenta guardas tus proyectos, terrenos y materiales.",
+    forgot: "Escribe tu correo y te enviamos un enlace para elegir otra contraseña.",
+};
+
+const SUBMIT: Record<Mode, string> = {
+    login: "Entrar",
+    register: "Crear cuenta",
+    forgot: "Enviar enlace",
+};
+
+/**
+ * Sign in, create an account or ask for a new password, against the API's session cookie
+ * (`/auth/login`, `/auth/register`, `/auth/password-reset`). Nothing is kept in the browser: the
+ * backend sets an `HttpOnly` cookie, and the screen only moves on with the user the API returns.
+ * There is no «remember me»: the API has no session length to choose.
+ */
 export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     const [mode, setMode] = useState<Mode>("login");
     const [name, setName] = useState("");
@@ -28,15 +67,38 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(notice ?? null);
     const [submitting, setSubmitting] = useState(false);
+    const form = useRef<HTMLFormElement>(null);
+    const fields = useFieldErrors<FieldName>({
+        name: () => checkName(name),
+        email: () => checkEmail(email),
+        password: () => checkPassword(password, mode === "register"),
+    });
 
     function switchTo(next: Mode) {
         setMode(next);
         setError(null);
         setMessage(null);
+        fields.reset();
+    }
+
+    /** A field left with something written in it shows what is wrong with it. */
+    function leave(field: FieldName, value: string) {
+        if (value !== "") {
+            fields.reveal(field);
+        }
     }
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
+
+        const wrong = fields.validate(FIELDS[mode]);
+
+        if (wrong !== null) {
+            form.current?.querySelector<HTMLElement>(`[name="${wrong}"]`)?.focus();
+
+            return;
+        }
+
         setSubmitting(true);
         setError(null);
         setMessage(null);
@@ -62,94 +124,99 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
     }
 
     return (
-        <div className="login">
-            <Panel title={TITLES[mode]}>
-                <form className="form-column" onSubmit={handleSubmit}>
-                    {mode === "register" && (
-                        <label>
-                            Nombre
-                            <input
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                                maxLength={120}
-                                autoComplete="name"
-                                required
-                            />
-                        </label>
-                    )}
-                    <label>
-                        Correo
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
-                            maxLength={255}
-                            autoComplete="email"
-                            required
-                        />
-                    </label>
-                    {mode !== "forgot" && (
-                        <label>
-                            Contraseña
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(event) => setPassword(event.target.value)}
-                                minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
-                                maxLength={128}
-                                autoComplete={
-                                    mode === "register" ? "new-password" : "current-password"
-                                }
-                                required
-                            />
-                        </label>
-                    )}
-                    {mode === "register" && (
-                        <p className="message">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
-                    )}
-                    {message && (
-                        <p className="message" role="status">
-                            {message}
-                        </p>
-                    )}
-                    {error && (
-                        <p className="message message-error" role="alert">
-                            {error}
-                        </p>
-                    )}
-                    <button type="submit" disabled={submitting}>
-                        {mode === "login" && "Entrar"}
-                        {mode === "register" && "Crear cuenta"}
-                        {mode === "forgot" && "Enviar enlace"}
+        <div className={styles.login}>
+            <h2 className={styles.title}>{TITLES[mode]}</h2>
+            <p className={styles.lead}>{LEADS[mode]}</p>
+            <form ref={form} className={styles.form} noValidate onSubmit={handleSubmit}>
+                {mode === "register" && (
+                    <Input
+                        label="Nombre"
+                        name="name"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        onBlur={() => leave("name", name)}
+                        error={fields.errorOf("name")}
+                        maxLength={MAX_NAME_LENGTH}
+                        autoComplete="name"
+                        required
+                    />
+                )}
+                <Input
+                    label="Correo"
+                    name="email"
+                    type="email"
+                    icon="mail"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    onBlur={() => leave("email", email)}
+                    error={fields.errorOf("email")}
+                    maxLength={MAX_EMAIL_LENGTH}
+                    autoComplete="email"
+                    placeholder="nombre@estudio.com"
+                    required
+                />
+                {mode !== "forgot" && (
+                    <PasswordInput
+                        label="Contraseña"
+                        name="password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        onBlur={() => leave("password", password)}
+                        error={fields.errorOf("password")}
+                        hint={
+                            mode === "register"
+                                ? `Mínimo ${MIN_PASSWORD_LENGTH} caracteres.`
+                                : undefined
+                        }
+                        minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
+                        maxLength={MAX_PASSWORD_LENGTH}
+                        autoComplete={mode === "register" ? "new-password" : "current-password"}
+                        required
+                    />
+                )}
+                {mode === "login" && (
+                    <button
+                        type="button"
+                        className={`${styles.link} ${styles.forgot}`}
+                        onClick={() => switchTo("forgot")}
+                    >
+                        Olvidé mi contraseña
                     </button>
-                    {mode === "login" ? (
-                        <>
-                            <button
-                                type="button"
-                                className="button-secondary"
-                                onClick={() => switchTo("register")}
-                            >
-                                Crear una cuenta nueva
-                            </button>
-                            <button
-                                type="button"
-                                className="button-secondary"
-                                onClick={() => switchTo("forgot")}
-                            >
-                                Olvidé mi contraseña
-                            </button>
-                        </>
-                    ) : (
+                )}
+                {message && (
+                    <p className={styles.notice} role="status">
+                        <Icon name="success" />
+                        <span>{message}</span>
+                    </p>
+                )}
+                {error && (
+                    <p className={styles.error} role="alert">
+                        <Icon name="error" />
+                        <span>{error}</span>
+                    </p>
+                )}
+                <Button type="submit" size="lg" block loading={submitting}>
+                    {SUBMIT[mode]}
+                </Button>
+            </form>
+            <p className={styles.switch}>
+                {mode === "login" ? (
+                    <>
+                        ¿Todavía no tienes cuenta?{" "}
                         <button
                             type="button"
-                            className="button-secondary"
-                            onClick={() => switchTo("login")}
+                            className={styles.link}
+                            onClick={() => switchTo("register")}
                         >
-                            Volver a iniciar sesión
+                            Crear una cuenta nueva
                         </button>
-                    )}
-                </form>
-            </Panel>
+                    </>
+                ) : (
+                    <button type="button" className={styles.link} onClick={() => switchTo("login")}>
+                        Volver a iniciar sesión
+                    </button>
+                )}
+            </p>
         </div>
     );
 }

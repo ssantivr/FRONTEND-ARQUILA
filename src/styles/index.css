@@ -1,0 +1,46 @@
+/*
+ * Order of the style sheets. Cascade layers make the order explicit instead of depending on the
+ * import order:
+ *
+ *   foundation  the rules every element shares, and the motion system
+ *   legacy      the sheets of the previous design, while their screens are rebuilt
+ *   (unlayered) the CSS Modules of the components, which therefore always win
+ *
+ * A screen leaves `legacy` when it is rebuilt with the components; when the last one has left,
+ * the layer and its sheets are deleted (phase R9).
+ */
+@layer foundation, legacy;
+
+@import url("./foundation.css") layer(foundation);
+@import url("./motion.css") layer(foundation);
+
+@import url("./base.css") layer(legacy);
+@import url("./viewer.css") layer(legacy);
+@import url("./shell.css") layer(legacy);
+@import url("./interior.css") layer(legacy);
+@import url("./features.css") layer(legacy);
+@import url("./hierarchy.css") layer(legacy);
+@import url("./states.css") layer(legacy);
+@import url("./media.css") layer(legacy);
+@import url("./ui.css") layer(legacy);
+@import url("./projects.css") layer(legacy);
+@import url("./terrains.css") layer(legacy);
+@import url("./plans.css") layer(legacy);
+@import url("./shell-phone.css") layer(legacy);
+@import url("./identity.css") layer(legacy);
+@import url("./home.css") layer(legacy);
+@import url("./pages/head.css") layer(legacy);
+@import url("./pages/projects.css") layer(legacy);
+@import url("./pages/terrains.css") layer(legacy);
+@import url("./pages/materials.css") layer(legacy);
+@import url("./pages/settings.css") layer(legacy);
+@import url("./pages/home.css") layer(legacy);
+@import url("./pages/assistant.css") layer(legacy);
+@import url("./pages/studio.css") layer(legacy);
+@import url("./pages/responsive.css") layer(legacy);
+@import url("./polish.css") layer(legacy);
+@import url("./editor.css") layer(legacy);
+@import url("./rich.css") layer(legacy);
+@import url("./numbers.css") layer(legacy);
+@import url("./navigation.css") layer(legacy);
+@import url("./workspace.css") layer(legacy);

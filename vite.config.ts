@@ -1,11 +1,92 @@
+import { readFileSync } from "node:fs";
+
 import react from "@vitejs/plugin-react";
-import { loadEnv } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
+import { loadEnv, type Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 const DEFAULT_PROXY_TARGET = "http://localhost:8000";
 
+/**
+ * Libraries that only some screens need go in their own files, which the browser asks for when
+ * one of those screens opens and keeps cached across releases of the app:
+ * - `react`: React and the router, needed by every screen and seldom changed.
+ * - `three`: the engine, for any 3D view.
+ * - `three-post`: the glow and ambient occlusion passes of the viewer.
+ * - `three-gltf`: the loader of a room's own 3D model, asked for when such a room is isolated.
+ * - `charts`: Recharts and the d3 pieces it brings, for the cost chart.
+ * - `geometry`: polygon-clipping, for the buildable area and the overlap of rooms.
+ */
+/**
+ * `npm run demo`: serves MSW's worker script from node_modules. It is not copied to public/, so
+ * it never ships with a build.
+ */
+function demoWorker(): Plugin {
+    return {
+        name: "arquila-demo-worker",
+        apply: "serve",
+        configureServer(server) {
+            server.middlewares.use("/mockServiceWorker.js", (_request, response) => {
+                response.setHeader("Content-Type", "text/javascript");
+                response.end(readFileSync("node_modules/msw/lib/mockServiceWorker.js"));
+            });
+        },
+    };
+}
+
+function chunkOf(id: string): string | undefined {
+    if (!id.includes("node_modules")) {
+        return undefined;
+    }
+
+    if (
+        id.includes("three/examples/jsm/postprocessing") ||
+        id.includes("three/examples/jsm/shaders")
+    ) {
+        return "three-post";
+    }
+
+    if (id.includes("three/examples/jsm/loaders")) {
+        return "three-gltf";
+    }
+
+    if (id.includes("node_modules/three/")) {
+        return "three";
+    }
+
+    // React is named first. A library placed in a chunk by hand takes with it whatever it needs
+    // that has no chunk of its own, and Recharts needs React: without this line React itself
+    // would move into the charts file and the first load would have to fetch all of it.
+    if (
+        /node_modules\/(react|react-dom|scheduler|react-router|use-sync-external-store)\//.test(id)
+    ) {
+        return "react";
+    }
+
+    if (
+        /node_modules\/(recharts|d3-[^/]+|victory-vendor|internmap|decimal\.js-light|react-redux|@reduxjs\/toolkit|redux|redux-thunk|immer|reselect|es-toolkit|eventemitter3|tiny-invariant|react-is)\//.test(
+            id,
+        )
+    ) {
+        return "charts";
+    }
+
+    if (/node_modules\/(polygon-clipping|splaytree|robust-predicates)\//.test(id)) {
+        return "geometry";
+    }
+
+    return undefined;
+}
+
 export default defineConfig(({ mode }) => ({
-    plugins: [react()],
+    plugins: [
+        react(),
+        ...(mode === "demo" ? [demoWorker()] : []),
+        // `npm run analizar` writes dist/bundle.html, a map of what each file of the build weighs.
+        ...(process.env.ANALYZE === "1"
+            ? [visualizer({ filename: "dist/bundle.html", gzipSize: true, template: "treemap" })]
+            : []),
+    ],
     server: {
         proxy: {
             "/api": {
@@ -15,7 +96,69 @@ export default defineConfig(({ mode }) => ({
             },
         },
     },
+    build: {
+        // The three.js core cannot be split further. It gets its own chunk, which only loads when
+        // a 3D view opens and stays cached across releases of the app; the limit is set just
+        // above its size so that any other chunk growing past it still warns.
+        chunkSizeWarningLimit: 700,
+        rollupOptions: {
+            output: {
+                manualChunks: (id: string) => chunkOf(id.replace(/\\/g, "/")),
+            },
+        },
+    },
     test: {
+        // The browser flows in e2e/ are run by Playwright, not by Vitest.
+        exclude: ["node_modules/**", "dist/**", "e2e/**"],
+        coverage: {
+            provider: "v8",
+            include: ["src/**/*.{ts,tsx}"],
+            exclude: [
+                "src/**/*.test.{ts,tsx}",
+                "src/test/**",
+                "src/main.tsx",
+                // Only `npm run demo` loads it.
+                "src/demo/**",
+                // WebGL scenes: jsdom cannot run them, and they are checked in a real browser
+                // by `npm run capturas`. Their pure helpers do have unit tests.
+                "src/three/**",
+                // Development-only page.
+                "src/pages/DesignSystemPage.tsx",
+                "src/components/MotionDemos.tsx",
+                "src/types/**",
+            ],
+            reporter: ["text-summary", "html"],
+            // Set a little under what the suite reaches today, so coverage can only go up.
+            thresholds: {
+                statements: 60,
+                branches: 58,
+                functions: 53,
+                lines: 60,
+                // The code that every screen trusts for its figures, its errors and its session:
+                // never under 80 %, each one at what it reaches today, rounded down.
+                "src/utils/geometry.ts": {
+                    statements: 98,
+                    branches: 97,
+                    functions: 100,
+                    lines: 98,
+                },
+                "src/utils/building.ts": { 100: true },
+                "src/utils/elevations.ts": {
+                    statements: 95,
+                    branches: 89,
+                    functions: 100,
+                    lines: 95,
+                },
+                "src/utils/errors.ts": { 100: true },
+                "src/state/appState.ts": {
+                    statements: 96,
+                    branches: 100,
+                    functions: 94,
+                    lines: 96,
+                },
+                "src/services/http.ts": { statements: 95, branches: 97, functions: 90, lines: 95 },
+            },
+        },
         projects: [
             {
                 extends: true,

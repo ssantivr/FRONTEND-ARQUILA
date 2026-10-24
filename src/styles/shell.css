@@ -1,0 +1,577 @@
+.site-plan svg {
+    max-width: 640px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.site-plan .diagram-controls {
+    max-width: 320px;
+}
+
+.diagram-lot {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1.5;
+}
+
+.diagram-ground {
+    fill: color-mix(in srgb, var(--success) 14%, transparent);
+}
+
+.diagram-band {
+    fill: var(--success);
+}
+
+.diagram-contour {
+    stroke: var(--text);
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+    opacity: 0.7;
+}
+
+.diagram-front {
+    fill: color-mix(in srgb, var(--success) 14%, transparent);
+    stroke: var(--success);
+    stroke-width: 1.5;
+}
+
+.diagram-surface {
+    stroke: var(--success);
+    stroke-width: 2;
+}
+
+.diagram-label {
+    fill: var(--text);
+    font-size: 11px;
+}
+
+.diagram-note {
+    fill: var(--text-secondary);
+    font-size: 10px;
+}
+
+.viewer-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.viewer-frame {
+    width: 100%;
+    height: 100%;
+    background: var(--white);
+    border: 0;
+}
+
+.row-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.row-editing td {
+    background: var(--accent-soft);
+}
+
+.shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    align-items: start;
+    min-height: 100vh;
+    transition: grid-template-columns var(--dur) var(--ease-in-out);
+}
+
+.shell-collapsed {
+    --sidebar-width: 68px;
+}
+
+.workspace {
+    min-width: 0;
+}
+
+.shell .content {
+    width: 100%;
+}
+
+/* The navigation keeps the deep forest green in both themes: it is the brand's constant. */
+.sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100vh;
+    padding: 18px 12px;
+    overflow: hidden auto;
+    color: var(--forest-text);
+    background: var(--forest);
+}
+
+.sidebar .brand {
+    min-height: 28px;
+    padding: 0 8px;
+    overflow: hidden;
+    color: var(--white);
+    white-space: nowrap;
+}
+
+.sidebar-nav {
+    display: grid;
+    gap: 2px;
+}
+
+.sidebar-foot {
+    display: grid;
+    gap: 2px;
+    margin-top: auto;
+}
+
+.icon {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+}
+
+.sidebar-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 40px;
+    padding: 9px 12px;
+    overflow: hidden;
+    color: var(--forest-text);
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+    background: transparent;
+    border-color: transparent;
+}
+
+.sidebar-item:hover:not(:disabled) {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.sidebar-item:focus-visible {
+    outline-color: var(--lime);
+}
+
+.sidebar-item[aria-current="page"] {
+    color: var(--white);
+    font-weight: 600;
+    background: var(--forest-raised);
+}
+
+.sidebar-item[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    inset: 9px auto 9px 0;
+    width: 3px;
+    background: var(--lime);
+    border-radius: 0 3px 3px 0;
+}
+
+.sidebar-item[aria-current="page"] .icon {
+    color: var(--lime);
+}
+
+.shell-collapsed .sidebar-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+.shell-collapsed .sidebar .brand {
+    gap: 0;
+    font-size: 0;
+}
+
+.shell-collapsed .sidebar-toggle .icon {
+    transform: rotate(180deg);
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.metric {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    padding: 18px 16px 16px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.metric::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--accent);
+}
+
+.metric-label {
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+}
+
+.metric-value {
+    font-size: var(--fs-24);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-detail {
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+}
+
+@media (max-width: 720px) {
+    .shell {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sidebar {
+        position: static;
+        display: flex;
+        height: auto;
+        border-width: 0 0 1px;
+        padding: 8px 16px 0;
+        overflow-x: auto;
+    }
+}
+
+.form-row .field-full {
+    flex: 1 1 100%;
+}
+
+.diagram-base {
+    fill: color-mix(in srgb, var(--text-secondary) 8%, transparent);
+    stroke: var(--text-secondary);
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+}
+
+.diagram-terrain {
+    fill: color-mix(in srgb, var(--success) 24%, transparent);
+}
+
+.diagram-outline {
+    fill: none;
+    stroke: var(--success);
+    stroke-width: 1.5;
+}
+
+.diagram-edge {
+    stroke: var(--text-secondary);
+    stroke-width: 1;
+}
+
+.diagram-controls {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.diagram-controls fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.diagram-controls legend {
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+}
+
+.diagram-controls input[type="range"] {
+    padding: 0;
+}
+
+.checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+}
+
+.checkbox input {
+    padding: 0;
+}
+
+/*
+ * A table turns into cards by the width of what holds it, not of the window: a table of six
+ * columns in a narrow panel (a tablet, or beside the sidebar) has no room for its columns even
+ * when the window is wide. 760 px is about what the widest table (materials, with its actions)
+ * needs; under it each row is a card with the name of each column beside its value.
+ */
+.panel:has(table),
+.table-host {
+    container: table-host / inline-size;
+}
+
+@container table-host (max-width: 760px) {
+    table,
+    tbody,
+    tfoot,
+    tr,
+    td,
+    th {
+        display: block;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody tr {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    td {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 4px 0;
+        text-align: right;
+        white-space: normal;
+        border: 0;
+    }
+
+    td[data-label]::before {
+        content: attr(data-label);
+        margin-right: auto;
+        color: var(--text-secondary);
+        text-align: left;
+    }
+
+    tfoot tr {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+    }
+
+    tfoot th {
+        padding: 0;
+        border: 0;
+    }
+
+    tfoot th:empty {
+        display: none;
+    }
+
+    .row-editing td {
+        background: transparent;
+    }
+
+    .row-editing {
+        background: var(--accent-soft);
+    }
+}
+
+.button-lime {
+    color: var(--lime-contrast);
+    font-weight: 600;
+    background: var(--lime);
+    border-color: var(--lime);
+}
+
+.button-lime:hover:not(:disabled) {
+    background: var(--lime-hover);
+    border-color: var(--lime-hover);
+}
+
+.button-ghost {
+    color: var(--white);
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.button-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--white);
+}
+
+.hero-art {
+    align-self: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 220px;
+}
+
+.art-sky {
+    fill: var(--forest-raised);
+}
+
+.art-ground {
+    fill: var(--art-ink);
+}
+
+.art-wall {
+    fill: var(--art-paper);
+}
+
+.art-wall-shade {
+    fill: var(--art-stone);
+}
+
+.art-wood {
+    fill: var(--art-wood);
+}
+
+.art-glass {
+    fill: var(--art-glass);
+}
+
+.art-glass-lit {
+    fill: var(--lime);
+    opacity: 0.85;
+}
+
+.art-tree {
+    fill: var(--art-leaf);
+}
+
+.art-tree-light {
+    fill: var(--art-leaf-light);
+}
+
+.art-line {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.16);
+    stroke-width: 1;
+}
+
+@media (max-width: 900px) {
+    .hero-art {
+        max-height: 200px;
+    }
+}
+
+.module-card {
+    height: 100%;
+}
+
+.card-subtitle {
+    line-height: 1.4;
+}
+
+.project-picker {
+    max-width: 320px;
+    margin: 12px 0;
+}
+
+.bar-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bar-list li {
+    display: grid;
+    grid-template-columns: minmax(90px, 160px) 1fr auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.bar {
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+}
+
+.bar span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    border-radius: var(--r-pill);
+}
+
+.definition-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 20px;
+    margin: 0 0 14px;
+}
+
+.definition-list dt {
+    color: var(--text-secondary);
+}
+
+.definition-list dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+code {
+    padding: 1px 5px;
+    font-size: 0.9em;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.badge-priority-high {
+    color: var(--error);
+}
+
+.badge-priority-medium {
+    color: var(--warning);
+}
+
+.badge-priority-low {
+    color: var(--text-secondary);
+}
+
+.suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.suggestion {
+    padding: 6px 12px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-size: var(--fs-13);
+    border-radius: var(--r-pill);
+}
+
+.suggestion:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.floor-plan svg {
+    max-width: 820px;
+}
+
+/* With room for two, the cards go side by side instead of one long column. It comes after the
+   rule that turns rows into cards, which sets the body back to a block. */
+@container table-host (min-width: 520px) and (max-width: 760px) {
+    tbody {
+        display: grid;
+        /* auto-fit folds the empty column, so a single card takes the whole width. */
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        column-gap: var(--space-6);
+    }
+}

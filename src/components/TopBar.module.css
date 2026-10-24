@@ -1,0 +1,198 @@
+/* One line on a wide screen: where you are, the search, then the actions pushed to the end. */
+.bar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-dock);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    min-height: var(--header-height);
+    padding: var(--space-3) var(--space-6);
+    border-bottom: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.menuButton {
+    display: none;
+}
+
+.where {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.eyebrow {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    line-height: var(--leading-snug);
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-title);
+    line-height: var(--leading-snug);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search {
+    display: flex;
+    flex: 1 1 240px;
+    min-width: 0;
+    max-width: 420px;
+}
+
+.actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+}
+
+.slot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.slot:empty {
+    display: none;
+}
+
+/* A thin rule between what belongs to the screen and what belongs to the app. */
+.slot:not(:empty)::after {
+    width: 1px;
+    height: 24px;
+    margin-left: var(--space-1);
+    background: var(--color-border);
+    content: "";
+}
+
+.create {
+    height: var(--control-md);
+    padding-inline: var(--space-4);
+}
+
+/* The account: avatar and name in a pill; the menu says who is signed in. */
+.account summary {
+    height: var(--control-md);
+    padding: 0;
+    border-color: var(--color-border);
+    border-radius: var(--radius-pill);
+}
+
+.accountTrigger {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-3) 0 var(--space-1);
+    color: var(--color-text);
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+}
+
+.userName {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.who {
+    display: grid;
+    gap: var(--space-0);
+    margin: 0 0 var(--space-1);
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    border-bottom: var(--border-width) solid var(--color-border);
+    font-size: var(--text-sm);
+}
+
+.who span {
+    color: var(--color-text-secondary);
+    overflow-wrap: anywhere;
+}
+
+/* Below 1280 px the name gives way to the avatar; below 1100 the main action keeps its icon. */
+@media (max-width: 1280px) {
+    .userName {
+        display: none;
+    }
+
+    .accountTrigger {
+        padding: 0 var(--space-1);
+    }
+}
+
+@media (max-width: 1100px) {
+    .createLabel {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .create {
+        width: var(--control-md);
+        padding: 0;
+    }
+}
+
+@media (max-width: 1024px) {
+    .bar {
+        padding-inline: var(--space-4);
+    }
+}
+
+/* Phone: the menu, the title and the actions on the first line, the search across the second.
+   The theme and the account move to the menu. */
+@media (max-width: 720px) {
+    .bar {
+        position: static;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-3);
+        padding: var(--space-2) var(--space-4);
+    }
+
+    .menuButton {
+        display: inline-flex;
+    }
+
+    .where {
+        flex: 1 1 0;
+    }
+
+    .eyebrow {
+        display: none;
+    }
+
+    .title {
+        font-size: var(--text-lg);
+    }
+
+    .search {
+        order: 3;
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .theme,
+    .account {
+        display: none;
+    }
+
+    .create {
+        width: var(--touch-target);
+        height: var(--touch-target);
+    }
+}

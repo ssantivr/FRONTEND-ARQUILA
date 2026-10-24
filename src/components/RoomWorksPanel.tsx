@@ -10,11 +10,12 @@ import type {
     WorkStatus,
 } from "../types/api";
 import { formatMoney } from "../utils/format";
+import { LiveForm } from "./ui/LiveForm";
 
 export const WORK_LAYERS: { id: SpatialLayer; label: string; swatch: string }[] = [
-    { id: "structure", label: "Estructura", swatch: "#00f0ff" },
-    { id: "installations", label: "Instalaciones", swatch: "#ff007f" },
-    { id: "finishes", label: "Acabados", swatch: "#ffc857" },
+    { id: "structure", label: "Estructura", swatch: "var(--neon-cyan)" },
+    { id: "installations", label: "Instalaciones", swatch: "var(--neon-magenta)" },
+    { id: "finishes", label: "Acabados", swatch: "var(--work-finishes)" },
 ];
 
 export const WORK_STATUS_LABELS: Record<WorkStatus, string> = {
@@ -30,7 +31,7 @@ const LOG_STATUSES: { id: RenovationStatus; label: string }[] = [
     { id: "cancelled", label: "Cancelada" },
 ];
 
-const DEMOLITION_SWATCH = "#ff5c7a";
+const DEMOLITION_SWATCH = "var(--work-demolition)";
 
 export function layerLabel(layer: SpatialLayer): string {
     return WORK_LAYERS.find((item) => item.id === layer)?.label ?? layer;
@@ -201,7 +202,7 @@ export function RoomWorksPanel({
                     );
                 })}
             </ul>
-            <form className="hud-works-form" onSubmit={addLog}>
+            <LiveForm className="hud-works-form" onSubmit={addLog}>
                 <input
                     aria-label="Nueva obra"
                     placeholder="Nueva obra…"
@@ -227,7 +228,7 @@ export function RoomWorksPanel({
                 >
                     Agregar obra
                 </button>
-            </form>
+            </LiveForm>
             {error !== null && (
                 <p className="message message-error" role="alert">
                     {error}

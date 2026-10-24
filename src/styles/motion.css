@@ -1,0 +1,384 @@
+/*
+ * Motion. Every curve, keyframe and timing rule of the interface lives here; the other style
+ * sheets and the components only name them. Movement explains a change (what appeared, what
+ * moved, what was saved): it animates `transform` and `opacity` only, so nothing shifts the layout.
+ *
+ * Durations are in tokens.css: --dur-fast 120 ms (hover, focus, press), --dur 180 ms (panels,
+ * menus, tooltips) and --dur-slow 240 ms (dialogs, screen changes). Nothing of the interface runs
+ * longer; only a presentation (--dur-show: a chart or a model drawing itself in) may.
+ */
+
+:root {
+    /* Entrances decelerate, exits accelerate, and moves between two states do both. */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+    /* Presentations, loops that mean «working», and the delay between the items of a list. */
+    --dur-show: 600ms;
+    --dur-spin: 700ms;
+    --dur-shimmer: 1400ms;
+    --stagger: 35ms;
+    --shift: 8px;
+}
+
+/* ---- Keyframes shared by the whole app ---- */
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+/* A screen, a panel or an item arriving: it fades in while rising 8 px. */
+@keyframes rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--shift));
+    }
+}
+
+/* Dialogs, menus and tooltips: they grow from 96 % while fading in, and leave faster. */
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+@keyframes scale-out {
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+/* The same for a window centred with translate(-50%, -50%), which must keep that offset. */
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+}
+
+@keyframes dialog-out {
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+}
+
+/* And for the command palette, centred on one axis only. */
+@keyframes palette-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.96);
+    }
+}
+
+@keyframes palette-out {
+    to {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.96);
+    }
+}
+
+/* Toasts and side sheets come in from their edge and leave through it. */
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+}
+
+@keyframes slide-out-right {
+    to {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+}
+
+@keyframes slide-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+}
+
+@keyframes slide-out-down {
+    to {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+}
+
+@keyframes slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+}
+
+@keyframes slide-out-left {
+    to {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+}
+
+/* A bar that grows from its left end (progress, the mark under a title, a chart bar). */
+@keyframes grow-in {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/* The same, upwards: a wall of the logo rising at the entry of the app. */
+@keyframes grow-in-y {
+    from {
+        transform: scaleY(0);
+    }
+}
+
+/* The time a toast has left: its bar empties towards the left. */
+@keyframes run-out {
+    to {
+        transform: scaleX(0);
+    }
+}
+
+/* A field that was not accepted shakes once. */
+@keyframes shake {
+    20% {
+        transform: translateX(-4px);
+    }
+
+    40% {
+        transform: translateX(4px);
+    }
+
+    60% {
+        transform: translateX(-3px);
+    }
+
+    80% {
+        transform: translateX(2px);
+    }
+}
+
+/* The check that replaces «Guardando…» pops in. */
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+}
+
+/* A line of a drawing traces itself; the element sets --line-length to its own length. */
+@keyframes draw-line {
+    from {
+        stroke-dashoffset: var(--line-length, 100);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* The volumes of the logo light up one after the other while something loads. */
+@keyframes piece-pulse {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+
+    40% {
+        opacity: 1;
+    }
+}
+
+/* A volume of the logo drops into place when the mark assembles. */
+@keyframes piece-drop {
+    from {
+        opacity: 0;
+        transform: translateY(-14px);
+    }
+}
+
+/* A selection outline traces itself around what was chosen. */
+@keyframes trace {
+    from {
+        stroke-dashoffset: var(--line-length, 1);
+    }
+}
+
+@keyframes shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+/* ---- Ready-made uses ---- */
+
+/* Items of a list arrive one after another. Only the first eight are delayed. */
+.motion-stagger > * {
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+}
+
+.motion-stagger > :nth-child(2) {
+    animation-delay: calc(var(--stagger) * 1);
+}
+
+.motion-stagger > :nth-child(3) {
+    animation-delay: calc(var(--stagger) * 2);
+}
+
+.motion-stagger > :nth-child(4) {
+    animation-delay: calc(var(--stagger) * 3);
+}
+
+.motion-stagger > :nth-child(5) {
+    animation-delay: calc(var(--stagger) * 4);
+}
+
+.motion-stagger > :nth-child(6) {
+    animation-delay: calc(var(--stagger) * 5);
+}
+
+.motion-stagger > :nth-child(7) {
+    animation-delay: calc(var(--stagger) * 6);
+}
+
+.motion-stagger > :nth-child(8) {
+    animation-delay: calc(var(--stagger) * 7);
+}
+
+.motion-stagger > :nth-child(n + 9) {
+    animation: none;
+}
+
+/* Content that replaces its loading placeholder fades in. */
+.motion-fade {
+    animation: fade-in var(--dur) var(--ease-out) both;
+}
+
+.motion-shake {
+    animation: shake var(--dur-slow) var(--ease-in-out) 1;
+}
+
+.motion-pop {
+    animation: pop-in var(--dur) var(--ease-out) both;
+}
+
+/*
+ * ---- Generated plans ----
+ * The first time a plan is on screen its axes fade in and its dimension lines trace themselves
+ * (each line has pathLength 1). Only on screen: a downloaded or printed plan carries no style
+ * sheet, so it is always complete.
+ */
+@media screen {
+    .plan-axes {
+        animation: fade-in var(--dur-show) var(--ease-out) backwards;
+    }
+
+    .plan-dimensions line {
+        --line-length: 1;
+
+        stroke-dasharray: 1;
+        animation: draw-line var(--dur-show) var(--ease-in-out) backwards;
+    }
+}
+
+/*
+ * ---- Change of route ----
+ * Where the browser has view transitions, only the content area crosses over: the header, the
+ * navigation and the rest of the window stay still. The old content fades out quickly and the
+ * new one fades in; the 8 px rise of the new screen is its own animation (`.content > *` in
+ * features.css), which is also all the back button and the other browsers get.
+ */
+.content {
+    view-transition-name: content;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
+
+::view-transition-old(content) {
+    animation: fade-out var(--dur-fast) var(--ease-in) both;
+}
+
+::view-transition-new(content) {
+    animation: fade-in var(--dur) var(--ease-out) both;
+}
+/*
+ * ---- Change of theme ----
+ * The browser takes a picture of the page in the old colours and one in the new, and the two
+ * cross-fade: only their opacity changes, never a colour of the page. The content area has its
+ * own pictures, which already cross-fade (above). Without view transitions, or with reduced
+ * motion, theme.ts changes the colours at once.
+ */
+html[data-theme-switching]::view-transition-old(root) {
+    animation: fade-out var(--dur) var(--ease-in-out) both;
+}
+
+html[data-theme-switching]::view-transition-new(root) {
+    animation: fade-in var(--dur) var(--ease-in-out) both;
+}
+
+/* ---- Pressing a control ---- */
+
+:is(button, .button, [role="button"]):active:not(:disabled, [aria-disabled="true"]) {
+    scale: 0.98;
+}
+
+/*
+ * ---- Less movement ----
+ * When the system asks for it, or the user turns movement off in Configuración, nothing moves:
+ * animations and transitions end at once, in their final state. Loops that only mean «working»
+ * stop too. This is the single switch; no component needs its own.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        /* No transition at all: a tiny duration would turn every change of every property into
+           one (the initial transition-property is "all"), and a size read mid-way could stick. */
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
+:is([data-motion="reduced"], [data-motion="off"]) *,
+:is([data-motion="reduced"], [data-motion="off"]) *::before,
+:is([data-motion="reduced"], [data-motion="off"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+}
+
+:is([data-motion="reduced"], [data-motion="off"])::view-transition-group(*),
+:is([data-motion="reduced"], [data-motion="off"])::view-transition-old(*),
+:is([data-motion="reduced"], [data-motion="off"])::view-transition-new(*) {
+    animation: none !important;
+}

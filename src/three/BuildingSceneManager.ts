@@ -25,16 +25,20 @@ import {
     LineSegments,
     Material,
     MathUtils,
+    Matrix4,
     Mesh,
     MeshBasicMaterial,
     MeshPhysicalMaterial,
     MeshStandardMaterial,
+    OrthographicCamera,
     Object3D,
     PCFShadowMap,
     PMREMGenerator,
     PerspectiveCamera,
     Plane,
     PointLight,
+    Points,
+    PointsMaterial,
     Raycaster,
     RepeatWrapping,
     Scene,
@@ -50,6 +54,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 
+import { prefersReducedMotion } from "../state/motion";
 import type {
     RoofKind,
     SpatialElement,
@@ -76,23 +81,25 @@ import {
     type ElementSurfaces,
 } from "../utils/surfaceMaterials";
 import { createCameraRig, type ViewName } from "./cameraRig";
+import { disposeObject } from "./dispose";
 import { createPostprocessing } from "./postprocessing";
+import { buildPatterns, disposePatterns, type Pattern } from "./patterns";
 import { buildFlatRoof, buildRoomShell, applyMetricUVs } from "./roomGeometry";
 import { buildTrees, type TreeSpot } from "./vegetation";
 
-const HOVER_COLOR = 0x4a90c2;
-const SELECTION_COLOR = 0x00f0ff;
+const HOVER_COLOR = 0x3f8f5f;
+const SELECTION_COLOR = 0xb8f36b;
 const OUTLINE_WIDTH_PX = 3;
-const TERRAIN_COLOR = 0x4a7d55;
-const ROOF_COLOR = 0xb0655a;
+const TERRAIN_COLOR = 0x5d8a4e;
+const ROOF_COLOR = 0x8a4f43;
 const SLAB_COLOR = 0xb9c0c8;
-const GLASS_COLOR = 0x9fc4dc;
+const GLASS_COLOR = 0x7fb4dc;
 const FRAME_COLOR = 0x1c1f24;
 const DOOR_COLOR = 0x4a3526;
 const CYAN_ACCENT = 0x00f0ff;
 const MAGENTA_ACCENT = 0xff007f;
-const ENVIRONMENT_INTENSITY = 0.3;
-const SHADOW_RADIUS = 3;
+const SHADOW_RADIUS = 4;
+const PATTERN_BUMP = 1.4;
 const GRAIN_SIZE_PX = 128;
 const GRAIN_TILE_M = 1.5;
 const GRAIN_BUMP = 2;
@@ -100,8 +107,12 @@ const NEON_BOOST = 3;
 const LOT_EDGE_BOOST = 1.5;
 const LOT_EDGE_WIDTH_PX = 2;
 const BLOOM_STRENGTH = 0.55;
-const WINDOW_GLOW = 0.5;
-const SKY_FALLOFF = 0.35;
+const AMBIENT_SHARE = 0.28;
+const SKY_FALLOFF = 0.55;
+const SKY_GLOW_HEIGHT = 0.035;
+const STAR_COUNT = 700;
+const STAR_SIZE_PX = 1.6;
+const WINDOW_LIGHT = 0xffc27a;
 const SKY_RADIUS_FACTOR = 20;
 const GROUND_RADIUS_FACTOR = 8;
 const FOG_DEPTH_FACTOR = 5;
@@ -124,9 +135,14 @@ const OVERLAY_OPACITY: Record<WorkStatus, number> = {
 };
 const OVERLAY_GLOW = 0.7;
 const OVERLAY_RENDER_ORDER = 2;
+// A plinth thinner than this would only flicker against the floor slab.
+const PLINTH_MIN_M = 0.05;
 const EXPLODE_GAP_M = 3.5;
 const EXPLODE_RATE = 8;
 const EXPLODE_REST = 0.002;
+// The first time a model is shown its levels start a quarter apart and settle into place. With
+// the damping above that takes about 600 ms, the longest a presentation may last.
+const ENTRANCE_EXPLODE = 0.25;
 const MAX_FRAME_S = 0.1;
 const LEVEL_TOLERANCE_M = 0.05;
 const INSPECT_POLAR = 0.75;
@@ -135,14 +151,31 @@ const GAZE_HEIGHT_M = 1.2;
 const INTERIOR_INSET_M = 0.6;
 const SLAB_THICKNESS_M = 0.3;
 const FIELD_OF_VIEW = 45;
+
 const MAX_PIXEL_RATIO = 2;
 const SHADOW_MAP_SIZE = 2048;
 const CLICK_TOLERANCE_PX = 4;
 const SURFACE_GAP_M = 0.02;
 const TREE_SPACING_M = 4.5;
 const LIGHT_DIRECTION = new Vector3(-0.5, 1, 0.6).normalize();
+const UP_AXIS = new Vector3(0, 1, 0);
+const STILL_SUN_SPREAD = 0.024;
+
+/** Low-discrepancy sequence: spreads the samples of a still evenly inside the pixel. */
+function halton(index: number, base: number): number {
+    let result = 0;
+    let fraction = 1 / base;
+
+    for (let rest = index; rest > 0; rest = Math.floor(rest / base)) {
+        result += fraction * (rest % base);
+        fraction /= base;
+    }
+
+    return result;
+}
 
 export type { ViewName };
+export type Projection = "perspective" | "orthographic";
 export type LayerName = "rooms" | "roof" | "environment" | "grid";
 export type Layers = Record<LayerName, boolean>;
 export type OverlayLayers = Record<SpatialLayer, boolean>;
@@ -161,26 +194,57 @@ export interface ScenePalette {
     axis: number;
     accent: number;
     glow: number;
+    horizon: number;
+    sun: number;
+    sunPower: number;
+    skyLight: number;
+    skyPower: number;
+    reflections: number;
+    windowGlow: number;
+    glassOpacity: number;
+    gridOpacity: number;
+    stars: boolean;
 }
 
 export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
     light: {
-        sky: 0xb7d3ee,
-        fog: 0xeef2f6,
-        ground: 0xdde3d8,
-        grid: 0xc2cabf,
-        axis: 0xc2cabf,
+        sky: 0x5f9fde,
+        fog: 0xe8ede6,
+        ground: 0xe1e6dd,
+        grid: 0xb4bbb2,
+        axis: 0x9aa39a,
         accent: 0,
         glow: 0,
+        horizon: 0xf7eedf,
+        sun: 0xffeccf,
+        sunPower: 3.4,
+        skyLight: 0xcfe2ff,
+        skyPower: 0.62,
+        reflections: 0.5,
+        windowGlow: 0,
+        glassOpacity: 0.5,
+        gridOpacity: 0.45,
+        stars: false,
     },
+    // Night: moonlight, lit windows and a dusk glow on the horizon.
     dark: {
-        sky: 0x10131f,
-        fog: 0x090a0f,
-        ground: 0x0b0d14,
-        grid: 0x1b2030,
-        axis: 0x0d5a63,
-        accent: 1.4,
+        sky: 0x030a08,
+        fog: 0x07140f,
+        ground: 0x0a1a13,
+        grid: 0x183a2b,
+        axis: 0x2f6b4a,
+        accent: 0,
         glow: 1,
+        horizon: 0x14463a,
+        sun: 0x9fb6ff,
+        sunPower: 1.15,
+        skyLight: 0x3a4a80,
+        skyPower: 0.4,
+        reflections: 0.14,
+        windowGlow: 2.6,
+        glassOpacity: 0.92,
+        gridOpacity: 0.7,
+        stars: true,
     },
 };
 
@@ -191,8 +255,11 @@ export interface StructureViewer {
     setSurfaces: (surfaces: ElementSurfaces) => void;
     setRoof: (roof: RoofKind) => void;
     setLayers: (layers: Layers) => void;
+    setHidden: (keys: ReadonlySet<string>) => void;
     setPalette: (palette: ScenePalette) => void;
     setView: (view: ViewName) => void;
+    /** Width covered by panels over each side of the scene, so framing leaves the model clear. */
+    setFrameInsets: (left: number, right: number) => void;
     isolate: (key: string | null) => void;
     setCutaway: (fraction: number) => void;
     setHighlight: (keys: ReadonlySet<string> | null) => void;
@@ -203,13 +270,49 @@ export interface StructureViewer {
     setAsset: (url: string | null) => void;
     focus: (key: string | null, azimuth?: number) => void;
     zoomBy: (factor: number) => void;
+    /**
+     * Turns the sun around the model; 0 is its default bearing. With an elevation, in degrees
+     * above the horizon, it also raises or lowers it.
+     */
+    setSun: (degrees: number, elevation?: number) => void;
+    /** Tone mapping exposure; 1 is the default. */
+    setExposure: (exposure: number) => void;
+    setShadows: (enabled: boolean) => void;
+    /** Draws the current view and returns it as a PNG data URL. */
+    capture: () => string;
+    /**
+     * Draws the current view at another size, as the average of several frames, and returns it
+     * on a canvas; `null` if it was cancelled.
+     */
+    renderStill: (job: StillJob) => Promise<HTMLCanvasElement | null>;
+    /** Longest side, in pixels, of an image or shadow map this device can draw. */
+    maxImageSize: number;
+    /** Switches between the perspective camera and a real orthographic one, keeping the framing. */
+    setProjection: (projection: Projection) => void;
     dispose: () => void;
+}
+
+export interface StillJob {
+    width: number;
+    height: number;
+    /**
+     * Frames averaged into the image: each one shifts the camera a fraction of a pixel and the
+     * sun a fraction of a degree, which smooths the edges and softens the shadows.
+     */
+    samples: number;
+    shadowMapSize: number;
+    onProgress: (done: number, total: number) => void;
+    signal?: AbortSignal;
 }
 
 export interface ViewerEvents {
     onSelect: (key: string | null) => void;
     onZoom: (percent: number) => void;
+    /** Where the camera looks, in whole degrees: around the vertical axis, and above the horizon. */
+    onOrbit: (azimuth: number, elevation: number) => void;
     onAsset: (state: "ready" | "error") => void;
+    /** The browser took the graphics context away (driver reset, too many contexts, sleep). */
+    onContextLost?: () => void;
 }
 
 export { elementKey };
@@ -275,24 +378,73 @@ function buildGrain(): DataTexture {
     return texture;
 }
 
+function buildStars(radius: number): Points {
+    const positions = new Float32Array(STAR_COUNT * 3);
+    const point = new Vector3();
+    let seed = 11;
+    const random = () => {
+        seed = (seed * 16807) % 2147483647;
+
+        return seed / 2147483647;
+    };
+
+    for (let index = 0; index < STAR_COUNT; index += 1) {
+        point
+            .setFromSphericalCoords(
+                radius,
+                Math.acos(0.12 + 0.88 * random()),
+                random() * Math.PI * 2,
+            )
+            .toArray(positions, index * 3);
+    }
+
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(positions, 3));
+
+    return new Points(
+        geometry,
+        new PointsMaterial({
+            color: 0xdfe8ff,
+            size: STAR_SIZE_PX,
+            sizeAttenuation: false,
+            transparent: true,
+            opacity: 0.75,
+            fog: false,
+            depthWrite: false,
+        }),
+    );
+}
+
+/** Sky dome: the fog colour at the horizon line, a band of glow just above it, then the zenith. */
 function buildSky(palette: ScenePalette, radius: number): Mesh {
-    const geometry = new SphereGeometry(radius, 32, 24);
+    const geometry = new SphereGeometry(radius, 48, 96);
     const positions = geometry.getAttribute("position");
     const colors = new Float32Array(positions.count * 3);
-    const horizon = new Color(palette.fog);
+    const ground = new Color(palette.fog);
+    const horizon = new Color(palette.horizon);
     const sky = new Color(palette.sky);
     const mixed = new Color();
 
     for (let index = 0; index < positions.count; index += 1) {
         const height = Math.max(positions.getY(index) / radius, 0);
 
-        mixed.copy(horizon).lerp(sky, Math.pow(height, SKY_FALLOFF));
+        if (height < SKY_GLOW_HEIGHT) {
+            mixed.copy(ground).lerp(horizon, height / SKY_GLOW_HEIGHT);
+        } else {
+            mixed
+                .copy(horizon)
+                .lerp(
+                    sky,
+                    Math.pow((height - SKY_GLOW_HEIGHT) / (1 - SKY_GLOW_HEIGHT), SKY_FALLOFF),
+                );
+        }
+
         mixed.toArray(colors, index * 3);
     }
 
     geometry.setAttribute("color", new BufferAttribute(colors, 3));
 
-    return new Mesh(
+    const dome = new Mesh(
         geometry,
         new MeshBasicMaterial({
             vertexColors: true,
@@ -302,6 +454,12 @@ function buildSky(palette: ScenePalette, radius: number): Mesh {
             depthWrite: false,
         }),
     );
+
+    if (palette.stars) {
+        dome.add(buildStars(radius * 0.98));
+    }
+
+    return dome;
 }
 
 function standard(color: number, roughness: number, metalness = 0): MeshStandardMaterial {
@@ -313,6 +471,17 @@ function standard(color: number, roughness: number, metalness = 0): MeshStandard
         polygonOffsetFactor: 1,
         polygonOffsetUnits: 1,
     });
+}
+
+/** A white material that shows a generated pattern: its colours come from the map. */
+function patterned(pattern: Pattern, roughness: number): MeshStandardMaterial {
+    const material = standard(0xffffff, roughness);
+
+    material.map = pattern.map;
+    material.bumpMap = pattern.bump;
+    material.bumpScale = PATTERN_BUMP;
+
+    return material;
 }
 
 function buildMaterial(element: StructureElement): MeshStandardMaterial {
@@ -334,7 +503,81 @@ function buildMaterial(element: StructureElement): MeshStandardMaterial {
     return standard(surface.color, surface.roughness, surface.metalness);
 }
 
-function buildTerrain(terrain: StructureTerrain): Mesh {
+/**
+ * Height of the ground of a terrain at a depth of the plan (`y`, in metres from the front of the
+ * lot). The terrain is a plane that slopes along its depth, as in the terrain diagrams, and it
+ * meets level 0 at `pivot`.
+ */
+function groundHeight(terrain: StructureTerrain, pivot: number, y: number): number {
+    return ((y - pivot) * (terrain.slope_percent ?? 0)) / 100;
+}
+
+/**
+ * The depth at which the ground meets level 0. With a building it is its back wall: the floor
+ * is level, the ground falls away under it towards the front (where a plinth fills the gap) and
+ * rises behind it, so the building is never buried. Without one it is the front of the lots.
+ */
+function slopePivot(structure: Structure): number {
+    const built = structure.rooms.map(rectOf);
+
+    if (built.length > 0) {
+        return unionOf(built).maxY;
+    }
+
+    const depths = structure.terrains.flatMap((terrain) =>
+        terrain.outline.map((point) => point.y_m),
+    );
+
+    return depths.length === 0 ? 0 : Math.min(...depths);
+}
+
+/** How far below level 0 the lowest corner of the lots is; 0 on flat ground. */
+function lowestGround(structure: Structure, pivot: number): number {
+    const heights = structure.terrains.flatMap((terrain) =>
+        terrain.outline.map((point) => groundHeight(terrain, pivot, point.y_m)),
+    );
+
+    return Math.max(0, -Math.min(0, ...heights));
+}
+
+/**
+ * The plinth that holds the ground floor level where the ground falls away under it: under each
+ * room of the lowest level, a block from the floor down to the ground at the front of that room.
+ * One block per room, so a floor plan that is not a rectangle gets no plinth where it has no
+ * room. `null` on flat ground.
+ */
+function buildPlinth(structure: Structure, pivot: number): Group | null {
+    const terrain = structure.terrains[0];
+    const lowest = Math.min(...structure.rooms.map((room) => room.base_m));
+    const plinth = new Group();
+
+    if (terrain === undefined) {
+        return null;
+    }
+
+    for (const area of structure.rooms.filter((room) => room.base_m === lowest).map(rectOf)) {
+        const depth = -groundHeight(terrain, pivot, area.minY);
+
+        if (depth >= PLINTH_MIN_M) {
+            const block = new Mesh(
+                new BoxGeometry(area.maxX - area.minX, depth, area.maxY - area.minY),
+                standard(SLAB_COLOR, 0.9),
+            );
+
+            block.position.set(
+                (area.minX + area.maxX) / 2,
+                -depth / 2,
+                -(area.minY + area.maxY) / 2,
+            );
+            block.castShadow = true;
+            block.receiveShadow = true;
+            plinth.add(block);
+        }
+    }
+
+    return plinth.children.length === 0 ? null : plinth;
+}
+function buildTerrain(terrain: StructureTerrain, grass: Pattern, pivot: number): Mesh {
     const shape = new Shape();
 
     terrain.outline.forEach((point, index) => {
@@ -349,7 +592,25 @@ function buildTerrain(terrain: StructureTerrain): Mesh {
     geometry.rotateX(-Math.PI / 2);
     geometry.translate(0, -SLAB_THICKNESS_M, 0);
 
-    const mesh = new Mesh(geometry, standard(TERRAIN_COLOR, 0.95));
+    // The slab is sheared, not rotated: every vertex keeps its place on the plan and only its
+    // height changes with its depth, so the outline still matches the plans.
+    if ((terrain.slope_percent ?? 0) !== 0) {
+        const position = geometry.getAttribute("position");
+
+        for (let index = 0; index < position.count; index += 1) {
+            position.setY(
+                index,
+                position.getY(index) + groundHeight(terrain, pivot, -position.getZ(index)),
+            );
+        }
+
+        position.needsUpdate = true;
+        geometry.computeVertexNormals();
+    }
+
+    applyMetricUVs(geometry);
+
+    const mesh = new Mesh(geometry, patterned(grass, 0.95));
     mesh.receiveShadow = true;
 
     return mesh;
@@ -391,10 +652,10 @@ function buildSharedMaterials(): SharedMaterials {
                 transparent: true,
                 opacity: 0.4,
                 roughness: 0.08,
-                metalness: 0.8,
+                metalness: 0.25,
                 clearcoat: 1,
                 clearcoatRoughness: 0.05,
-                emissive: CYAN_ACCENT,
+                emissive: WINDOW_LIGHT,
                 emissiveIntensity: 0,
                 depthWrite: false,
             }),
@@ -504,7 +765,7 @@ function buildOverlay(item: SpatialElement): OverlayMesh {
     return mesh;
 }
 
-function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
+function buildRoof(rooms: StructureRoom[], kind: RoofKind, tiles: Pattern): Mesh | null {
     const shape = roofShape(rooms, kind);
 
     if (shape === null) {
@@ -538,7 +799,19 @@ function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
         geometry.rotateY(Math.PI / 2);
     }
 
-    const mesh = new Mesh(geometry, standard(ROOF_COLOR, 0.8));
+    applyMetricUVs(geometry);
+
+    // The courses of tiles must run along the ridge. With the ridge along z they would run down
+    // the slope instead, so the two texture coordinates swap places.
+    if (!shape.alongX) {
+        const uv = geometry.getAttribute("uv");
+
+        for (let index = 0; index < uv.count; index += 1) {
+            uv.setXY(index, uv.getY(index), uv.getX(index));
+        }
+    }
+
+    const mesh = new Mesh(geometry, patterned(tiles, 0.82));
     mesh.position.set(...center);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -552,8 +825,9 @@ function buildRoof(rooms: StructureRoom[], kind: RoofKind): Mesh | null {
     return mesh;
 }
 
-function buildEnvironment(structure: Structure): Group {
+function buildEnvironment(structure: Structure, pivot: number): Group {
     const planted: TreeSpot[] = [];
+    const heights: number[] = [];
     const blocked = [...structure.rooms, ...structure.components].map(rectOf);
 
     for (const terrain of structure.terrains) {
@@ -586,21 +860,49 @@ function buildEnvironment(structure: Structure): Group {
 
             if (clear && insidePolygon(x, y, terrain.outline)) {
                 planted.push({ x, y });
+                heights.push(groundHeight(terrain, pivot, y));
             }
         }
     }
 
-    return buildTrees(planted);
+    const trees = buildTrees(planted);
+
+    // The trees are planted on level ground by their builder; each one is then moved to the
+    // height of the slope where it stands.
+    if (heights.some((height) => height !== 0)) {
+        const placement = new Matrix4();
+
+        trees.traverse((child) => {
+            if (child instanceof InstancedMesh) {
+                heights.forEach((height, index) => {
+                    child.getMatrixAt(index, placement);
+                    placement.elements[13] += height;
+                    child.setMatrixAt(index, placement);
+                });
+                child.instanceMatrix.needsUpdate = true;
+            }
+        });
+    }
+
+    return trees;
 }
 
-function buildLotEdges(terrains: StructureTerrain[], material: LineMaterial): Group {
+function buildLotEdges(terrains: StructureTerrain[], material: LineMaterial, pivot: number): Group {
     const edges = new Group();
 
-    for (const { outline } of terrains) {
+    for (const terrain of terrains) {
+        const { outline } = terrain;
         const positions = outline.flatMap((point, index) => {
             const next = outline[(index + 1) % outline.length];
 
-            return [point.x_m, SURFACE_GAP_M, -point.y_m, next.x_m, SURFACE_GAP_M, -next.y_m];
+            return [
+                point.x_m,
+                SURFACE_GAP_M + groundHeight(terrain, pivot, point.y_m),
+                -point.y_m,
+                next.x_m,
+                SURFACE_GAP_M + groundHeight(terrain, pivot, next.y_m),
+                -next.y_m,
+            ];
         });
 
         edges.add(new LineSegments2(new LineSegmentsGeometry().setPositions(positions), material));
@@ -623,27 +925,6 @@ function clip(root: Object3D, planes: Plane[]): void {
     });
 }
 
-function disposeMaterial(material: Material | Material[]): void {
-    for (const item of Array.isArray(material) ? material : [material]) {
-        if (item.userData.shared !== true) {
-            item.dispose();
-        }
-    }
-}
-
-function disposeObject(root: Object3D): void {
-    root.traverse((child) => {
-        if (child instanceof Mesh || child instanceof LineSegments) {
-            child.geometry.dispose();
-            disposeMaterial(child.material);
-        }
-
-        if (child instanceof InstancedMesh) {
-            child.dispose();
-        }
-    });
-}
-
 export function createStructureViewer(
     container: HTMLElement,
     events: ViewerEvents,
@@ -651,6 +932,8 @@ export function createStructureViewer(
     const renderer = new WebGLRenderer({ antialias: true });
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true;
     renderer.toneMapping = ACESFilmicToneMapping;
     renderer.localClippingEnabled = true;
     container.append(renderer.domElement);
@@ -663,9 +946,20 @@ export function createStructureViewer(
     scene.fog = fog;
 
     const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 0.1, 1000);
+    // The orbit controls keep driving the perspective camera. The orthographic one follows it and
+    // is the camera that draws and picks while that projection is on.
+    const orthographic = new OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
+    let projection: Projection = "perspective";
 
+    const gaze = new Vector3();
+    let lastOrbit = "";
     const rig = createCameraRig(camera, canvas, handleCameraChange);
-    const post = createPostprocessing(renderer, scene, camera);
+    const cutPlane = new Plane(new Vector3(0, -1, 0), CUT_DISABLED_M);
+    const cutPlanes = [cutPlane];
+    const post = createPostprocessing(renderer, scene, camera, {
+        occlusion: true,
+        clippingPlanes: cutPlanes,
+    });
 
     const pmrem = new PMREMGenerator(renderer);
     const room = new RoomEnvironment();
@@ -673,9 +967,9 @@ export function createStructureViewer(
     room.dispose();
     pmrem.dispose();
     scene.environment = environmentMap.texture;
-    scene.environmentIntensity = ENVIRONMENT_INTENSITY;
+    scene.environmentIntensity = palette.reflections;
 
-    const sun = new DirectionalLight(0xfff4e0, 2.6);
+    const sun = new DirectionalLight(palette.sun, palette.sunPower);
     sun.castShadow = true;
     sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
     sun.shadow.bias = -0.0005;
@@ -684,21 +978,15 @@ export function createStructureViewer(
 
     const cyanAccent = new PointLight(CYAN_ACCENT, palette.accent, 0, 0);
     const magentaAccent = new PointLight(MAGENTA_ACCENT, palette.accent, 0, 0);
-    scene.add(
-        new AmbientLight(0xffffff, 0.2),
-        new HemisphereLight(0xbfd9ff, 0x2a3326, 0.6),
-        sun,
-        sun.target,
-        cyanAccent,
-        magentaAccent,
-    );
+    const ambient = new AmbientLight(0xffffff, 0.2);
+    const skyLight = new HemisphereLight(palette.skyLight, 0x2a3326, palette.skyPower);
+    scene.add(ambient, skyLight, sun, sun.target, cyanAccent, magentaAccent);
 
     const grain = buildGrain();
+    const patterns = buildPatterns(ROOF_COLOR, TERRAIN_COLOR);
     const materials = buildSharedMaterials();
     const outlineMaterial = shared(new LineMaterial({ linewidth: OUTLINE_WIDTH_PX }));
     const lotEdgeMaterial = shared(new LineMaterial({ linewidth: LOT_EDGE_WIDTH_PX }));
-    const cutPlane = new Plane(new Vector3(0, -1, 0), CUT_DISABLED_M);
-    const cutPlanes = [cutPlane];
     outlineMaterial.clippingPlanes = cutPlanes;
     const raycaster = new Raycaster();
     const pointer = new Vector2();
@@ -715,6 +1003,8 @@ export function createStructureViewer(
     let sky: Mesh | null = null;
     let layers: Layers = { rooms: true, roof: true, environment: true, grid: true };
     let selectedKey: string | null = null;
+    let hidden: ReadonlySet<string> = new Set();
+    const lightDirection = LIGHT_DIRECTION.clone();
     let colors: ElementColors | null = null;
     let surfaces: ElementSurfaces = {};
     let roofKind: RoofKind = "gable";
@@ -732,18 +1022,24 @@ export function createStructureViewer(
     let levelBases: number[] = [];
     let explodeTarget = 0;
     let explodeCurrent = 0;
+    let entered = false;
+    // How far the lowest corner of the lots is under level 0: the ground plane goes below it.
+    let groundDrop = 0;
     let lastFrame = 0;
     let asset: Object3D | null = null;
     let assetRequest = 0;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let framed = false;
+    let insetLeft = 0;
+    let insetRight = 0;
     let pressX = 0;
     let pressY = 0;
     let lastZoom = 0;
     let viewport = "";
     let dirty = true;
+    let stillRunning = false;
 
     function invalidate(): void {
+        renderer.shadowMap.needsUpdate = true;
         dirty = true;
     }
 
@@ -751,9 +1047,20 @@ export function createStructureViewer(
         const reach = rig.distance();
 
         dirty = false;
+        syncOrthographic();
         fog.near = reach + bounds.radius;
         fog.far = reach + bounds.radius * FOG_DEPTH_FACTOR;
         post.render();
+    }
+
+    function applySize(width: number, height: number, pixelRatio: number): void {
+        renderer.setPixelRatio(pixelRatio);
+        renderer.setSize(width, height, false);
+        post.setSize(width, height, pixelRatio);
+        outlineMaterial.resolution.set(width, height);
+        lotEdgeMaterial.resolution.set(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
     }
 
     function resize(): void {
@@ -762,18 +1069,14 @@ export function createStructureViewer(
         const pixelRatio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
         const next = `${width}x${height}@${pixelRatio}`;
 
-        if (width === 0 || height === 0 || next === viewport) {
+        // A still owns the drawing buffer until it ends; it calls this again when it does.
+        if (stillRunning || width === 0 || height === 0 || next === viewport) {
             return;
         }
 
         viewport = next;
-        renderer.setPixelRatio(pixelRatio);
-        renderer.setSize(width, height, false);
-        post.setSize(width, height, pixelRatio);
-        outlineMaterial.resolution.set(width, height);
-        lotEdgeMaterial.resolution.set(width, height);
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
+        applySize(width, height, pixelRatio);
+        applyFill();
 
         if (model !== null) {
             fitLimits();
@@ -792,10 +1095,29 @@ export function createStructureViewer(
         }
     }
 
+    function applyFill(): void {
+        const width = container.clientWidth;
+
+        if (width > 0) {
+            rig.setFill((width - insetLeft - insetRight) / width);
+        }
+    }
+
+    function setFrameInsets(left: number, right: number): void {
+        insetLeft = Math.max(0, left);
+        insetRight = Math.max(0, right);
+        applyFill();
+
+        if (model !== null) {
+            fitLimits();
+            reportZoom();
+        }
+    }
+
     function fitLimits(): void {
         rig.fit(bounds);
 
-        sun.position.copy(bounds.center).addScaledVector(LIGHT_DIRECTION, bounds.radius * 2);
+        placeSun();
         sun.target.position.copy(bounds.center);
         sun.shadow.camera.left = -bounds.radius;
         sun.shadow.camera.right = bounds.radius;
@@ -811,6 +1133,10 @@ export function createStructureViewer(
         magentaAccent.position
             .copy(bounds.center)
             .add(new Vector3(1.2, 0.35, -1).multiplyScalar(bounds.radius));
+    }
+
+    function placeSun(): void {
+        sun.position.copy(bounds.center).addScaledVector(lightDirection, bounds.radius * 2);
     }
 
     function setView(view: ViewName): void {
@@ -839,33 +1165,48 @@ export function createStructureViewer(
         for (const mesh of elements) {
             const key = mesh.userData.key as string;
 
-            const surface =
-                SURFACE_MATERIALS[
-                    surfaceOf(surfaces, key, mesh.userData.kind as StructureElement["kind"])
-                ];
+            const surfaceId = surfaceOf(
+                surfaces,
+                key,
+                mesh.userData.kind as StructureElement["kind"],
+            );
+            const surface = SURFACE_MATERIALS[surfaceId];
             const dimmed = highlight !== null && !highlight.has(key);
             const opacity = dimmed ? GHOST_OPACITY : colors === null ? surface.opacity : 1;
+            // Brick, wood and stone are drawn with their pattern; the map carries the colours,
+            // so the material goes white under it. Data colours and dimming use flat colour.
+            const pattern =
+                colors === null && !dimmed ? (patterns.surfaces[surfaceId] ?? null) : null;
 
             mesh.material.color.setHex(
                 dimmed
                     ? MUTED_COLOR
-                    : colors === null
-                      ? surface.color
-                      : (colors.get(key) ?? MUTED_COLOR),
+                    : colors !== null
+                      ? (colors.get(key) ?? MUTED_COLOR)
+                      : pattern !== null
+                        ? 0xffffff
+                        : surface.color,
             );
             mesh.material.roughness = surface.roughness;
             mesh.material.metalness = surface.metalness;
             mesh.material.opacity = opacity;
 
-            const relief = colors === null && surface.grain > 0 ? grain : null;
+            const relief =
+                pattern !== null
+                    ? pattern.bump
+                    : colors === null && surface.grain > 0
+                      ? grain
+                      : null;
+            const map = pattern === null ? null : pattern.map;
 
-            if (mesh.material.bumpMap !== relief) {
+            if (mesh.material.bumpMap !== relief || mesh.material.map !== map) {
+                mesh.material.map = map;
                 mesh.material.bumpMap = relief;
-                mesh.material.roughnessMap = relief;
+                mesh.material.roughnessMap = pattern === null ? relief : null;
                 mesh.material.needsUpdate = true;
             }
 
-            mesh.material.bumpScale = surface.grain * GRAIN_BUMP;
+            mesh.material.bumpScale = pattern === null ? surface.grain * GRAIN_BUMP : PATTERN_BUMP;
 
             if (mesh.material.transparent !== opacity < 1) {
                 mesh.material.transparent = opacity < 1;
@@ -880,7 +1221,9 @@ export function createStructureViewer(
             const hovered = !selected && key === hoveredKey;
             const marked = highlight !== null && !dimmed;
 
-            mesh.material.emissive.setHex(hovered ? HOVER_COLOR : marked ? CYAN_ACCENT : 0x000000);
+            mesh.material.emissive.setHex(
+                hovered ? HOVER_COLOR : marked ? SELECTION_COLOR : 0x000000,
+            );
             mesh.material.emissiveIntensity = !hovered && marked ? HIGHLIGHT_GLOW : 0.2;
         }
 
@@ -911,12 +1254,28 @@ export function createStructureViewer(
         }
     }
 
+    /**
+     * The roof is one piece that sits on the rooms of the top floor. With one of them hidden it
+     * would hang in the air, so it is hidden with them.
+     */
+    function topFloorHasHiddenRoom(): boolean {
+        const top = levelBases.length - 1;
+
+        return elements.some(
+            (mesh) =>
+                mesh.userData.space === true &&
+                mesh.userData.level === top &&
+                hidden.has(mesh.userData.key as string),
+        );
+    }
+
     function applyLayers(): void {
         for (const mesh of elements) {
             mesh.visible =
-                isolatedKey === null
+                !hidden.has(mesh.userData.key as string) &&
+                (isolatedKey === null
                     ? layers.rooms || mesh.userData.space !== true
-                    : companions.has(mesh.userData.key as string);
+                    : companions.has(mesh.userData.key as string));
         }
 
         for (const mesh of overlays) {
@@ -926,7 +1285,8 @@ export function createStructureViewer(
         }
 
         if (roof !== null) {
-            roof.visible = layers.roof && layers.rooms && isolatedKey === null;
+            roof.visible =
+                layers.roof && layers.rooms && isolatedKey === null && !topFloorHasHiddenRoom();
         }
 
         if (environment !== null) {
@@ -963,8 +1323,17 @@ export function createStructureViewer(
         magentaAccent.intensity = palette.accent;
         post.setBloom(palette.glow * BLOOM_STRENGTH);
         outlineMaterial.color.setHex(SELECTION_COLOR).multiplyScalar(1 + NEON_BOOST * palette.glow);
-        lotEdgeMaterial.color.setHex(CYAN_ACCENT).multiplyScalar(1 + LOT_EDGE_BOOST * palette.glow);
-        materials.glass.emissiveIntensity = palette.glow * WINDOW_GLOW;
+        lotEdgeMaterial.color
+            .setHex(SELECTION_COLOR)
+            .multiplyScalar(1 + LOT_EDGE_BOOST * palette.glow);
+        materials.glass.emissiveIntensity = palette.windowGlow;
+        materials.glass.opacity = palette.glassOpacity;
+        sun.color.setHex(palette.sun);
+        sun.intensity = palette.sunPower;
+        skyLight.color.setHex(palette.skyLight);
+        skyLight.intensity = palette.skyPower;
+        ambient.intensity = palette.skyPower * AMBIENT_SHARE;
+        scene.environmentIntensity = palette.reflections;
     }
 
     function buildGrid(parent: Group): void {
@@ -991,11 +1360,18 @@ export function createStructureViewer(
             standard(palette.ground, 1),
         );
         ground.rotation.x = -Math.PI / 2;
-        ground.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.08, bounds.center.z);
+        ground.position.set(
+            bounds.center.x,
+            -SLAB_THICKNESS_M - 0.08 - groundDrop,
+            bounds.center.z,
+        );
         ground.receiveShadow = true;
 
         grid = new GridHelper(bounds.radius * 6, 60, palette.axis, palette.grid);
-        grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05, bounds.center.z);
+        grid.position.set(bounds.center.x, -SLAB_THICKNESS_M - 0.05 - groundDrop, bounds.center.z);
+        grid.material.transparent = true;
+        grid.material.opacity = palette.gridOpacity;
+        grid.material.depthWrite = false;
         parent.add(sky, ground, grid);
     }
 
@@ -1174,7 +1550,7 @@ export function createStructureViewer(
 
         if (asset !== null) {
             asset.removeFromParent();
-            disposeObject(asset);
+            disposeObject(asset, { textures: true });
             asset = null;
         }
 
@@ -1187,7 +1563,7 @@ export function createStructureViewer(
             .then(({ GLTFLoader }) => new GLTFLoader().setWithCredentials(true).loadAsync(url))
             .then((gltf) => {
                 if (request !== assetRequest || model === null) {
-                    disposeObject(gltf.scene);
+                    disposeObject(gltf.scene, { textures: true });
                     return;
                 }
 
@@ -1204,6 +1580,11 @@ export function createStructureViewer(
             });
     }
 
+    function setHidden(keys: ReadonlySet<string>): void {
+        hidden = keys;
+        applyLayers();
+    }
+
     function setLayers(next: Layers): void {
         layers = next;
         applyLayers();
@@ -1211,6 +1592,11 @@ export function createStructureViewer(
 
     function clear(): void {
         removeOutline();
+
+        if (asset !== null) {
+            asset.removeFromParent();
+            disposeObject(asset, { textures: true });
+        }
 
         if (model !== null) {
             scene.remove(model);
@@ -1253,15 +1639,37 @@ export function createStructureViewer(
     }
 
     function show(structure: Structure): void {
+        // The entrance plays once per viewer, not each time a room is added and the model rebuilt.
+        if (!entered) {
+            entered = true;
+
+            if (!prefersReducedMotion()) {
+                explodeCurrent = Math.max(explodeCurrent, ENTRANCE_EXPLODE);
+            }
+        }
+
         clear();
 
         elements = buildElements(structure);
         roofRooms = structure.rooms;
-        roof = buildRoof(roofRooms, roofKind);
-        environment = buildEnvironment(structure);
-        lotEdges = buildLotEdges(structure.terrains, lotEdgeMaterial);
+        roof = buildRoof(roofRooms, roofKind, patterns.roof);
+        // Every terrain slopes about the same line, so the ground is continuous between lots.
+        const pivot = slopePivot(structure);
+        const plinth = buildPlinth(structure, pivot);
+
+        groundDrop = lowestGround(structure, pivot);
+        environment = buildEnvironment(structure, pivot);
+        lotEdges = buildLotEdges(structure.terrains, lotEdgeMaterial, pivot);
         model = new Group();
-        model.add(...structure.terrains.map(buildTerrain), ...elements, environment);
+        model.add(
+            ...structure.terrains.map((terrain) => buildTerrain(terrain, patterns.grass, pivot)),
+            ...elements,
+            environment,
+        );
+
+        if (plinth !== null) {
+            model.add(plinth);
+        }
 
         for (const mesh of elements) {
             clip(mesh, cutPlanes);
@@ -1318,7 +1726,7 @@ export function createStructureViewer(
             disposeObject(roof);
         }
 
-        roof = buildRoof(roofRooms, roofKind);
+        roof = buildRoof(roofRooms, roofKind, patterns.roof);
         placeRoof();
         applyExplode();
         applyLayers();
@@ -1336,7 +1744,8 @@ export function createStructureViewer(
             ((event.clientX - box.left) / box.width) * 2 - 1,
             -((event.clientY - box.top) / box.height) * 2 + 1,
         );
-        raycaster.setFromCamera(pointer, camera);
+        syncOrthographic();
+        raycaster.setFromCamera(pointer, projection === "orthographic" ? orthographic : camera);
 
         // The work layers are drawn over the model, so they are also picked before it.
         const [hit] = [overlays, elements].flatMap((group) =>
@@ -1399,15 +1808,38 @@ export function createStructureViewer(
         invalidate();
     }
 
+    function reportOrbit(): void {
+        camera.getWorldDirection(gaze);
+
+        const azimuth = Math.round(MathUtils.radToDeg(Math.atan2(gaze.x, gaze.z)));
+        const elevation = Math.round(MathUtils.radToDeg(Math.asin(MathUtils.clamp(gaze.y, -1, 1))));
+        const orbit = `${azimuth}/${elevation}`;
+
+        if (orbit !== lastOrbit) {
+            lastOrbit = orbit;
+            events.onOrbit(azimuth, elevation);
+        }
+    }
+
     function handleCameraChange(): void {
-        invalidate();
+        dirty = true;
         reportZoom();
+        reportOrbit();
+    }
+
+    // Without preventDefault the browser never offers the context back. The screen is told, so it
+    // can explain what happened and rebuild the viewer; disposing removes this listener first,
+    // because releasing the context on purpose fires the same event.
+    function handleContextLost(event: Event): void {
+        event.preventDefault();
+        events.onContextLost?.();
     }
 
     const observer = new ResizeObserver(resize);
     observer.observe(container);
     window.addEventListener("resize", resize);
     canvas.addEventListener("webglcontextrestored", invalidate);
+    canvas.addEventListener("webglcontextlost", handleContextLost);
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointermove", handlePointerMove);
@@ -1420,11 +1852,16 @@ export function createStructureViewer(
         const elapsed = Math.min((time - lastFrame) / 1000, MAX_FRAME_S);
 
         lastFrame = time;
+
+        if (stillRunning) {
+            return;
+        }
+
         rig.update(time);
 
         if (explodeCurrent !== explodeTarget) {
             const settled =
-                reducedMotion.matches || Math.abs(explodeTarget - explodeCurrent) < EXPLODE_REST;
+                prefersReducedMotion() || Math.abs(explodeTarget - explodeCurrent) < EXPLODE_REST;
 
             explodeCurrent = settled
                 ? explodeTarget
@@ -1448,6 +1885,7 @@ export function createStructureViewer(
         observer.disconnect();
         window.removeEventListener("resize", resize);
         canvas.removeEventListener("webglcontextrestored", invalidate);
+        canvas.removeEventListener("webglcontextlost", handleContextLost);
         canvas.removeEventListener("pointerdown", handlePointerDown);
         canvas.removeEventListener("pointerup", handlePointerUp);
         canvas.removeEventListener("pointermove", handlePointerMove);
@@ -1462,11 +1900,168 @@ export function createStructureViewer(
         outlineMaterial.dispose();
         environmentMap.dispose();
         grain.dispose();
+        disposePatterns(patterns);
         sun.shadow.map?.dispose();
         sun.dispose();
         renderer.dispose();
         renderer.forceContextLoss();
         canvas.remove();
+    }
+
+    function setSun(degrees: number, elevation?: number): void {
+        lightDirection.copy(LIGHT_DIRECTION);
+
+        if (elevation !== undefined) {
+            const angle = MathUtils.degToRad(elevation);
+
+            lightDirection
+                .setY(0)
+                .normalize()
+                .multiplyScalar(Math.cos(angle))
+                .setY(Math.sin(angle));
+        }
+
+        lightDirection.applyAxisAngle(UP_AXIS, MathUtils.degToRad(degrees));
+
+        if (model !== null) {
+            fitLimits();
+        }
+    }
+
+    function setExposure(exposure: number): void {
+        renderer.toneMappingExposure = exposure;
+    }
+
+    function setShadows(enabled: boolean): void {
+        sun.castShadow = enabled;
+    }
+
+    function setShadowMapSize(size: number): void {
+        if (sun.shadow.mapSize.x !== size) {
+            sun.shadow.mapSize.set(size, size);
+            sun.shadow.map?.dispose();
+            sun.shadow.map = null;
+        }
+    }
+
+    async function renderStill(job: StillJob): Promise<HTMLCanvasElement | null> {
+        if (stillRunning) {
+            throw new Error("A still is already being rendered");
+        }
+
+        const limit = renderer.capabilities.maxTextureSize;
+
+        if (job.width > limit || job.height > limit) {
+            throw new Error("Image larger than this device can draw");
+        }
+
+        const output = document.createElement("canvas");
+        const context = output.getContext("2d");
+
+        if (context === null) {
+            throw new Error("Canvas 2D is not available");
+        }
+
+        output.width = job.width;
+        output.height = job.height;
+
+        const total = Math.max(1, Math.round(job.samples));
+        const restingDirection = lightDirection.clone();
+        const active = projection === "orthographic" ? orthographic : camera;
+        const offset = new Vector3();
+        let cancelled = false;
+
+        stillRunning = true;
+
+        try {
+            applySize(job.width, job.height, 1);
+            setShadowMapSize(job.shadowMapSize);
+
+            for (let index = 0; index < total; index += 1) {
+                if (job.signal?.aborted === true) {
+                    cancelled = true;
+                    break;
+                }
+
+                if (total > 1) {
+                    active.setViewOffset(
+                        job.width,
+                        job.height,
+                        halton(index + 1, 2) - 0.5,
+                        halton(index + 1, 3) - 0.5,
+                        job.width,
+                        job.height,
+                    );
+                    offset
+                        .set(halton(index + 1, 5) - 0.5, 0, halton(index + 1, 7) - 0.5)
+                        .multiplyScalar(STILL_SUN_SPREAD);
+                    lightDirection.copy(restingDirection).add(offset).normalize();
+                    placeSun();
+                }
+
+                renderer.shadowMap.needsUpdate = true;
+                render();
+
+                if (renderer.getContext().isContextLost()) {
+                    throw new Error("The graphics context was lost while rendering");
+                }
+
+                // Running average: the n-th frame weighs 1/n. The buffer is only readable now.
+                context.globalAlpha = 1 / (index + 1);
+                context.drawImage(canvas, 0, 0);
+                job.onProgress(index + 1, total);
+
+                await new Promise((resolve) => window.setTimeout(resolve, 0));
+            }
+        } finally {
+            camera.clearViewOffset();
+            orthographic.clearViewOffset();
+            lightDirection.copy(restingDirection);
+            placeSun();
+            setShadowMapSize(SHADOW_MAP_SIZE);
+            stillRunning = false;
+            viewport = "";
+            renderer.shadowMap.needsUpdate = true;
+            resize();
+        }
+
+        return cancelled ? null : output;
+    }
+
+    /**
+     * Places the orthographic camera where the perspective one is and sizes its frustum to show,
+     * at the orbit target, exactly what the perspective camera shows there. Moving closer or
+     * farther therefore zooms it, and switching projection keeps the model framed.
+     */
+    function syncOrthographic(): void {
+        if (projection !== "orthographic") {
+            return;
+        }
+
+        const half = rig.distance() * Math.tan(MathUtils.degToRad(camera.fov / 2));
+
+        orthographic.position.copy(camera.position);
+        orthographic.quaternion.copy(camera.quaternion);
+        orthographic.left = -half * camera.aspect;
+        orthographic.right = half * camera.aspect;
+        orthographic.top = half;
+        orthographic.bottom = -half;
+        orthographic.near = camera.near;
+        orthographic.far = camera.far;
+        orthographic.updateProjectionMatrix();
+        orthographic.updateMatrixWorld();
+    }
+
+    function setProjection(next: Projection): void {
+        projection = next;
+        post.setCamera(next === "orthographic" ? orthographic : camera);
+    }
+    function capture(): string {
+        // The drawing buffer is only readable in the same task that rendered it.
+        renderer.shadowMap.needsUpdate = true;
+        render();
+
+        return canvas.toDataURL("image/png");
     }
 
     function changing<Arguments extends unknown[]>(
@@ -1485,8 +2080,10 @@ export function createStructureViewer(
         setSurfaces: changing(setSurfaces),
         setRoof: changing(setRoof),
         setLayers: changing(setLayers),
+        setHidden: changing(setHidden),
         setPalette: changing(setPalette),
         setView: changing(setView),
+        setFrameInsets: changing(setFrameInsets),
         isolate: changing(isolate),
         setCutaway: changing(setCutaway),
         setHighlight: changing(setHighlight),
@@ -1497,6 +2094,13 @@ export function createStructureViewer(
         setAsset: changing(setAsset),
         focus: changing(focus),
         zoomBy: changing(zoomBy),
+        setSun: changing(setSun),
+        setExposure: changing(setExposure),
+        setShadows: changing(setShadows),
+        capture,
+        renderStill,
+        maxImageSize: renderer.capabilities.maxTextureSize,
+        setProjection: changing(setProjection),
         dispose,
     };
 }

@@ -1,0 +1,345 @@
+/* A drawing-sheet timeline: a label column and a track per task on one shared scale. */
+.timeline {
+    display: grid;
+    gap: var(--space-5);
+    --label-width: 260px;
+}
+
+.chart {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5) var(--space-5);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.scale,
+.row {
+    display: grid;
+    grid-template-columns: var(--label-width) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: center;
+}
+
+.scale {
+    position: sticky;
+    top: var(--header-height);
+    z-index: 1;
+    min-height: 32px;
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+}
+
+.scaleLabel {
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* The track: a thin baseline with the month ticks drawn by the scale. */
+.track {
+    position: relative;
+    min-height: 28px;
+}
+
+.scale .track {
+    min-height: 32px;
+}
+
+.month,
+.edge {
+    position: absolute;
+    top: 50%;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    transform: translateY(-50%);
+}
+
+.month {
+    left: var(--at);
+    padding-left: var(--space-1);
+    border-left: 1px solid var(--border-strong);
+}
+
+.edge {
+    left: 0;
+}
+
+.edgeEnd {
+    right: 0;
+    left: auto;
+}
+
+.group {
+    display: grid;
+    gap: var(--space-1);
+}
+
+.groupTitle {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: var(--space-2) 0 0;
+    font-size: var(--fs-14);
+}
+
+.groupTitle button {
+    min-height: 0;
+    padding: 0;
+    color: var(--text);
+    font: inherit;
+    font-weight: 650;
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+
+.groupTitle button:hover {
+    color: var(--accent);
+    text-decoration: underline;
+    background: none;
+}
+
+.groupTitle span {
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    font-weight: 500;
+}
+
+.rows {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.row {
+    min-height: var(--row-height);
+    border-top: 1px solid var(--border);
+}
+
+.row:hover {
+    background: var(--hover);
+}
+
+.label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+.title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The status says itself in words; the colour only repeats it. */
+.status {
+    flex: none;
+    padding: 1px var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+}
+
+.status[data-status="in_progress"] {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.status[data-status="completed"] {
+    color: var(--success);
+    border-color: var(--success);
+}
+
+/* Bars run from --at to --to (shares of the track). */
+.bar {
+    position: absolute;
+    top: 50%;
+    left: var(--at);
+    width: max(4px, calc(var(--to) - var(--at)));
+    height: 12px;
+    background: var(--panel);
+    border: 1.5px solid var(--accent);
+    border-radius: 3px;
+    transform: translateY(-50%);
+}
+
+.bar[data-status="in_progress"] {
+    background: var(--accent);
+}
+
+.bar[data-status="completed"] {
+    background: color-mix(in srgb, var(--success) 70%, transparent);
+    border-color: var(--success);
+}
+
+.bar[data-status="cancelled"] {
+    border-style: dashed;
+    border-color: var(--border-strong);
+}
+
+/* One planned date only: a diamond on that day, not a made-up bar. */
+.point {
+    position: absolute;
+    top: 50%;
+    left: var(--at);
+    width: 11px;
+    height: 11px;
+    background: var(--panel);
+    border: 1.5px solid var(--accent);
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* The day it was finished: a solid dot. */
+.done {
+    position: absolute;
+    top: 50%;
+    left: var(--at);
+    width: 9px;
+    height: 9px;
+    background: var(--success);
+    border: 2px solid var(--panel);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--success);
+    transform: translate(-50%, -50%);
+}
+
+.today {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: var(--at);
+    width: 0;
+    border-left: 1.5px dashed var(--lime-contrast);
+    opacity: 0.45;
+}
+
+[data-theme="dark"] .today {
+    border-left-color: var(--lime);
+    opacity: 0.7;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: var(--space-2) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+}
+
+/* Each mark stays with its words when the legend wraps. */
+.legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    white-space: nowrap;
+}
+
+.legendBar,
+.legendPoint,
+.legendDone,
+.legendToday {
+    display: inline-block;
+}
+
+.legendBar {
+    width: 20px;
+    height: 10px;
+    border: 1.5px solid var(--accent);
+    border-radius: 3px;
+}
+
+.legendPoint {
+    width: 9px;
+    height: 9px;
+    border: 1.5px solid var(--accent);
+    transform: rotate(45deg);
+}
+
+.legendDone {
+    width: 9px;
+    height: 9px;
+    background: var(--success);
+    border-radius: 50%;
+}
+
+.legendToday {
+    width: 0;
+    height: 14px;
+    border-left: 1.5px dashed var(--text-secondary);
+}
+
+.apart {
+    padding: var(--space-4) var(--space-5);
+    background: var(--panel);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--r-md);
+}
+
+.apart h3 {
+    margin: 0 0 var(--space-1);
+    font-size: var(--fs-14);
+}
+
+.apart ul {
+    display: grid;
+    gap: var(--space-1);
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.apart li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--border);
+}
+
+.apartProject {
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+}
+
+.none {
+    margin: 0;
+}
+
+/* Narrow: the label goes over its track; the scale keeps only its two ends. */
+@media (max-width: 900px) {
+    .timeline {
+        --label-width: 180px;
+    }
+}
+
+@media (max-width: 640px) {
+    .chart {
+        padding: var(--space-3);
+    }
+
+    .scale,
+    .row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-1);
+    }
+
+    .scaleLabel,
+    .month {
+        display: none;
+    }
+
+    .row {
+        padding: var(--space-2) 0;
+    }
+}

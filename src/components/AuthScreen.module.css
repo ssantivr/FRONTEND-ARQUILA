@@ -1,0 +1,181 @@
+/* Wide screen: the render on the left (a little wider), the form on the right. */
+.auth {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(400px, 1fr);
+    min-height: 100dvh;
+    background: var(--color-surface);
+}
+
+.auth:focus {
+    outline: none;
+}
+
+.formSide {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-7);
+    background: var(--color-surface);
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+}
+
+.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.body {
+    display: grid;
+    flex: 1;
+    align-content: center;
+    justify-items: center;
+    padding-bottom: var(--space-7);
+}
+
+/* The render takes the upper part whole, with nothing over it but its label; the claim sits
+   under it on solid forest green, so its contrast does not depend on the picture. */
+.visual {
+    display: flex;
+    flex-direction: column;
+    order: -1;
+    min-height: 100%;
+    overflow: hidden;
+    color: var(--white);
+    background: var(--brand-forest);
+}
+
+.picture {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 240px;
+    overflow: hidden;
+    background: var(--brand-forest-raised);
+}
+
+.picture :global(.render),
+.picture :global(.hero-art) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    object-position: 75% 60%;
+}
+
+.picture :global(.render-label) {
+    top: var(--space-5);
+    right: var(--space-5);
+    bottom: auto;
+}
+
+.claim {
+    flex: none;
+    padding: var(--space-7) var(--space-8) var(--space-8);
+    border-top: 2px solid var(--brand-lime);
+}
+
+.claim h2 {
+    max-width: 20ch;
+    margin: 0 0 var(--space-3);
+    font-size: clamp(1.875rem, 2.8vw, 2.75rem);
+    font-weight: 760;
+    letter-spacing: -0.04em;
+    line-height: 1.04;
+}
+
+.claim p {
+    max-width: 46ch;
+    margin: 0;
+    color: var(--brand-forest-text);
+    font-size: var(--text-lg);
+    line-height: 1.5;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0 0;
+    padding: var(--space-5) 0 0;
+    list-style: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.features li {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    color: var(--brand-forest-text);
+    font-size: var(--text-sm);
+    line-height: 1.45;
+}
+
+.features :global(.icon) {
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    color: var(--brand-lime);
+}
+
+.features strong {
+    display: block;
+    color: var(--white);
+    font-weight: 600;
+}
+
+/* Tablet and phone: one column, the form first and the picture after it as a band. */
+@media (max-width: 900px) {
+    .auth {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .formSide {
+        padding: var(--space-5) var(--space-5) var(--space-6);
+    }
+
+    .body {
+        padding-bottom: 0;
+    }
+
+    .visual {
+        order: 0;
+    }
+
+    .picture {
+        flex-basis: 260px;
+    }
+
+    .picture :global(.render-label) {
+        top: var(--space-4);
+        right: var(--space-4);
+    }
+
+    .claim {
+        padding: var(--space-6) var(--space-5);
+    }
+}
+
+@media (max-width: 1100px) {
+    .features {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .features li {
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .formSide {
+        gap: var(--space-5);
+        padding: var(--space-4) var(--space-4) var(--space-6);
+    }
+
+    .features {
+        display: none;
+    }
+}

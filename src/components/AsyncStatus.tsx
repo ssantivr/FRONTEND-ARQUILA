@@ -1,40 +1,60 @@
+import type { ReactNode } from "react";
+
+import { Icon } from "./Icon";
+import { Button } from "./ui/Button";
+import { EmptyState } from "./ui/EmptyState";
+import { Skeleton, type SkeletonShape } from "./ui/Skeleton";
+
+import styles from "./AsyncStatus.module.css";
+
 interface AsyncStatusProps {
     loading: boolean;
     error: string | null;
     isEmpty: boolean;
     emptyText: string;
+    emptyTitle?: string;
+    emptyAction?: ReactNode;
+    /** Shape of the placeholder shown while loading, so it matches what is about to appear. */
+    skeleton?: SkeletonShape;
     onRetry?: () => void;
 }
 
-export function AsyncStatus({ loading, error, isEmpty, emptyText, onRetry }: AsyncStatusProps) {
+export function AsyncStatus({
+    loading,
+    error,
+    isEmpty,
+    emptyText,
+    emptyTitle,
+    emptyAction,
+    skeleton = "lines",
+    onRetry,
+}: AsyncStatusProps) {
     if (error) {
         return (
-            <div className="message message-error" role="alert">
-                <span>{error}</span>
+            <div className={styles.error} role="alert">
+                <Icon name="error" />
+                <span className={styles.text}>{error}</span>
                 {onRetry && (
-                    <button
-                        type="button"
-                        className="button-secondary"
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        icon="rotate"
                         disabled={loading}
                         onClick={onRetry}
                     >
                         {loading ? "Reintentando…" : "Reintentar"}
-                    </button>
+                    </Button>
                 )}
             </div>
         );
     }
 
     if (loading && isEmpty) {
-        return (
-            <p className="message" role="status">
-                Cargando…
-            </p>
-        );
+        return <Skeleton shape={skeleton} />;
     }
 
     if (isEmpty && emptyText) {
-        return <p className="message">{emptyText}</p>;
+        return <EmptyState title={emptyTitle} text={emptyText} action={emptyAction} />;
     }
 
     return null;

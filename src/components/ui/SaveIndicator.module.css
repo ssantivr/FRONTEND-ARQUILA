@@ -1,0 +1,35 @@
+.indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+}
+
+.indicator :global(.icon) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+}
+
+.saved {
+    color: var(--color-success);
+    animation: fade-in var(--dur) var(--ease-out);
+}
+
+.error {
+    color: var(--color-danger);
+    font-weight: var(--weight-semibold);
+}
+
+.check path {
+    --line-length: 1;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    animation: trace var(--dur-slow) var(--ease-out) backwards;
+}

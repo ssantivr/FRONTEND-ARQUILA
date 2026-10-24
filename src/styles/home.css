@@ -1,0 +1,108 @@
+/* ---- Quick access: one main action, the rest as a list ---- */
+
+.quick {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+    gap: 20px;
+}
+
+.quick-main {
+    display: grid;
+    align-content: end;
+    gap: 8px;
+    min-height: 220px;
+    padding: 24px;
+    color: var(--white);
+    text-align: left;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(140deg, var(--forest-raised), var(--forest));
+    border-color: transparent;
+    border-radius: var(--r-lg);
+    transition:
+        transform var(--dur-fast),
+        box-shadow var(--dur-fast);
+}
+
+.quick-main:hover:not(:disabled) {
+    box-shadow: var(--shadow-float);
+    transform: translateY(-3px);
+}
+
+.quick-main .icon {
+    width: 32px;
+    height: 32px;
+}
+
+.quick-main-title {
+    font-size: var(--fs-24);
+    font-weight: 720;
+    letter-spacing: -0.025em;
+}
+
+.quick-main-text {
+    max-width: 34ch;
+    color: var(--forest-text);
+    font-weight: 400;
+    line-height: 1.45;
+}
+
+.quick-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 0 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.quick-row {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 2px 12px;
+    width: 100%;
+    padding: 12px 8px;
+    color: var(--text);
+    font-weight: 400;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+}
+
+.quick-row:hover:not(:disabled) {
+    background: var(--hover);
+}
+
+.quick-row .icon {
+    grid-row: span 2;
+    align-self: center;
+    width: 20px;
+    height: 20px;
+    color: var(--accent);
+}
+
+.quick-row-title {
+    font-weight: 620;
+}
+
+/* Up to two lines: the description says what the module does, so it is not cut to one. */
+.quick-row-text {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+@media (max-width: 900px) {
+    .quick,
+    .quick-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

@@ -1,0 +1,96 @@
+/* A sober form without a card: title, one line of context, the fields and one action. */
+.login {
+    width: 100%;
+    max-width: 400px;
+    margin: 0;
+}
+
+.title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-display);
+    line-height: var(--leading-tight);
+}
+
+.lead {
+    margin: var(--space-2) 0 var(--space-6);
+    color: var(--color-text-secondary);
+}
+
+.form {
+    display: grid;
+    gap: var(--space-4);
+    --control-height: var(--control-lg);
+}
+
+/* Text buttons: «Olvidé mi contraseña», «Crear una cuenta nueva». */
+.link {
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-accent-hi);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    box-shadow: none;
+    transition: none;
+}
+
+.forgot {
+    justify-self: end;
+    margin-top: calc(-1 * var(--space-2));
+}
+
+.link:hover {
+    background: none;
+    text-decoration-color: currentColor;
+}
+
+.link:focus-visible {
+    border-radius: var(--radius-xs);
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.notice,
+.error {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+}
+
+.notice :global(.icon),
+.error :global(.icon) {
+    flex: none;
+    margin-top: 1px;
+}
+
+.notice {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+.error {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+}
+
+.switch {
+    margin: var(--space-6) 0 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    text-align: center;
+}

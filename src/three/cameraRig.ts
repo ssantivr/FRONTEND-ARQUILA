@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from "../state/motion";
 import { MathUtils, PerspectiveCamera, Sphere, Spherical, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -26,6 +27,8 @@ interface Transition {
 
 export interface CameraRig {
     fit: (bounds: Sphere) => void;
+    /** Share of the canvas the model may fill (0–1), for panels laid over the scene. */
+    setFill: (fill: number) => void;
     frame: (view: ViewName, animate: boolean) => void;
     focus: (volume: Sphere | null, toward?: Vector3) => void;
     lookFrom: (position: Vector3, target: Vector3) => void;
@@ -59,13 +62,13 @@ export function createCameraRig(
     const scene = new Sphere(new Vector3(), 1);
     const offset = new Vector3();
     const current = new Spherical();
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let transition: Transition | null = null;
+    let fill = 1;
 
     function viewDistance(radius = scene.radius): number {
         const fitAngle = Math.min(camera.fov, camera.fov * camera.aspect) / 2;
 
-        return radius / Math.sin(MathUtils.degToRad(fitAngle));
+        return radius / Math.sin(MathUtils.degToRad(fitAngle)) / fill;
     }
 
     function distance(): number {
@@ -91,7 +94,7 @@ export function createCameraRig(
         const length = MathUtils.clamp(reach, controls.minDistance, controls.maxDistance);
         const to = new Spherical().setFromVector3(toward.clone().setLength(length));
 
-        if (!animate || reducedMotion.matches) {
+        if (!animate || prefersReducedMotion()) {
             transition = null;
             controls.target.copy(target);
             camera.position.setFromSpherical(to).add(target);
@@ -170,6 +173,9 @@ export function createCameraRig(
 
     return {
         fit,
+        setFill: (next) => {
+            fill = MathUtils.clamp(next, 0.3, 1);
+        },
         frame: (view, animate) =>
             moveTo(scene.center, VIEW_DIRECTIONS[view], viewDistance(), animate),
         focus: (volume, toward = direction()) =>

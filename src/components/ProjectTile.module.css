@@ -1,0 +1,150 @@
+.tile {
+    position: relative;
+    min-width: 0;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-1);
+}
+
+.tile:hover {
+    border-color: var(--color-border-strong);
+}
+
+.open {
+    display: grid;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: none;
+    transition: none;
+}
+
+.open:hover {
+    background: transparent;
+}
+
+.open:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.cover {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--color-surface-sunken);
+}
+
+.image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* No picture yet: a blank drawing sheet with the initials, not a made-up building. */
+.blank {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+}
+
+.monogram {
+    position: relative;
+    color: var(--color-text-secondary);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.08em;
+}
+
+.body {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.name {
+    padding-right: var(--space-7);
+    overflow: hidden;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-title);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+}
+
+.place {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.date time {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Clear of the menu of actions, which sits at the bottom right of a card. */
+.grid .progress {
+    display: block;
+    padding-right: var(--space-8);
+}
+
+.actions {
+    position: absolute;
+    right: var(--space-2);
+    bottom: var(--space-3);
+}
+
+/* ---- Card ---- */
+
+.grid .cover {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/* ---- Row ---- */
+
+.list .open {
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+}
+
+.list .cover {
+    height: 64px;
+    margin: var(--space-2);
+    border-radius: var(--radius-md);
+}
+
+.list .body {
+    padding: var(--space-2) var(--space-9) var(--space-2) var(--space-2);
+}
+
+.list .monogram {
+    font-size: var(--text-md);
+}
+
+.list .actions {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+}

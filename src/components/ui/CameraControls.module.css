@@ -1,0 +1,41 @@
+.bar {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-0);
+    padding: var(--space-1);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.vertical {
+    flex-direction: column;
+}
+
+.surface {
+    background: var(--color-surface);
+}
+
+/* Over the scene the bar is dark in both themes, like the rest of the overlays of the view. */
+.scene {
+    border-color: rgba(238, 243, 238, 0.14);
+    background: var(--scene-panel);
+    box-shadow: var(--shadow-2);
+}
+
+.divider {
+    flex: none;
+    width: 1px;
+    height: 20px;
+    margin: 0 var(--space-1);
+    background: var(--color-border);
+}
+
+.scene .divider {
+    background: rgba(238, 243, 238, 0.16);
+}
+
+.vertical .divider {
+    width: 20px;
+    height: 1px;
+    margin: var(--space-1) 0;
+}

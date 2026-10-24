@@ -61,4 +61,12 @@ describe("AsyncStatus", () => {
         expect(screen.getByRole("alert")).toHaveTextContent("Falló.");
         expect(screen.queryByRole("button")).not.toBeInTheDocument();
     });
+
+    it("keeps the drawing of the empty state out of the accessibility tree", () => {
+        const { container } = render(
+            <AsyncStatus loading={false} error={null} isEmpty emptyText="Sin datos." />,
+        );
+
+        expect(container.querySelector("svg")?.closest('[aria-hidden="true"]')).not.toBeNull();
+    });
 });

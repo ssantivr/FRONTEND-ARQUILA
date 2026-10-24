@@ -1,0 +1,48 @@
+/* Project cards: the menu overflow and the generated covers. */
+
+/* A card with a menu lets it overflow; the cover keeps the rounded corners instead. */
+.project-item:has(.menu) {
+    overflow: visible;
+}
+
+.project-item:has(.menu) .project-card {
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.project-actions .menu > summary {
+    width: 28px;
+    height: 28px;
+}
+
+/* Project covers: a drawing generated per project, with its initials as a small monogram. */
+.project-cover {
+    position: relative;
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    background: var(--forest);
+}
+
+.project-cover::after {
+    display: none;
+}
+
+.project-cover-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.project-monogram {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    padding: 2px 8px;
+    color: var(--lime-contrast);
+    font-size: var(--fs-12);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-shadow: none;
+    background: var(--lime);
+    border-radius: var(--r-sm);
+}

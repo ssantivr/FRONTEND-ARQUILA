@@ -1,0 +1,331 @@
+/* Projects list and the project workspace head. */
+
+/* ---- Projects: toolbar on a hairline, then the cards straight on the page ---- */
+
+.list-section {
+    display: grid;
+    gap: 20px;
+    min-width: 0;
+}
+
+.list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    border-block: 1px solid var(--border);
+}
+
+.list-toolbar input[type="search"] {
+    flex: 1 1 220px;
+    max-width: 320px;
+}
+
+.list-toolbar .segmented {
+    margin-left: auto;
+}
+
+/* On the page background the muted grey of an unpressed option falls short of AA. */
+.list-toolbar .segmented button {
+    color: var(--text);
+}
+
+.list-toolbar .segmented .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.list-count {
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-variant-numeric: tabular-nums;
+}
+
+.project-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.project-item {
+    position: relative;
+    background: var(--panel);
+    border-radius: var(--r-lg);
+    transition:
+        border-color var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-fast) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out);
+}
+
+.project-item:hover {
+    transform: translateY(-3px);
+}
+
+.project-card .project-cover {
+    height: 180px;
+}
+
+.project-card .badge-status {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--panel);
+    border-color: transparent;
+    box-shadow: 0 1px 2px rgba(6, 17, 12, 0.3);
+}
+
+.project-card .project-body {
+    gap: 6px;
+    padding: 16px 16px 14px;
+}
+
+.project-card .card-title {
+    font-size: var(--fs-16);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+.project-card .project-meta {
+    gap: 4px 0;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+}
+
+.project-meta > span + span::before {
+    content: "·";
+    margin: 0 8px;
+}
+
+.project-card .project-monogram {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: auto;
+}
+
+/* List view: a light table, one 56px row per project with its cover as a thumbnail. */
+.project-grid.card-list-rows {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+.project-rows-head,
+.project-card.project-row {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 2fr) minmax(0, 1.4fr) 120px 180px;
+    align-items: center;
+    gap: 0 16px;
+}
+
+/* Its right padding is the width of the actions column, so the labels sit over their cells. */
+.project-rows-head {
+    margin-bottom: -12px;
+    padding: 0 193px 0 17px;
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.card-list-rows .project-item,
+.card-list-rows .project-item:hover {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+}
+
+.card-list-rows .project-item:last-child {
+    border-bottom: 0;
+}
+
+.card-list-rows .project-item:hover {
+    background: var(--hover);
+}
+
+.project-card.project-row {
+    flex: 1;
+    min-height: 56px;
+    padding: 0 16px;
+}
+
+.project-row .project-cover,
+.card-list-rows .project-row .project-cover {
+    width: 72px;
+    height: 40px;
+    min-height: 0;
+    border-radius: var(--r-sm);
+}
+
+.project-row .project-monogram {
+    display: none;
+}
+
+.project-row .badge-status {
+    position: static;
+    justify-self: start;
+    box-shadow: none;
+}
+
+.project-row :is(.card-title, .project-row-place, .project-row-date) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-row :is(.project-row-place, .project-row-date) {
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    font-variant-numeric: tabular-nums;
+}
+
+.card-list-rows .project-actions {
+    flex: none;
+    align-items: center;
+    width: 176px;
+    border-left: 0;
+}
+
+.card-list-rows .project-actions:has([role="status"]) {
+    width: auto;
+}
+
+/* ---- Project workspace: a 160px head over the blurred cover, tabs right under it ---- */
+
+.project-head {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 32px;
+    min-width: 0;
+    min-height: 160px;
+    padding: 20px 28px;
+    overflow: hidden;
+    isolation: isolate;
+    color: var(--text);
+    background: var(--forest);
+    border-radius: var(--r-lg);
+}
+
+/* The project's cover runs across the head as a faint drawing, clearer towards the right. */
+.project-head-art {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    opacity: 0.6;
+    -webkit-mask-image: linear-gradient(90deg, transparent 25%, black 80%);
+    mask-image: linear-gradient(90deg, transparent 25%, black 80%);
+}
+
+.project-head-art .project-cover-art {
+    width: 100%;
+    height: 100%;
+}
+
+.project-head::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(0deg, rgba(6, 17, 12, 0.55) 0%, rgba(6, 17, 12, 0) 70%);
+}
+.project-head-main {
+    display: grid;
+    flex: 1 1 320px;
+    justify-items: start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.project-head .back-link {
+    min-height: 0;
+    margin-left: -8px;
+    padding: 2px 8px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: var(--fs-13);
+}
+
+.project-head h2 {
+    max-width: 100%;
+    margin: 0;
+    color: var(--white);
+    font-size: clamp(28px, 3vw, 36px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.project-head-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.84);
+    font-size: var(--fs-13);
+    font-variant-numeric: tabular-nums;
+}
+
+.project-head .badge-status {
+    background: rgba(6, 17, 12, 0.6);
+}
+
+.project-head-text {
+    max-width: 72ch;
+    margin: 0;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: var(--fs-14);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The 3D model tab: only the breadcrumbs and the name stay, and the actions beside them. */
+.project-head-compact {
+    min-height: 0;
+    align-items: center;
+    padding: 12px 20px;
+}
+
+.project-head-compact h2 {
+    font-size: var(--fs-24);
+}
+
+.project-head-compact .project-head-meta,
+.project-head-compact .project-head-text {
+    display: none;
+}
+
+.project-head .project-summary {
+    flex: none;
+    gap: 8px;
+    padding: 0;
+    color: var(--text);
+    background: transparent;
+    border: 0;
+}
+
+.project-head .project-summary :is(button, select) {
+    min-height: var(--control-md);
+    background-color: rgba(6, 17, 12, 0.72);
+}
+
+/* The content gap is 20px; the tabs sit 8px under the head. */
+.project-head + .tabs {
+    margin-top: -12px;
+}
+
+.project-saving {
+    margin: 0;
+}

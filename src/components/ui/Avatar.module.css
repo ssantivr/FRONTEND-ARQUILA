@@ -1,0 +1,29 @@
+.avatar {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-sunken);
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+}
+
+.sm {
+    width: var(--control-xs);
+    height: var(--control-xs);
+    font-size: var(--text-xs);
+}
+
+.md {
+    width: var(--control-sm);
+    height: var(--control-sm);
+    font-size: var(--text-sm);
+}
+
+.onDark {
+    border-color: var(--brand-forest-raised);
+    background: var(--brand-forest-raised);
+    color: var(--white);
+}

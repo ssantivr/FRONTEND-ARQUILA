@@ -1,0 +1,30 @@
+.wrap {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* A ring with one lime quarter, like a compass drawing the arc of a door. */
+.ring {
+    display: inline-block;
+    flex: none;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-action);
+    border-radius: 50%;
+    animation: spin var(--dur-spin) linear infinite;
+}
+
+.sm {
+    width: 14px;
+    height: 14px;
+}
+
+.md {
+    width: 20px;
+    height: 20px;
+}
+
+.lg {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+}

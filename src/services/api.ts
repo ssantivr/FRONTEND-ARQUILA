@@ -1,4 +1,5 @@
 import type {
+    ActivityPage,
     AssistantStatus,
     ComponentCreate,
     ComponentKind,
@@ -11,6 +12,7 @@ import type {
     ElevationCreate,
     ElevationUpdate,
     LoginRequest,
+    Notification,
     Material,
     MaterialCreate,
     MaterialUpdate,
@@ -22,6 +24,8 @@ import type {
     ProjectCreate,
     ProjectFile,
     ProjectFilters,
+    ProjectPage,
+    ProjectQuery,
     ProjectTemplate,
     ProjectUpdate,
     RegisterRequest,
@@ -29,6 +33,12 @@ import type {
     RenovationLogCreate,
     RenovationStatus,
     SpatialData,
+    Task,
+    TaskCreate,
+    TaskStatus,
+    TaskUpdate,
+    Version,
+    VersionDetail,
     Summary,
     Recommendation,
     RecommendationCreate,
@@ -48,7 +58,7 @@ import type {
     User,
     Walkthrough,
 } from "../types/api";
-import { apiUrl, request, upload } from "./http";
+import { apiUrl, isUnavailable, onWrite, request, requestWithTotal, upload } from "./http";
 
 export const healthApi = {
     check: () => request<{ status: string }>("/health"),
@@ -77,7 +87,128 @@ export const projectsApi = {
     update: (id: number, data: ProjectUpdate) =>
         request<Project>(`/projects/${id}`, { method: "PATCH", body: data }),
     remove: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
+    /** A copy with its terrains, plans, rooms and materials; the API names it «… (copia)». */
+    duplicate: (id: number, name?: string) =>
+        request<Project>(`/projects/${id}/duplicate`, {
+            method: "POST",
+            body: name === undefined ? {} : { name },
+        }),
+    /**
+     * One page of projects, searched, filtered and sorted by the API, with the total of results.
+     * An API older than the paged list ignores the parameters and sends every project as an
+     * array: then the page is cut here and `paged` is false, so the screen can say so.
+     */
+    page: async (query: ProjectQuery): Promise<ProjectPage & { paged: boolean }> => {
+        const { data, total } = await requestWithTotal<ProjectPage | Project[]>("/projects", {
+            query: {
+                ...query,
+                archived: query.archived === undefined ? undefined : String(query.archived),
+            },
+        });
+
+        if (Array.isArray(data)) {
+            const found = pageLocally(data, query);
+            const start = (query.page - 1) * query.page_size;
+
+            return {
+                items: found.slice(start, start + query.page_size),
+                total: found.length,
+                page: query.page,
+                page_size: query.page_size,
+                paged: false,
+            };
+        }
+
+        return { ...data, total: total ?? data.total, paged: true };
+    },
+    /**
+     * Archives through its own route, which keeps the state it had to restore it later; an API
+     * without the route gets the same through the state of the project.
+     */
+    archive: (id: number) =>
+        request<Project>(`/projects/${id}/archive`, { method: "POST" }).catch((reason) => {
+            if (isUnavailable(reason)) {
+                return request<Project>(`/projects/${id}`, {
+                    method: "PATCH",
+                    body: { status: "archived" },
+                });
+            }
+
+            throw reason;
+        }),
+    /** Gives back the state it had before archiving (the API knows it); without the route, active. */
+    unarchive: (id: number) =>
+        request<Project>(`/projects/${id}/unarchive`, { method: "POST" }).catch((reason) => {
+            if (isUnavailable(reason)) {
+                return request<Project>(`/projects/${id}`, {
+                    method: "PATCH",
+                    body: { status: "active" },
+                });
+            }
+
+            throw reason;
+        }),
 };
+
+export const tasksApi = {
+    listByProject: (projectId: number, status?: TaskStatus) =>
+        request<Task[]>(`/projects/${projectId}/tasks`, { query: { status } }),
+    create: (projectId: number, data: TaskCreate) =>
+        request<Task>(`/projects/${projectId}/tasks`, { method: "POST", body: data }),
+    update: (id: number, data: TaskUpdate) =>
+        request<Task>(`/tasks/${id}`, { method: "PATCH", body: data }),
+    remove: (id: number) => request<void>(`/tasks/${id}`, { method: "DELETE" }),
+};
+
+export const versionsApi = {
+    listByProject: (projectId: number) => request<Version[]>(`/projects/${projectId}/versions`),
+    create: (projectId: number, label?: string) =>
+        request<Version>(`/projects/${projectId}/versions`, {
+            method: "POST",
+            body: label === undefined ? {} : { label },
+        }),
+    get: (id: number) => request<VersionDetail>(`/versions/${id}`),
+    restore: (id: number) => request<Project>(`/versions/${id}/restore`, { method: "POST" }),
+};
+
+export const activityApi = {
+    listByProject: (projectId: number, page = 1, pageSize = 50) =>
+        request<ActivityPage>(`/projects/${projectId}/activity`, {
+            query: { page, page_size: pageSize },
+        }),
+};
+
+/**
+ * What the paged list does on the server, done on every project of an API that has no paged
+ * list: the same search (name, description and place), filters and order.
+ */
+function pageLocally(projects: Project[], query: ProjectQuery): Project[] {
+    const wanted = query.q?.trim().toLowerCase() ?? "";
+    const sort = query.sort ?? "id";
+    const sign = query.order === "desc" ? -1 : 1;
+
+    return projects
+        .filter(
+            (project) =>
+                (query.status === undefined || project.status === query.status) &&
+                (query.archived === undefined ||
+                    (project.status === "archived") === query.archived) &&
+                (wanted === "" ||
+                    [project.name, project.description, project.location].some((text) =>
+                        text?.toLowerCase().includes(wanted),
+                    )),
+        )
+        .sort((first, second) => {
+            const a = first[sort] ?? 0;
+            const b = second[sort] ?? 0;
+            const order =
+                typeof a === "string" && typeof b === "string"
+                    ? a.localeCompare(b, "es", { sensitivity: "base" })
+                    : Number(a) - Number(b);
+
+            return (order || first.id - second.id) * sign;
+        });
+}
 
 export const templatesApi = {
     list: () => request<ProjectTemplate[]>("/templates"),
@@ -85,13 +216,44 @@ export const templatesApi = {
         request<Project>(`/templates/${templateId}/projects`, { method: "POST" }),
 };
 
-export async function loadAcrossProjects<T>(
-    loader: (projectId: number) => Promise<T[]>,
-): Promise<{ projects: Project[]; items: T[] }> {
-    const projects = await projectsApi.list();
-    const lists = await Promise.all(projects.map((project) => loader(project.id)));
+const ACROSS_PROJECTS_TTL_MS = 30_000;
 
-    return { projects, items: lists.flat() };
+interface AcrossProjects<T> {
+    projects: Project[];
+    items: T[];
+}
+
+const acrossProjects = new Map<unknown, { at: number; value: Promise<AcrossProjects<unknown>> }>();
+
+// Any write may change what these lists contain, and so may a different user signing in.
+onWrite(() => acrossProjects.clear());
+
+/**
+ * The API has no route listing terrains or materials of every project, so this asks for the
+ * projects and then for each one's list, all in parallel. The answer is kept for a short while so
+ * that moving between screens does not repeat one request per project.
+ */
+export function loadAcrossProjects<T>(
+    loader: (projectId: number) => Promise<T[]>,
+): Promise<AcrossProjects<T>> {
+    const cached = acrossProjects.get(loader);
+
+    if (cached !== undefined && Date.now() - cached.at < ACROSS_PROJECTS_TTL_MS) {
+        return cached.value as Promise<AcrossProjects<T>>;
+    }
+
+    const value = (async () => {
+        const projects = await projectsApi.list();
+        const lists = await Promise.all(projects.map((project) => loader(project.id)));
+
+        return { projects, items: lists.flat() };
+    })();
+
+    acrossProjects.set(loader, { at: Date.now(), value });
+    // A failed load is not worth remembering: the retry must reach the server again.
+    value.catch(() => acrossProjects.delete(loader));
+
+    return value;
 }
 
 export const terrainsApi = {
@@ -182,7 +344,33 @@ export const componentsApi = {
 };
 
 export const structureApi = {
-    get: (projectId: number) => request<Structure>(`/projects/${projectId}/structure`),
+    /**
+     * The model of a project. The slope of each terrain is needed to draw it inclined, and the
+     * route does not include it yet: when it is missing, it is read from the list of terrains
+     * and added. If that second call fails, the model is still returned, drawn flat.
+     */
+    get: async (projectId: number): Promise<Structure> => {
+        const structure = await request<Structure>(`/projects/${projectId}/structure`);
+
+        if (
+            structure.terrains.length === 0 ||
+            structure.terrains.every((terrain) => terrain.slope_percent !== undefined)
+        ) {
+            return structure;
+        }
+
+        const slopes = await request<Terrain[]>(`/projects/${projectId}/terrains`)
+            .then((terrains) => new Map(terrains.map((item) => [item.id, item.slope_percent])))
+            .catch(() => new Map<number, number | null>());
+
+        return {
+            ...structure,
+            terrains: structure.terrains.map((terrain) => ({
+                ...terrain,
+                slope_percent: terrain.slope_percent ?? slopes.get(terrain.id) ?? null,
+            })),
+        };
+    },
     setRoof: (projectId: number, roof: RoofKind) =>
         request<void>(`/projects/${projectId}/structure/roof`, { method: "PATCH", body: { roof } }),
     setSurface: (projectId: number, element: StructureElement, surface: SurfaceMaterialId) =>
@@ -218,6 +406,13 @@ export const conversationsApi = {
     remove: (id: number) => request<void>(`/conversations/${id}`, { method: "DELETE" }),
 };
 
+export const notificationsApi = {
+    list: () => request<Notification[]>("/notifications", { query: { limit: 30 } }),
+    markRead: (id: number) =>
+        request<Notification>(`/notifications/${id}/read`, { method: "POST" }),
+    markAllRead: () => request<{ updated: number }>("/notifications/read-all", { method: "POST" }),
+};
+
 export const summaryApi = {
     get: () => request<Summary>("/summary"),
 };
@@ -240,3 +435,10 @@ export const walkthroughApi = {
             body: { status },
         }),
 };
+
+/**
+ * The work log of one project: the tasks. A named function on purpose: the cache of
+ * `loadAcrossProjects` is keyed by it, so the Tasks screen and the projects timeline share it.
+ */
+export const loadProjectTasks = (projectId: number) =>
+    walkthroughApi.get(projectId).then((walkthrough) => walkthrough.renovation_logs);

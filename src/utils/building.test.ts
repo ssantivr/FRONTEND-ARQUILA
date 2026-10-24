@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Structure, StructureComponent, StructureRoom } from "../types/api";
-import { buildingIndicators, planLevels } from "./building";
+import { buildingIndicators, planLevels, roomOverlaps } from "./building";
 
 function room(overrides: Partial<StructureRoom>): StructureRoom {
     return {
@@ -99,6 +99,7 @@ describe("buildingIndicators", () => {
             cus: 0.3,
             levels: 2,
             height: 5.5,
+            overlaps: [],
         });
     });
 
@@ -112,5 +113,50 @@ describe("buildingIndicators", () => {
             cus: null,
             builtArea: 16,
         });
+    });
+});
+
+describe("overlapping rooms", () => {
+    const sala = room({ id: 1, name: "Sala", x_m: 0, y_m: 0, width_m: 6, depth_m: 5 });
+    const cocina = room({ id: 2, name: "Cocina", x_m: 4, y_m: 0, width_m: 6, depth_m: 5 });
+
+    it("counts the ground two rooms share only once in COS, CUS and the areas", () => {
+        const indicators = buildingIndicators(structure({ rooms: [sala, cocina] }));
+
+        // 6 × 5 and 6 × 5 with 2 × 5 in common cover 50 m², not 60, of a 200 m² lot.
+        expect(indicators?.footprint).toBeCloseTo(50, 6);
+        expect(indicators?.builtArea).toBeCloseTo(50, 6);
+        expect(indicators?.cos).toBeCloseTo(0.25, 6);
+        expect(indicators?.cus).toBeCloseTo(0.25, 6);
+        expect(indicators?.freeArea).toBeCloseTo(150, 6);
+    });
+
+    it("names the rooms that overlap and how much ground they share", () => {
+        const indicators = buildingIndicators(structure({ rooms: [sala, cocina] }));
+
+        expect(indicators?.overlaps).toEqual([
+            { level: "Ground", first: "Sala", second: "Cocina", area: 10 },
+        ]);
+    });
+
+    it("does not take rooms that share a wall, or rooms on different levels, for an overlap", () => {
+        const beside = room({ id: 2, name: "Cocina", x_m: 6, y_m: 0, width_m: 4, depth_m: 5 });
+        const above = room({ id: 3, name: "Alcoba", plan_id: 2, plan_title: "Upper", base_m: 3 });
+        const levels = planLevels(
+            structure({ rooms: [sala, beside, { ...above, x_m: 0, y_m: 0 }] }),
+        );
+
+        expect(roomOverlaps(levels)).toEqual([]);
+    });
+
+    it("lists the largest overlap first", () => {
+        const comedor = room({ id: 3, name: "Comedor", x_m: 5, y_m: 4, width_m: 3, depth_m: 3 });
+        const overlaps = roomOverlaps(planLevels(structure({ rooms: [sala, cocina, comedor] })));
+
+        expect(overlaps.map((overlap) => `${overlap.first}-${overlap.second}`)).toEqual([
+            "Sala-Cocina",
+            "Cocina-Comedor",
+            "Sala-Comedor",
+        ]);
     });
 });

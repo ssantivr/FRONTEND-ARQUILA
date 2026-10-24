@@ -1,132 +1,213 @@
+import { useState } from "react";
+
 import { AsyncStatus } from "../components/AsyncStatus";
-import { MetricCard } from "../components/MetricCard";
-import { Panel } from "../components/Panel";
+import { CostSummary } from "../components/CostSummary";
+import { SurfaceLibrary } from "../components/SurfaceLibrary";
+import { DataTable } from "../components/ui/DataTable";
+import { FilterBar } from "../components/ui/FilterBar";
+import { Panel } from "../components/ui/Panel";
+import { Tabs } from "../components/ui/Tabs";
 import { useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, materialsApi } from "../services/api";
-import type { Material } from "../types/api";
 import { formatMoney, formatNumber } from "../utils/format";
+import { NO_CATEGORY, costByCategory, materialCost as cost } from "../utils/materials";
+import { SURFACE_MATERIAL_IDS } from "../utils/surfaceMaterials";
 
 interface MaterialsPageProps {
     onOpenProject: (projectId: number) => void;
+    /** Opens the 3D editor, where a surface is put on an element. */
+    onOpenViewer?: () => void;
 }
 
-const NO_CATEGORY = "Sin categoría";
+type Catalog = "surfaces" | "works";
+type Order = "cost" | "name" | "project";
 
-function cost(material: Material): number {
-    return material.quantity * material.unit_cost;
-}
+const CATALOGS = [
+    { id: "surfaces", label: "Superficies del modelo 3D" },
+    { id: "works", label: "Materiales de obra" },
+] as const;
 
-function costByCategory(materials: Material[]): [string, number][] {
-    const totals = new Map<string, number>();
-
-    for (const material of materials) {
-        const category = material.category ?? NO_CATEGORY;
-        totals.set(category, (totals.get(category) ?? 0) + cost(material));
-    }
-
-    return [...totals.entries()].sort((first, second) => second[1] - first[1]);
-}
-
-export function MaterialsPage({ onOpenProject }: MaterialsPageProps) {
+/**
+ * The library has two catalogues that the API and the engine really have: the surfaces the 3D
+ * viewer draws (visual, fixed in the engine) and the materials of every project (budget items:
+ * name, category, quantity and cost, without pictures).
+ */
+export function MaterialsPage({ onOpenProject, onOpenViewer }: MaterialsPageProps) {
+    const [catalog, setCatalog] = useState<Catalog>("surfaces");
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState("");
+    const [order, setOrder] = useState<Order>("cost");
     const data = useAsync(() => loadAcrossProjects(materialsApi.listByProject), []);
-    const materials = [...(data.data?.items ?? [])].sort(
-        (first, second) => cost(second) - cost(first),
-    );
+    const materials = data.data?.items ?? [];
     const projectNames = new Map((data.data?.projects ?? []).map((item) => [item.id, item.name]));
     const total = materials.reduce((sum, material) => sum + cost(material), 0);
     const categories = costByCategory(materials);
-    const highest = categories[0]?.[1] ?? 0;
+    const wanted = search.trim().toLowerCase();
+    const shown = materials
+        .filter(
+            (material) =>
+                (category === "" || (material.category ?? NO_CATEGORY) === category) &&
+                (wanted === "" || material.name.toLowerCase().includes(wanted)),
+        )
+        .sort((first, second) =>
+            order === "name"
+                ? first.name.localeCompare(second.name, "es")
+                : order === "project"
+                  ? (projectNames.get(first.project_id) ?? "").localeCompare(
+                        projectNames.get(second.project_id) ?? "",
+                        "es",
+                    )
+                  : cost(second) - cost(first),
+        );
+    const narrowed = wanted !== "" || category !== "";
 
     return (
         <>
-            <Panel title="Materiales">
-                <p className="message">
-                    Los materiales de todos tus proyectos, del más costoso al menos costoso. Para
-                    agregar o editar uno, ábrelo desde su proyecto.
-                </p>
-                <div className="metrics">
-                    <MetricCard label="Materiales" value={formatNumber(materials.length)} />
-                    <MetricCard label="Costo total" value={formatMoney(total)} />
-                    <MetricCard
-                        label="Categoría más costosa"
-                        value={categories[0]?.[0] ?? "—"}
-                        detail={categories.length > 0 ? formatMoney(highest) : undefined}
-                    />
+            <header className="page-head">
+                <div>
+                    <h2>Biblioteca de materiales</h2>
+                    {/* The line is there from the start, so nothing moves when the figures arrive. */}
+                    <p className="page-head-meta">
+                        {`${SURFACE_MATERIAL_IDS.length} superficies del motor`}
+                        {data.data !== null &&
+                            ` · ${formatNumber(materials.length)} materiales de obra · ${formatMoney(total)}`}
+                    </p>
                 </div>
-            </Panel>
-            {categories.length > 0 && (
-                <Panel title="Costo por categoría">
-                    <ul className="bar-list">
-                        {categories.map(([category, amount]) => (
-                            <li key={category}>
-                                <span>{category}</span>
-                                <span className="bar" aria-hidden="true">
-                                    <span
-                                        style={{
-                                            width: `${highest > 0 ? (amount / highest) * 100 : 0}%`,
-                                        }}
-                                    />
-                                </span>
-                                <span className="numeric">{formatMoney(amount)}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </Panel>
+            </header>
+
+            <Tabs
+                label="Catálogo"
+                items={CATALOGS}
+                current={catalog}
+                onChange={(next) => setCatalog(next)}
+            />
+
+            {catalog === "surfaces" && <SurfaceLibrary onOpenViewer={onOpenViewer} />}
+
+            {catalog === "works" && (
+                <>
+                    <Panel title="Materiales de obra">
+                        <p className="message">
+                            Las partidas de presupuesto de todos tus proyectos. No tienen foto ni
+                            valores de dibujo: la API guarda nombre, categoría, cantidad y costo.
+                            Para agregar o editar una, ábrela desde su proyecto.
+                        </p>
+                        <AsyncStatus
+                            loading={data.loading}
+                            error={data.error}
+                            onRetry={data.reload}
+                            isEmpty={materials.length === 0}
+                            skeleton="rows"
+                            emptyText="Todavía no hay materiales. Regístralos en la pestaña Materiales de un proyecto."
+                        />
+                        {materials.length > 0 && (
+                            <>
+                                <FilterBar
+                                    searchLabel="Buscar material por nombre"
+                                    search={search}
+                                    onSearch={setSearch}
+                                    resultText={`${shown.length} de ${materials.length} materiales`}
+                                    active={narrowed}
+                                    onClear={() => {
+                                        setSearch("");
+                                        setCategory("");
+                                    }}
+                                >
+                                    <select
+                                        aria-label="Filtrar por categoría"
+                                        value={category}
+                                        onChange={(event) => setCategory(event.target.value)}
+                                    >
+                                        <option value="">Todas las categorías</option>
+                                        {categories.map((item) => (
+                                            <option key={item.category} value={item.category}>
+                                                {item.category}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        aria-label="Ordenar materiales"
+                                        value={order}
+                                        onChange={(event) => setOrder(event.target.value as Order)}
+                                    >
+                                        <option value="cost">Más costosos primero</option>
+                                        <option value="name">Por nombre</option>
+                                        <option value="project">Por proyecto</option>
+                                    </select>
+                                </FilterBar>
+                                <DataTable
+                                    caption="Materiales de obra de todos tus proyectos"
+                                    rows={shown}
+                                    rowKey={(material) => material.id}
+                                    empty="Ningún material coincide con el filtro."
+                                    columns={[
+                                        {
+                                            id: "name",
+                                            header: "Material",
+                                            cell: (material) => material.name,
+                                        },
+                                        {
+                                            id: "project",
+                                            header: "Proyecto",
+                                            cell: (material) => (
+                                                <button
+                                                    type="button"
+                                                    className="table-link"
+                                                    aria-label={`${projectNames.get(material.project_id) ?? "—"}: abrir el proyecto del material ${material.name}`}
+                                                    onClick={() =>
+                                                        onOpenProject(material.project_id)
+                                                    }
+                                                >
+                                                    {projectNames.get(material.project_id) ?? "—"}
+                                                </button>
+                                            ),
+                                        },
+                                        {
+                                            id: "category",
+                                            header: "Categoría",
+                                            cell: (material) =>
+                                                material.category === null ? (
+                                                    "—"
+                                                ) : (
+                                                    <span className="tag">{material.category}</span>
+                                                ),
+                                        },
+                                        {
+                                            id: "quantity",
+                                            header: "Cantidad",
+                                            numeric: true,
+                                            cell: (material) =>
+                                                `${formatNumber(material.quantity)} ${material.unit}`,
+                                        },
+                                        {
+                                            id: "unit-cost",
+                                            header: "Costo unitario",
+                                            numeric: true,
+                                            cell: (material) => formatMoney(material.unit_cost),
+                                        },
+                                        {
+                                            id: "subtotal",
+                                            header: "Subtotal",
+                                            numeric: true,
+                                            cell: (material) => formatMoney(cost(material)),
+                                        },
+                                    ]}
+                                />
+                            </>
+                        )}
+                    </Panel>
+                    {/* Its height depends on how many categories there are, so it goes under the
+                        list: nothing above it moves when it arrives. */}
+                    {categories.length > 0 && (
+                        <Panel title="Costo por categoría">
+                            <CostSummary
+                                items={categories}
+                                label="Costo por categoría de todos tus proyectos"
+                            />
+                        </Panel>
+                    )}
+                </>
             )}
-            <Panel title="Listado">
-                <AsyncStatus
-                    loading={data.loading}
-                    error={data.error}
-                    onRetry={data.reload}
-                    isEmpty={materials.length === 0}
-                    emptyText="Todavía no hay materiales. Regístralos en la pestaña Materiales de un proyecto."
-                />
-                {materials.length > 0 && (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Material</th>
-                                <th>Proyecto</th>
-                                <th>Categoría</th>
-                                <th className="numeric">Cantidad</th>
-                                <th className="numeric">Costo unitario</th>
-                                <th className="numeric">Subtotal</th>
-                                <th />
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {materials.map((material) => (
-                                <tr key={material.id}>
-                                    <td data-label="Material">{material.name}</td>
-                                    <td data-label="Proyecto">
-                                        {projectNames.get(material.project_id) ?? "—"}
-                                    </td>
-                                    <td data-label="Categoría">{material.category ?? "—"}</td>
-                                    <td data-label="Cantidad" className="numeric">
-                                        {formatNumber(material.quantity)} {material.unit}
-                                    </td>
-                                    <td data-label="Costo unitario" className="numeric">
-                                        {formatMoney(material.unit_cost)}
-                                    </td>
-                                    <td data-label="Subtotal" className="numeric">
-                                        {formatMoney(cost(material))}
-                                    </td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            className="button-secondary"
-                                            aria-label={`Abrir el proyecto del material ${material.name}`}
-                                            onClick={() => onOpenProject(material.project_id)}
-                                        >
-                                            Abrir
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </Panel>
         </>
     );
 }

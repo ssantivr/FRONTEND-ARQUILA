@@ -7,8 +7,9 @@ import { formatNumber } from "../utils/format";
 import { placeOpenings } from "../utils/openings";
 import { AsyncStatus } from "./AsyncStatus";
 import { FloorPlan } from "./FloorPlan";
-import { MetricCard } from "./MetricCard";
-import { Panel } from "./Panel";
+import { MetricCard } from "./ui/MetricCard";
+import { Panel } from "./ui/Panel";
+import { readSiteSettings, saveSiteLimits } from "../state/siteSettings";
 
 interface FloorPlansPanelProps {
     projectId: number;
@@ -16,8 +17,17 @@ interface FloorPlansPanelProps {
     version: number;
 }
 
+const MAX_OVERLAPS_SHOWN = 5;
 const DEFAULT_MAX_COS = "0.6";
 const DEFAULT_MAX_CUS = "1.8";
+
+function ratio(value: number): string {
+    return value.toFixed(2).replace(".", ",");
+}
+
+function squareMeters(value: number): string {
+    return `${formatNumber(value)} m²`;
+}
 
 function compliance(value: number | null, limit: string): string {
     const max = Number(limit);
@@ -35,8 +45,10 @@ function compliance(value: number | null, limit: string): string {
 
 export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansPanelProps) {
     const structure = useAsync(() => structureApi.get(projectId), [projectId, version]);
-    const [maxCos, setMaxCos] = useState(DEFAULT_MAX_COS);
-    const [maxCus, setMaxCus] = useState(DEFAULT_MAX_CUS);
+    // The limits the user wrote for this project come back when the tab is opened again.
+    const [saved] = useState(() => readSiteSettings(projectId));
+    const [maxCos, setMaxCos] = useState(saved.maxCos ?? DEFAULT_MAX_COS);
+    const [maxCus, setMaxCus] = useState(saved.maxCus ?? DEFAULT_MAX_CUS);
     const levels = structure.data === null ? [] : planLevels(structure.data);
     const indicators = structure.data === null ? null : buildingIndicators(structure.data);
     const openings = placeOpenings(structure.data?.rooms ?? []);
@@ -48,7 +60,7 @@ export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansP
                     Se calcula con los cuartos del modelo y el contorno del primer terreno. El COS
                     es la huella de la planta baja entre el área del lote; el CUS, el área
                     construida de todos los niveles entre el área del lote. Los máximos se escriben
-                    aquí según la norma del municipio y no se guardan.
+                    aquí según la norma del municipio y se recuerdan en este navegador.
                 </p>
                 <AsyncStatus
                     loading={structure.loading}
@@ -57,22 +69,60 @@ export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansP
                     isEmpty={indicators === null}
                     emptyText="Agrega cuartos en la pestaña Modelo 3D, o crea un proyecto de ejemplo, para calcular la ocupación."
                 />
+                {indicators !== null && indicators.overlaps.length > 0 && (
+                    <div className="message message-warning" role="status">
+                        <p>
+                            <strong>
+                                {indicators.overlaps.length === 1
+                                    ? "Hay dos cuartos que se solapan."
+                                    : `Hay ${indicators.overlaps.length} pares de cuartos que se solapan.`}
+                            </strong>{" "}
+                            El suelo que comparten se cuenta una sola vez en el COS, el CUS y las
+                            áreas. Revisa su posición o sus medidas en la pestaña Modelo 3D.
+                        </p>
+                        <ul>
+                            {indicators.overlaps.slice(0, MAX_OVERLAPS_SHOWN).map((overlap) => (
+                                <li key={`${overlap.level}-${overlap.first}-${overlap.second}`}>
+                                    {overlap.first} y {overlap.second} ({overlap.level}):{" "}
+                                    {formatNumber(overlap.area)} m² en común
+                                </li>
+                            ))}
+                        </ul>
+                        {indicators.overlaps.length > MAX_OVERLAPS_SHOWN && (
+                            <p>
+                                Y {indicators.overlaps.length - MAX_OVERLAPS_SHOWN} más, de menor
+                                tamaño.
+                            </p>
+                        )}
+                    </div>
+                )}
                 {indicators !== null && (
                     <>
                         <div className="metrics">
                             <MetricCard
                                 label="COS"
-                                value={indicators.cos === null ? "—" : indicators.cos.toFixed(2)}
+                                value={indicators.cos === null ? "—" : ratio(indicators.cos)}
+                                count={
+                                    indicators.cos === null
+                                        ? undefined
+                                        : { to: indicators.cos, format: ratio, step: 0.01 }
+                                }
                                 detail={compliance(indicators.cos, maxCos)}
                             />
                             <MetricCard
                                 label="CUS"
-                                value={indicators.cus === null ? "—" : indicators.cus.toFixed(2)}
+                                value={indicators.cus === null ? "—" : ratio(indicators.cus)}
+                                count={
+                                    indicators.cus === null
+                                        ? undefined
+                                        : { to: indicators.cus, format: ratio, step: 0.01 }
+                                }
                                 detail={compliance(indicators.cus, maxCus)}
                             />
                             <MetricCard
                                 label="Huella construida"
                                 value={`${formatNumber(indicators.footprint)} m²`}
+                                count={{ to: indicators.footprint, format: squareMeters }}
                                 detail={
                                     indicators.freeArea === null
                                         ? undefined
@@ -82,6 +132,7 @@ export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansP
                             <MetricCard
                                 label="Área construida"
                                 value={`${formatNumber(indicators.builtArea)} m²`}
+                                count={{ to: indicators.builtArea, format: squareMeters }}
                                 detail={`${indicators.levels === 1 ? "1 nivel" : `${indicators.levels} niveles`} · ${formatNumber(indicators.height)} m de altura`}
                             />
                         </div>
@@ -93,7 +144,10 @@ export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansP
                                     min="0.01"
                                     step="0.01"
                                     value={maxCos}
-                                    onChange={(event) => setMaxCos(event.target.value)}
+                                    onChange={(event) => {
+                                        setMaxCos(event.target.value);
+                                        saveSiteLimits(projectId, { maxCos: event.target.value });
+                                    }}
                                 />
                             </label>
                             <label>
@@ -103,7 +157,10 @@ export function FloorPlansPanel({ projectId, projectName, version }: FloorPlansP
                                     min="0.01"
                                     step="0.01"
                                     value={maxCus}
-                                    onChange={(event) => setMaxCus(event.target.value)}
+                                    onChange={(event) => {
+                                        setMaxCus(event.target.value);
+                                        saveSiteLimits(projectId, { maxCus: event.target.value });
+                                    }}
                                 />
                             </label>
                         </div>

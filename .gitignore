@@ -3,8 +3,13 @@ dist/
 .env
 .env.*
 !.env.example
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.log
 
 .vercel
+coverage/
+test-results/
+playwright-report/
+tsconfig.tsbuildinfo

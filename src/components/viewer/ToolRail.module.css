@@ -1,0 +1,79 @@
+/* Sits in the scene's cell of the overlay grid, against its left edge. */
+.rail {
+    grid-area: 2 / 2;
+    align-self: start;
+    justify-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    overflow: visible;
+}
+
+.tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-sm);
+    min-height: var(--control-sm);
+    padding: 0;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    box-shadow: none;
+    cursor: pointer;
+    transition:
+        background-color var(--dur-fast) var(--ease-out),
+        border-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
+}
+
+.tool:hover {
+    background: var(--hover);
+    border-color: var(--glass-border);
+}
+
+.tool[aria-pressed="true"] {
+    color: var(--lime-contrast);
+    background: var(--lime);
+    border-color: var(--lime);
+}
+
+.tool[aria-disabled="true"] {
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.tool[aria-disabled="true"]:hover {
+    background: transparent;
+    border-color: transparent;
+}
+
+.tool :global(.icon) {
+    width: var(--icon-md);
+    height: var(--icon-md);
+}
+
+/* On a phone the panels stack under the scene and the bar becomes a row of 44 px targets. */
+@media (max-width: 720px) {
+    .rail {
+        flex-direction: row;
+        justify-content: space-between;
+        justify-self: stretch;
+    }
+
+    .tool {
+        width: var(--touch-target);
+        min-height: var(--touch-target);
+    }
+}
+
+/* Any touch screen, tablets included, gets the full-size targets. */
+@media (pointer: coarse) {
+    .tool {
+        width: var(--touch-target);
+        min-height: var(--touch-target);
+    }
+}

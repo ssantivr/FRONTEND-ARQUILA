@@ -1,0 +1,101 @@
+.anchor {
+    position: relative;
+    display: inline-flex;
+}
+
+/* Hidden: it leaves quickly, and only then stops being reachable. */
+.tip {
+    position: absolute;
+    z-index: var(--z-tooltip);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    color: var(--scene-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    line-height: 1.4;
+    width: max-content;
+    max-width: 280px;
+    white-space: normal;
+    background: var(--brand-forest);
+    border: var(--border-width) solid var(--brand-forest-raised);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-2);
+    opacity: 0;
+    scale: 0.96;
+    visibility: hidden;
+    transition:
+        opacity var(--dur-fast) var(--ease-in),
+        scale var(--dur-fast) var(--ease-in),
+        visibility 0s var(--dur-fast);
+}
+
+/* Shown after a short wait, so it does not flash while the pointer only passes over. */
+.anchor:hover > .tip,
+.anchor:focus-within > .tip {
+    opacity: 1;
+    scale: 1;
+    visibility: visible;
+    transition:
+        opacity var(--dur) var(--ease-out) var(--dur-slow),
+        scale var(--dur) var(--ease-out) var(--dur-slow),
+        visibility 0s var(--dur-slow);
+}
+
+.anchor[data-dismissed] > .tip {
+    opacity: 0;
+    scale: 0.96;
+    visibility: hidden;
+    transition: none;
+}
+
+.top {
+    bottom: calc(100% + var(--space-2));
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.bottom {
+    top: calc(100% + var(--space-2));
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.right {
+    top: 50%;
+    left: calc(100% + var(--space-2));
+    transform: translateY(-50%);
+}
+
+.top.end,
+.bottom.end {
+    right: 0;
+    left: auto;
+    transform: none;
+}
+
+.key {
+    flex: none;
+    padding: 0 var(--space-1);
+    color: var(--brand-lime);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    border: var(--border-width) solid var(--brand-forest-raised);
+    border-radius: var(--radius-sm);
+}
+
+/* On a phone a hint at the side would run off the screen: it goes above, and wraps. */
+@media (max-width: 720px) {
+    .tip {
+        max-width: min(240px, 70vw);
+        white-space: normal;
+    }
+
+    .right {
+        top: auto;
+        bottom: calc(100% + var(--space-2));
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}

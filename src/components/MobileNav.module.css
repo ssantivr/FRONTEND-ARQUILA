@@ -1,0 +1,112 @@
+/* Only on small screens; above 720 px the sidebar does this job. */
+.bar {
+    display: none;
+}
+
+@media (max-width: 720px) {
+    .bar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: var(--z-dock);
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        border-top: var(--border-width) solid var(--brand-forest-raised);
+        background: var(--brand-forest);
+    }
+}
+
+.item {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: var(--space-0);
+    min-height: var(--touch-target);
+    margin: 0;
+    padding: var(--space-1) 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--brand-forest-text);
+    font: inherit;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    box-shadow: none;
+    transition: none;
+}
+
+.item :global(.icon) {
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+}
+
+.item:focus-visible {
+    outline: 2px solid var(--brand-lime);
+    outline-offset: -4px;
+}
+
+/* The open module: lime icon, white word and a lime line over it. */
+.item[aria-current="page"],
+.item[data-active] {
+    color: var(--white);
+}
+
+.item[aria-current="page"] :global(.icon),
+.item[data-active] :global(.icon) {
+    color: var(--brand-lime);
+}
+
+.item[aria-current="page"]::before,
+.item[data-active]::before {
+    position: absolute;
+    top: 0;
+    right: 28%;
+    left: 28%;
+    height: 3px;
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+    background: var(--brand-lime);
+    content: "";
+}
+
+.section {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: var(--border-width) solid var(--color-border);
+}
+
+.sectionLabel {
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+}
+
+.who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.whoText {
+    display: grid;
+    min-width: 0;
+    font-size: var(--text-sm);
+}
+
+.whoText span {
+    color: var(--color-text-secondary);
+    overflow-wrap: anywhere;
+}
+
+.accountActions {
+    display: grid;
+    gap: var(--space-2);
+}

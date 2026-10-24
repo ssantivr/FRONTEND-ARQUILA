@@ -1,0 +1,99 @@
+/* Toasts sit at the bottom right on the forest band, the same in both themes. */
+.region {
+    position: fixed;
+    right: var(--space-5);
+    bottom: var(--space-5);
+    z-index: var(--z-toast);
+    display: grid;
+    justify-items: end;
+    gap: var(--space-2);
+    pointer-events: none;
+}
+
+.toast {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    max-width: min(420px, calc(100vw - var(--space-6)));
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    overflow: hidden;
+    border: var(--border-width) solid var(--brand-forest-raised);
+    border-radius: var(--radius-md);
+    background: var(--brand-forest);
+    color: var(--white);
+    box-shadow: var(--shadow-3);
+    pointer-events: auto;
+    animation: slide-in-right var(--dur-slow) var(--ease-out) both;
+}
+
+.leaving {
+    animation: slide-out-right var(--dur) var(--ease-in) both;
+}
+
+.mark {
+    flex: none;
+    color: var(--brand-lime);
+}
+
+.toast[data-tone="error"] .mark {
+    color: var(--band-danger);
+}
+
+.toast[data-tone="info"] .mark {
+    color: var(--band-info);
+}
+
+.text {
+    min-width: 0;
+    font-size: var(--text-md);
+}
+
+.close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--control-sm);
+    height: var(--control-sm);
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--brand-forest-text);
+    cursor: pointer;
+}
+
+.close:hover {
+    background: var(--brand-forest-raised);
+    color: var(--white);
+}
+
+.close:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--brand-lime);
+}
+
+/* The time the toast has left. It stops while the pointer or the focus is on the toast. */
+.timer {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: var(--brand-lime);
+    transform-origin: left;
+    animation: run-out var(--toast-life) linear both;
+}
+
+.toast:is(:hover, :focus-within) .timer {
+    animation-play-state: paused;
+}
+
+@media (max-width: 720px) {
+    .region {
+        right: var(--space-4);
+        bottom: calc(var(--mobile-nav-height) + var(--space-3));
+        left: var(--space-4);
+        justify-items: stretch;
+    }
+}

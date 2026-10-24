@@ -1,0 +1,17 @@
+/* The sidebar column changes width at once: animating it would move the whole layout, and the
+   interface only animates transform and opacity. */
+.shell {
+    transition: none;
+}
+
+.waiting {
+    display: grid;
+    place-items: center;
+    min-height: 100dvh;
+    padding: var(--space-5);
+    background: var(--color-bg);
+}
+
+.waiting:focus {
+    outline: none;
+}

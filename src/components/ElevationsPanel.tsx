@@ -6,8 +6,10 @@ import type { Elevation, Orientation, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
 import { FileAttachment } from "./FileAttachment";
-import { Panel } from "./Panel";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
+import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 const ORIENTATION_LABELS: Record<Orientation, string> = {
     north: "Norte",
@@ -40,7 +42,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
 
     function startEdit(elevation: Elevation) {
         setEditingId(elevation.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setTitle(elevation.title);
         setOrientation(elevation.orientation);
     }
@@ -153,7 +155,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                     </tbody>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Título
                     <input
@@ -182,7 +184,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                     disabled={title.trim() === ""}
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }

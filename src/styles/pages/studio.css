@@ -1,0 +1,663 @@
+/* Tool screens that work on one project: lighting, render, plans. And the task board. */
+
+.tool-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.tool-head-actions .project-picker {
+    min-width: 220px;
+    margin: 0;
+}
+
+.tool-head-actions button {
+    min-height: var(--control-md);
+}
+
+/* ---- Studio: the scene on the left, its controls in a column on the right ---- */
+
+.studio {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+    gap: 20px;
+}
+
+.studio-main {
+    display: grid;
+    gap: 20px;
+    min-width: 0;
+}
+
+.studio-stage {
+    position: relative;
+    height: calc(100vh - var(--header-height) - 168px);
+    min-height: 440px;
+    overflow: hidden;
+    background: var(--viewport);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+}
+
+.studio-stage > .message,
+.studio-stage > .empty-state,
+.studio-stage > .skeleton {
+    margin: 24px;
+}
+
+/* The render frame keeps the proportions of the image, centred on a darker mat. */
+.studio-stage-framed {
+    display: grid;
+    place-items: center;
+    padding: 20px 20px 56px;
+    background: var(--forest);
+    container-type: size;
+}
+
+/* As large as fits in the stage, whichever side runs out first. */
+.render-frame {
+    position: relative;
+    width: min(100cqw, calc(100cqh * var(--ratio)));
+    aspect-ratio: var(--ratio);
+    overflow: hidden;
+    border-radius: var(--r-sm);
+    outline: 1px solid rgba(255, 255, 255, 0.28);
+    outline-offset: 3px;
+}
+
+.render-frame > .message,
+.render-frame > .empty-state,
+.render-frame > .skeleton {
+    margin: 16px;
+    color: var(--forest-text);
+}
+
+.studio-caption {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    max-width: calc(100% - 24px);
+    margin: 0;
+    padding: 8px 14px;
+    color: var(--on-scene);
+    font-size: var(--fs-13);
+    font-variant-numeric: tabular-nums;
+    background: rgba(11, 33, 26, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--r-md);
+    pointer-events: none;
+}
+
+.studio-caption strong {
+    color: var(--lime);
+    font-weight: 600;
+}
+
+.studio-panel {
+    display: grid;
+    gap: 0;
+    padding: 4px 20px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+}
+
+.studio-panel > section {
+    display: grid;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.studio-panel h3 {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.studio-panel .segmented {
+    display: flex;
+}
+
+.studio-panel .segmented button {
+    flex: 1 1 auto;
+    min-height: var(--control-sm);
+    padding: 5px 8px;
+    font-size: var(--fs-13);
+}
+
+.studio-presets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.studio-presets button[aria-pressed="true"] {
+    color: var(--text);
+    font-weight: 600;
+    border-color: var(--accent);
+    box-shadow: var(--ring);
+}
+
+.studio-note {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    line-height: 1.45;
+}
+
+.studio-panel > .studio-note {
+    padding-top: 14px;
+}
+
+.range {
+    display: grid;
+    gap: 10px;
+}
+
+.range-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: var(--fs-14);
+}
+
+.range-value {
+    color: var(--text);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.range input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ---- Render: progress and result ---- */
+
+.render-run .bar {
+    display: block;
+    height: 8px;
+}
+
+.render-run > button {
+    min-height: var(--control-lg);
+}
+
+/* The capture covers the preview, on the same mat, until the user goes back to the framing. */
+.render-result {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    margin: 0;
+    background: var(--forest);
+    animation: rise-in var(--dur-slow) var(--ease-out) both;
+}
+
+.render-result img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 20px;
+    object-fit: contain;
+}
+
+.render-result-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--on-scene);
+    background: rgba(11, 33, 26, 0.94);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.render-result-foot p {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.render-result-foot strong {
+    color: var(--lime);
+}
+
+.render-result-foot p span {
+    color: var(--forest-text);
+    font-size: var(--fs-13);
+}
+
+.render-result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.render-result-actions a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-md);
+    padding: 0 20px;
+    color: var(--lime-contrast);
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--lime);
+    border-radius: var(--r-md);
+    transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.render-result-actions a:hover {
+    filter: brightness(0.95);
+}
+
+.render-result-actions a:focus-visible {
+    outline: 2px solid var(--lime);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--forest);
+}
+
+/* What the capture is doing: one line, with an icon when it ended. */
+.render-state {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 10px;
+    align-items: start;
+    padding: 10px 12px;
+    font-size: var(--fs-13);
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+}
+
+.render-state > p:only-child {
+    grid-column: 1 / -1;
+}
+
+.render-state p {
+    margin: 0;
+}
+
+.render-state .icon {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+}
+
+.render-state-busy {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.render-state-done {
+    border-color: var(--accent);
+}
+
+.render-state-done .icon {
+    color: var(--accent);
+}
+
+.render-state-error {
+    border-color: var(--error);
+}
+
+.render-state-error .icon {
+    color: var(--error);
+}
+
+/* Generating is always in reach, at the foot of the panel, however far it is scrolled. */
+.studio-workspace .render-run {
+    position: sticky;
+    bottom: -16px;
+    z-index: 1;
+    margin: 0 -20px -16px;
+    padding: 16px 20px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    border-bottom: 0;
+}
+
+.studio-workspace .studio-panel .segmented:has(> :nth-child(3):last-child) {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* The parameters fold away and the preview takes the whole width. */
+.studio-workspace.studio-wide {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace-head-end {
+    margin-left: auto;
+}
+
+/* ---- Tasks: one column per state ---- */
+
+.task-progress {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    font-variant-numeric: tabular-nums;
+}
+
+.task-progress .bar {
+    flex: 1;
+    height: 8px;
+}
+
+.task-progress span:last-child {
+    flex: none;
+}
+
+.task-board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+}
+
+.task-column {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+.task-column h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: var(--fs-14);
+    font-weight: 600;
+}
+
+.task-column h3::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+}
+
+.task-column-in_progress h3::before {
+    background: var(--warning);
+}
+
+.task-column-completed h3::before {
+    background: var(--success);
+}
+
+.task-column-cancelled h3::before {
+    background: var(--error);
+}
+
+.task-count {
+    margin-left: auto;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.task-column ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.task-empty {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+}
+
+.task-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+}
+
+.task-card > strong {
+    font-size: var(--fs-14);
+    line-height: 1.3;
+}
+
+.task-card > p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+}
+
+.task-card .task-project {
+    justify-self: start;
+    min-height: 0;
+    padding: 0;
+    color: var(--accent);
+    font-size: var(--fs-13);
+    font-weight: 600;
+    text-align: left;
+}
+
+.task-card dl {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    font-size: var(--fs-13);
+}
+
+.task-card dl > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 12px;
+}
+
+.task-card dt {
+    color: var(--text-secondary);
+}
+
+.task-card dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.task-late {
+    color: var(--error);
+}
+
+.task-column-cancelled .task-card > strong {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+}
+
+/* ---- Lighting as a workspace: the scene fills the height, the panel scrolls beside it ---- */
+
+.studio-workspace {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: stretch;
+    gap: var(--space-3);
+}
+
+.studio-workspace .studio-stage {
+    height: calc(100dvh - var(--header-height) - 120px);
+    min-height: 480px;
+}
+
+.studio-workspace .studio-panel {
+    max-height: calc(100dvh - var(--header-height) - 120px);
+    min-height: 480px;
+    overflow: auto;
+    border-radius: var(--r-md);
+    box-shadow: none;
+}
+
+.studio-facts {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+    font-size: var(--fs-13);
+}
+
+.studio-facts dt {
+    color: var(--text-secondary);
+}
+
+.studio-facts dd {
+    margin: 0;
+    text-align: left;
+}
+
+.studio-workspace .studio-panel .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.studio-date input {
+    min-height: var(--control-sm);
+}
+
+.studio-link {
+    display: inline;
+    min-height: 0;
+    padding: 0;
+    color: var(--accent);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+
+/* ---- Narrower screens ---- */
+
+@media (max-width: 1280px) {
+    .task-board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1024px) {
+    .studio {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* The panel stays beside the scene while both fit. */
+    .studio-workspace {
+        grid-template-columns: minmax(0, 1fr) 280px;
+    }
+
+    .studio-stage {
+        height: min(56vh, 520px);
+        min-height: 320px;
+    }
+}
+
+@media (max-width: 900px) {
+    .studio-workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .studio-workspace .studio-stage {
+        height: min(60vh, 560px);
+        min-height: 320px;
+    }
+
+    .studio-workspace .studio-panel {
+        max-height: none;
+        min-height: 0;
+    }
+
+    /* The mat wraps the image instead of leaving bands around it: the frame takes the width
+       (or 60 % of the height, for a tall image) and the stage grows to fit it. */
+    .studio-workspace .studio-stage-framed {
+        display: block;
+        height: auto;
+        min-height: 0;
+        container-type: normal;
+    }
+
+    .studio-workspace .studio-stage-framed .render-frame {
+        width: min(100%, calc(60vh * var(--ratio)));
+        margin: 0 auto;
+    }
+
+    .studio-workspace .studio-stage-framed {
+        padding: 12px;
+    }
+
+    .studio-workspace .studio-stage-framed .studio-caption {
+        position: static;
+        max-width: none;
+        margin-top: 12px;
+    }
+
+    /* The panel is under the preview and the page scrolls: no fixed foot. */
+    .studio-workspace .render-run {
+        position: static;
+        margin: 0;
+        padding: 16px 0;
+        border-top: 0;
+    }
+}
+
+@media (max-width: 720px) {
+    .task-board {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tool-head-actions,
+    .tool-head-actions .project-picker {
+        width: 100%;
+    }
+
+    .tool-head-actions button {
+        flex: 1 1 auto;
+        min-height: 44px;
+    }
+
+    .studio-stage {
+        height: min(52vh, 420px);
+        min-height: 280px;
+    }
+
+    .studio-stage-framed {
+        padding: 12px 12px 64px;
+    }
+
+    .studio-panel .segmented button {
+        min-height: 44px;
+    }
+
+    .range input {
+        margin: 8px 0;
+    }
+}

@@ -53,6 +53,11 @@ export interface StructureTerrain {
     id: number;
     name: string;
     outline: TerrainPoint[];
+    /**
+     * Slope along the depth of the lot, in percent. The structure route does not send it yet
+     * (docs/CAMBIOS_BACKEND.md); `structureApi.get` fills it in from the list of terrains.
+     */
+    slope_percent?: number | null;
 }
 
 export interface Room {
@@ -188,6 +193,11 @@ export interface Project {
     status: ProjectStatus;
     created_at: string;
     updated_at: string;
+    /** 0 to 100. Optional: an API older than the contract of 20 October does not send it. */
+    progress?: number;
+    archived_at?: string | null;
+    /** An image of the project's files chosen as its cover, read from `GET /files/{id}/content`. */
+    cover_file_id?: number | null;
 }
 
 export interface ProjectTemplate {
@@ -207,7 +217,91 @@ export interface ProjectCreate {
     status?: ProjectStatus;
 }
 
-export type ProjectUpdate = Partial<ProjectCreate>;
+export type ProjectUpdate = Partial<ProjectCreate> & {
+    progress?: number;
+    cover_file_id?: number | null;
+};
+
+export type ProjectSort = "id" | "name" | "created_at" | "updated_at" | "status" | "progress";
+
+/** The parameters of `GET /projects` that turn its answer into a page (contract of 20 October). */
+export interface ProjectQuery {
+    page: number;
+    page_size: number;
+    /** Searches the name, description and place. */
+    q?: string;
+    status?: ProjectStatus;
+    archived?: boolean;
+    sort?: ProjectSort;
+    order?: "asc" | "desc";
+}
+
+export interface ProjectPage {
+    items: Project[];
+    total: number;
+    page: number;
+    page_size: number;
+}
+
+export type TaskStatus = "todo" | "in_progress" | "done";
+
+export interface Task {
+    id: number;
+    project_id: number;
+    title: string;
+    description: string | null;
+    status: TaskStatus;
+    assignee_id: number | null;
+    due_date: string | null;
+    progress: number;
+    created_by: number | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TaskCreate {
+    title: string;
+    description?: string | null;
+    status?: TaskStatus;
+    assignee_id?: number | null;
+    due_date?: string | null;
+    progress?: number;
+}
+
+export type TaskUpdate = Partial<TaskCreate>;
+
+export interface Version {
+    id: number;
+    project_id: number;
+    version_number: number;
+    label: string | null;
+    created_by: number | null;
+    created_at: string;
+    /** How many of each kind of content the copy holds, such as `{"plans": 2}`. */
+    contents: Record<string, number>;
+}
+
+export interface VersionDetail extends Version {
+    snapshot: Record<string, unknown>;
+}
+
+export interface Activity {
+    id: number;
+    project_id: number;
+    user_id: number | null;
+    action: string;
+    entity_type: string | null;
+    entity_id: number | null;
+    detail: { label?: string; fields?: string[]; [key: string]: unknown };
+    created_at: string;
+}
+
+export interface ActivityPage {
+    items: Activity[];
+    total: number;
+    page: number;
+    page_size: number;
+}
 
 export interface ProjectFilters {
     status?: ProjectStatus;
@@ -311,6 +405,19 @@ export interface Summary {
     terrains: number;
     total_area_m2: number;
     materials_total_cost: number;
+    // Added to the API on 20 October; an older one leaves them out, and then they are not shown.
+    in_progress_projects?: number;
+    completed_projects?: number;
+    materials?: number;
+    plans?: number;
+}
+
+export interface Notification {
+    id: number;
+    title: string;
+    body: string | null;
+    read_at: string | null;
+    created_at: string;
 }
 
 export type SpatialLayer = "structure" | "installations" | "finishes";

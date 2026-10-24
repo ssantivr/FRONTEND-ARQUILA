@@ -1,0 +1,101 @@
+/* The assistant, reachable from every tab of a project: a button in the top bar and a panel on
+   the right that does not block the screen (it reads the selection of the 3D model). */
+
+.assistant-launcher {
+    height: var(--control-height);
+}
+
+.assistant-launcher .icon {
+    color: var(--accent);
+}
+
+.assistant-launcher-open {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Without a top bar (a screen tested on its own) the controls sit above the project. */
+.project-top-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.assistant-drawer {
+    position: fixed;
+    top: calc(var(--header-height) + 12px);
+    right: 12px;
+    bottom: 12px;
+    z-index: 30;
+    display: flex;
+    width: min(440px, calc(100vw - 24px));
+    animation: slide-in-right var(--dur-slow) var(--ease-out) backwards;
+}
+
+.assistant-drawer > .panel {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden auto;
+    box-shadow: var(--shadow-float);
+}
+
+.assistant-drawer .chat {
+    flex: 1;
+    min-height: 120px;
+    max-height: none;
+}
+
+.assistant-drawer .suggestions {
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.assistant-drawer .suggestion {
+    flex: none;
+    max-width: 280px;
+    font-size: var(--fs-13);
+    text-align: left;
+    white-space: normal;
+}
+
+@media (max-width: 1100px) {
+    .assistant-launcher {
+        width: var(--control-height);
+        justify-content: center;
+        padding: 0;
+    }
+
+    .assistant-launcher-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 720px) {
+    .assistant-launcher {
+        width: var(--touch-target);
+        height: var(--touch-target);
+    }
+
+    /* Above the bottom navigation. */
+    .assistant-drawer {
+        top: auto;
+        right: 0;
+        bottom: var(--mobile-nav-height);
+        width: 100%;
+        max-height: 86vh;
+    }
+
+    .assistant-drawer > .panel {
+        border-radius: var(--r-lg) var(--r-lg) 0 0;
+    }
+}

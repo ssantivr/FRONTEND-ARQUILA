@@ -7,8 +7,13 @@ import type { Material } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatMoney, formatNumber, optionalNumber, optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
-import { Panel } from "./Panel";
+import { FocusFormButton } from "./ui/EmptyState";
+import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
+import { CostSummary } from "./CostSummary";
+import { costByCategory } from "../utils/materials";
+import { LiveForm } from "./ui/LiveForm";
+import { scrollBehavior } from "../state/motion";
 
 export function MaterialsPanel({ projectId, run }: SectionProps) {
     const materials = useAsync(() => materialsApi.listByProject(projectId), [projectId]);
@@ -37,7 +42,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
 
     function startEdit(material: Material) {
         setEditingId(material.id);
-        form.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        form.current?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
         setName(material.name);
         setCategory(material.category ?? "");
         setUnit(material.unit);
@@ -86,6 +91,8 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
         0,
     );
 
+    const categories = costByCategory(items);
+
     return (
         <Panel title="Materiales">
             <AsyncStatus
@@ -93,8 +100,16 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                 error={materials.error}
                 onRetry={materials.reload}
                 isEmpty={items.length === 0}
+                emptyTitle="Sin materiales todavía"
                 emptyText="Este proyecto no tiene materiales."
+                emptyAction={<FocusFormButton>Agregar el primer material</FocusFormButton>}
             />
+            {totalCost > 0 && (
+                <section className="cost-chart" aria-labelledby="cost-chart-title">
+                    <h3 id="cost-chart-title">Costo por categoría</h3>
+                    <CostSummary items={categories} label="Costo por categoría del proyecto" />
+                </section>
+            )}
             {items.length > 0 && (
                 <table>
                     <thead>
@@ -143,7 +158,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                     </tfoot>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
+            <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
                 <label>
                     Nombre
                     <input
@@ -195,7 +210,7 @@ export function MaterialsPanel({ projectId, run }: SectionProps) {
                     addLabel="Agregar material"
                     onCancel={resetForm}
                 />
-            </form>
+            </LiveForm>
         </Panel>
     );
 }
