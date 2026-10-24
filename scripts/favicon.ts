@@ -6,10 +6,11 @@
  */
 import { writeFileSync } from "node:fs";
 
+import type { Face } from "../src/components/ui/logoGeometry.ts";
 import { LOGO_FACES, LOGO_HEIGHT, LOGO_WIDTH } from "../src/components/ui/logoGeometry.ts";
 
 // The colours of the faces and of the tile, from src/styles/tokens.css (--brand-*).
-const FILL = { top: "#b8f36b", left: "#8fcf4c", right: "#236b42" };
+const FILL: Record<Face["side"], string> = { top: "#b8f36b", left: "#8fcf4c", right: "#236b42" };
 const FOREST = "#0b211a";
 
 const SIZE = 32;
@@ -30,7 +31,7 @@ ${faces}
 </svg>
 `;
 
-if (process.argv[1]?.endsWith("favicon.mjs")) {
+if (process.argv[1]?.endsWith("favicon.ts")) {
     writeFileSync(new URL("../public/favicon.svg", import.meta.url), FAVICON);
     console.log("public/favicon.svg escrito con", LOGO_FACES.length, "caras");
 }

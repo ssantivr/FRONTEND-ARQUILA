@@ -24,7 +24,7 @@
         "contraste": "node scripts/contraste.mjs",
         "movimiento": "node scripts/movimiento.mjs",
         "renders": "node scripts/renders.mjs",
-        "favicon": "node scripts/favicon.mjs",
+        "favicon": "node scripts/favicon.ts",
         "local:wasm": "node scripts/local-wasm.mjs"
     },
     "dependencies": {
