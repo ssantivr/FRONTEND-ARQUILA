@@ -55,6 +55,18 @@ export const MESSAGES: Record<string, string> = {
     "Not Found": "Esta función no está disponible en la versión de la API que estás usando.",
     "Method Not Allowed":
         "Esta función no está disponible en la versión de la API que estás usando.",
+    // Versions and password recovery (BACKEND-ARQUILA: project_snapshot.py, version_service.py
+    // and mailer.py).
+    "This version is not in a format the server can read":
+        "Esta versión tiene un formato que el servidor no sabe leer.",
+    "This version holds a value that does not fit its field":
+        "Esta versión tiene un dato que no encaja en su campo.",
+    "This version cannot be restored: its contents break a rule of the project data":
+        "No se puede restaurar esta versión: su contenido incumple una regla de los datos del proyecto.",
+    "Another version was saved at the same time: try again":
+        "Se guardó otra versión al mismo tiempo. Inténtalo de nuevo.",
+    "Password recovery is not available on this server":
+        "La recuperación de contraseña no está disponible en este servidor.",
 };
 
 /** The fields a 422 of validation names, as the forms call them. */
@@ -71,13 +83,32 @@ const FIELDS: Record<string, string> = {
     page_size: "Tamaño de página",
     q: "Búsqueda",
     surface: "Superficie",
+    password: "Contraseña",
+    current_password: "Contraseña actual",
+    new_password: "Contraseña nueva",
 };
+
+/** What the forms call a field: the last part of a nested one (items.0.title), or the field. */
+function fieldName(field: string): string {
+    const key = field.slice(field.lastIndexOf(".") + 1);
+
+    // Only the names of the list: «constructor» must not find what every object inherits.
+    return Object.prototype.hasOwnProperty.call(FIELDS, key) ? FIELDS[key] : field;
+}
+
+const characters = (n: string) => (n === "1" ? "1 carácter" : `${n} caracteres`);
 
 /** The messages of Pydantic a form can meet, with the value they carry. */
 const VALIDATION: [RegExp, (...values: string[]) => string][] = [
     [/^Field required$/, () => "es obligatorio"],
-    [/^String should have at least (\d+) characters?$/, (n) => `necesita al menos ${n} caracteres`],
-    [/^String should have at most (\d+) characters?$/, (n) => `admite como máximo ${n} caracteres`],
+    [
+        /^String should have at least (\d+) characters?$/,
+        (n) => `necesita al menos ${characters(n)}`,
+    ],
+    [
+        /^String should have at most (\d+) characters?$/,
+        (n) => `admite como máximo ${characters(n)}`,
+    ],
     [/^Input should be greater than or equal to (.+)$/, (n) => `tiene que ser al menos ${n}`],
     [/^Input should be less than or equal to (.+)$/, (n) => `tiene que ser como máximo ${n}`],
     [/^Input should be a valid date.*$/, () => "tiene que ser una fecha válida"],
@@ -99,9 +130,7 @@ function translateIssue(issue: string): string {
 
         if (found !== null) {
             const said = say(...found.slice(1));
-            // The last part of a nested field (items.0.title) is the one the forms call by name.
-            const name =
-                field === null ? null : (FIELDS[field.slice(field.lastIndexOf(".") + 1)] ?? field);
+            const name = field === null ? null : fieldName(field);
 
             return name === null ? said : `${name}: ${said}`;
         }

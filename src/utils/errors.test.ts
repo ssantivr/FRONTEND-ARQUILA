@@ -81,6 +81,26 @@ const BACKEND_MESSAGES: [string, string][] = [
         "Method Not Allowed",
         "Esta función no está disponible en la versión de la API que estás usando.",
     ],
+    [
+        "This version is not in a format the server can read",
+        "Esta versión tiene un formato que el servidor no sabe leer.",
+    ],
+    [
+        "This version holds a value that does not fit its field",
+        "Esta versión tiene un dato que no encaja en su campo.",
+    ],
+    [
+        "This version cannot be restored: its contents break a rule of the project data",
+        "No se puede restaurar esta versión: su contenido incumple una regla de los datos del proyecto.",
+    ],
+    [
+        "Another version was saved at the same time: try again",
+        "Se guardó otra versión al mismo tiempo. Inténtalo de nuevo.",
+    ],
+    [
+        "Password recovery is not available on this server",
+        "La recuperación de contraseña no está disponible en este servidor.",
+    ],
 ];
 
 describe("translateError", () => {
@@ -192,7 +212,36 @@ describe("translateError", () => {
             translateError(
                 "password: Value error, The new password must be different from the current one",
             ),
-        ).toBe("password: La contraseña nueva tiene que ser distinta de la actual.");
+        ).toBe("Contraseña: La contraseña nueva tiene que ser distinta de la actual.");
+    });
+
+    it("says one character in the singular and the others in the plural", () => {
+        expect(translateError("name: String should have at least 1 character")).toBe(
+            "Nombre: necesita al menos 1 carácter",
+        );
+        expect(translateError("q: String should have at most 1 character")).toBe(
+            "Búsqueda: admite como máximo 1 carácter",
+        );
+        expect(translateError("title: String should have at most 2 characters")).toBe(
+            "Título: admite como máximo 2 caracteres",
+        );
+    });
+
+    it("names the password fields", () => {
+        expect(translateError("password: Field required")).toBe("Contraseña: es obligatorio");
+        expect(translateError("current_password: Field required")).toBe(
+            "Contraseña actual: es obligatorio",
+        );
+        expect(translateError("new_password: String should have at least 8 characters")).toBe(
+            "Contraseña nueva: necesita al menos 8 caracteres",
+        );
+    });
+
+    it("does not take what every object inherits for the name of a field", () => {
+        expect(translateError("constructor: Field required")).toBe("constructor: es obligatorio");
+        expect(translateError("items.0.toString: Field required")).toBe(
+            "items.0.toString: es obligatorio",
+        );
     });
 
     it("keeps the name of a field it does not know", () => {
