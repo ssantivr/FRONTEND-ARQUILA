@@ -6,4 +6,4 @@ repos:
         language: node
         additional_dependencies: ["prettier@3.9.9"]
         entry: prettier --write --ignore-unknown
-        files: ^(src/.*|vite\.config\.ts|eslint\.config\.js)$
+        files: ^(src/.*|vite\.config\.ts|eslint\.config\.ts)$

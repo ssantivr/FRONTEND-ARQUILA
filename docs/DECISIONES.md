@@ -28,7 +28,7 @@ Smart App Control bloquea `rollup.win32-x64-msvc.node`, que no está firmado, y 
 
 ### Commits con `--no-verify` (fase 0)
 
-El hook de pre-commit es un guion de `sh` y git no puede lanzarlo («cannot spawn .git/hooks/pre-commit»), por el mismo bloqueo. El hook solo pasa Prettier por `src/`, `vite.config.ts` y `eslint.config.js`. Antes de cada commit se ejecuta `npm run format:check`, que comprueba esos mismos archivos, y se confirma con `--no-verify`.
+El hook de pre-commit es un guion de `sh` y git no puede lanzarlo («cannot spawn .git/hooks/pre-commit»), por el mismo bloqueo. El hook solo pasa Prettier por `src/`, `vite.config.ts` y `eslint.config.ts`. Antes de cada commit se ejecuta `npm run format:check`, que comprueba esos mismos archivos, y se confirma con `--no-verify`.
 
 **Ya no hace falta desde el 14 de octubre:** el hook vuelve a ejecutarse y los commits de esa sesión pasaron por él, sin `--no-verify`.
 
