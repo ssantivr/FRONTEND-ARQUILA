@@ -1,4 +1,5 @@
-const MESSAGES: Record<string, string> = {
+/** Exported for the tests, which check that each one has its expected translation. */
+export const MESSAGES: Record<string, string> = {
     "Project not found": "Proyecto no encontrado.",
     "Terrain not found": "Terreno no encontrado.",
     "Material not found": "Material no encontrado.",
