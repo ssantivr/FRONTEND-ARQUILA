@@ -10,6 +10,11 @@
     line-height: 1;
 }
 
+/* The letter itself: see Avatar.tsx for why it is not text. */
+.avatar::before {
+    content: attr(data-initial);
+}
+
 .sm {
     width: var(--control-xs);
     height: var(--control-xs);

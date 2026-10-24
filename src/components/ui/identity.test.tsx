@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { FAVICON } from "../../../scripts/favicon.ts";
+import { Avatar } from "./Avatar";
 import { BlueprintGrid, CornerMarks, DimensionLine, GridAxes } from "./Blueprint";
 import { Button } from "./Button";
 import { CameraControls } from "./CameraControls";
@@ -96,6 +97,23 @@ describe("Kbd", () => {
         expect(combo.tagName).toBe("KBD");
         expect(combo.querySelectorAll("kbd")).toHaveLength(2);
         expect(combo).toHaveTextContent("CtrlK");
+    });
+});
+
+describe("Avatar", () => {
+    it("paints the initial without adding text to the name around it", () => {
+        const { container } = render(<Avatar name="  ñandú " />);
+        const avatar = container.firstElementChild as HTMLElement;
+
+        expect(avatar).toHaveAttribute("aria-hidden", "true");
+        expect(avatar).toHaveAttribute("data-initial", "Ñ");
+        expect(avatar.textContent).toBe("");
+    });
+
+    it("falls back to a dot for an empty name", () => {
+        const { container } = render(<Avatar name="   " />);
+
+        expect(container.firstElementChild).toHaveAttribute("data-initial", "·");
     });
 });
 
