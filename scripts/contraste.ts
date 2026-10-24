@@ -9,7 +9,7 @@ const css = readFileSync(new URL("../src/styles/tokens.css", import.meta.url), "
 );
 
 /** The `--name: #rrggbb` declarations of the first block whose selector starts with `selector`. */
-function block(selector) {
+function block(selector: string): Record<string, string> {
     const start = css.indexOf(`\n${selector}`);
 
     if (start === -1) {
@@ -26,7 +26,7 @@ function block(selector) {
     );
 }
 
-function luminance(hex) {
+function luminance(hex: string): number {
     const [r, g, b] = [1, 3, 5]
         .map((at) => parseInt(hex.slice(at, at + 2), 16) / 255)
         .map((value) => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
@@ -34,7 +34,7 @@ function luminance(hex) {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-function ratio(text, background) {
+function ratio(text: string, background: string): number {
     const [light, dark] = [luminance(text), luminance(background)].sort((a, b) => b - a);
 
     return (light + 0.05) / (dark + 0.05);
