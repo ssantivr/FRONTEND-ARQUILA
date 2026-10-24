@@ -1,6 +1,6 @@
 # Cómo trabajar en el proyecto
 
-Los comandos exactos para comprobar en local lo mismo que comprueba CI (`.github/workflows/ci.yml`). Se necesita Node 24 (el de CI) y npm 11.
+Los comandos exactos para comprobar en local lo mismo que comprueba CI (`.github/workflows/ci.yml`). Se necesita Node 24 (el de CI, fijado en `.nvmrc`) y npm 11.
 
 ## Instalar
 
