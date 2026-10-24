@@ -6,6 +6,7 @@
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import type { Browser, Page } from "playwright-core";
 import { chromium } from "playwright-core";
 
 import { answer } from "./datos-de-muestra.ts";
@@ -18,7 +19,7 @@ const OUT =
         : pathToFileURL(`${resolve(process.env.CAPTURAS_SALIDA)}/`);
 // CAPTURAS_SOLO=inicio,inicio-de-sesion regenerates only those screens and skips the viewer check.
 const ONLY = (process.env.CAPTURAS_SOLO ?? "").split(",").filter(Boolean);
-const wanted = (name) => ONLY.length === 0 || ONLY.includes(name);
+const wanted = (name: string) => ONLY.length === 0 || ONLY.includes(name);
 
 const SCREENS = [
     ["inicio", "/"],
@@ -44,7 +45,12 @@ const SIZES = {
     movil: { width: 390, height: 844 },
 };
 
-async function open(browser, { theme, size, signedIn = true }) {
+type Size = keyof typeof SIZES;
+
+async function open(
+    browser: Browser,
+    { theme, size, signedIn = true }: { theme: string; size: Size; signedIn?: boolean },
+) {
     // Reduced motion: every picture shows the settled screen, not a frame of an animation.
     const context = await browser.newContext({
         viewport: SIZES[size],
@@ -65,7 +71,7 @@ async function open(browser, { theme, size, signedIn = true }) {
     return context;
 }
 
-async function shoot(page, name) {
+async function shoot(page: Page, name: string): Promise<void> {
     await page.waitForLoadState("networkidle");
     // A picture still decoding would be caught halfway through its fade-in.
     await page.waitForFunction("[...document.images].every((image) => image.complete)");
@@ -79,7 +85,7 @@ async function shoot(page, name) {
 }
 
 /** The states a plain visit does not show: the command palette and the tools of the 3D viewer. */
-async function shootStates(browser, theme) {
+async function shootStates(browser: Browser, theme: string): Promise<void> {
     const suffix = `${theme === "light" ? "claro" : "oscuro"}-escritorio`;
     const context = await open(browser, { theme, size: "escritorio" });
     const page = await context.newPage();
@@ -111,10 +117,10 @@ async function shootStates(browser, theme) {
 }
 
 /** Uses the 3D viewer the way a person would and reports what the engine did. */
-async function checkViewer(browser) {
+async function checkViewer(browser: Browser): Promise<[string, boolean][]> {
     const context = await open(browser, { theme: "light", size: "escritorio" });
     const page = await context.newPage();
-    const results = [];
+    const results: [string, boolean][] = [];
 
     await page.goto(`${BASE}/proyectos/1/modelo-3d`);
     await page.getByRole("button", { name: "Ocultar Alcoba principal" }).click();
@@ -137,7 +143,7 @@ async function checkViewer(browser) {
 
     const canvas = page.locator(".structure-viewer canvas");
     const status = page.getByRole("status", { name: "Estado del modelo" });
-    const box = await canvas.boundingBox();
+    const box = (await canvas.boundingBox())!;
 
     // The canvas is taller than the window, so the click is given relative to it and scrolled to.
     await canvas.click({ position: { x: box.width / 2, y: box.height / 2 } });
@@ -167,10 +173,10 @@ async function checkViewer(browser) {
 }
 
 /** Changes the light and renders a still, and checks the file that comes out. */
-async function checkStudio(browser) {
+async function checkStudio(browser: Browser): Promise<[string, boolean][]> {
     const context = await open(browser, { theme: "light", size: "escritorio" });
     const page = await context.newPage();
-    const results = [];
+    const results: [string, boolean][] = [];
 
     await page.goto(`${BASE}/iluminacion`);
     await page.locator(".structure-viewer canvas").waitFor();
@@ -195,7 +201,7 @@ async function checkStudio(browser) {
     const image = page.getByRole("img", { name: /Render del proyecto/ });
 
     await image.waitFor({ timeout: 180_000 });
-    const drawn = await image.evaluate(async (element) => {
+    const drawn = await image.evaluate(async (element: HTMLImageElement) => {
         await element.decode();
 
         return `${element.naturalWidth}x${element.naturalHeight}`;
@@ -227,7 +233,7 @@ const browser = await chromium.launch({
 await mkdir(OUT, { recursive: true });
 
 for (const theme of ["light", "dark"]) {
-    for (const size of Object.keys(SIZES)) {
+    for (const size of Object.keys(SIZES) as Size[]) {
         const context = await open(browser, { theme, size });
         const page = await context.newPage();
         const suffix = `${theme === "light" ? "claro" : "oscuro"}-${size}`;
@@ -247,7 +253,7 @@ for (const theme of ["light", "dark"]) {
     }
 
     if (wanted("inicio-de-sesion")) {
-        for (const size of Object.keys(SIZES)) {
+        for (const size of Object.keys(SIZES) as Size[]) {
             const anonymous = await open(browser, { theme, size, signedIn: false });
             const login = await anonymous.newPage();
 

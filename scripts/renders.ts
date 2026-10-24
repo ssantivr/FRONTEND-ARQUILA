@@ -4,7 +4,6 @@
 //
 // It uses the viewer exactly as a person would: it hides the side panels, moves closer, shifts
 // the building to the right so the text has room on the left, and presses «Guardar imagen».
-/* global Image, document -- they are used inside page.evaluate, which runs in the browser. */
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
@@ -51,7 +50,7 @@ for (const [theme, name] of [
     }
 
     // Dragging with the right button pans the camera: the building moves to the right.
-    const box = await page.locator(".structure-viewer canvas").boundingBox();
+    const box = (await page.locator(".structure-viewer canvas").boundingBox())!;
     const centerX = box.x + box.width / 2;
     const centerY = box.y + Math.min(box.height, 1200) / 2;
 
@@ -83,7 +82,7 @@ for (const [theme, name] of [
             canvas.width = width;
             canvas.height = Math.round((width * 9) / 16);
             canvas
-                .getContext("2d")
+                .getContext("2d")!
                 .drawImage(image, 0, top, image.width, band, 0, 0, canvas.width, canvas.height);
 
             return canvas.toDataURL("image/jpeg", quality).split(",")[1];

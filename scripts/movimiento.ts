@@ -5,7 +5,7 @@
 // 2. With normal motion, no screen may shift its layout while it loads (CLS must be 0).
 //
 // The API is answered with the same sample data as the screenshots, so no backend is needed.
-/* global document, window -- used inside the page */
+import type { Browser } from "playwright-core";
 import { chromium } from "playwright-core";
 
 import { answer } from "./datos-de-muestra.ts";
@@ -36,7 +36,20 @@ const API_DELAY_MS = 350;
 const CLS_HOME = 0.001;
 const CLS_GOOD = 0.1;
 
-async function open(browser, reducedMotion) {
+// The total of the layout shifts, kept on the page by the script that observes them.
+declare global {
+    interface Window {
+        __shift: number;
+    }
+}
+
+/** A layout-shift entry; lib.dom does not describe this kind of performance entry. */
+interface LayoutShift extends PerformanceEntry {
+    hadRecentInput: boolean;
+    value: number;
+}
+
+async function open(browser: Browser, reducedMotion: "reduce" | "no-preference") {
     const context = await browser.newContext({
         viewport: { width: 1280, height: 800 },
         reducedMotion,
@@ -46,7 +59,7 @@ async function open(browser, reducedMotion) {
         localStorage.setItem("arquila:theme", "light");
         window.__shift = 0;
         new PerformanceObserver((list) => {
-            for (const entry of list.getEntries()) {
+            for (const entry of list.getEntries() as LayoutShift[]) {
                 if (!entry.hadRecentInput) {
                     window.__shift += entry.value;
                 }
@@ -82,12 +95,16 @@ function moving() {
             return (
                 animation.playState === "running" &&
                 timing !== undefined &&
-                (timing.duration > 1 || timing.iterations === Infinity)
+                ((typeof timing.duration === "number" && timing.duration > 1) ||
+                    timing.iterations === Infinity)
             );
         })
         .map((animation) => {
-            const target = animation.effect?.target;
-            const name = animation.animationName ?? animation.transitionProperty ?? "animación";
+            const target = (animation.effect as KeyframeEffect | null)?.target;
+            const name =
+                (animation as CSSAnimation).animationName ??
+                (animation as CSSTransition).transitionProperty ??
+                "animación";
 
             return `${name} en <${target?.tagName.toLowerCase()} class="${target?.className}">`;
         });

@@ -27,6 +27,12 @@ const SCREENS = [
 ];
 const BLOCKING = ["serious", "critical"];
 
+/** What the axe run below hands back from the page. */
+interface AxeSummary {
+    passed: number;
+    violations: { id: string; impact: string; help: string; nodes: string[] }[];
+}
+
 const browser = await chromium.launch({
     channel: process.env.CAPTURAS_NAVEGADOR ?? "msedge",
     args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--ignore-gpu-blocklist"],
@@ -54,9 +60,9 @@ for (const theme of ["light", "dark"]) {
         await page.waitForTimeout(1200);
         await page.addScriptTag({ path: AXE });
 
-        const { violations, passed } = await page.evaluate(
+        const { violations, passed } = (await page.evaluate(
             "axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }).then((result) => ({ passed: result.passes.length, violations: result.violations.map((item) => ({ id: item.id, impact: item.impact, help: item.help, nodes: item.nodes.map((node) => node.target.join(' ')) })) }))",
-        );
+        )) as AxeSummary;
         const label = `${theme === "light" ? "claro" : "oscuro"} · ${name}`;
 
         if (violations.length === 0) {
