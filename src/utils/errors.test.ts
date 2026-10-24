@@ -46,4 +46,13 @@ describe("translateError", () => {
         ).toBe("Título: admite como máximo 160 caracteres · Avance: tiene que ser como máximo 100");
         expect(translateError("label: Field required")).toBe("Etiqueta: es obligatorio");
     });
+
+    it("names a field by its last part, with dots, without them and nested", () => {
+        expect(translateError("title: Field required")).toBe("Título: es obligatorio");
+        expect(translateError("body.title: Field required")).toBe("Título: es obligatorio");
+        expect(translateError("items.0.title: Field required")).toBe("Título: es obligatorio");
+        expect(translateError("items.0.area_m2: Field required")).toBe(
+            "items.0.area_m2: es obligatorio",
+        );
+    });
 });

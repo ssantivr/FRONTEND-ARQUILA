@@ -98,7 +98,9 @@ function translateIssue(issue: string): string {
 
         if (found !== null) {
             const said = say(...found.slice(1));
-            const name = field === null ? null : (FIELDS[field.split(".").pop() ?? ""] ?? field);
+            // The last part of a nested field (items.0.title) is the one the forms call by name.
+            const name =
+                field === null ? null : (FIELDS[field.slice(field.lastIndexOf(".") + 1)] ?? field);
 
             return name === null ? said : `${name}: ${said}`;
         }
