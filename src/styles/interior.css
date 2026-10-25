@@ -9,7 +9,7 @@
 
 .segmented button {
     padding: 5px 12px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     background: transparent;
     border-color: transparent;
 }
