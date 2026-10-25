@@ -8,7 +8,8 @@ const css = readFileSync(new URL("../src/styles/tokens.css", import.meta.url), "
     "\n",
 );
 
-/** The `--name: #rrggbb` declarations of the first block whose selector starts with `selector`. */
+/** The `--name: #rrggbb` and `--name: rgba(…)` declarations of the first block whose selector
+    starts with `selector`. */
 function block(selector: string): Record<string, string> {
     const start = css.indexOf(`\n${selector}`);
 
@@ -19,10 +20,9 @@ function block(selector: string): Record<string, string> {
     const body = css.slice(css.indexOf("{", start) + 1, css.indexOf("}", start));
 
     return Object.fromEntries(
-        [...body.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})\s*;/gi)].map(([, name, value]) => [
-            name,
-            value,
-        ]),
+        [...body.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6}|rgba\([^)]*\))\s*;/gi)].map(
+            ([, name, value]) => [name, value],
+        ),
     );
 }
 
@@ -32,6 +32,19 @@ function luminance(hex: string): number {
         .map((value) => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
 
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** The tint `overlay` (rgba) painted over the solid `base`, as #rrggbb. */
+function over(overlay: string, base: string): string {
+    const [r, g, b, alpha] = (overlay.match(/[\d.]+/g) ?? []).map(Number);
+
+    return `#${[r, g, b]
+        .map(
+            (value, at) =>
+                value * alpha + parseInt(base.slice(1 + at * 2, 3 + at * 2), 16) * (1 - alpha),
+        )
+        .map((value) => Math.round(value).toString(16).padStart(2, "0"))
+        .join("")}`;
 }
 
 function ratio(text: string, background: string): number {
@@ -47,6 +60,17 @@ const themes = {
 };
 
 const SURFACES = ["color-bg", "color-surface", "color-surface-raised", "color-surface-sunken"];
+// A tint over a surface: the well of a segmented control, a hovered or pressed row.
+const TINTS = ["color-hover", "color-pressed"];
+
+for (const tokens of Object.values(themes)) {
+    for (const tint of TINTS) {
+        for (const surface of SURFACES) {
+            tokens[`${tint}+${surface}`] = over(tokens[tint], tokens[surface]);
+        }
+    }
+}
+
 const TEXTS = [
     "color-text",
     "color-text-secondary",
@@ -58,12 +82,17 @@ const TEXTS = [
     "color-danger",
     "color-info",
 ];
-// The sunken surface is the well of drawings and viewports: secondary text (#68736b, 4.33:1 there)
-// is not used on it; its notes use --color-text-muted.
+// In light, secondary text (#68736b) falls short on the sunken surface (4.33:1) and on every tint
+// (3.64 to 4.48:1), so it is not used there: those places take --color-text-muted, checked below.
+// This script checks the tokens, not where the style sheets use them; `npm run accesibilidad`,
+// which renders the screens, is what sees a rule that breaks this.
 const SKIPPED = new Set(["color-text-secondary/color-surface-sunken"]);
 const PAIRS = [
     ...TEXTS.flatMap((text) => SURFACES.map((surface) => [text, surface])).filter(
         ([text, surface]) => !SKIPPED.has(`${text}/${surface}`),
+    ),
+    ...["color-text", "color-text-muted"].flatMap((text) =>
+        TINTS.flatMap((tint) => SURFACES.map((surface) => [text, `${tint}+${surface}`])),
     ),
     ["color-on-action", "color-action"],
     ["color-on-action", "color-action-hover"],
