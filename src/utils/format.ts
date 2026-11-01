@@ -24,6 +24,45 @@ export function formatDateTime(value: string): string {
     return Number.isNaN(date.getTime()) ? "—" : dateTimeFormat.format(date);
 }
 
+const longDayFormat = new Intl.DateTimeFormat("es", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+});
+
+/** The day in words, for a greeting: «sábado, 31 de octubre». */
+export function formatLongDay(date: Date): string {
+    return longDayFormat.format(date);
+}
+
+const relativeFormat = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
+const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 31_536_000],
+    ["month", 2_592_000],
+    ["day", 86_400],
+    ["hour", 3_600],
+    ["minute", 60],
+];
+
+/** How long ago, for a list of recent changes: «hace 2 horas», «ayer». */
+export function formatRelative(value: string, now: Date = new Date()): string {
+    const time = new Date(value).getTime();
+
+    if (Number.isNaN(time)) {
+        return "—";
+    }
+
+    const seconds = Math.round((time - now.getTime()) / 1000);
+
+    for (const [unit, size] of RELATIVE_UNITS) {
+        if (Math.abs(seconds) >= size) {
+            return relativeFormat.format(Math.trunc(seconds / size), unit);
+        }
+    }
+
+    return "hace un momento";
+}
+
 export function formatNumber(value: number | null): string {
     return value === null ? "—" : numberFormat.format(value);
 }

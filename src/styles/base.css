@@ -18,12 +18,6 @@
     font-size: var(--fs-18);
 }
 
-.header-eyebrow {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--fs-12);
-}
-
 .avatar {
     display: grid;
     flex: none;
@@ -293,16 +287,6 @@ main:focus {
     background: var(--hover);
 }
 
-.button-danger {
-    background: transparent;
-    border-color: var(--error);
-    color: var(--error);
-}
-
-.button-danger:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--error) 10%, transparent);
-}
-
 .form-row {
     display: flex;
     flex-wrap: wrap;
@@ -381,16 +365,8 @@ main:focus {
     border-radius: var(--r-sm);
 }
 
-.badge-draft {
-    color: var(--warning);
-}
-
 .badge-active {
     color: var(--success);
-}
-
-.badge-archived {
-    color: var(--text-secondary);
 }
 
 table {
@@ -492,22 +468,10 @@ a {
     max-width: 220px;
 }
 
-.user-menu {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    color: var(--text-secondary);
-}
-
 .login {
     max-width: 380px;
     margin: var(--space-8) auto 0;
     width: 100%;
-}
-
-.form-column {
-    display: grid;
-    gap: var(--space-3);
 }
 
 textarea {

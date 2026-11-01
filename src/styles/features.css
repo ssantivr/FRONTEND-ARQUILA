@@ -1,27 +1,3 @@
-.field-password {
-    position: relative;
-}
-
-.field-password input {
-    width: 100%;
-    padding-right: 84px;
-}
-
-.field-password .field-toggle {
-    position: absolute;
-    right: 6px;
-    bottom: 5px;
-    padding: 4px 10px;
-    color: var(--accent-text);
-    font-size: var(--fs-12);
-    background: transparent;
-    border-color: transparent;
-}
-
-.field-password .field-toggle:hover:not(:disabled) {
-    background: var(--accent-soft);
-}
-
 .spinner {
     display: inline-block;
     width: 14px;
@@ -54,14 +30,6 @@
         height: auto;
         padding: 8px 12px;
         overflow: auto hidden;
-    }
-
-    .sidebar-nav {
-        display: flex;
-    }
-
-    .sidebar-foot {
-        display: none;
     }
 
     .sidebar .brand {
@@ -117,22 +85,6 @@
     font-size: var(--fs-13);
 }
 
-.card-list-rows {
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.card-list-rows .project-card {
-    flex-direction: row;
-    align-items: stretch;
-}
-
-.card-list-rows .project-cover {
-    flex: none;
-    width: 96px;
-    height: auto;
-    min-height: 84px;
-}
-
 .project-item {
     display: grid;
     gap: 8px;
@@ -149,66 +101,6 @@
 
 .project-actions button {
     padding: 5px 10px;
-}
-
-.global-search {
-    position: relative;
-    display: flex;
-    flex: 1 1 220px;
-    align-items: center;
-    max-width: 420px;
-    color: var(--text-secondary);
-}
-
-.global-search > .icon {
-    position: absolute;
-    left: 12px;
-    pointer-events: none;
-}
-
-.global-search input {
-    width: 100%;
-    padding-left: 38px;
-}
-
-.global-search-results {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    left: 0;
-    z-index: 30;
-    display: grid;
-    gap: 2px;
-    padding: 6px;
-    color: var(--text);
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-float);
-}
-
-.global-search-results .message {
-    margin: 6px 8px;
-}
-
-.global-search-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    color: var(--text);
-    font-weight: 400;
-    text-align: left;
-    background: transparent;
-    border-color: transparent;
-}
-
-.global-search-item > span:first-child {
-    display: grid;
-}
-
-.global-search-item:hover:not(:disabled) {
-    background: var(--hover);
 }
 
 .hud-tree-row {
@@ -243,21 +135,9 @@
         --sidebar-width: 68px;
     }
 
-    .sidebar-label {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-    }
-
     .sidebar .brand {
         gap: 0;
         font-size: 0;
-    }
-
-    .sidebar-toggle {
-        display: none;
     }
 
     .hud-dock {

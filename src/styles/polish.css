@@ -51,31 +51,6 @@ button {
     border-radius: var(--r-lg);
 }
 
-.empty-art {
-    width: 96px;
-    height: 64px;
-    margin-bottom: 4px;
-    stroke-width: 1.5;
-    opacity: 1;
-}
-
-.empty-art-ground,
-.empty-art-soft {
-    stroke: var(--border-strong);
-}
-
-.empty-art-fill {
-    fill: var(--accent-soft);
-    stroke: none;
-}
-
-.empty-title {
-    margin: 0;
-    font-size: var(--fs-16);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-}
-
 .empty-state .message {
     max-width: 46ch;
     font-size: var(--fs-14);
@@ -85,57 +60,7 @@ button {
     margin-top: 8px;
 }
 
-:is(.hud, .modal, td) .empty-title {
-    display: none;
-}
-
 /* ---- Loading: placeholders with the shape of what is coming ---- */
-
-.skeleton-cards,
-.skeleton-rows {
-    margin: 0;
-}
-
-:is(.skeleton-cards, .skeleton-rows) .skeleton-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-}
-
-.skeleton-cards {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.skeleton-cards .skeleton-bar,
-.skeleton-cards .skeleton-bar:nth-child(n) {
-    width: auto;
-    height: 266px;
-    border-radius: var(--r-lg);
-}
-
-.skeleton-rows {
-    gap: 0;
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-}
-
-.skeleton-rows .skeleton-bar,
-.skeleton-rows .skeleton-bar:nth-child(n) {
-    width: auto;
-    height: 56px;
-    background-clip: content-box;
-    border-bottom: 1px solid var(--border);
-    border-radius: 0;
-    padding: 16px;
-}
-
-.skeleton-rows .skeleton-bar:last-child {
-    border-bottom: 0;
-}
 
 /* ---- A drafting grid under the work area: barely there, but it reads as a drawing board ---- */
 

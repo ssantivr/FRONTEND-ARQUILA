@@ -107,77 +107,10 @@
     background: var(--forest);
 }
 
-.sidebar-nav {
-    display: grid;
-    gap: var(--space-0);
-}
-
-.sidebar-foot {
-    display: grid;
-    gap: var(--space-0);
-    margin-top: auto;
-}
-
 .icon {
     flex: 0 0 auto;
     width: 18px;
     height: 18px;
-}
-
-.sidebar-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    min-height: var(--control-md);
-    padding: var(--space-2) var(--space-3);
-    overflow: hidden;
-    color: var(--forest-text);
-    font-weight: 500;
-    text-align: left;
-    white-space: nowrap;
-    background: transparent;
-    border-color: transparent;
-}
-
-.sidebar-item:hover:not(:disabled) {
-    color: var(--white);
-    background: var(--on-dark-hover);
-}
-
-.sidebar-item:focus-visible {
-    outline-color: var(--lime);
-}
-
-.sidebar-item[aria-current="page"] {
-    color: var(--white);
-    font-weight: 600;
-    background: var(--forest-raised);
-}
-
-.sidebar-item[aria-current="page"]::before {
-    content: "";
-    position: absolute;
-    inset: var(--space-2) auto var(--space-2) 0;
-    width: 3px;
-    background: var(--lime);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-
-.sidebar-item[aria-current="page"] .icon {
-    color: var(--lime);
-}
-
-.shell-collapsed .sidebar-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-}
-
-.shell-collapsed .shell-collapsed .sidebar-toggle .icon {
-    transform: rotate(180deg);
 }
 
 .metrics {
@@ -204,22 +137,6 @@
     inset: 0 auto 0 0;
     width: 2px;
     background: var(--accent);
-}
-
-.metric-label {
-    color: var(--text-secondary);
-    font-size: var(--fs-13);
-}
-
-.metric-value {
-    font-size: var(--fs-24);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
-.metric-detail {
-    color: var(--text-secondary);
-    font-size: var(--fs-12);
 }
 
 @media (max-width: 767px) {
@@ -305,8 +222,7 @@
  * when the window is wide. 760 px is about what the widest table (materials, with its actions)
  * needs; under it each row is a card with the name of each column beside its value.
  */
-.panel:has(table),
-.table-host {
+.panel:has(table) {
     container: table-host / inline-size;
 }
 
@@ -383,17 +299,6 @@
     border-color: var(--lime-hover);
 }
 
-.button-ghost {
-    color: var(--white);
-    background: transparent;
-    border-color: var(--on-dark-edge);
-}
-
-.button-ghost:hover:not(:disabled) {
-    background: var(--on-dark-pressed);
-    border-color: var(--white);
-}
-
 .hero-art {
     align-self: stretch;
     width: 100%;
@@ -463,21 +368,6 @@
     margin: var(--space-3) 0;
 }
 
-.bar-list {
-    display: grid;
-    gap: var(--space-3);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.bar-list li {
-    display: grid;
-    grid-template-columns: minmax(90px, 160px) 1fr auto;
-    align-items: center;
-    gap: var(--space-3);
-}
-
 .bar {
     height: 8px;
     background: var(--bg-secondary);
@@ -490,22 +380,6 @@
     height: 100%;
     background: var(--accent);
     border-radius: var(--r-pill);
-}
-
-.definition-list {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: var(--space-2) var(--space-5);
-    margin: 0 0 var(--space-3);
-}
-
-.definition-list dt {
-    color: var(--text-secondary);
-}
-
-.definition-list dd {
-    margin: 0;
-    overflow-wrap: anywhere;
 }
 
 code {

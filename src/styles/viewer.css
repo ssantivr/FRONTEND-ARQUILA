@@ -46,30 +46,7 @@
         visibility 0s;
 }
 
-.hud-layer-min > :is(.hud-levels, .hud-works, .hud-dock) {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition:
-        transform var(--dur-fast) var(--ease-in),
-        opacity var(--dur-fast) var(--ease-in),
-        visibility 0s var(--dur-fast);
-}
-
-.hud-layer-min > :is(.hud-levels, .hud-works) {
-    transform: translateX(calc(-100% - var(--space-4)));
-}
-
-.hud-layer-min > .hud-dock {
-    transform: translateX(calc(100% + var(--space-4)));
-}
-
 /* Under the scene, on a phone, a folded panel must not leave a gap. */
-@media (max-width: 767px) {
-    .hud-layer-min > :is(.hud-levels, .hud-works, .hud-dock) {
-        display: none;
-    }
-}
 
 .hud {
     padding: 10px 12px;

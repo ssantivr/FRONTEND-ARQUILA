@@ -7,53 +7,12 @@
     font-size: var(--fs-12);
 }
 
-.hud-save::before {
-    content: "";
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    margin-right: 6px;
-    background: var(--text-secondary);
-    border-radius: 50%;
-}
-
-.hud-save-saved::before {
-    background: var(--success);
-}
-
-.hud-save-saving::before {
-    background: var(--warning);
-}
-
-.hud-save-error {
-    color: var(--error);
-}
-
-.hud-save-error::before {
-    background: var(--error);
-}
-
 /* ---- The section around the viewer: a title line and a help popover, no box ---- */
 
 .viewer-section {
     display: grid;
     gap: 12px;
     min-width: 0;
-}
-
-.viewer-section-head {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.viewer-section-head h2 {
-    margin: 0;
-    font-size: var(--fs-20);
-    font-weight: 600;
-    letter-spacing: -0.02em;
 }
 
 .help > summary {
@@ -266,10 +225,6 @@
 .hud-status .hud-status-selection {
     color: var(--text);
     font-weight: 600;
-}
-
-.hud-status .hud-save {
-    margin-left: auto;
 }
 
 /* With less room the view buttons keep only their icon; the name stays for screen readers. */

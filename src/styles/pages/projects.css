@@ -8,39 +8,7 @@
     min-width: 0;
 }
 
-.list-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 0;
-    border-block: 1px solid var(--border);
-}
-
-.list-toolbar input[type="search"] {
-    flex: 1 1 220px;
-    max-width: 320px;
-}
-
-.list-toolbar .segmented {
-    margin-left: auto;
-}
-
 /* On the page background the muted grey of an unpressed option falls short of AA. */
-.list-toolbar .segmented button {
-    color: var(--text);
-}
-
-.list-toolbar .segmented .icon {
-    width: 16px;
-    height: 16px;
-}
-
-.list-count {
-    color: var(--text-secondary);
-    font-size: var(--fs-label);
-    font-variant-numeric: tabular-nums;
-}
 
 .project-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -106,13 +74,6 @@
 }
 
 /* List view: a light table, one 56px row per project with its cover as a thumbnail. */
-.project-grid.card-list-rows {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-}
 
 .project-rows-head,
 .project-card.project-row {
@@ -133,32 +94,13 @@
     text-transform: uppercase;
 }
 
-.card-list-rows .project-item,
-.card-list-rows .project-item:hover {
-    background: transparent;
-    border: 0;
-    border-bottom: 1px solid var(--border);
-    border-radius: 0;
-    box-shadow: none;
-    transform: none;
-}
-
-.card-list-rows .project-item:last-child {
-    border-bottom: 0;
-}
-
-.card-list-rows .project-item:hover {
-    background: var(--hover);
-}
-
 .project-card.project-row {
     flex: 1;
     min-height: 56px;
     padding: 0 16px;
 }
 
-.project-row .project-cover,
-.card-list-rows .project-row .project-cover {
+.project-row .project-cover {
     width: 72px;
     height: 40px;
     min-height: 0;
@@ -185,17 +127,6 @@
     color: var(--text-secondary);
     font-size: var(--fs-13);
     font-variant-numeric: tabular-nums;
-}
-
-.card-list-rows .project-actions {
-    flex: none;
-    align-items: center;
-    width: 176px;
-    border-left: 0;
-}
-
-.card-list-rows .project-actions:has([role="status"]) {
-    width: auto;
 }
 
 /* ---- Project workspace: a 160px head over the blurred cover, tabs right under it ---- */

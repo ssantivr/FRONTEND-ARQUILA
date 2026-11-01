@@ -50,7 +50,6 @@ interface ProjectDetailPageProps {
     onSectionChange?: (section: SectionId) => void;
     onBack: () => void;
     /** Opens with the form of the project's name, description, place and state unfolded. */
-    startEditing?: boolean;
 }
 
 export function ProjectDetailPage({
@@ -58,7 +57,6 @@ export function ProjectDetailPage({
     initialSection = "summary",
     onSectionChange,
     onBack,
-    startEditing = false,
 }: ProjectDetailPageProps) {
     const project = useAsync(() => projectsApi.get(projectId), [projectId]);
     const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
@@ -78,7 +76,7 @@ export function ProjectDetailPage({
         setLocalSection(next);
         onSectionChange?.(next);
     }
-    const [editingProject, setEditingProject] = useState(startEditing);
+    const [editingProject, setEditingProject] = useState(false);
     const [assistantOpen, setAssistantOpen] = useState(false);
     const projectFiles = files.data ?? [];
 
@@ -121,15 +119,18 @@ export function ProjectDetailPage({
 
     if (project.data === null) {
         return (
-            <Panel title="Proyecto" actions={<BackButton onBack={onBack} />}>
-                <AsyncStatus
-                    loading={project.loading}
-                    error={project.error}
-                    onRetry={project.reload}
-                    isEmpty
-                    emptyText="Proyecto no encontrado."
-                />
-            </Panel>
+            <>
+                <h1 className="visually-hidden">Proyecto</h1>
+                <Panel title="Proyecto" actions={<BackButton onBack={onBack} />}>
+                    <AsyncStatus
+                        loading={project.loading}
+                        error={project.error}
+                        onRetry={project.reload}
+                        isEmpty
+                        emptyText="Proyecto no encontrado."
+                    />
+                </Panel>
+            </>
         );
     }
 

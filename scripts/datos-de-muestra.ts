@@ -522,6 +522,12 @@ export function answer(path: string, query = new URLSearchParams()): unknown {
     if (projectId !== undefined) {
         const data: ProjectData | undefined = BY_PROJECT[projectId];
 
+        if (list === "activity") {
+            const items = projectActivity.filter((item) => String(item.project_id) === projectId);
+
+            return { items, total: items.length, page: 1, page_size: 50 };
+        }
+
         if (list === undefined) {
             return projects.find((project) => String(project.id) === projectId) ?? projects[0];
         }

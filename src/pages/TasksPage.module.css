@@ -1,0 +1,7 @@
+/* A long column scrolls by itself, under its title, so the page keeps its length. */
+@media (min-width: 768px) {
+    .column {
+        max-height: var(--list-max-height);
+        overflow-y: auto;
+    }
+}

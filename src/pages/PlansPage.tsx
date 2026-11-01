@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
+import { ToolHead } from "../components/ToolHead";
 import { ElevationDrawing } from "../components/ElevationDrawing";
 import { FloorPlan } from "../components/FloorPlan";
-import { ProjectPicker } from "../components/ProjectPicker";
 import { SitePlan } from "../components/SitePlan";
 import { useAsync } from "../hooks/useAsync";
 import { useProjectChoice } from "../hooks/useProjectChoice";
@@ -104,6 +104,8 @@ interface PlansPageProps {
     onOpenProject: (projectId: number) => void;
     /** Opens the 3D editor, where the rooms that make the drawings are moved and resized. */
     onOpenViewer?: () => void;
+    /** Takes to the projects screen, the next step when there is none yet. */
+    onGoToProjects?: () => void;
 }
 
 /**
@@ -112,38 +114,28 @@ interface PlansPageProps {
  * drawing tools on the right. The sheets are generated from the terrains and rooms, so they are
  * read, measured and exported here, and changed through the project's data.
  */
-export function PlansPage({ onOpenProject, onOpenViewer }: PlansPageProps) {
+export function PlansPage({ onOpenProject, onOpenViewer, onGoToProjects }: PlansPageProps) {
     const choice = useProjectChoice();
     const project = choice.project;
 
     return (
         <section className="board-page" aria-label="Planos 2D">
-            <div className="workspace-head">
-                <AsyncStatus
-                    loading={choice.loading}
-                    error={choice.error}
-                    onRetry={choice.reload}
-                    isEmpty={choice.projects.length === 0}
-                    emptyTitle="Sin proyectos"
-                    emptyText="Todavía no tienes proyectos. Crea el primero desde Proyectos."
-                />
+            <ToolHead
+                title="Planos 2D"
+                meta="Láminas generadas con los terrenos y cuartos del proyecto"
+                choice={choice}
+                emptyAction={
+                    onGoToProjects !== undefined && (
+                        <Button onClick={onGoToProjects}>Ir a proyectos</Button>
+                    )
+                }
+            >
                 {project !== null && (
-                    <>
-                        <ProjectPicker
-                            projects={choice.projects}
-                            value={project.id}
-                            onChange={choice.choose}
-                        />
-                        <Button
-                            variant="secondary"
-
-                            onClick={() => onOpenProject(project.id)}
-                        >
-                            Editar planos en el proyecto
-                        </Button>
-                    </>
+                    <Button variant="secondary" onClick={() => onOpenProject(project.id)}>
+                        Editar planos en el proyecto
+                    </Button>
                 )}
-            </div>
+            </ToolHead>
             {project !== null && (
                 <Board
                     key={project.id}

@@ -11,6 +11,8 @@ interface AsyncStatusProps {
     emptyText: string;
     emptyTitle?: string;
     emptyAction?: ReactNode;
+    /** `compact` when the state sits inside a block of a screen, not across it. */
+    emptySize?: "compact" | "regular";
     /** Shape of the placeholder shown while loading, so it matches what is about to appear. */
     skeleton?: SkeletonShape;
     onRetry?: () => void;
@@ -23,6 +25,7 @@ export function AsyncStatus({
     emptyText,
     emptyTitle,
     emptyAction,
+    emptySize,
     skeleton = "lines",
     onRetry,
 }: AsyncStatusProps) {
@@ -35,7 +38,9 @@ export function AsyncStatus({
     }
 
     if (isEmpty && emptyText) {
-        return <EmptyState title={emptyTitle} text={emptyText} action={emptyAction} />;
+        return (
+            <EmptyState title={emptyTitle} text={emptyText} action={emptyAction} size={emptySize} />
+        );
     }
 
     return null;

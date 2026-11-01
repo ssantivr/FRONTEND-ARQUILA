@@ -3,16 +3,20 @@ import { useState, type FormEvent } from "react";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { WORK_LAYERS, layerLabel } from "../components/RoomWorksPanel";
 import { Button } from "../components/ui/Button";
+import { EmptyState } from "../components/ui/EmptyState";
+import { FilterBar } from "../components/ui/FilterBar";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { loadAcrossProjects, loadProjectTasks, walkthroughApi } from "../services/api";
 import { showToast } from "../state/toasts";
 import type { RenovationLog, RenovationStatus, SpatialLayer } from "../types/api";
 import { formatDay, formatMoney, formatNumber } from "../utils/format";
-import { TASK_STATUSES, isOverdue, taskProgress } from "../utils/tasks";
+import { TASK_STATUSES, isOverdue, localDay, taskProgress, taskStatusLabel } from "../utils/tasks";
 import { LiveForm } from "../components/ui/LiveForm";
 import { Select, SelectControl } from "../components/ui/Input";
 import { ErrorState } from "../components/ui/ErrorState";
+
+import styles from "./TasksPage.module.css";
 
 function timeline(task: RenovationLog): string {
     if (task.planned_start !== null && task.planned_end !== null) {
@@ -26,18 +30,13 @@ function timeline(task: RenovationLog): string {
     return task.planned_end !== null ? `Hasta el ${formatDay(task.planned_end)}` : "Sin fechas";
 }
 
-function localDay(): string {
-    const now = new Date();
-    const pad = (value: number) => String(value).padStart(2, "0");
-
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-}
-
 interface TasksPageProps {
     onOpenProject: (projectId: number) => void;
+    /** Takes to the projects screen, the next step when there is none yet. */
+    onGoToProjects?: () => void;
 }
 
-export function TasksPage({ onOpenProject }: TasksPageProps) {
+export function TasksPage({ onOpenProject, onGoToProjects }: TasksPageProps) {
     const data = useAsync(() => loadAcrossProjects(loadProjectTasks), []);
     const [query, setQuery] = useState("");
     const [projectFilter, setProjectFilter] = useState("");
@@ -67,13 +66,19 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
     const progress = taskProgress(tasks, today);
     const targetProject = newProject === "" ? (projects[0]?.id ?? null) : Number(newProject);
 
+    function clearFilters() {
+        setQuery("");
+        setProjectFilter("");
+        setLayerFilter("");
+    }
+
     function changeStatus(task: RenovationLog, status: RenovationStatus) {
         setBusyId(task.id);
         setStatusError(null);
         walkthroughApi
             .setLogStatus(task.id, status)
             .then(() => {
-                showToast(`«${task.title}» pasó a ${statusLabel(status).toLowerCase()}.`);
+                showToast(`«${task.title}» pasó a ${taskStatusLabel(status).toLowerCase()}.`);
                 data.reload();
             })
             .catch((reason: unknown) =>
@@ -237,14 +242,14 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
 
             <section className="list-section" aria-label="Tablero de tareas">
                 {tasks.length > 0 && (
-                    <div className="list-toolbar">
-                        <input
-                            type="search"
-                            placeholder="Buscar tarea"
-                            aria-label="Buscar tarea por nombre"
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                        />
+                    <FilterBar
+                        searchLabel="Buscar tarea por nombre"
+                        search={query}
+                        onSearch={setQuery}
+                        resultText={`${shown.length} de ${tasks.length} tareas`}
+                        active={filtered}
+                        onClear={clearFilters}
+                    >
                         <SelectControl
                             aria-label="Filtrar por proyecto"
                             value={projectFilter}
@@ -269,7 +274,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                 </option>
                             ))}
                         </SelectControl>
-                    </div>
+                    </FilterBar>
                 )}
 
                 <AsyncStatus
@@ -288,17 +293,18 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                     }
                     emptyAction={
                         filtered ? (
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    setQuery("");
-                                    setProjectFilter("");
-                                    setLayerFilter("");
-                                }}
-                            >
+                            <Button variant="secondary" onClick={clearFilters}>
                                 Quitar filtros
                             </Button>
-                        ) : undefined
+                        ) : projects.length > 0 ? (
+                            <Button icon="plus" onClick={() => setCreating(true)}>
+                                Nueva tarea
+                            </Button>
+                        ) : (
+                            onGoToProjects !== undefined && (
+                                <Button onClick={onGoToProjects}>Ir a proyectos</Button>
+                            )
+                        )
                     }
                 />
 
@@ -315,14 +321,14 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                     className={`task-column task-column-${status.id}`}
                                     aria-label={status.label}
                                 >
-                                    <h3>
+                                    <h2>
                                         {status.label}
                                         <span className="task-count">{column.length}</span>
-                                    </h3>
+                                    </h2>
                                     {column.length === 0 ? (
-                                        <p className="task-empty">Nada aquí.</p>
+                                        <EmptyState size="compact" text="Nada aquí." />
                                     ) : (
-                                        <ul>
+                                        <ul className={styles.column}>
                                             {column.map((task) => (
                                                 <li key={task.id} className="task-card">
                                                     <strong>{task.title}</strong>
@@ -400,8 +406,4 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
             </section>
         </>
     );
-}
-
-function statusLabel(status: RenovationStatus): string {
-    return TASK_STATUSES.find((item) => item.id === status)?.label ?? status;
 }

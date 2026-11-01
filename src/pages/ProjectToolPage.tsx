@@ -48,6 +48,7 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
     if (tool === "viewer") {
         return (
             <section className="workspace-page" aria-label={text.title}>
+                <h1 className="visually-hidden">{text.title}</h1>
                 <div className="workspace-head">
                     <AsyncStatus
                         loading={projects.loading}
@@ -85,6 +86,7 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
 
     return (
         <>
+            <h1 className="visually-hidden">{text.title}</h1>
             <Panel
                 title={text.title}
                 actions={

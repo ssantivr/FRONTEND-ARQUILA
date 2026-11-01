@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { CostSummary } from "../components/CostSummary";
 import { SurfaceLibrary } from "../components/SurfaceLibrary";
+import { Button } from "../components/ui/Button";
 import { DataTable } from "../components/ui/DataTable";
 import { FilterBar } from "../components/ui/FilterBar";
 import { Panel } from "../components/ui/Panel";
@@ -18,6 +19,8 @@ interface MaterialsPageProps {
     onOpenProject: (projectId: number) => void;
     /** Opens the 3D editor, where a surface is put on an element. */
     onOpenViewer?: () => void;
+    /** Takes to the projects screen, the next step when there is none yet. */
+    onGoToProjects?: () => void;
 }
 
 type Catalog = "surfaces" | "works";
@@ -33,7 +36,7 @@ const CATALOGS = [
  * viewer draws (visual, fixed in the engine) and the materials of every project (budget items:
  * name, category, quantity and cost, without pictures).
  */
-export function MaterialsPage({ onOpenProject, onOpenViewer }: MaterialsPageProps) {
+export function MaterialsPage({ onOpenProject, onOpenViewer, onGoToProjects }: MaterialsPageProps) {
     const [catalog, setCatalog] = useState<Catalog>("surfaces");
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("");
@@ -100,6 +103,11 @@ export function MaterialsPage({ onOpenProject, onOpenViewer }: MaterialsPageProp
                             isEmpty={materials.length === 0}
                             skeleton="rows"
                             emptyText="Todavía no hay materiales. Regístralos en la pestaña Materiales de un proyecto."
+                            emptyAction={
+                                onGoToProjects !== undefined && (
+                                    <Button onClick={onGoToProjects}>Ir a proyectos</Button>
+                                )
+                            }
                         />
                         {materials.length > 0 && (
                             <>

@@ -25,12 +25,6 @@
     gap: 20px;
 }
 
-.studio-main {
-    display: grid;
-    gap: 20px;
-    min-width: 0;
-}
-
 .studio-stage {
     position: relative;
     height: calc(100vh - var(--header-height) - 168px);
@@ -163,19 +157,6 @@
 .range {
     display: grid;
     gap: 10px;
-}
-
-.range-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: var(--fs-14);
-}
-
-.range-value {
-    color: var(--text);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
 }
 
 .range input:disabled {
@@ -380,7 +361,7 @@
     border-radius: var(--r-lg);
 }
 
-.task-column h3 {
+.task-column h2 {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -389,7 +370,7 @@
     font-weight: 600;
 }
 
-.task-column h3::before {
+.task-column h2::before {
     content: "";
     width: 8px;
     height: 8px;
@@ -397,15 +378,15 @@
     border-radius: 50%;
 }
 
-.task-column-in_progress h3::before {
+.task-column-in_progress h2::before {
     background: var(--warning);
 }
 
-.task-column-completed h3::before {
+.task-column-completed h2::before {
     background: var(--success);
 }
 
-.task-column-cancelled h3::before {
+.task-column-cancelled h2::before {
     background: var(--error);
 }
 
@@ -421,12 +402,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-}
-
-.task-empty {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--fs-13);
 }
 
 .task-card {

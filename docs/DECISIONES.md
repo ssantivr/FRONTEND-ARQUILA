@@ -213,3 +213,40 @@ El 31 de octubre `npm test` falló una vez en `feat/fase1`, con varias pruebas d
 - **La paleta busca proyectos sin pedir nada al servidor.** `appState` no guardaba proyectos, así que `state/knownProjects.ts` recuerda los que ya llegaron en las respuestas de `projectsApi`, y se vacía al cerrar sesión. Un proyecto que aún no se cargó en la sesión no aparece; la búsqueda de la barra sigue consultando la API.
 - **Móvil por debajo de 768 px.** Antes el corte era 720 px. El menú lateral es un `Drawer` sobre `ModalFrame` y la barra inferior se mantiene.
 - **«?» de la aplicación y del visor.** Con el foco en el visor responde el visor, para dibujar la ayuda dentro de su pantalla completa. El de la aplicación no se dispara en ningún `input`; el visor conserva sus teclas tras marcar una casilla o mover un control.
+
+### Inicio y pantallas principales (31 de octubre)
+
+- **Inicio solo con bloques de datos reales.** Salieron la imagen de muestra, las tarjetas de proyectos recientes con su filtro y menú, y la barra de estados; esas acciones siguen en Proyectos. Por eso desapareció `startEditing`, que solo usaba el menú de Inicio.
+- **La actividad es de los 5 proyectos tocados por último.** La API solo la da por proyecto: Inicio pide como mucho 5 listas de 5 cambios, y no una por proyecto. Un cambio de un proyecto más antiguo no aparece.
+- **Las tareas próximas salen de `renovation_logs`,** como la pantalla Tareas y con su misma caché (`loadAcrossProjects`), con su fecha `planned_end`. Son una petición por proyecto, la misma deuda P3; las que no tienen fecha de fin no aparecen.
+- **Proyecto en foco:** el último modificado que no esté archivado; solo si todos lo están, el último archivado. El avance se dibuja solo si la API lo envía.
+- **Sin proyectos no hay botón en el encabezado:** la acción es la del estado vacío, para no ofrecer dos veces lo mismo.
+- **`--list-max-height` (70 dvh):** tope de tablas y columnas de tareas desde 768 px; en móvil la página sigue siendo una sola columna.
+- **Planos** adopta `ToolHead`: no tenía `h1` desde que el título salió de la barra.
+- **Datos de muestra:** `/activity` responde paginado, como la API real.
+
+#### Clases `legacy` eliminadas
+
+Medición: 695 clases en las 30 hojas; se borró una clase solo si su nombre no aparece en ningún `.ts`/`.tsx` (sin contar tests) ni en `index.html`, y no encaja en un prefijo dinámico (`task-column-${…}`). Quedan fuera las clases de librerías: ninguna de la lista lo es. Son 86 nombres, 139 apariciones por hoja; de 151.296 a 123.583 bytes. Ninguna hoja queda vacía.
+
+- `base.css`: badge-archived, badge-draft, button-danger, form-column, header-eyebrow, user-menu
+- `viewer.css`: hud-layer-min
+- `shell.css`: bar-list, button-ghost, definition-list, metric-detail, metric-label, metric-value, sidebar-foot, sidebar-item, sidebar-label, sidebar-nav, sidebar-toggle, table-host
+- `features.css`: card-list-rows, field-password, field-toggle, global-search, global-search-item, global-search-results, sidebar-foot, sidebar-label, sidebar-nav, sidebar-toggle
+- `hierarchy.css`: bar-list, card-list-rows, global-search, header-eyebrow, metric-detail, metric-label, metric-value, user-menu
+- `states.css`: empty-art, global-search-key, sidebar-user, sidebar-user-text, skeleton-bar, skeleton-text, toast-close, toast-leaving, toast-timer
+- `ui.css`: field-invalid, field-note, menu-item, menu-item-danger, menu-items
+- `shell-phone.css`: user-menu
+- `identity.css`: header-eyebrow, metric-value, sidebar-foot, sidebar-group, sidebar-item, sidebar-nav, sidebar-section, sidebar-user, user-menu
+- `home.css`: quick-list, quick-main, quick-main-text, quick-main-title, quick-row, quick-row-text, quick-row-title
+- `pages/projects.css`: card-list-rows, list-count, list-toolbar
+- `pages/materials.css`: cell-lead, cell-total, table-scroll
+- `pages/settings.css`: setting-note
+- `pages/home.css`: continue-actions, continue-body, continue-card, continue-cover, continue-meta, home-row, status-bar, status-bar-active, status-bar-archived, status-bar-draft, status-card, status-dot, status-legend
+- `pages/studio.css`: range-head, range-value, studio-main, task-empty
+- `pages/responsive.css`: card-list-rows, continue-body, continue-card, continue-cover, home-row, list-toolbar, sidebar-item, status-card, table-scroll, user-menu
+- `polish.css`: empty-art, empty-art-fill, empty-art-ground, empty-art-soft, empty-title, skeleton-bar, skeleton-cards, skeleton-rows, skeleton-text
+- `editor.css`: hud-save, hud-save-error, hud-save-saved, hud-save-saving, viewer-section-head
+- `rich.css`: card-list-rows, continue-card, continue-cover, empty-art, empty-title, list-count, quick-list, quick-main, sidebar-item, status-bar
+- `numbers.css`: metric-value, range-value, status-legend
+- `navigation.css`: bar-progress, continue-card, global-search-commands, home-row-arriving, hud-save, menu-items, sidebar-item, sidebar-section, sidebar-tip, status-card

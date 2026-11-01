@@ -49,6 +49,8 @@ function northOf(terrain: Terrain): number | null {
 
 interface TerrainsPageProps {
     onOpenProject: (projectId: number) => void;
+    /** Takes to the projects screen, the next step when there is none yet. */
+    onGoToProjects?: () => void;
 }
 
 const SHAPE_SIZE = 100;
@@ -116,7 +118,7 @@ function TerrainShape({ terrain }: { terrain: Terrain }) {
     );
 }
 
-export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
+export function TerrainsPage({ onOpenProject, onGoToProjects }: TerrainsPageProps) {
     const data = useAsync(() => loadAcrossProjects(terrainsApi.listByProject), []);
     const [query, setQuery] = useState("");
     const [projectId, setProjectId] = useState("");
@@ -277,24 +279,31 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                     skeleton="cards"
                     emptyTitle="Todavía no hay terrenos"
                     emptyText="Se registran en la pestaña Terreno de cada proyecto y aparecen aquí todos juntos."
+                    emptyAction={
+                        onGoToProjects !== undefined && (
+                            <Button onClick={onGoToProjects}>Ir a proyectos</Button>
+                        )
+                    }
                 />
                 {terrains.length > 0 && shown.length === 0 && (
-                    <div className="empty-state">
-                        <p className="empty-title">Ningún terreno coincide</p>
-                        <EmptyState size="compact" text="Ningún terreno coincide con el filtro." />
-                        <Button
-                            variant="secondary"
-
-                            onClick={() => {
-                                setQuery("");
-                                setProjectId("");
-                                setSoil("");
-                                setOnlyLocated(false);
-                            }}
-                        >
-                            Quitar los filtros
-                        </Button>
-                    </div>
+                    <EmptyState
+                        size="compact"
+                        title="Ningún terreno coincide"
+                        text="Ningún terreno coincide con el filtro."
+                        action={
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setQuery("");
+                                    setProjectId("");
+                                    setSoil("");
+                                    setOnlyLocated(false);
+                                }}
+                            >
+                                Quitar los filtros
+                            </Button>
+                        }
+                    />
                 )}
                 <TerrainSituation
                     terrains={shown}

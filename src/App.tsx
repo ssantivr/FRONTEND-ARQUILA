@@ -259,10 +259,6 @@ export function App() {
     }
 
     /** The project's page with its edit form already open. */
-    function editProject(id: number) {
-        go(projectPath(id, "summary"), { state: { edit: true } });
-    }
-
     const commands = useMemo<Command[]>(
         () => [
             ...(project === null
@@ -330,7 +326,6 @@ export function App() {
                     initialSection={project.section}
                     onSectionChange={(section) => go(projectPath(project.id, section))}
                     onBack={() => navigate("projects")}
-                    startEditing={(location.state as { edit?: boolean } | null)?.edit === true}
                 />
             );
         }
@@ -365,7 +360,6 @@ export function App() {
                     <HomePage
                         user={user}
                         onOpenProject={openProject}
-                        onEditProject={editProject}
                         onNavigate={navigate}
                         onCreateProject={() =>
                             go(viewPath("projects"), { state: { create: true } })
@@ -384,12 +378,18 @@ export function App() {
                     />
                 );
             case "terrains":
-                return <TerrainsPage onOpenProject={(id) => openProject(id, "terrain")} />;
+                return (
+                    <TerrainsPage
+                        onOpenProject={(id) => openProject(id, "terrain")}
+                        onGoToProjects={() => navigate("projects")}
+                    />
+                );
             case "materials":
                 return (
                     <MaterialsPage
                         onOpenProject={(id) => openProject(id, "materials")}
                         onOpenViewer={() => navigate("viewer")}
+                        onGoToProjects={() => navigate("projects")}
                     />
                 );
             case "plans":
@@ -397,6 +397,7 @@ export function App() {
                     <PlansPage
                         onOpenProject={(id) => openProject(id, "plans")}
                         onOpenViewer={() => navigate("viewer")}
+                        onGoToProjects={() => navigate("projects")}
                     />
                 );
             case "lighting":
@@ -404,7 +405,12 @@ export function App() {
             case "render":
                 return <RenderPage onLighting={() => navigate("lighting")} />;
             case "tasks":
-                return <TasksPage onOpenProject={(id) => openProject(id, "model")} />;
+                return (
+                    <TasksPage
+                        onOpenProject={(id) => openProject(id, "model")}
+                        onGoToProjects={() => navigate("projects")}
+                    />
+                );
             case "viewer":
                 return (
                     <ProjectToolPage

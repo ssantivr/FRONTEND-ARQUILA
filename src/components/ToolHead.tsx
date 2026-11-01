@@ -10,10 +10,12 @@ interface ToolHeadProps {
     choice: ReturnType<typeof useProjectChoice>;
     /** Buttons of the screen, beside the project picker. */
     children?: ReactNode;
+    /** The next step when there are no projects yet. */
+    emptyAction?: ReactNode;
 }
 
 /** Head of a screen that works on one project: its title, the project picker and its actions. */
-export function ToolHead({ title, meta, choice, children }: ToolHeadProps) {
+export function ToolHead({ title, meta, choice, children, emptyAction }: ToolHeadProps) {
     return (
         <>
             <header className="page-head tool-head">
@@ -39,6 +41,7 @@ export function ToolHead({ title, meta, choice, children }: ToolHeadProps) {
                 isEmpty={choice.projects.length === 0}
                 emptyTitle="Sin proyectos"
                 emptyText="Todavía no tienes proyectos. Crea el primero desde Proyectos."
+                emptyAction={emptyAction}
             />
         </>
     );

@@ -48,14 +48,6 @@
     flex: 0 1 auto;
 }
 
-.setting-note {
-    margin: 0;
-    padding-top: 16px;
-    color: var(--text-secondary);
-    font-size: var(--fs-13);
-    border-top: 1px solid var(--border);
-}
-
 input.switch {
     position: relative;
     flex: none;

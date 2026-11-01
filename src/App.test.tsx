@@ -70,6 +70,10 @@ beforeEach(() => {
             return Promise.resolve(summary);
         }
 
+        if (path.endsWith("/activity")) {
+            return Promise.resolve({ items: [], total: 0, page: 1, page_size: 5 });
+        }
+
         return Promise.resolve(path === "/projects/7" ? project : []);
     });
 });
@@ -178,21 +182,6 @@ describe("App routing", () => {
         expect(screen.getByTestId("path")).toHaveTextContent("/");
         expect(trail()).toHaveTextContent("Inicio");
         expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Hola");
-    });
-
-    it("opens the edit form of a project from «Editar» on the dashboard", async () => {
-        const answer = vi.mocked(request).getMockImplementation();
-
-        vi.mocked(request).mockImplementation((path: string, options) =>
-            path === "/projects" ? Promise.resolve([project]) : answer!(path, options),
-        );
-        renderAt("/");
-
-        await userEvent.click(await screen.findByTitle("Acciones de Casa Andina"));
-        await userEvent.click(screen.getByRole("button", { name: "Editar" }));
-
-        expect(await screen.findByRole("heading", { name: "Editar proyecto" })).toBeInTheDocument();
-        expect(screen.getByTestId("path")).toHaveTextContent("/proyectos/7/resumen");
     });
 
     it("puts the open tab of a project in the address", async () => {

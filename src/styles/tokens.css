@@ -248,6 +248,8 @@
     --touch-target: 44px;
     --row-height: 44px;
     --row-head-height: 36px;
+    /* Tallest a long table or list grows before it scrolls inside its frame. */
+    --list-max-height: 70dvh;
     --icon-xs: 13px;
     --icon-sm: 14px;
     --icon-md: 18px;

@@ -5,9 +5,28 @@ import {
     formatFileSize,
     formatMoney,
     formatNumber,
+    formatRelative,
     optionalNumber,
     optionalText,
 } from "./format";
+
+describe("formatRelative", () => {
+    const now = new Date("2026-10-31T12:00:00Z");
+
+    it.each([
+        ["2026-10-31T11:59:40Z", "hace un momento"],
+        ["2026-10-31T11:55:00Z", "hace 5 minutos"],
+        ["2026-10-31T10:00:00Z", "hace 2 horas"],
+        ["2026-10-30T12:00:00Z", "ayer"],
+        ["2026-10-20T12:00:00Z", "hace 11 días"],
+    ])("says how long ago %s was", (value, words) => {
+        expect(formatRelative(value, now)).toBe(words);
+    });
+
+    it("does not make up a time for a date it cannot read", () => {
+        expect(formatRelative("no es una fecha", now)).toBe("—");
+    });
+});
 
 describe("formatNumber", () => {
     it("uses a dash for missing values and a decimal comma", () => {

@@ -106,6 +106,7 @@ export function LightingPage({ onRender }: LightingPageProps) {
 
     return (
         <section className="workspace-page" aria-label="Iluminación y clima">
+            <h1 className="visually-hidden">Iluminación y clima</h1>
             <div className="workspace-head">
                 <AsyncStatus
                     loading={choice.loading}

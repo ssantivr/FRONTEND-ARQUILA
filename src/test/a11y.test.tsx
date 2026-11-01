@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -23,13 +23,79 @@ import { ShortcutsDialog } from "../components/viewer/ShortcutsDialog";
 import { StatusBar } from "../components/viewer/StatusBar";
 import { ToolRail } from "../components/viewer/ToolRail";
 import { ViewerProblem } from "../components/viewer/ViewerBoundary";
+import { HomePage } from "../pages/HomePage";
+import { TasksPage } from "../pages/TasksPage";
 import { setThemePreference } from "../state/theme";
 import { showToast } from "../state/toasts";
 
-vi.mock("../services/api", () => ({
-    projectsApi: { list: vi.fn().mockResolvedValue([]) },
-    notificationsApi: { list: vi.fn().mockResolvedValue([]) },
-}));
+vi.mock("../services/api", () => {
+    const project = {
+        id: 1,
+        owner_id: 1,
+        name: "Casa Andina",
+        description: null,
+        location: "Quito",
+        status: "active",
+        created_at: "2026-10-01T12:00:00Z",
+        updated_at: "2026-10-02T12:00:00Z",
+        progress: 40,
+    };
+    const log = {
+        id: 1,
+        project_id: 1,
+        room_id: null,
+        spatial_element_id: null,
+        created_by: 1,
+        layer: "finishes",
+        title: "Pintar la fachada",
+        description: null,
+        status: "planned",
+        planned_start: null,
+        planned_end: "2026-11-02",
+        completed_at: null,
+        estimated_cost: null,
+        created_at: "2026-10-01T12:00:00Z",
+        updated_at: "2026-10-02T12:00:00Z",
+    };
+
+    return {
+        projectsApi: { list: vi.fn().mockResolvedValue([project]) },
+        notificationsApi: { list: vi.fn().mockResolvedValue([]) },
+        summaryApi: {
+            get: vi.fn().mockResolvedValue({
+                projects: 1,
+                draft_projects: 0,
+                active_projects: 1,
+                archived_projects: 0,
+                terrains: 0,
+                total_area_m2: 0,
+                materials_total_cost: 0,
+            }),
+        },
+        activityApi: {
+            listByProject: vi.fn().mockResolvedValue({
+                items: [
+                    {
+                        id: 1,
+                        project_id: 1,
+                        user_id: 1,
+                        action: "created",
+                        entity_type: "terrain",
+                        entity_id: 1,
+                        detail: { label: "Lote 14" },
+                        created_at: "2026-10-02T12:00:00Z",
+                    },
+                ],
+                total: 1,
+                page: 1,
+                page_size: 5,
+            }),
+        },
+        loadAcrossProjects: vi.fn().mockResolvedValue({ projects: [project], items: [log] }),
+        loadProjectTasks: vi.fn(),
+        walkthroughApi: {},
+    };
+});
 
 /** Runs axe-core on what was rendered and gives back its violations, by rule. */
 async function violations(container: Element): Promise<string[]> {
@@ -41,6 +107,52 @@ async function violations(container: Element): Promise<string[]> {
 
     return results.violations.map((violation) => `${violation.id}: ${violation.help}`);
 }
+
+describe("accessibility of the main screens (axe-core)", () => {
+    afterEach(() => setThemePreference("auto"));
+
+    it.each(["light", "dark"] as const)("Home has nothing wrong in the %s theme", async (theme) => {
+        setThemePreference(theme);
+
+        const { container } = render(
+            <main>
+                <HomePage
+                    user={{
+                        id: 1,
+                        name: "Ana",
+                        email: "ana@example.com",
+                        created_at: "2026-10-01T12:00:00Z",
+                    }}
+                    onOpenProject={() => undefined}
+                    onNavigate={() => undefined}
+                />
+            </main>,
+        );
+
+        await screen.findByText("Pintar la fachada");
+        await screen.findByText(/Lote 14/);
+
+        expect(await violations(container)).toEqual([]);
+    });
+
+    it.each(["light", "dark"] as const)(
+        "a list screen has nothing wrong in the %s theme",
+        async (theme) => {
+            setThemePreference(theme);
+
+            const { container } = render(
+                <main>
+                    <TasksPage onOpenProject={() => undefined} />
+                </main>,
+            );
+
+            await screen.findByText("Pintar la fachada");
+
+            expect(container.querySelectorAll("h1")).toHaveLength(1);
+            expect(await violations(container)).toEqual([]);
+        },
+    );
+});
 
 describe("accessibility of the shell (axe-core)", () => {
     afterEach(() => setThemePreference("auto"));

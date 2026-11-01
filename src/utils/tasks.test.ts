@@ -1,11 +1,36 @@
 import { describe, expect, it } from "vitest";
 
 import type { RenovationLog, RenovationStatus } from "../types/api";
-import { isOverdue, taskProgress } from "./tasks";
+import { isOverdue, localDay, taskProgress, taskStatusLabel, upcomingTasks } from "./tasks";
 
 function task(id: number, status: RenovationStatus, plannedEnd: string | null = null) {
     return { id, status, planned_end: plannedEnd } as RenovationLog;
 }
+
+describe("upcomingTasks", () => {
+    it("keeps the unfinished tasks with an end date, the nearest first", () => {
+        const tasks = [
+            task(1, "planned", "2026-12-01"),
+            task(2, "in_progress", "2026-11-01"),
+            task(3, "completed", "2026-10-01"),
+            task(4, "cancelled", "2026-10-02"),
+            task(5, "planned", null),
+        ];
+
+        expect(upcomingTasks(tasks, 5).map((item) => item.id)).toEqual([2, 1]);
+        expect(upcomingTasks(tasks, 1).map((item) => item.id)).toEqual([2]);
+    });
+});
+
+describe("localDay and taskStatusLabel", () => {
+    it("writes the day as a task does, with its zeros", () => {
+        expect(localDay(new Date(2026, 2, 5))).toBe("2026-03-05");
+    });
+
+    it("names a status in words", () => {
+        expect(taskStatusLabel("in_progress")).toBe("En curso");
+    });
+});
 
 describe("taskProgress", () => {
     it("measures progress over the tasks that were not cancelled", () => {

@@ -306,6 +306,7 @@ export function RenderPage({ onLighting }: RenderPageProps) {
 
     return (
         <section className="workspace-page" aria-label="Renderizado">
+            <h1 className="visually-hidden">Renderizado</h1>
             <div className="workspace-head">
                 <AsyncStatus
                     loading={choice.loading}
