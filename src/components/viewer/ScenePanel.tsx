@@ -1,5 +1,6 @@
 import type { LayerName, Layers } from "../../three/BuildingSceneManager";
 import type { RoofKind } from "../../types/api";
+import { Select } from "../ui/Input";
 
 const LAYERS: { id: LayerName; label: string }[] = [
     { id: "rooms", label: "Cuartos" },
@@ -109,19 +110,18 @@ export function ScenePanel({
                     />
                     <output className="hud-readout">{sun}°</output>
                 </label>
-                <label className="hud-field">
-                    Cubierta
-                    <select
-                        value={roof}
-                        onChange={(event) => onRoof(event.target.value as RoofKind)}
-                    >
-                        {ROOFS.map((item) => (
-                            <option key={item.id} value={item.id}>
-                                {item.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                <Select
+                    label="Cubierta"
+                    fieldClassName="hud-field"
+                    value={roof}
+                    onChange={(event) => onRoof(event.target.value as RoofKind)}
+                >
+                    {ROOFS.map((item) => (
+                        <option key={item.id} value={item.id}>
+                            {item.label}
+                        </option>
+                    ))}
+                </Select>
             </details>
         </aside>
     );

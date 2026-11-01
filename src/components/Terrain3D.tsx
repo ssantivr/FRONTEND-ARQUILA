@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
 import { bounds, footprint, type Point } from "../utils/geometry";
+import { EmptyState } from "./ui/EmptyState";
 
 const VIEW_WIDTH = 260;
 const VIEW_HEIGHT = 190;
@@ -40,7 +41,10 @@ export function Terrain3D({ terrain }: { terrain: Terrain }) {
         return (
             <div className="diagram">
                 <h3>Vista 3D</h3>
-                <p className="message">Faltan el ancho y el largo, o los vértices del lote.</p>
+                <EmptyState
+                    size="compact"
+                    text="Faltan el ancho y el largo, o los vértices del lote."
+                />
             </div>
         );
     }

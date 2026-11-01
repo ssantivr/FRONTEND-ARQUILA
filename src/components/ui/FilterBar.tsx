@@ -54,7 +54,7 @@ export function FilterBar({
                     </span>
                 )}
                 {active && onClear !== undefined && (
-                    <Button variant="tertiary" size="sm" icon="close" onClick={onClear}>
+                    <Button variant="ghost" size="sm" icon="close" onClick={onClear}>
                         Quitar filtros
                     </Button>
                 )}

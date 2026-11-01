@@ -8,6 +8,9 @@ import { buildableArea } from "../utils/polygons";
 import { downloadSvg, printSvg } from "../utils/svg";
 import { SHEET_COLORS } from "../utils/drawingPalette";
 import { PlanViewport } from "./PlanViewport";
+import { Button } from "./ui/Button";
+import { Select } from "./ui/Input";
+import { EmptyState } from "./ui/EmptyState";
 
 const VIEW_WIDTH = 470;
 const VIEW_HEIGHT = 330;
@@ -85,10 +88,10 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
         return (
             <figure className="terrain-diagrams">
                 <figcaption>{terrain.name}</figcaption>
-                <p className="message">
-                    Faltan el ancho y el largo, o los vértices del lote, para dibujar la
-                    implantación.
-                </p>
+                <EmptyState
+                    size="compact"
+                    text="Faltan el ancho y el largo, o los vértices del lote, para dibujar la implantación."
+                />
             </figure>
         );
     }
@@ -279,32 +282,27 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                             onChange={(event) => changeSetback(Number(event.target.value))}
                         />
                     </label>
-                    <label>
-                        El norte está hacia
-                        <select
-                            value={north}
-                            onChange={(event) => changeNorth(Number(event.target.value))}
-                        >
-                            {NORTH_OPTIONS.map((option) => (
-                                <option key={option.angle} value={option.angle}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <button
-                        type="button"
-                        onClick={() => svg.current && download(svg.current, terrain.name)}
+                    <Select
+                        label="El norte está hacia"
+                        value={north}
+                        onChange={(event) => changeNorth(Number(event.target.value))}
                     >
+                        {NORTH_OPTIONS.map((option) => (
+                            <option key={option.angle} value={option.angle}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                    <Button onClick={() => svg.current && download(svg.current, terrain.name)}>
                         Descargar plano (SVG)
-                    </button>
-                    <button
-                        type="button"
-                        className="button-secondary"
+                    </Button>
+                    <Button
+                        variant="secondary"
+
                         onClick={() => svg.current && print(svg.current, terrain.name)}
                     >
                         Imprimir o guardar como PDF
-                    </button>
+                    </Button>
                 </div>
                 {buildable.pieces.length === 0 && (
                     <p className="message" role="status">

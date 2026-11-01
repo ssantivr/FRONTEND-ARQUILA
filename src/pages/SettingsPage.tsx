@@ -7,6 +7,8 @@ import { BASE_URL } from "../services/http";
 import { setReduceMotion, useReduceMotion } from "../state/motion";
 import { setThemePreference, useThemePreference, type ThemePreference } from "../state/theme";
 import type { User } from "../types/api";
+import { Button } from "../components/ui/Button";
+import { ErrorState } from "../components/ui/ErrorState";
 
 interface SettingsPageProps {
     user: User;
@@ -74,9 +76,9 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                         {dateFormat.format(new Date(user.created_at))}
                     </p>
                 </div>
-                <button type="button" className="button-secondary" onClick={onLogout}>
+                <Button variant="secondary" onClick={onLogout}>
                     Cerrar sesión
-                </button>
+                </Button>
             </header>
 
             <section className="settings-section" aria-labelledby="settings-appearance">
@@ -136,26 +138,22 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                             consola.
                         </span>
                     </div>
-                    <button
-                        type="button"
-                        className="button-secondary"
+                    <Button
+                        variant="secondary"
+
                         disabled={resetState === "sending"}
                         aria-busy={resetState === "sending"}
                         onClick={requestReset}
                     >
                         {resetState === "sending" ? "Enviando…" : "Enviarme el enlace"}
-                    </button>
+                    </Button>
                 </div>
                 {resetState === "sent" && (
                     <p className="message" role="status">
                         Enlace solicitado para {user.email}.
                     </p>
                 )}
-                {resetError && (
-                    <p className="message message-error" role="alert">
-                        {resetError}
-                    </p>
-                )}
+                {resetError && <ErrorState message={resetError} />}
             </section>
 
             <section className="settings-section" aria-labelledby="settings-system">

@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import { formatNumber } from "../utils/format";
+import { Button } from "./ui/Button";
 
 const ZOOM_STEP = 1.25;
 const MIN_ZOOM = 1;
@@ -200,34 +201,34 @@ export function PlanViewport({ width, height, unitsPerMetre, children }: PlanVie
     return (
         <div className="plan-viewport">
             <div className="plan-tools" role="toolbar" aria-label="Herramientas del plano">
-                <button
-                    type="button"
-                    className="button-secondary"
+                <Button
+                    variant="secondary"
+
                     aria-label="Alejar el plano"
                     disabled={zoom <= MIN_ZOOM}
                     onClick={() => zoomBy(1 / ZOOM_STEP)}
                 >
                     −
-                </button>
+                </Button>
                 <output className="numeric" aria-label="Zoom del plano">
                     {Math.round(zoom * 100)} %
                 </output>
-                <button
-                    type="button"
-                    className="button-secondary"
+                <Button
+                    variant="secondary"
+
                     aria-label="Acercar el plano"
                     disabled={zoom >= MAX_ZOOM}
                     onClick={() => zoomBy(ZOOM_STEP)}
                 >
                     +
-                </button>
-                <button type="button" className="button-secondary" onClick={centre}>
+                </Button>
+                <Button variant="secondary" onClick={centre}>
                     Centrar plano
-                </button>
+                </Button>
                 <span className="plan-tools-divider" aria-hidden="true" />
-                <button
-                    type="button"
-                    className="button-secondary"
+                <Button
+                    variant="secondary"
+
                     aria-pressed={measuring}
                     onClick={() => {
                         setMeasuring(!measuring);
@@ -235,25 +236,25 @@ export function PlanViewport({ width, height, unitsPerMetre, children }: PlanVie
                     }}
                 >
                     Medir
-                </button>
-                <button
-                    type="button"
-                    className="button-secondary"
+                </Button>
+                <Button
+                    variant="secondary"
+
                     aria-pressed={grid}
                     title={`Una línea cada ${gridMetres} m`}
                     onClick={() => setGrid(!grid)}
                 >
                     Cuadrícula
-                </button>
-                <button
-                    type="button"
-                    className="button-secondary"
+                </Button>
+                <Button
+                    variant="secondary"
+
                     aria-pressed={rulers}
                     title="Reglas en metros desde el borde de la lámina"
                     onClick={() => setRulers(!rulers)}
                 >
                     Reglas
-                </button>
+                </Button>
                 <span className="plan-readout" role="status">
                     {!measuring && "Arrastra para desplazar el plano cuando esté ampliado."}
                     {measuring && distance === null && "Marca dos puntos del plano."}

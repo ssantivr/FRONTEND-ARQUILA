@@ -10,6 +10,7 @@ import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { LiveForm } from "./ui/LiveForm";
 import { scrollBehavior } from "../state/motion";
+import { Select, SelectControl } from "./ui/Input";
 
 const ORIENTATION_LABELS: Record<Orientation, string> = {
     north: "Norte",
@@ -82,7 +83,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
         <Panel
             title="Elevaciones"
             actions={
-                <select
+                <SelectControl
                     aria-label="Filtrar por orientación"
                     value={filter}
                     onChange={(event) => setFilter(event.target.value as Orientation | "")}
@@ -93,7 +94,7 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                             {ORIENTATION_LABELS[value]}
                         </option>
                     ))}
-                </select>
+                </SelectControl>
             }
         >
             <AsyncStatus
@@ -165,19 +166,17 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                         required
                     />
                 </label>
-                <label>
-                    Orientación
-                    <select
-                        value={orientation}
-                        onChange={(event) => setOrientation(event.target.value as Orientation)}
-                    >
-                        {ORIENTATIONS.map((value) => (
-                            <option key={value} value={value}>
-                                {ORIENTATION_LABELS[value]}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                <Select
+                    label="Orientación"
+                    value={orientation}
+                    onChange={(event) => setOrientation(event.target.value as Orientation)}
+                >
+                    {ORIENTATIONS.map((value) => (
+                        <option key={value} value={value}>
+                            {ORIENTATION_LABELS[value]}
+                        </option>
+                    ))}
+                </Select>
                 <FormActions
                     editing={editingId !== null}
                     addLabel="Agregar elevación"

@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import type { Project, ProjectUpdate } from "../types/api";
 import { optionalText } from "../utils/format";
 import { LiveForm } from "./ui/LiveForm";
+import { Button } from "./ui/Button";
 
 interface ProjectEditFormProps {
     project: Project;
@@ -82,12 +83,12 @@ export function ProjectEditForm({ project, onSave, onCancel }: ProjectEditFormPr
                     )}
                 </label>
             )}
-            <button type="submit" disabled={name.trim() === "" || progressWrong}>
+            <Button type="submit" disabled={name.trim() === "" || progressWrong}>
                 Guardar cambios
-            </button>
-            <button type="button" className="button-secondary" onClick={onCancel}>
+            </Button>
+            <Button variant="secondary" onClick={onCancel}>
                 Cancelar
-            </button>
+            </Button>
         </LiveForm>
     );
 }

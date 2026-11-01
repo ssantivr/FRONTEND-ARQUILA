@@ -4,6 +4,7 @@ import type { StructureRoom } from "../../types/api";
 import { formatNumber } from "../../utils/format";
 import { SNAP_STEPS, snapSize, snapTo } from "../../utils/snap";
 import { Icon } from "../Icon";
+import { Select } from "../ui/Input";
 
 export type RoomGeometry = Pick<StructureRoom, "x_m" | "y_m" | "width_m" | "depth_m" | "height_m">;
 
@@ -111,16 +112,18 @@ export function TransformPanel({ room, snap, onSnap, onCommit, busy }: Transform
                 ))}
             </div>
             <div className="hud-transform-row">
-                <label className="hud-transform-snap">
-                    Cuadrícula
-                    <select value={snap} onChange={(event) => onSnap(Number(event.target.value))}>
-                        {SNAP_STEPS.map((step) => (
-                            <option key={step} value={step}>
-                                {formatNumber(step)} m
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                <Select
+                    label="Cuadrícula"
+                    fieldClassName="hud-transform-snap"
+                    value={snap}
+                    onChange={(event) => onSnap(Number(event.target.value))}
+                >
+                    {SNAP_STEPS.map((step) => (
+                        <option key={step} value={step}>
+                            {formatNumber(step)} m
+                        </option>
+                    ))}
+                </Select>
                 <div className="hud-nudge" role="group" aria-label="Mover un paso de cuadrícula">
                     <button
                         type="button"

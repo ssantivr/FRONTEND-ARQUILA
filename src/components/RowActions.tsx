@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useSaveStatus } from "../state/saveStatus";
 import { Icon } from "./Icon";
+import { Button } from "./ui/Button";
 
 /** How long «Guardado» stays on the button after a change is saved. */
 const SAVED_MS = 1400;
@@ -17,22 +18,24 @@ interface RowActionsProps {
 export function RowActions({ label, onEdit, onDelete }: RowActionsProps) {
     return (
         <div className="row-actions">
-            <button
-                type="button"
-                className="button-secondary"
+            <Button
+                variant="secondary"
+                size="sm"
+
                 aria-label={`Editar ${label}`}
                 onClick={onEdit}
             >
                 Editar
-            </button>
-            <button
-                type="button"
-                className="button-danger"
+            </Button>
+            <Button
+                variant="danger"
+                size="sm"
+
                 aria-label={`Eliminar ${label}`}
                 onClick={onDelete}
             >
                 Eliminar
-            </button>
+            </Button>
         </div>
     );
 }
@@ -125,9 +128,9 @@ export function FormActions({ editing, addLabel, disabled, onCancel }: FormActio
                 {stage === "saved" ? "Guardado." : ""}
             </span>
             {editing && (
-                <button type="button" className="button-secondary" onClick={onCancel}>
+                <Button variant="secondary" size="sm" onClick={onCancel}>
                     Cancelar
-                </button>
+                </Button>
             )}
         </>
     );

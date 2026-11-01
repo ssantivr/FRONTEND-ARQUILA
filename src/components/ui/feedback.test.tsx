@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -6,11 +6,14 @@ import { showToast } from "../../state/toasts";
 import { Toasts } from "../Toasts";
 import { StatusBadge } from "./Badge";
 import { Button, type ButtonVariant } from "./Button";
+import { Dialog } from "./Dialog";
+import { Drawer } from "./Drawer";
+import { ErrorState } from "./ErrorState";
 import { Select } from "./Input";
 import { Toast } from "./Toast";
 
 describe("Button variants and states", () => {
-    const variants: ButtonVariant[] = ["primary", "secondary", "tertiary", "danger"];
+    const variants: ButtonVariant[] = ["primary", "secondary", "ghost", "danger"];
 
     it("draws each of the four variants as a named button", () => {
         render(
@@ -58,6 +61,76 @@ describe("Button variants and states", () => {
     });
 });
 
+describe("Button states", () => {
+    it("is busy and blocked while its action runs", () => {
+        render(<Button loading>Guardar</Button>);
+
+        const button = screen.getByRole("button", { name: "Guardar" });
+
+        expect(button).toHaveAttribute("aria-busy", "true");
+        expect(button).toBeDisabled();
+    });
+
+    it("does not submit a form unless it is told to", () => {
+        render(<Button>Cancelar</Button>);
+
+        expect(screen.getByRole("button", { name: "Cancelar" })).toHaveAttribute("type", "button");
+    });
+
+    it("draws the two sizes", () => {
+        render(
+            <>
+                <Button size="sm">Pequeño</Button>
+                <Button size="md">Mediano</Button>
+            </>,
+        );
+
+        expect(screen.getByRole("button", { name: "Pequeño" }).className).toMatch(/sm/);
+        expect(screen.getByRole("button", { name: "Mediano" }).className).toMatch(/md/);
+    });
+});
+
+describe("ErrorState", () => {
+    it("announces what failed", () => {
+        render(<ErrorState message="No se pudo guardar." />);
+
+        expect(screen.getByRole("alert")).toHaveTextContent("No se pudo guardar.");
+        expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    });
+
+    it("offers to try again, and says when it is doing it", async () => {
+        const onRetry = vi.fn();
+        const { rerender } = render(<ErrorState message="Falló." onRetry={onRetry} />);
+
+        await userEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+        expect(onRetry).toHaveBeenCalledTimes(1);
+
+        rerender(<ErrorState message="Falló." onRetry={onRetry} retrying />);
+        expect(screen.getByRole("button", { name: "Reintentando…" })).toBeDisabled();
+    });
+});
+
+describe("Dialog and Drawer", () => {
+    it.each([
+        ["Dialog", Dialog],
+        ["Drawer", Drawer],
+    ])("%s names itself, shows its actions and closes with its button", async (_, Modal) => {
+        const onClose = vi.fn();
+
+        render(
+            <Modal title="Muestra" actions={<Button>Exportar</Button>} onClose={onClose}>
+                Contenido
+            </Modal>,
+        );
+
+        expect(screen.getByRole("dialog", { name: "Muestra" })).toHaveTextContent("Contenido");
+        expect(screen.getByRole("button", { name: "Exportar" })).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole("button", { name: "Cerrar" }));
+        await waitFor(() => expect(onClose).toHaveBeenCalled());
+    });
+});
+
 describe("Select", () => {
     it("is a labelled native select that reports the chosen option", async () => {
         const onChange = vi.fn();
@@ -75,6 +148,35 @@ describe("Select", () => {
 
         expect(select).toHaveValue("ft");
         expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("wires its error to the control and announces it", () => {
+        render(
+            <Select label="Unidades" error="Elige una unidad">
+                <option>Métricas</option>
+            </Select>,
+        );
+
+        const select = screen.getByRole("combobox", { name: "Unidades" });
+
+        expect(select).toBeInvalid();
+        expect(select).toHaveAccessibleDescription("Elige una unidad");
+        expect(screen.getByRole("alert")).toHaveTextContent("Elige una unidad");
+    });
+
+    it("keeps a description of its own when it has no note", () => {
+        render(
+            <>
+                <p id="fuera">Se calcula al exportar.</p>
+                <Select label="Unidades" aria-describedby="fuera">
+                    <option>Métricas</option>
+                </Select>
+            </>,
+        );
+
+        expect(screen.getByRole("combobox", { name: "Unidades" })).toHaveAccessibleDescription(
+            "Se calcula al exportar.",
+        );
     });
 
     it("can be disabled", () => {

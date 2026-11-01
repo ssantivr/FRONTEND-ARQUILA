@@ -134,7 +134,7 @@ export function MobileNav({
                                 Cuenta y configuración
                             </Button>
                             <Button
-                                variant="tertiary"
+                                variant="ghost"
                                 icon="logout"
                                 block
                                 onClick={() => close(onLogout)}

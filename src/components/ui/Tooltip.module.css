@@ -16,7 +16,7 @@
     font-weight: var(--weight-medium);
     line-height: 1.4;
     width: max-content;
-    max-width: 280px;
+    max-width: var(--tooltip-width);
     white-space: normal;
     background: var(--brand-forest);
     border: var(--border-width) solid var(--brand-forest-raised);
@@ -88,7 +88,7 @@
 /* On a phone a hint at the side would run off the screen: it goes above, and wraps. */
 @media (max-width: 720px) {
     .tip {
-        max-width: min(240px, 70vw);
+        max-width: min(var(--tooltip-width-phone), 70vw);
         white-space: normal;
     }
 

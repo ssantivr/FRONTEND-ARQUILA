@@ -95,10 +95,10 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
                         <span>{error}</span>
                     </p>
                 )}
-                <Button type="submit" size="lg" block loading={submitting}>
+                <Button type="submit" block loading={submitting}>
                     Guardar contraseña
                 </Button>
-                <Button variant="tertiary" block onClick={() => onDone(false)}>
+                <Button variant="ghost" block onClick={() => onDone(false)}>
                     Cancelar
                 </Button>
             </form>

@@ -132,12 +132,30 @@ type SelectProps = LabelledProps &
     Omit<SelectHTMLAttributes<HTMLSelectElement>, "id"> & {
         /** The `<option>` elements. */
         children: ReactNode;
+        /** Class of the whole field, to place it in a layout. */
+        fieldClassName?: string;
     };
 
 /** A native select, which every platform already makes accessible, with its label and error. */
-export function Select({ label, hint, error, optional, aside, children, ...rest }: SelectProps) {
+export function Select({
+    label,
+    hint,
+    error,
+    optional,
+    aside,
+    fieldClassName,
+    children,
+    ...rest
+}: SelectProps) {
     return (
-        <Field label={label} hint={hint} error={error} optional={optional} aside={aside}>
+        <Field
+            label={label}
+            hint={hint}
+            error={error}
+            optional={optional}
+            aside={aside}
+            className={fieldClassName}
+        >
             <SelectControl {...rest}>{children}</SelectControl>
         </Field>
     );

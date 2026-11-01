@@ -11,6 +11,8 @@ import type { RenovationLog, RenovationStatus, SpatialLayer } from "../types/api
 import { formatDay, formatMoney, formatNumber } from "../utils/format";
 import { TASK_STATUSES, isOverdue, taskProgress } from "../utils/tasks";
 import { LiveForm } from "../components/ui/LiveForm";
+import { Select, SelectControl } from "../components/ui/Input";
+import { ErrorState } from "../components/ui/ErrorState";
 
 function timeline(task: RenovationLog): string {
     if (task.planned_start !== null && task.planned_end !== null) {
@@ -183,34 +185,28 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                 required
                             />
                         </label>
-                        <label>
-                            Proyecto
-                            <select
-                                value={targetProject ?? ""}
-                                onChange={(event) => setNewProject(event.target.value)}
-                            >
-                                {projects.map((project) => (
-                                    <option key={project.id} value={project.id}>
-                                        {project.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label>
-                            Capa
-                            <select
-                                value={newLayer}
-                                onChange={(event) =>
-                                    setNewLayer(event.target.value as SpatialLayer)
-                                }
-                            >
-                                {WORK_LAYERS.map((layer) => (
-                                    <option key={layer.id} value={layer.id}>
-                                        {layer.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
+                        <Select
+                            label="Proyecto"
+                            value={targetProject ?? ""}
+                            onChange={(event) => setNewProject(event.target.value)}
+                        >
+                            {projects.map((project) => (
+                                <option key={project.id} value={project.id}>
+                                    {project.name}
+                                </option>
+                            ))}
+                        </Select>
+                        <Select
+                            label="Capa"
+                            value={newLayer}
+                            onChange={(event) => setNewLayer(event.target.value as SpatialLayer)}
+                        >
+                            {WORK_LAYERS.map((layer) => (
+                                <option key={layer.id} value={layer.id}>
+                                    {layer.label}
+                                </option>
+                            ))}
+                        </Select>
                         <label>
                             Inicio previsto
                             <input
@@ -231,15 +227,11 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                         <Button type="submit" loading={saving} disabled={title.trim() === ""}>
                             Crear tarea
                         </Button>
-                        <Button variant="tertiary" onClick={() => setCreating(false)}>
+                        <Button variant="ghost" onClick={() => setCreating(false)}>
                             Cancelar
                         </Button>
                     </LiveForm>
-                    {formError !== null && (
-                        <p className="message message-error" role="alert">
-                            {formError}
-                        </p>
-                    )}
+                    {formError !== null && <ErrorState message={formError} />}
                 </section>
             )}
 
@@ -253,7 +245,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                         />
-                        <select
+                        <SelectControl
                             aria-label="Filtrar por proyecto"
                             value={projectFilter}
                             onChange={(event) => setProjectFilter(event.target.value)}
@@ -264,8 +256,8 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                     {project.name}
                                 </option>
                             ))}
-                        </select>
-                        <select
+                        </SelectControl>
+                        <SelectControl
                             aria-label="Filtrar por capa"
                             value={layerFilter}
                             onChange={(event) => setLayerFilter(event.target.value)}
@@ -276,7 +268,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                     {layer.label}
                                 </option>
                             ))}
-                        </select>
+                        </SelectControl>
                     </div>
                 )}
 
@@ -310,11 +302,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                     }
                 />
 
-                {statusError !== null && (
-                    <p className="message message-error" role="alert">
-                        {statusError}
-                    </p>
-                )}
+                {statusError !== null && <ErrorState message={statusError} />}
 
                 {shown.length > 0 && (
                     <div className="task-board">
@@ -344,6 +332,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                                     <button
                                                         type="button"
                                                         className="button-tertiary task-project"
+
                                                         onClick={() =>
                                                             onOpenProject(task.project_id)
                                                         }
@@ -378,7 +367,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                                             </div>
                                                         )}
                                                     </dl>
-                                                    <select
+                                                    <SelectControl
                                                         aria-label={`Estado de «${task.title}»`}
                                                         value={task.status}
                                                         disabled={busyId !== null}
@@ -398,7 +387,7 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                                                                 {option.label}
                                                             </option>
                                                         ))}
-                                                    </select>
+                                                    </SelectControl>
                                                 </li>
                                             ))}
                                         </ul>

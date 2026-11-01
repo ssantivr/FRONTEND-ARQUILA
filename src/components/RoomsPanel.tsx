@@ -10,6 +10,7 @@ import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { LiveForm } from "./ui/LiveForm";
 import { scrollBehavior } from "../state/motion";
+import { Select } from "./ui/Input";
 
 interface RoomsPanelProps extends SectionProps {
     onChanged: () => void;
@@ -167,19 +168,17 @@ export function RoomsPanel({ projectId, run, onChanged }: RoomsPanelProps) {
             )}
             {planItems.length > 0 && (
                 <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
-                    <label>
-                        Plano
-                        <select
-                            value={chosenPlan}
-                            onChange={(event) => setPlanId(event.target.value)}
-                        >
-                            {planItems.map((plan) => (
-                                <option key={plan.id} value={plan.id}>
-                                    {plan.title}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                    <Select
+                        label="Plano"
+                        value={chosenPlan}
+                        onChange={(event) => setPlanId(event.target.value)}
+                    >
+                        {planItems.map((plan) => (
+                            <option key={plan.id} value={plan.id}>
+                                {plan.title}
+                            </option>
+                        ))}
+                    </Select>
                     <label>
                         Nombre
                         <input

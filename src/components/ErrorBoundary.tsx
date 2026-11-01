@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Button } from "./ui/Button";
 
 interface ErrorBoundaryProps {
     children: ReactNode;
@@ -32,13 +33,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                         Esta pantalla tuvo un problema y no se pudo mostrar. El resto de la
                         aplicación sigue funcionando.
                     </span>
-                    <button
-                        type="button"
-                        className="button-secondary"
+                    <Button
+                        variant="secondary"
+
                         onClick={() => this.setState({ failed: false })}
                     >
                         Reintentar
-                    </button>
+                    </Button>
                 </div>
             </section>
         );

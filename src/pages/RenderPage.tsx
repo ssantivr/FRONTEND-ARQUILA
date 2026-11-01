@@ -25,6 +25,9 @@ import {
     sunPosition,
     type LightingSettings,
 } from "../utils/lighting";
+import { Button } from "../components/ui/Button";
+import { Select } from "../components/ui/Input";
+import { Skeleton } from "../components/ui/Skeleton";
 
 const LitModel = lazy(() =>
     import("../components/LitModel").then((module) => ({ default: module.LitModel })),
@@ -319,19 +322,20 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                             value={choice.project.id}
                             onChange={choice.choose}
                         />
-                        <button type="button" className="button-secondary" onClick={onLighting}>
+                        <Button variant="secondary" onClick={onLighting}>
                             Ajustar la luz
-                        </button>
-                        <button
-                            type="button"
-                            className="button-secondary icon-button workspace-head-end"
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            icon="panels"
+                            className="workspace-head-end"
+
                             aria-pressed={panelOpen}
                             aria-controls={panelOpen ? "render-panel" : undefined}
                             onClick={() => setPanelOpen(!panelOpen)}
                         >
-                            <Icon name="panels" />
                             Parámetros
-                        </button>
+                        </Button>
                     </>
                 )}
             </div>
@@ -354,7 +358,7 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                             className="render-frame"
                             style={{ "--ratio": size.width / size.height } as CSSProperties}
                         >
-                            <Suspense fallback={<p className="message">Cargando el visor…</p>}>
+                            <Suspense fallback={<Skeleton label="Cargando el visor…" />}>
                                 <LitModel
                                     key={projectId}
                                     projectId={projectId}
@@ -389,13 +393,13 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                         </span>
                                     </p>
                                     <span className="render-result-actions">
-                                        <button
-                                            type="button"
-                                            className="button-secondary"
+                                        <Button
+                                            variant="secondary"
+
                                             onClick={() => setShowingResult(false)}
                                         >
                                             Volver al encuadre
-                                        </button>
+                                        </Button>
                                         <a
                                             className="button button-lime"
                                             href={result.url}
@@ -419,37 +423,37 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                 <h3>1 · Cámara</h3>
                                 <div className="segmented" role="group" aria-label="Vista">
                                     {VIEWS.map((item) => (
-                                        <button
+                                        <Button
+                                            variant="secondary"
                                             key={item.id}
-                                            type="button"
-                                            className="button-secondary"
+
                                             aria-pressed={view === item.id}
                                             disabled={!ready || rendering}
                                             onClick={() => chooseView(item.id)}
                                         >
                                             {item.label}
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
                                 <div className="segmented" role="group" aria-label="Proyección">
-                                    <button
-                                        type="button"
-                                        className="button-secondary"
+                                    <Button
+                                        variant="secondary"
+
                                         aria-pressed={projection === "perspective"}
                                         disabled={rendering}
                                         onClick={() => setProjection("perspective")}
                                     >
                                         Perspectiva
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="button-secondary"
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+
                                         aria-pressed={projection === "orthographic"}
                                         disabled={rendering}
                                         onClick={() => setProjection("orthographic")}
                                     >
                                         Ortográfica
-                                    </button>
+                                    </Button>
                                 </div>
                                 <p className="studio-note">
                                     Encuadre: arrastra la vista previa para girar y usa la rueda
@@ -509,83 +513,66 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                     aria-label="Relación de aspecto"
                                 >
                                     {ASPECTS.map((item) => (
-                                        <button
+                                        <Button
+                                            variant="secondary"
                                             key={item.id}
-                                            type="button"
-                                            className="button-secondary"
+
                                             aria-pressed={aspect === item.id}
                                             disabled={rendering}
                                             onClick={() => setAspect(item.id)}
                                         >
                                             {item.id}
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
-                                <label>
-                                    Resolución
-                                    <select
-                                        value={longEdge}
-                                        disabled={rendering}
-                                        aria-describedby={
-                                            LONG_EDGES.every(fits) ? undefined : "resolution-why"
-                                        }
-                                        onChange={(event) =>
-                                            setLongEdge(Number(event.target.value))
-                                        }
-                                    >
-                                        {LONG_EDGES.map((edge) => {
-                                            const option = sizeOf(aspect, edge);
+                                <Select
+                                    label="Resolución"
+                                    value={longEdge}
+                                    disabled={rendering}
+                                    aria-describedby={
+                                        LONG_EDGES.every(fits) ? undefined : "resolution-why"
+                                    }
+                                    onChange={(event) => setLongEdge(Number(event.target.value))}
+                                >
+                                    {LONG_EDGES.map((edge) => {
+                                        const option = sizeOf(aspect, edge);
 
-                                            return (
-                                                <option
-                                                    key={edge}
-                                                    value={edge}
-                                                    disabled={!fits(edge)}
-                                                >
-                                                    {option.width} × {option.height} px
-                                                    {!fits(edge) && " (no disponible)"}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
-                                </label>
+                                        return (
+                                            <option key={edge} value={edge} disabled={!fits(edge)}>
+                                                {option.width} × {option.height} px
+                                                {!fits(edge) && " (no disponible)"}
+                                            </option>
+                                        );
+                                    })}
+                                </Select>
                                 {!LONG_EDGES.every(fits) && (
                                     <p className="studio-note" id="resolution-why">
                                         Este equipo dibuja imágenes de hasta {maxSize} px de lado.
                                     </p>
                                 )}
-                                <label>
-                                    Formato de salida
-                                    <select
-                                        value={format}
-                                        disabled={rendering}
-                                        onChange={(event) =>
-                                            setFormat(event.target.value as FormatId)
-                                        }
-                                    >
-                                        {(Object.keys(FORMATS) as FormatId[]).map((id) => (
-                                            <option
-                                                key={id}
-                                                value={id}
-                                                disabled={!encodable.has(id)}
-                                            >
-                                                {FORMATS[id].label}
-                                                {!encodable.has(id) &&
-                                                    " (este navegador no lo genera)"}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
+                                <Select
+                                    label="Formato de salida"
+                                    value={format}
+                                    disabled={rendering}
+                                    onChange={(event) => setFormat(event.target.value as FormatId)}
+                                >
+                                    {(Object.keys(FORMATS) as FormatId[]).map((id) => (
+                                        <option key={id} value={id} disabled={!encodable.has(id)}>
+                                            {FORMATS[id].label}
+                                            {!encodable.has(id) && " (este navegador no lo genera)"}
+                                        </option>
+                                    ))}
+                                </Select>
                             </section>
 
                             <section>
                                 <h3>4 · Calidad</h3>
                                 <div className="segmented" role="group" aria-label="Calidad">
                                     {(Object.keys(QUALITIES) as QualityId[]).map((id) => (
-                                        <button
+                                        <Button
+                                            variant="secondary"
                                             key={id}
-                                            type="button"
-                                            className="button-secondary"
+
                                             aria-pressed={quality === id}
                                             disabled={rendering || !qualityFits(id)}
                                             title={
@@ -596,7 +583,7 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                             onClick={() => setQuality(id)}
                                         >
                                             {QUALITIES[id].label}
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
                                 <p className="studio-note">{QUALITIES[quality].note}</p>
@@ -622,24 +609,19 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                     onShowResult={() => setShowingResult(true)}
                                 />
                                 {rendering ? (
-                                    <button
-                                        type="button"
-                                        className="button-secondary"
+                                    <Button
+                                        variant="secondary"
+
                                         onClick={() => abort.current?.abort()}
                                     >
                                         Cancelar
-                                    </button>
+                                    </Button>
                                 ) : (
-                                    <button
-                                        type="button"
-                                        className="button-lime"
-                                        disabled={!ready}
-                                        onClick={start}
-                                    >
+                                    <Button disabled={!ready} onClick={start}>
                                         {result === null
                                             ? "Generar captura"
                                             : "Generar otra captura"}
-                                    </button>
+                                    </Button>
                                 )}
                             </section>
                         </aside>

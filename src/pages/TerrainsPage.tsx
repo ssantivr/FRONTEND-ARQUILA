@@ -11,6 +11,8 @@ import { readSiteSettings } from "../state/siteSettings";
 import type { Terrain } from "../types/api";
 import { formatNumber } from "../utils/format";
 import { bounds, edges, footprint } from "../utils/geometry";
+import { SelectControl } from "../components/ui/Input";
+import { EmptyState } from "../components/ui/EmptyState";
 
 type Order = "name" | "area" | "slope";
 
@@ -210,7 +212,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                 : undefined
                         }
                     >
-                        <select
+                        <SelectControl
                             aria-label="Filtrar por proyecto"
                             disabled={arriving}
                             value={projectId}
@@ -222,9 +224,9 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                     {project.name}
                                 </option>
                             ))}
-                        </select>
+                        </SelectControl>
                         {soils.length > 0 && (
-                            <select
+                            <SelectControl
                                 aria-label="Filtrar por tipo de suelo"
                                 value={soil}
                                 onChange={(event) => setSoil(event.target.value)}
@@ -235,7 +237,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                         {name}
                                     </option>
                                 ))}
-                            </select>
+                            </SelectControl>
                         )}
                         {located > 0 && (
                             <label className="checkbox">
@@ -247,7 +249,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                 Solo con coordenadas
                             </label>
                         )}
-                        <select
+                        <SelectControl
                             aria-label="Ordenar terrenos"
                             disabled={arriving}
                             value={order}
@@ -256,7 +258,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                             <option value="name">Por nombre</option>
                             <option value="area">Mayor área primero</option>
                             <option value="slope">Mayor pendiente primero</option>
-                        </select>
+                        </SelectControl>
                     </FilterBar>
                 )}
                 {arriving && (
@@ -279,12 +281,10 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                 {terrains.length > 0 && shown.length === 0 && (
                     <div className="empty-state">
                         <p className="empty-title">Ningún terreno coincide</p>
-                        <p className="message" role="status">
-                            Ningún terreno coincide con el filtro.
-                        </p>
-                        <button
-                            type="button"
-                            className="button-secondary"
+                        <EmptyState size="compact" text="Ningún terreno coincide con el filtro." />
+                        <Button
+                            variant="secondary"
+
                             onClick={() => {
                                 setQuery("");
                                 setProjectId("");
@@ -293,7 +293,7 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                             }}
                         >
                             Quitar los filtros
-                        </button>
+                        </Button>
                     </div>
                 )}
                 <TerrainSituation
@@ -342,13 +342,14 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                                     <h3>{selected.name}</h3>
                                     <p>{projectNames.get(selected.project_id) ?? "—"}</p>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="button-tertiary terrain-detail-close"
+                                <Button
+                                    variant="ghost"
+                                    className="terrain-detail-close"
+
                                     onClick={() => setSelectedId(null)}
                                 >
                                     Cerrar
-                                </button>
+                                </Button>
                             </header>
                             <figure className="terrain-figure">
                                 <TerrainShape terrain={selected} />

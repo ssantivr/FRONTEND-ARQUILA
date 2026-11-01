@@ -1,5 +1,6 @@
 import type { ProjectFile } from "../types/api";
 import { FileViewer } from "./FileViewer";
+import { SelectControl } from "./ui/Input";
 
 interface FileAttachmentProps {
     files: ProjectFile[];
@@ -13,7 +14,7 @@ export function FileAttachment({ files, fileId, label, onChange }: FileAttachmen
 
     return (
         <div className="file-attachment">
-            <select
+            <SelectControl
                 aria-label={label}
                 value={fileId ?? ""}
                 onChange={(event) =>
@@ -26,7 +27,7 @@ export function FileAttachment({ files, fileId, label, onChange }: FileAttachmen
                         {file.filename}
                     </option>
                 ))}
-            </select>
+            </SelectControl>
             {attached && <FileViewer file={attached} />}
         </div>
     );

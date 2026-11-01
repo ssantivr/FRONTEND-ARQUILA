@@ -248,11 +248,17 @@
     --touch-target: 44px;
     --row-height: 44px;
     --row-head-height: 36px;
+    --icon-xs: 13px;
     --icon-sm: 14px;
     --icon-md: 18px;
     --icon-lg: 22px;
     --border-width: 1px;
     --border-w: var(--border-width);
+    --tag-height: 22px;
+    --tag-height-sm: 18px;
+    --kbd-size: 20px;
+    --tooltip-width: 280px;
+    --tooltip-width-phone: 240px;
     --keyline: 1.5px;
 
     /* Layout */
@@ -281,6 +287,8 @@
     --on-dark-edge: rgba(255, 255, 255, 0.4);
 
     /* Motion: three durations for the interface. The curves and keyframes are in motion.css. */
+    --nudge-press: 1px;
+    --nudge-arrow: 3px;
     --dur-instant: 80ms;
     --dur-fast: 150ms;
     --dur: 220ms;

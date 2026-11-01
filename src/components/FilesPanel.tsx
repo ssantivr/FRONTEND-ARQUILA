@@ -6,6 +6,8 @@ import type { SectionProps } from "../types/ui";
 import { formatFileSize } from "../utils/format";
 import { FileViewer } from "./FileViewer";
 import { Panel } from "./ui/Panel";
+import { Button } from "./ui/Button";
+import { EmptyState } from "./ui/EmptyState";
 
 const TYPE_LABELS: Record<string, string> = {
     "application/pdf": "PDF",
@@ -43,7 +45,7 @@ export function FilesPanel({ projectId, run, files, busy, onChanged }: FilesPane
     return (
         <Panel title="Archivos">
             {files.length === 0 ? (
-                <p className="message">Este proyecto no tiene archivos.</p>
+                <EmptyState size="compact" text="Este proyecto no tiene archivos." />
             ) : (
                 <table>
                     <thead>
@@ -75,9 +77,9 @@ export function FilesPanel({ projectId, run, files, busy, onChanged }: FilesPane
                                 <td>
                                     <div className="row-actions">
                                         <FileViewer file={file} />
-                                        <button
-                                            type="button"
-                                            className="button-danger"
+                                        <Button
+                                            variant="danger"
+
                                             aria-label={`Eliminar archivo ${file.filename}`}
                                             onClick={() => {
                                                 if (
@@ -90,7 +92,7 @@ export function FilesPanel({ projectId, run, files, busy, onChanged }: FilesPane
                                             }}
                                         >
                                             Eliminar
-                                        </button>
+                                        </Button>
                                     </div>
                                 </td>
                             </tr>

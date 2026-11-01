@@ -8,6 +8,7 @@ import { ComponentsPanel } from "./ComponentsPanel";
 import { Icon } from "./Icon";
 import { RoomsPanel } from "./RoomsPanel";
 import { StructureViewer } from "./StructureViewer";
+import { Skeleton } from "./ui/Skeleton";
 
 export function StructurePanel({ projectId, run }: SectionProps) {
     const structure = useAsync(() => structureApi.get(projectId), [projectId]);
@@ -38,7 +39,7 @@ export function StructurePanel({ projectId, run }: SectionProps) {
                 {arriving && (
                     <div className="structure-stage structure-stage-arriving" role="status">
                         <div className="structure-viewer">
-                            <p className="message">Cargando el modelo 3D…</p>
+                            <Skeleton label="Cargando el modelo 3D…" />
                         </div>
                     </div>
                 )}

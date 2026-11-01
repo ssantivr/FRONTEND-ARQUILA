@@ -14,6 +14,7 @@ import { FormActions, RowActions } from "./RowActions";
 import { TerrainDiagrams } from "./TerrainDiagrams";
 import { LiveForm } from "./ui/LiveForm";
 import { scrollBehavior } from "../state/motion";
+import { ErrorState } from "./ui/ErrorState";
 
 export function TerrainsPanel({ projectId, run }: SectionProps) {
     const terrains = useAsync(() => terrainsApi.listByProject(projectId), [projectId]);
@@ -239,11 +240,7 @@ export function TerrainsPanel({ projectId, run }: SectionProps) {
                         aria-invalid={"error" in parsed}
                     />
                 </label>
-                {"error" in parsed && (
-                    <p className="message message-error field-full" role="alert">
-                        {parsed.error}
-                    </p>
-                )}
+                {"error" in parsed && <ErrorState className="field-full" message={parsed.error} />}
                 <FormActions
                     editing={editingId !== null}
                     addLabel="Agregar terreno"

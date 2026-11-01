@@ -1,61 +1,27 @@
-import * as RadixDialog from "@radix-ui/react-dialog";
-import type { ReactNode } from "react";
-
-import { useAnimatedClose } from "../../hooks/useAnimatedClose";
-import { Button } from "./Button";
+import { ModalFrame, type ModalFrameProps } from "./ModalFrame";
 
 import styles from "./Drawer.module.css";
 
 export type DrawerSide = "right" | "left" | "bottom";
 
-interface DrawerProps {
-    title: string;
+interface DrawerProps extends Omit<ModalFrameProps, "container"> {
     /** Edge it slides in from. `bottom` is the sheet of small screens. */
     side?: DrawerSide;
-    /** Extra controls shown in the header, before «Cerrar». */
-    actions?: ReactNode;
-    onClose: () => void;
-    children: ReactNode;
 }
 
-/**
- * A side panel over the page: navigation, filters or properties on small screens. Like `Dialog`,
- * Radix keeps the focus inside, closes it with Escape or a click outside and gives the focus back.
- */
-export function Drawer({ title, side = "right", actions, onClose, children }: DrawerProps) {
-    const closing = useAnimatedClose<HTMLDivElement>(onClose);
-
+/** A side panel over the page: navigation, filters or properties on small screens. */
+export function Drawer({ side = "right", ...frame }: DrawerProps) {
     return (
-        <RadixDialog.Root
-            open={closing.open}
-            onOpenChange={(open) => {
-                if (!open) {
-                    closing.requestClose();
-                }
+        <ModalFrame
+            {...frame}
+            classes={{
+                overlay: styles.overlay,
+                content: `${styles.drawer} ${styles[side]}`,
+                header: styles.header,
+                title: styles.title,
+                actions: styles.actions,
+                body: styles.body,
             }}
-        >
-            <RadixDialog.Portal>
-                <RadixDialog.Overlay className={styles.overlay} />
-                <RadixDialog.Content
-                    ref={closing.ref}
-                    onAnimationEnd={closing.onAnimationEnd}
-                    className={`${styles.drawer} ${styles[side]}`}
-                    aria-describedby={undefined}
-                >
-                    <header className={styles.header}>
-                        <RadixDialog.Title className={styles.title}>{title}</RadixDialog.Title>
-                        <div className={styles.actions}>
-                            {actions}
-                            <RadixDialog.Close asChild>
-                                <Button variant="secondary" size="sm" icon="close">
-                                    Cerrar
-                                </Button>
-                            </RadixDialog.Close>
-                        </div>
-                    </header>
-                    <div className={styles.body}>{children}</div>
-                </RadixDialog.Content>
-            </RadixDialog.Portal>
-        </RadixDialog.Root>
+        />
     );
 }

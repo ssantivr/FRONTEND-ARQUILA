@@ -15,6 +15,7 @@ import {
 import { downloadSvg } from "../utils/svg";
 import { PlanViewport } from "./PlanViewport";
 import { SHEET_COLORS } from "../utils/drawingPalette";
+import { Button } from "./ui/Button";
 
 const VIEW_WIDTH = 660;
 const VIEW_HEIGHT = 520;
@@ -517,9 +518,9 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                 </svg>
             </PlanViewport>
             <div className="filters">
-                <button
-                    type="button"
-                    className="button-secondary"
+                <Button
+                    variant="secondary"
+
                     onClick={() => {
                         if (svg.current !== null) {
                             downloadSvg(svg.current, `planta-${projectName}-${level.title}`);
@@ -527,7 +528,7 @@ export function FloorPlan({ level, projectName, openings }: FloorPlanProps) {
                     }}
                 >
                     Descargar planta (SVG)
-                </button>
+                </Button>
             </div>
         </figure>
     );

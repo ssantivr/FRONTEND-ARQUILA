@@ -312,7 +312,7 @@ export function App() {
 
         if (route.kind === "design-system" && DesignSystemPage !== null) {
             return (
-                <Suspense fallback={<p className="message">Cargando…</p>}>
+                <Suspense fallback={<Skeleton />}>
                     <DesignSystemPage />
                 </Suspense>
             );
@@ -396,7 +396,7 @@ export function App() {
                             tool="interior"
                             onOpenProject={(id) => openProject(id, "model")}
                         />
-                        <Suspense fallback={<p className="message">Cargando…</p>}>
+                        <Suspense fallback={<Skeleton />}>
                             <InteriorPage />
                         </Suspense>
                     </>

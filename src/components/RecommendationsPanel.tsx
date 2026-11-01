@@ -8,6 +8,8 @@ import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./ui/Panel";
 import { LiveForm } from "./ui/LiveForm";
+import { Button } from "./ui/Button";
+import { Select } from "./ui/Input";
 
 const SOURCE_LABELS: Record<RecommendationSource, string> = {
     system: "Automática",
@@ -79,9 +81,9 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
         <Panel
             title="Recomendaciones"
             actions={
-                <button type="button" onClick={handleGenerate} disabled={generating}>
+                <Button onClick={handleGenerate} disabled={generating}>
                     Analizar proyecto
-                </button>
+                </Button>
             }
         >
             <p className="message">
@@ -114,9 +116,9 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                             </span>
                         </div>
                         <p>{recommendation.content}</p>
-                        <button
-                            type="button"
-                            className="button-danger"
+                        <Button
+                            variant="danger"
+
                             aria-label={`Eliminar recomendación: ${recommendation.content}`}
                             onClick={() =>
                                 run(
@@ -126,7 +128,7 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                             }
                         >
                             Eliminar
-                        </button>
+                        </Button>
                     </li>
                 ))}
             </ul>
@@ -149,24 +151,20 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                         required
                     />
                 </label>
-                <label>
-                    Prioridad
-                    <select
-                        value={priority}
-                        onChange={(event) =>
-                            setPriority(event.target.value as RecommendationPriority)
-                        }
-                    >
-                        {PRIORITIES.map((item) => (
-                            <option key={item.id} value={item.id}>
-                                {item.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-                <button type="submit" disabled={category.trim() === "" || content.trim() === ""}>
+                <Select
+                    label="Prioridad"
+                    value={priority}
+                    onChange={(event) => setPriority(event.target.value as RecommendationPriority)}
+                >
+                    {PRIORITIES.map((item) => (
+                        <option key={item.id} value={item.id}>
+                            {item.label}
+                        </option>
+                    ))}
+                </Select>
+                <Button type="submit" disabled={category.trim() === "" || content.trim() === ""}>
                     Agregar
-                </button>
+                </Button>
             </LiveForm>
         </Panel>
     );

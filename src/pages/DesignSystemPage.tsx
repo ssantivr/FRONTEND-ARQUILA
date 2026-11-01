@@ -18,6 +18,7 @@ import { DataTable } from "../components/ui/DataTable";
 import { Dialog } from "../components/ui/Dialog";
 import { Drawer } from "../components/ui/Drawer";
 import { EmptyState, type EmptyArt } from "../components/ui/EmptyState";
+import { ErrorState } from "../components/ui/ErrorState";
 import { FilterBar } from "../components/ui/FilterBar";
 import { IconButton } from "../components/ui/IconButton";
 import { Checkbox, Input, PasswordInput, Select, Textarea } from "../components/ui/Input";
@@ -218,19 +219,22 @@ function Showcase() {
                     <Button variant="secondary" icon="plus">
                         Secundario
                     </Button>
-                    <Button variant="tertiary">Terciario</Button>
+                    <Button variant="ghost">Fantasma</Button>
                     <Button variant="danger" icon="trash">
                         Destructivo
                     </Button>
                 </Row>
                 <Row>
                     <Button size="sm">Pequeño</Button>
-                    <Button size="lg">Grande</Button>
+                    <Button>Mediano</Button>
                     <Button variant="secondary" shortcut="Ctrl K" icon="search">
                         Buscar
                     </Button>
                     <Button loading>Guardando</Button>
                     <Button disabled>Deshabilitado</Button>
+                    <Button variant="ghost" size="sm" icon="close">
+                        Fantasma pequeño
+                    </Button>
                     <Button variant="secondary" disabledReason="Muestra de un motivo visible.">
                         Con motivo
                     </Button>
@@ -261,6 +265,12 @@ function Showcase() {
                         error="Escribe un correo válido."
                     />
                     <PasswordInput label="Contraseña" autoComplete="off" />
+                    <Select label="Con error" error="Elige una escala.">
+                        <option>1:100</option>
+                    </Select>
+                    <Select label="Deshabilitado" disabled>
+                        <option>1:100</option>
+                    </Select>
                     <Select label="Escala" defaultValue="100">
                         <option value="50">1:50</option>
                         <option value="100">1:100</option>
@@ -456,7 +466,7 @@ function Showcase() {
                     <Button variant="danger" onClick={() => setConfirming(true)}>
                         Eliminar…
                     </Button>
-                    <Button variant="tertiary" onClick={() => showToast("Aviso de muestra.")}>
+                    <Button variant="ghost" onClick={() => showToast("Aviso de muestra.")}>
                         Mostrar aviso
                     </Button>
                 </Row>
@@ -510,6 +520,18 @@ function Showcase() {
                     emptyText=""
                     onRetry={() => undefined}
                 />
+            </Block>
+
+            <Block title="Estado de error">
+                <div className={styles.row}>
+                    <ErrorState message="No se pudo cargar la lista." />
+                    <ErrorState message="Se perdió la conexión." onRetry={() => undefined} />
+                    <ErrorState
+                        message="Se perdió la conexión."
+                        retrying
+                        onRetry={() => undefined}
+                    />
+                </div>
             </Block>
 
             <Block title="Estados vacíos ilustrados">

@@ -12,6 +12,7 @@ import {
 import { AsyncStatus } from "./AsyncStatus";
 import { Button } from "./ui/Button";
 import { Select } from "./ui/Input";
+import { ErrorState } from "./ui/ErrorState";
 
 import styles from "./SurfaceLibrary.module.css";
 
@@ -124,11 +125,7 @@ export function SurfaceApply({ surfaceId }: { surfaceId: SurfaceMaterialId }) {
                     {element.surface === null ? " (la de su tipo, sin elegir)" : ""}.
                 </p>
             )}
-            {error !== null && (
-                <p className="message message-error" role="alert">
-                    {error}
-                </p>
-            )}
+            {error !== null && <ErrorState message={error} />}
             {element !== null && (
                 <Button
                     loading={saving}

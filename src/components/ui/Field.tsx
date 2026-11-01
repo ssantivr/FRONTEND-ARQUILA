@@ -18,6 +18,8 @@ interface FieldProps {
     optional?: boolean;
     /** Something at the end of the label row, such as a link to recover the password. */
     aside?: ReactNode;
+    /** Class of the whole field, to place it in a layout. */
+    className?: string;
     /** The input, select or textarea; the field wires its label, hint and error to it. */
     children: ReactElement<ControlProps>;
 }
@@ -27,14 +29,27 @@ interface FieldProps {
  * one: the error comes with an icon and a word, is linked with `aria-describedby` and is
  * announced as soon as it appears.
  */
-export function Field({ label, hint, error, optional = false, aside, children }: FieldProps) {
+export function Field({
+    label,
+    hint,
+    error,
+    optional = false,
+    aside,
+    className,
+    children,
+}: FieldProps) {
     const id = useId();
     const noteId = `${id}-note`;
     const failed = error !== undefined && error !== null && error !== "";
     const note = failed ? error : hint;
 
     return (
-        <div className={failed ? `${styles.field} ${styles.invalid}` : styles.field}>
+        // `form-field` is the hook that screens not yet rebuilt use to place it (removed in R9).
+        <div
+            className={["form-field", styles.field, failed && styles.invalid, className]
+                .filter(Boolean)
+                .join(" ")}
+        >
             <div className={styles.head}>
                 <label htmlFor={id} className={styles.label}>
                     {label}
@@ -44,7 +59,8 @@ export function Field({ label, hint, error, optional = false, aside, children }:
             </div>
             {cloneElement(children, {
                 id,
-                "aria-describedby": note === undefined ? undefined : noteId,
+                "aria-describedby":
+                    note === undefined ? children.props["aria-describedby"] : noteId,
                 "aria-invalid": failed || undefined,
             })}
             {note !== undefined && (

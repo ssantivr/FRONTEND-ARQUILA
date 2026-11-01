@@ -1,4 +1,5 @@
 import type { Project } from "../types/api";
+import { Select } from "./ui/Input";
 
 interface ProjectPickerProps {
     projects: Project[];
@@ -8,15 +9,17 @@ interface ProjectPickerProps {
 
 export function ProjectPicker({ projects, value, onChange }: ProjectPickerProps) {
     return (
-        <label className="project-picker">
-            Proyecto
-            <select value={value ?? ""} onChange={(event) => onChange(Number(event.target.value))}>
-                {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                        {project.name}
-                    </option>
-                ))}
-            </select>
-        </label>
+        <Select
+            label="Proyecto"
+            fieldClassName="project-picker"
+            value={value ?? ""}
+            onChange={(event) => onChange(Number(event.target.value))}
+        >
+            {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                    {project.name}
+                </option>
+            ))}
+        </Select>
     );
 }

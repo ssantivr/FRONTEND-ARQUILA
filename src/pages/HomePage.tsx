@@ -249,11 +249,10 @@ export function HomePage({
                         asistente que conoce cada proyecto.
                     </p>
                     <div className={styles.heroActions}>
-                        <Button size="lg" icon="plus" onClick={create}>
+                        <Button icon="plus" onClick={create}>
                             Crear proyecto
                         </Button>
                         <Button
-                            size="lg"
                             variant="secondary"
                             className={styles.onForest}
                             onClick={() => onNavigate("projects")}
@@ -342,7 +341,7 @@ export function HomePage({
                                     Materiales
                                 </Button>
                                 <Button
-                                    variant="tertiary"
+                                    variant="ghost"
                                     iconEnd="arrowRight"
                                     onClick={() => onOpenProject(latest.id)}
                                 >
@@ -385,7 +384,7 @@ export function HomePage({
                                     </div>
                                 ))}
                             </dl>
-                            <Button variant="tertiary" onClick={() => onNavigate("projects")}>
+                            <Button variant="ghost" onClick={() => onNavigate("projects")}>
                                 Ver todos los proyectos
                             </Button>
                         </section>

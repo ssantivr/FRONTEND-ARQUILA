@@ -5,6 +5,7 @@ import {
     type InteriorViewer as Viewer,
     type ViewpointId,
 } from "../three/interior/interiorViewer";
+import { ErrorState } from "./ui/ErrorState";
 
 const VIEWPOINTS: { id: ViewpointId; label: string; room: string; level: string }[] = [
     { id: "living", label: "Sala", room: "Sala de Estar", level: "Nivel 2" },
@@ -59,9 +60,11 @@ export function InteriorViewer() {
 
     if (unsupported) {
         return (
-            <p className="message message-error" role="alert">
-                Este navegador no puede mostrar gráficos 3D (WebGL no está disponible).
-            </p>
+            <ErrorState
+                message={
+                    <>Este navegador no puede mostrar gráficos 3D (WebGL no está disponible).</>
+                }
+            />
         );
     }
 

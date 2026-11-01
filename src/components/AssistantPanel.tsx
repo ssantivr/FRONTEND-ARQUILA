@@ -8,6 +8,9 @@ import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { Panel } from "./ui/Panel";
 import { LiveForm } from "./ui/LiveForm";
+import { Button } from "./ui/Button";
+import { SelectControl } from "./ui/Input";
+import { ErrorState } from "./ui/ErrorState";
 
 const MAX_MESSAGE_LENGTH = 4000;
 
@@ -167,7 +170,7 @@ export function AssistantPanel({
             actions={
                 <div className="filters">
                     {items.length > 0 && (
-                        <select
+                        <SelectControl
                             aria-label="Conversación"
                             value={conversationId ?? ""}
                             disabled={sending}
@@ -183,12 +186,12 @@ export function AssistantPanel({
                                     {conversation.title ?? `Conversación ${conversation.id}`}
                                 </option>
                             ))}
-                        </select>
+                        </SelectControl>
                     )}
                     {onClose && (
-                        <button type="button" className="button-tertiary" onClick={onClose}>
+                        <Button variant="ghost" onClick={onClose}>
                             Cerrar
-                        </button>
+                        </Button>
                     )}
                 </div>
             }
@@ -234,22 +237,19 @@ export function AssistantPanel({
                     </li>
                 )}
             </ol>
-            {error && (
-                <p className="message message-error" role="alert">
-                    {error}
-                </p>
-            )}
+            {error && <ErrorState message={error} />}
             <div className="suggestions" role="group" aria-label="Preguntas sugeridas">
                 {questions.map((question) => (
-                    <button
+                    <Button
+                        variant="secondary"
+                        className="suggestion"
                         key={question}
-                        type="button"
-                        className="button-secondary suggestion"
+
                         disabled={sending}
                         onClick={() => ask(question)}
                     >
                         {question}
-                    </button>
+                    </Button>
                 ))}
             </div>
             <LiveForm className="form-row" onSubmit={handleSend}>
@@ -265,9 +265,9 @@ export function AssistantPanel({
                         required
                     />
                 </label>
-                <button type="submit" disabled={sending || draft.trim() === ""}>
+                <Button type="submit" disabled={sending || draft.trim() === ""}>
                     Enviar
-                </button>
+                </Button>
             </LiveForm>
         </Panel>
     );

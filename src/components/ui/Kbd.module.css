@@ -8,11 +8,11 @@
 .key {
     display: inline-grid;
     place-items: center;
-    min-width: 20px;
-    height: 20px;
+    min-width: var(--kbd-size);
+    height: var(--kbd-size);
     padding: 0 var(--space-1);
     border: var(--border-width) solid var(--color-border-strong);
-    border-bottom-width: 2px;
+    border-bottom-width: var(--space-0);
     border-radius: var(--radius-sm);
     background: var(--color-surface-raised);
     color: var(--color-text-muted);

@@ -24,7 +24,7 @@
 }
 
 .button:active:not(:disabled, [aria-disabled="true"]) {
-    transform: translateY(1px);
+    transform: translateY(var(--nudge-press));
 }
 
 .button:focus-visible {
@@ -59,7 +59,7 @@
 }
 
 .button:is(:hover, :focus-visible):not(:disabled, [aria-disabled="true"]) .end {
-    transform: translateX(3px);
+    transform: translateX(var(--nudge-arrow));
 }
 
 .kbd {
@@ -85,12 +85,6 @@
     font-size: var(--text-md);
 }
 
-.lg {
-    min-height: var(--control-lg);
-    padding: 0 var(--space-5);
-    font-size: var(--text-lg);
-}
-
 .block {
     display: flex;
     width: 100%;
@@ -98,7 +92,7 @@
 
 /* ---- Variants ---- */
 
-/* Lime is a fill here: its text is the forest green in both themes. */
+/* Terracotta is a fill here: its text is graphite in both themes. */
 .primary {
     background: var(--color-accent);
     border-color: var(--color-accent-edge);
@@ -125,21 +119,22 @@
     border-color: var(--color-action);
 }
 
-.tertiary {
+.ghost {
     background: transparent;
     color: var(--color-action);
     padding-inline: var(--space-2);
 }
 
-.tertiary:hover:not(:disabled, [aria-disabled="true"]) {
+.ghost:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--color-action-soft);
 }
 
 .danger {
-    background: var(--color-danger);
-    color: var(--color-on-danger);
+    background: transparent;
+    border-color: var(--color-danger);
+    color: var(--color-danger);
 }
 
 .danger:hover:not(:disabled, [aria-disabled="true"]) {
-    background: color-mix(in srgb, var(--color-danger) 88%, var(--color-text));
+    background: var(--color-danger-soft);
 }

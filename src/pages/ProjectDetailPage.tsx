@@ -34,6 +34,10 @@ import { filesApi, projectsApi, undoApi } from "../services/api";
 import { undoLastDeletion } from "../services/terrainUndo";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
 import { formatDate, localDay } from "../utils/format";
+import { Button } from "../components/ui/Button";
+import { SelectControl } from "../components/ui/Input";
+import { ErrorState } from "../components/ui/ErrorState";
+import { Skeleton } from "../components/ui/Skeleton";
 
 const StructurePanel = lazy(() =>
     import("../components/StructurePanel").then((module) => ({ default: module.StructurePanel })),
@@ -187,8 +191,13 @@ export function ProjectDetailPage({
                         <p className="project-head-text">{current.description}</p>
                     )}
                 </div>
-                <div className="project-summary" role="group" aria-label="Acciones del proyecto">
-                    <select
+                <div
+                    className="project-summary"
+                    data-theme="dark"
+                    role="group"
+                    aria-label="Acciones del proyecto"
+                >
+                    <SelectControl
                         aria-label="Cambiar estado"
                         value={current.status}
                         onChange={(event) =>
@@ -204,19 +213,19 @@ export function ProjectDetailPage({
                         <option value="draft">Borrador</option>
                         <option value="active">Activo</option>
                         <option value="archived">Archivado</option>
-                    </select>
-                    <button
-                        type="button"
-                        className="button-secondary"
+                    </SelectControl>
+                    <Button
+                        variant="secondary"
+
                         aria-expanded={editingProject}
                         onClick={() => setEditingProject((editing) => !editing)}
                     >
                         Editar
-                    </button>
+                    </Button>
                     {lastDeleted !== undefined && (
-                        <button
-                            type="button"
-                            className="button-secondary"
+                        <Button
+                            variant="secondary"
+
                             onClick={() =>
                                 run(
                                     () => undoLastDeletion(projectId),
@@ -225,11 +234,11 @@ export function ProjectDetailPage({
                             }
                         >
                             {`Deshacer: ${KIND_LABELS[lastDeleted.kind]} «${lastDeleted.label}»`}
-                        </button>
+                        </Button>
                     )}
-                    <button
-                        type="button"
-                        className="button-danger"
+                    <Button
+                        variant="danger"
+
                         onClick={() => {
                             if (window.confirm(`¿Eliminar el proyecto "${current.name}"?`)) {
                                 run(() => projectsApi.remove(projectId), onBack);
@@ -237,7 +246,7 @@ export function ProjectDetailPage({
                         }}
                     >
                         Eliminar
-                    </button>
+                    </Button>
                 </div>
             </section>
 
@@ -270,11 +279,7 @@ export function ProjectDetailPage({
                     Guardando…
                 </p>
             )}
-            {actionError && (
-                <p className="message message-error" role="alert">
-                    {actionError}
-                </p>
-            )}
+            {actionError && <ErrorState message={actionError} />}
             <Fragment key={panelsVersion}>
                 {section === "summary" && (
                     <ProjectSummaryPanel
@@ -300,7 +305,7 @@ export function ProjectDetailPage({
                     </>
                 )}
                 {section === "model" && (
-                    <Suspense fallback={<p className="message">Cargando…</p>}>
+                    <Suspense fallback={<Skeleton />}>
                         <StructurePanel projectId={projectId} run={run} />
                     </Suspense>
                 )}
@@ -406,8 +411,8 @@ const KIND_LABELS: Record<DeletedItemKind, string> = {
 
 function BackButton({ onBack }: { onBack: () => void }) {
     return (
-        <button type="button" className="button-tertiary back-link" onClick={onBack}>
+        <Button variant="ghost" className="back-link" onClick={onBack}>
             ← Proyectos
-        </button>
+        </Button>
     );
 }

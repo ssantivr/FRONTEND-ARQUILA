@@ -12,6 +12,7 @@ import { loadAcrossProjects, materialsApi } from "../services/api";
 import { formatMoney, formatNumber } from "../utils/format";
 import { NO_CATEGORY, costByCategory, materialCost as cost } from "../utils/materials";
 import { SURFACE_MATERIAL_IDS } from "../utils/surfaceMaterials";
+import { SelectControl } from "../components/ui/Input";
 
 interface MaterialsPageProps {
     onOpenProject: (projectId: number) => void;
@@ -113,7 +114,7 @@ export function MaterialsPage({ onOpenProject, onOpenViewer }: MaterialsPageProp
                                         setCategory("");
                                     }}
                                 >
-                                    <select
+                                    <SelectControl
                                         aria-label="Filtrar por categoría"
                                         value={category}
                                         onChange={(event) => setCategory(event.target.value)}
@@ -124,8 +125,8 @@ export function MaterialsPage({ onOpenProject, onOpenViewer }: MaterialsPageProp
                                                 {item.category}
                                             </option>
                                         ))}
-                                    </select>
-                                    <select
+                                    </SelectControl>
+                                    <SelectControl
                                         aria-label="Ordenar materiales"
                                         value={order}
                                         onChange={(event) => setOrder(event.target.value as Order)}
@@ -133,7 +134,7 @@ export function MaterialsPage({ onOpenProject, onOpenViewer }: MaterialsPageProp
                                         <option value="cost">Más costosos primero</option>
                                         <option value="name">Por nombre</option>
                                         <option value="project">Por proyecto</option>
-                                    </select>
+                                    </SelectControl>
                                 </FilterBar>
                                 <DataTable
                                     caption="Materiales de obra de todos tus proyectos"

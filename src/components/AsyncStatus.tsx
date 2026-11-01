@@ -1,11 +1,8 @@
 import type { ReactNode } from "react";
 
-import { Icon } from "./Icon";
-import { Button } from "./ui/Button";
 import { EmptyState } from "./ui/EmptyState";
+import { ErrorState } from "./ui/ErrorState";
 import { Skeleton, type SkeletonShape } from "./ui/Skeleton";
-
-import styles from "./AsyncStatus.module.css";
 
 interface AsyncStatusProps {
     loading: boolean;
@@ -30,23 +27,7 @@ export function AsyncStatus({
     onRetry,
 }: AsyncStatusProps) {
     if (error) {
-        return (
-            <div className={styles.error} role="alert">
-                <Icon name="error" />
-                <span className={styles.text}>{error}</span>
-                {onRetry && (
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        icon="rotate"
-                        disabled={loading}
-                        onClick={onRetry}
-                    >
-                        {loading ? "Reintentando…" : "Reintentar"}
-                    </Button>
-                )}
-            </div>
-        );
+        return <ErrorState message={error} onRetry={onRetry} retrying={loading} />;
     }
 
     if (loading && isEmpty) {

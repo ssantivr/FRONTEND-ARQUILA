@@ -6,6 +6,8 @@ import { Panel } from "../components/ui/Panel";
 import { ProjectPicker } from "../components/ProjectPicker";
 import { useAsync } from "../hooks/useAsync";
 import { projectsApi } from "../services/api";
+import { Button } from "../components/ui/Button";
+import { Skeleton } from "../components/ui/Skeleton";
 
 const ProjectModel = lazy(() =>
     import("../components/ProjectModel").then((module) => ({ default: module.ProjectModel })),
@@ -58,18 +60,18 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
                         <ProjectPicker projects={items} value={projectId} onChange={setChosen} />
                     )}
                     {projectId !== null && (
-                        <button
-                            type="button"
-                            className="button-secondary"
+                        <Button
+                            variant="secondary"
+
                             title="Los cuartos y componentes también se editan en tablas, en la pestaña Modelo 3D del proyecto"
                             onClick={() => onOpenProject(projectId)}
                         >
                             {text.open}
-                        </button>
+                        </Button>
                     )}
                 </div>
                 {projectId !== null && (
-                    <Suspense fallback={<p className="message">Cargando…</p>}>
+                    <Suspense fallback={<Skeleton />}>
                         <ProjectModel
                             key={projectId}
                             projectId={projectId}
@@ -87,13 +89,13 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
                 title={text.title}
                 actions={
                     projectId !== null && (
-                        <button
-                            type="button"
-                            className="button-secondary"
+                        <Button
+                            variant="secondary"
+
                             onClick={() => onOpenProject(projectId)}
                         >
                             {text.open}
-                        </button>
+                        </Button>
                     )
                 }
             >
@@ -109,7 +111,7 @@ export function ProjectToolPage({ tool, onOpenProject }: ProjectToolPageProps) {
                     <ProjectPicker projects={items} value={projectId} onChange={setChosen} />
                 )}
                 {tool !== "assistant" && projectId !== null && (
-                    <Suspense fallback={<p className="message">Cargando…</p>}>
+                    <Suspense fallback={<Skeleton />}>
                         <ProjectModel
                             key={projectId}
                             projectId={projectId}

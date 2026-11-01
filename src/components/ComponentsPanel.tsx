@@ -10,6 +10,7 @@ import { Panel } from "./ui/Panel";
 import { FormActions, RowActions } from "./RowActions";
 import { LiveForm } from "./ui/LiveForm";
 import { scrollBehavior } from "../state/motion";
+import { Select } from "./ui/Input";
 
 interface ComponentsPanelProps extends SectionProps {
     onChanged: () => void;
@@ -194,32 +195,28 @@ export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelPr
             )}
             {planItems.length > 0 && (
                 <LiveForm className="form-row" ref={form} onSubmit={handleSubmit}>
-                    <label>
-                        Plano
-                        <select
-                            value={chosenPlan}
-                            onChange={(event) => setPlanId(event.target.value)}
-                        >
-                            {planItems.map((plan) => (
-                                <option key={plan.id} value={plan.id}>
-                                    {plan.title}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label>
-                        Tipo
-                        <select
-                            value={kind}
-                            onChange={(event) => changeKind(event.target.value as ComponentKind)}
-                        >
-                            {KINDS.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                    {item.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                    <Select
+                        label="Plano"
+                        value={chosenPlan}
+                        onChange={(event) => setPlanId(event.target.value)}
+                    >
+                        {planItems.map((plan) => (
+                            <option key={plan.id} value={plan.id}>
+                                {plan.title}
+                            </option>
+                        ))}
+                    </Select>
+                    <Select
+                        label="Tipo"
+                        value={kind}
+                        onChange={(event) => changeKind(event.target.value as ComponentKind)}
+                    >
+                        {KINDS.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </Select>
                     <label>
                         Nombre
                         <input

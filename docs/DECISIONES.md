@@ -193,3 +193,15 @@ La paleta verde y lima pasa a grafito `#171918`, piedra `#e8e4da`, terracota `#d
 ### Visor 3D en tema claro (31 de octubre)
 
 **El marco del visor (paneles y barras) sigue oscuro en los dos temas; la escena respeta el tema.** Sus superposiciones usan `--scene-*` sobre un fondo que no depende del tema, y un marco oscuro evita que el color de la interfaz compita con el del modelo. El motor de `src/three/` queda sin cambios en esta fase, así que sus acentos propios (lima, cian y magenta escritos en el código) no siguen la nueva paleta.
+
+### Fallo de `npm test` no reproducible (31 de octubre)
+
+El 31 de octubre `npm test` falló una vez en `feat/fase1`, con varias pruebas de componentes a la vez (`AssistantPanel`, `AsyncStatus`, `AuthScreen`, `ErrorBoundary`), y no se guardó el detalle del error. No se reprodujo: 5 corridas en esas ramas y 5 corridas limpias más, sin procesos `vite` y con el puerto 5173 libre, pasaron todas (591 de 591, unos 18 s cada una). Se registra como no reproducible; si vuelve, hay que conservar la salida completa.
+
+### Componentes base (31 de octubre)
+
+- `Select` y `SelectControl` ya existían en `ui/Input.tsx`: se conservan y sustituyen los `<select>` sueltos, en vez de crear otro componente.
+- `Button` queda con `primary`, `secondary`, `ghost` y `danger`, y tamaños `sm` y `md`. `tertiary` pasó a `ghost` y `lg` a `md`. `danger` ahora es solo borde, para no competir con el acento.
+- `Button` cierra `type="button"` por defecto; los `<button>` sin `type` migrados declaran `type="submit"` para conservar su comportamiento.
+- Los botones que no son acciones siguen como `<button>`: elementos del visor (`hud-*`), navegación, tarjetas y filas enteras, enlaces en línea, pestañas y opciones. `Button` les quitaría su forma; los del visor se revisan en la Fase 5.
+- La banda oscura del proyecto lleva `data-theme="dark"`: sus controles toman los tokens oscuros también en tema claro.

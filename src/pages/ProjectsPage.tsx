@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
-import { Icon } from "../components/Icon";
 import { ProjectEditForm } from "../components/ProjectEditForm";
 import { ProjectTile } from "../components/ProjectTile";
 import { ProjectTimeline } from "../components/ProjectTimeline";
@@ -29,6 +28,7 @@ import {
 import { showToast } from "../state/toasts";
 import type { Project, ProjectQuery, Summary } from "../types/api";
 import { formatDate, formatNumber, optionalText } from "../utils/format";
+import { ErrorState } from "../components/ui/ErrorState";
 
 import styles from "./ProjectsPage.module.css";
 
@@ -288,9 +288,9 @@ export function ProjectsPage({
                 </div>
                 <div className="page-head-actions">
                     {examples.length > 0 && (
-                        <button
-                            type="button"
-                            className="button-secondary"
+                        <Button
+                            variant="secondary"
+
                             aria-expanded={creating === "examples"}
                             aria-controls="project-create"
                             onClick={() =>
@@ -298,18 +298,17 @@ export function ProjectsPage({
                             }
                         >
                             Ejemplos
-                        </button>
+                        </Button>
                     )}
-                    <button
-                        type="button"
-                        className="button-lime icon-button"
+                    <Button
+                        icon="plus"
+
                         aria-expanded={creating === "form"}
                         aria-controls="project-create"
                         onClick={() => setCreating(creating === "form" ? "closed" : "form")}
                     >
-                        <Icon name="plus" />
                         Crear proyecto
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -317,13 +316,13 @@ export function ProjectsPage({
                 <section id="project-create" className="panel create-panel">
                     <header className="panel-header">
                         <h2>{creating === "form" ? "Nuevo proyecto" : "Empezar con un ejemplo"}</h2>
-                        <button
-                            type="button"
-                            className="button-tertiary"
+                        <Button
+                            variant="ghost"
+
                             onClick={() => setCreating("closed")}
                         >
                             Cancelar
-                        </button>
+                        </Button>
                     </header>
                     {creating === "form" ? (
                         <>
@@ -353,15 +352,11 @@ export function ProjectsPage({
                                         onChange={(event) => setDescription(event.target.value)}
                                     />
                                 </label>
-                                <button type="submit" disabled={saving || name.trim() === ""}>
+                                <Button type="submit" disabled={saving || name.trim() === ""}>
                                     Crear
-                                </button>
+                                </Button>
                             </LiveForm>
-                            {formError && (
-                                <p className="message message-error" role="alert">
-                                    {formError}
-                                </p>
-                            )}
+                            {formError && <ErrorState message={formError} />}
                         </>
                     ) : (
                         <>
@@ -397,11 +392,7 @@ export function ProjectsPage({
                                     </li>
                                 ))}
                             </ul>
-                            {templateError && (
-                                <p className="message message-error" role="alert">
-                                    {templateError}
-                                </p>
-                            )}
+                            {templateError && <ErrorState message={templateError} />}
                         </>
                     )}
                 </section>
@@ -483,11 +474,7 @@ export function ProjectsPage({
                         )
                     }
                 />
-                {actionError && (
-                    <p className="message message-error" role="alert">
-                        {actionError}
-                    </p>
-                )}
+                {actionError && <ErrorState message={actionError} />}
 
                 {layout === "grid" && items.length > 0 && (
                     <ul className={styles.grid}>
@@ -610,11 +597,7 @@ export function ProjectsPage({
                             })
                         }
                     />
-                    {actionError && (
-                        <p className="message message-error" role="alert">
-                            {actionError}
-                        </p>
-                    )}
+                    {actionError && <ErrorState message={actionError} />}
                 </Dialog>
             )}
 

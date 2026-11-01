@@ -7,6 +7,7 @@ import type { Side } from "../utils/openings";
 import { AsyncStatus } from "./AsyncStatus";
 import { ElevationDrawing } from "./ElevationDrawing";
 import { Panel } from "./ui/Panel";
+import { Button } from "./ui/Button";
 
 interface GeneratedElevationsPanelProps {
     projectId: number;
@@ -43,15 +44,15 @@ export function GeneratedElevationsPanel({
             actions={
                 <div className="segmented" role="group" aria-label="Vista">
                     {VIEWS.map((item) => (
-                        <button
+                        <Button
+                            variant="secondary"
                             key={item.id}
-                            type="button"
-                            className="button-secondary"
+
                             aria-pressed={item.id === viewId}
                             onClick={() => setViewId(item.id)}
                         >
                             {item.label}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             }

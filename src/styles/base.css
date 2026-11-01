@@ -311,7 +311,8 @@ main:focus {
     margin-top: var(--space-3);
 }
 
-.form-row label {
+.form-row label,
+.form-row .form-field {
     flex: 1 1 140px;
 }
 

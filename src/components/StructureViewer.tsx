@@ -77,6 +77,8 @@ import { ViewBar } from "./viewer/ViewBar";
 import { ViewerBoundary, ViewerProblem } from "./viewer/ViewerBoundary";
 import { ViewGizmo, type OrbitListener } from "./viewer/ViewGizmo";
 import { KIND_LABELS, VIEWS, itemLabel } from "./viewer/labels";
+import { SelectControl } from "./ui/Input";
+import { ErrorState } from "./ui/ErrorState";
 
 const TABLET_QUERY = "(min-width: 721px) and (max-width: 1024px)";
 
@@ -1037,9 +1039,11 @@ function ViewerScene({
         }
 
         return (
-            <p className="message message-error" role="alert">
-                Este navegador no puede mostrar gráficos 3D (WebGL no está disponible).
-            </p>
+            <ErrorState
+                message={
+                    <>Este navegador no puede mostrar gráficos 3D (WebGL no está disponible).</>
+                }
+            />
         );
     }
 
@@ -1168,7 +1172,7 @@ function ViewerScene({
                                             <label htmlFor="inspector-surface">Material</label>
                                         </dt>
                                         <dd className="hud-wide">
-                                            <select
+                                            <SelectControl
                                                 id="inspector-surface"
                                                 value={surfaceOf(
                                                     surfaces,
@@ -1187,7 +1191,7 @@ function ViewerScene({
                                                         {SURFACE_MATERIALS[id].label}
                                                     </option>
                                                 ))}
-                                            </select>
+                                            </SelectControl>
                                         </dd>
                                         <dt>Plano</dt>
                                         <dd>{selected.plan_title}</dd>
@@ -1253,9 +1257,7 @@ function ViewerScene({
                                     </p>
                                 )}
                                 {save.state === "error" && save.message !== null && (
-                                    <p className="message message-error" role="alert">
-                                        {save.message}
-                                    </p>
+                                    <ErrorState message={save.message} />
                                 )}
                                 {selectedAlerts.length > 0 && (
                                     <ul className="hud-alerts">

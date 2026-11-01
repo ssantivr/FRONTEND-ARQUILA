@@ -21,6 +21,8 @@ import {
     type SkyChoice,
     type SolarSite,
 } from "../utils/lighting";
+import { Button } from "../components/ui/Button";
+import { Skeleton } from "../components/ui/Skeleton";
 
 const LitModel = lazy(() =>
     import("../components/LitModel").then((module) => ({ default: module.LitModel })),
@@ -120,16 +122,14 @@ export function LightingPage({ onRender }: LightingPageProps) {
                             value={choice.project.id}
                             onChange={choice.choose}
                         />
-                        <button
-                            type="button"
-                            className="button-secondary"
+                        <Button
+                            variant="secondary"
+
                             onClick={() => setLighting(PRESENTATION_LIGHTING)}
                         >
                             Restablecer
-                        </button>
-                        <button type="button" className="button-lime" onClick={onRender}>
-                            Renderizar con esta luz
-                        </button>
+                        </Button>
+                        <Button onClick={onRender}>Renderizar con esta luz</Button>
                     </>
                 )}
             </div>
@@ -137,7 +137,7 @@ export function LightingPage({ onRender }: LightingPageProps) {
             {projectId !== null && (
                 <div className="studio studio-workspace">
                     <section className="studio-stage" aria-label="Previsualización de la luz">
-                        <Suspense fallback={<p className="message">Cargando el visor…</p>}>
+                        <Suspense fallback={<Skeleton label="Cargando el visor…" />}>
                             <LitModel
                                 key={projectId}
                                 projectId={projectId}
@@ -272,15 +272,15 @@ export function LightingPage({ onRender }: LightingPageProps) {
                             <h3>Cielo y clima</h3>
                             <div className="segmented" role="group" aria-label="Cielo">
                                 {SKIES.map((item) => (
-                                    <button
+                                    <Button
+                                        variant="secondary"
                                         key={item.id}
-                                        type="button"
-                                        className="button-secondary"
+
                                         aria-pressed={lighting.sky === item.id}
                                         onClick={() => set("sky", item.id)}
                                     >
                                         {item.label}
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                             <Range
@@ -315,10 +315,10 @@ export function LightingPage({ onRender }: LightingPageProps) {
                             <h3>Ajustes rápidos</h3>
                             <div className="studio-presets">
                                 {PRESETS.map((preset) => (
-                                    <button
+                                    <Button
+                                        variant="secondary"
                                         key={preset.label}
-                                        type="button"
-                                        className="button-secondary"
+
                                         aria-pressed={sameLighting(lighting, preset.settings)}
                                         title={preset.note}
                                         onClick={() =>
@@ -326,7 +326,7 @@ export function LightingPage({ onRender }: LightingPageProps) {
                                         }
                                     >
                                         {preset.label}
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                             <p className="studio-note">

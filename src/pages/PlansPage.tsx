@@ -3,7 +3,6 @@ import { useRef, useState } from "react";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { ElevationDrawing } from "../components/ElevationDrawing";
 import { FloorPlan } from "../components/FloorPlan";
-import { Icon } from "../components/Icon";
 import { ProjectPicker } from "../components/ProjectPicker";
 import { SitePlan } from "../components/SitePlan";
 import { useAsync } from "../hooks/useAsync";
@@ -16,6 +15,7 @@ import { facade, section, type Drawing } from "../utils/elevations";
 import { formatNumber } from "../utils/format";
 import { placeOpenings, type Side } from "../utils/openings";
 import { printSvg } from "../utils/svg";
+import { Button } from "../components/ui/Button";
 
 type Sheet =
     | { id: string; group: "Plantas"; label: string; kind: "floor"; level: PlanLevel }
@@ -134,13 +134,13 @@ export function PlansPage({ onOpenProject, onOpenViewer }: PlansPageProps) {
                             value={project.id}
                             onChange={choice.choose}
                         />
-                        <button
-                            type="button"
-                            className="button-secondary"
+                        <Button
+                            variant="secondary"
+
                             onClick={() => onOpenProject(project.id)}
                         >
                             Editar planos en el proyecto
-                        </button>
+                        </Button>
                     </>
                 )}
             </div>
@@ -293,10 +293,9 @@ function Board({
                         SVG con sus colores dentro, desde el botón bajo el plano. PDF con la
                         impresión del navegador: elige «Guardar como PDF».
                     </p>
-                    <button type="button" className="button-secondary icon-button" onClick={print}>
-                        <Icon name="download" />
+                    <Button variant="secondary" icon="download" onClick={print}>
                         Imprimir o guardar como PDF
-                    </button>
+                    </Button>
                 </section>
 
                 {sheet?.kind === "floor" && indicators !== null && (
@@ -344,14 +343,14 @@ function Board({
                         ))}
                     </div>
                     {onOpenViewer !== undefined && (
-                        <button
-                            type="button"
-                            className="button-secondary icon-button"
+                        <Button
+                            variant="secondary"
+                            icon="viewer"
+
                             onClick={onOpenViewer}
                         >
-                            <Icon name="viewer" />
                             Abrir el editor 3D
-                        </button>
+                        </Button>
                     )}
                 </section>
             </aside>

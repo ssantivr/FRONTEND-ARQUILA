@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Button } from "../ui/Button";
 
 import { Icon } from "../Icon";
 import styles from "./ViewerBoundary.module.css";
@@ -16,9 +17,7 @@ export function ViewerProblem({ title, text, onRetry }: ViewerProblemProps) {
             <Icon name="alert" />
             <p className={styles.title}>{title}</p>
             <p className={styles.text}>{text}</p>
-            <button type="button" onClick={onRetry}>
-                Volver a cargar el modelo
-            </button>
+            <Button onClick={onRetry}>Volver a cargar el modelo</Button>
         </div>
     );
 }

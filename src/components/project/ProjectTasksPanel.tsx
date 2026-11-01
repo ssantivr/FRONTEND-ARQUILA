@@ -349,7 +349,7 @@ export function ProjectTasksPanel({ projectId, run, ownerId, today }: ProjectTas
                                         Editar
                                     </Button>
                                     <Button
-                                        variant="tertiary"
+                                        variant="ghost"
                                         size="sm"
                                         icon="trash"
                                         aria-label={`Eliminar «${task.title}»`}

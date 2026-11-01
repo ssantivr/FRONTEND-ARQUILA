@@ -152,7 +152,7 @@ export function Notifications() {
                     <header className={styles.head}>
                         <h2 className={styles.title}>Notificaciones</h2>
                         {unread > 0 && (
-                            <Button variant="tertiary" size="sm" onClick={() => void markAllRead()}>
+                            <Button variant="ghost" size="sm" onClick={() => void markAllRead()}>
                                 Marcar todas como leídas
                             </Button>
                         )}

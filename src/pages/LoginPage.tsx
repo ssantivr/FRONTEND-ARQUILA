@@ -195,7 +195,7 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                         <span>{error}</span>
                     </p>
                 )}
-                <Button type="submit" size="lg" block loading={submitting}>
+                <Button type="submit" block loading={submitting}>
                     {SUBMIT[mode]}
                 </Button>
             </form>

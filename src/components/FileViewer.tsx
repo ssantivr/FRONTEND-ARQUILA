@@ -3,6 +3,7 @@ import { useState } from "react";
 import { filesApi } from "../services/api";
 import type { ProjectFile } from "../types/api";
 import { Dialog } from "./ui/Dialog";
+import { Button } from "./ui/Button";
 
 export function isImage(file: ProjectFile): boolean {
     return file.mime_type.startsWith("image/");
@@ -14,14 +15,14 @@ export function FileViewer({ file }: { file: ProjectFile }) {
 
     return (
         <>
-            <button
-                type="button"
-                className="button-secondary"
+            <Button
+                variant="secondary"
+
                 aria-label={`Ver ${file.filename}`}
                 onClick={() => setOpen(true)}
             >
                 Ver
-            </button>
+            </Button>
             {open && (
                 <Dialog
                     title={file.filename}

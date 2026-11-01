@@ -7,13 +7,14 @@ import {
     SURFACE_MATERIALS,
     type SurfaceMaterialId,
 } from "../utils/surfaceMaterials";
-import { Icon } from "./Icon";
 import { SurfaceApply } from "./SurfaceApply";
 import { SurfaceSwatch, cssColor } from "./SurfaceSwatch";
 import { Drawer } from "./ui/Drawer";
 import { FilterBar } from "./ui/FilterBar";
 import { ProgressBar } from "./ui/ProgressBar";
 import { Range } from "./ui/Range";
+import { Button } from "./ui/Button";
+import { SelectControl } from "./ui/Input";
 
 import styles from "./SurfaceLibrary.module.css";
 
@@ -129,7 +130,7 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
                     setOnlyFavorites(false);
                 }}
             >
-                <select
+                <SelectControl
                     aria-label="Filtrar por categoría"
                     value={category}
                     onChange={(event) => setCategory(event.target.value)}
@@ -140,8 +141,8 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
                             {item}
                         </option>
                     ))}
-                </select>
-                <select
+                </SelectControl>
+                <SelectControl
                     aria-label="Ordenar superficies"
                     value={order}
                     onChange={(event) => setOrder(event.target.value as Order)}
@@ -149,7 +150,7 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
                     <option value="name">Por nombre</option>
                     <option value="roughness">Más rugosas primero</option>
                     <option value="metalness">Más metálicas primero</option>
-                </select>
+                </SelectControl>
                 <label className="checkbox">
                     <input
                         type="checkbox"
@@ -297,14 +298,14 @@ export function SurfaceLibrary({ onOpenViewer }: SurfaceLibraryProps) {
                         </p>
                         <SurfaceApply surfaceId={openId} />
                         {onOpenViewer !== undefined && (
-                            <button
-                                type="button"
-                                className="button-secondary icon-button"
+                            <Button
+                                variant="secondary"
+                                icon="viewer"
+
                                 onClick={onOpenViewer}
                             >
-                                <Icon name="viewer" />
                                 Abrir el editor 3D
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </Drawer>

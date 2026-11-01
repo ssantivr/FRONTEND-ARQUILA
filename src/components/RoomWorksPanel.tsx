@@ -11,6 +11,8 @@ import type {
 } from "../types/api";
 import { formatMoney } from "../utils/format";
 import { LiveForm } from "./ui/LiveForm";
+import { SelectControl } from "./ui/Input";
+import { ErrorState } from "./ui/ErrorState";
 
 export const WORK_LAYERS: { id: SpatialLayer; label: string; swatch: string }[] = [
     { id: "structure", label: "Estructura", swatch: "var(--neon-cyan)" },
@@ -131,9 +133,7 @@ export function RoomWorksPanel({
             </p>
             {description !== null && <p>{description}</p>}
             {unavailable !== null && (
-                <p className="message message-error" role="alert">
-                    No se pudieron cargar las obras: {unavailable}
-                </p>
+                <ErrorState message={<>No se pudieron cargar las obras: {unavailable}</>} />
             )}
             {assetNote !== null && <p>{assetNote}</p>}
             <h4>Elementos del cuarto</h4>
@@ -179,7 +179,7 @@ export function RoomWorksPanel({
                                     ` · ${formatMoney(log.estimated_cost)}`}
                             </small>
                             {log.description !== null && <span>{log.description}</span>}
-                            <select
+                            <SelectControl
                                 aria-label={`Estado de «${log.title}»`}
                                 value={log.status}
                                 disabled={saving}
@@ -197,7 +197,7 @@ export function RoomWorksPanel({
                                         {status.label}
                                     </option>
                                 ))}
-                            </select>
+                            </SelectControl>
                         </li>
                     );
                 })}
@@ -210,7 +210,7 @@ export function RoomWorksPanel({
                     value={newTitle}
                     onChange={(event) => setNewTitle(event.target.value)}
                 />
-                <select
+                <SelectControl
                     aria-label="Capa de la nueva obra"
                     value={newLayer}
                     onChange={(event) => setNewLayer(event.target.value as SpatialLayer)}
@@ -220,7 +220,7 @@ export function RoomWorksPanel({
                             {layer.label}
                         </option>
                     ))}
-                </select>
+                </SelectControl>
                 <button
                     type="submit"
                     className="hud-item"
@@ -229,11 +229,7 @@ export function RoomWorksPanel({
                     Agregar obra
                 </button>
             </LiveForm>
-            {error !== null && (
-                <p className="message message-error" role="alert">
-                    {error}
-                </p>
-            )}
+            {error !== null && <ErrorState message={error} />}
         </aside>
     );
 }

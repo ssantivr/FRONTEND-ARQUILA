@@ -7,13 +7,13 @@ import { Tooltip } from "./Tooltip";
 
 import styles from "./Button.module.css";
 
-export type ButtonVariant = "primary" | "secondary" | "tertiary" | "danger";
-export type ButtonSize = "sm" | "md" | "lg";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonSize = "sm" | "md";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     /**
-     * `primary`: the one main action of a view, a lime fill. `secondary`: bordered.
-     * `tertiary`: text only, for actions next to others. `danger`: destructive, red.
+     * `primary`: the one main action of a view, a terracotta fill. `secondary`: bordered.
+     * `ghost`: text only, for actions next to others. `danger`: destructive, red and bordered.
      */
     variant?: ButtonVariant;
     size?: ButtonSize;

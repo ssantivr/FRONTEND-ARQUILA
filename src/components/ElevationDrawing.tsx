@@ -5,6 +5,7 @@ import { formatNumber } from "../utils/format";
 import { downloadSvg } from "../utils/svg";
 import { SHEET_COLORS } from "../utils/drawingPalette";
 import { PlanViewport } from "./PlanViewport";
+import { Button } from "./ui/Button";
 
 const VIEW_WIDTH = 660;
 const VIEW_HEIGHT = 420;
@@ -225,9 +226,9 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
                 </svg>
             </PlanViewport>
             <div className="filters">
-                <button
-                    type="button"
-                    className="button-secondary"
+                <Button
+                    variant="secondary"
+
                     onClick={() => {
                         if (svg.current !== null) {
                             downloadSvg(svg.current, fileName);
@@ -235,7 +236,7 @@ export function ElevationDrawing({ drawing, title, fileName, sectioned }: Elevat
                     }}
                 >
                     Descargar dibujo (SVG)
-                </button>
+                </Button>
             </div>
         </figure>
     );

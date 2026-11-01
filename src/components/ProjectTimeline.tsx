@@ -4,6 +4,8 @@ import type { Project, RenovationLog } from "../types/api";
 import { formatDay } from "../utils/format";
 import { TASK_STATUSES } from "../utils/tasks";
 import { buildTimeline, dayNumber, dayText, share, type PlacedTask } from "../utils/timeline";
+import { Button } from "./ui/Button";
+import { EmptyState } from "./ui/EmptyState";
 
 import styles from "./ProjectTimeline.module.css";
 
@@ -99,9 +101,9 @@ export function ProjectTimeline({ projects, tasks, onOpenProject, today }: Proje
                                 aria-labelledby={`timeline-${project.id}`}
                             >
                                 <h3 id={`timeline-${project.id}`} className={styles.groupTitle}>
-                                    <button type="button" onClick={() => onOpenProject(project.id)}>
+                                    <Button onClick={() => onOpenProject(project.id)}>
                                         {project.name}
-                                    </button>
+                                    </Button>
                                     <span>
                                         {rows.length === 1
                                             ? "1 tarea con fechas"
@@ -186,9 +188,10 @@ export function ProjectTimeline({ projects, tasks, onOpenProject, today }: Proje
                     </p>
                 </div>
             ) : (
-                <p className="message" role="status">
-                    Ninguna tarea de estos proyectos tiene fechas todavía.
-                </p>
+                <EmptyState
+                    size="compact"
+                    text="Ninguna tarea de estos proyectos tiene fechas todavía."
+                />
             )}
 
             {timeline.undated.length > 0 && (
