@@ -10,8 +10,8 @@ import type { Face } from "../src/components/ui/logoGeometry.ts";
 import { LOGO_FACES, LOGO_HEIGHT, LOGO_WIDTH } from "../src/components/ui/logoGeometry.ts";
 
 // The colours of the faces and of the tile, from src/styles/tokens.css (--brand-*).
-const FILL: Record<Face["side"], string> = { top: "#b8f36b", left: "#8fcf4c", right: "#236b42" };
-const FOREST = "#0b211a";
+const FILL: Record<Face["side"], string> = { top: "#d66a3d", left: "#a9502c", right: "#89968c" };
+const FOREST = "#171918";
 
 const SIZE = 32;
 const PAD = 4;

@@ -87,8 +87,8 @@ import { buildPatterns, disposePatterns, type Pattern } from "./patterns";
 import { buildFlatRoof, buildRoomShell, applyMetricUVs } from "./roomGeometry";
 import { buildTrees, type TreeSpot } from "./vegetation";
 
-const HOVER_COLOR = 0x3f8f5f;
-const SELECTION_COLOR = 0xb8f36b;
+const HOVER_COLOR = 0xe07c52;
+const SELECTION_COLOR = 0xd66a3d;
 const OUTLINE_WIDTH_PX = 3;
 const TERRAIN_COLOR = 0x5d8a4e;
 const ROOF_COLOR = 0x8a4f43;
@@ -96,8 +96,8 @@ const SLAB_COLOR = 0xb9c0c8;
 const GLASS_COLOR = 0x7fb4dc;
 const FRAME_COLOR = 0x1c1f24;
 const DOOR_COLOR = 0x4a3526;
-const CYAN_ACCENT = 0x00f0ff;
-const MAGENTA_ACCENT = 0xff007f;
+const MINERAL_ACCENT = 0x89968c;
+const TERRACOTTA_ACCENT = 0xd66a3d;
 const SHADOW_RADIUS = 4;
 const PATTERN_BUMP = 1.4;
 const GRAIN_SIZE_PX = 128;
@@ -124,8 +124,8 @@ const COMPANION_REACH_M = 0.05;
 const CUT_DISABLED_M = 1e6;
 const DEMOLITION_COLOR = 0xff5c7a;
 const OVERLAY_COLORS: Record<SpatialLayer, number> = {
-    structure: CYAN_ACCENT,
-    installations: MAGENTA_ACCENT,
+    structure: MINERAL_ACCENT,
+    installations: TERRACOTTA_ACCENT,
     finishes: 0xffc857,
 };
 const OVERLAY_OPACITY: Record<WorkStatus, number> = {
@@ -209,10 +209,10 @@ export interface ScenePalette {
 export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
     light: {
         sky: 0x5f9fde,
-        fog: 0xe8ede6,
-        ground: 0xe1e6dd,
-        grid: 0xb4bbb2,
-        axis: 0x9aa39a,
+        fog: 0xe8e4da,
+        ground: 0xdfdace,
+        grid: 0xb8b3a6,
+        axis: 0x89968c,
         accent: 0,
         glow: 0,
         horizon: 0xf7eedf,
@@ -228,14 +228,14 @@ export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
     },
     // Night: moonlight, lit windows and a dusk glow on the horizon.
     dark: {
-        sky: 0x030a08,
-        fog: 0x07140f,
-        ground: 0x0a1a13,
-        grid: 0x183a2b,
-        axis: 0x2f6b4a,
+        sky: 0x0e100f,
+        fog: 0x121413,
+        ground: 0x171918,
+        grid: 0x303432,
+        axis: 0x5a625c,
         accent: 0,
         glow: 1,
-        horizon: 0x14463a,
+        horizon: 0x2b2f2d,
         sun: 0x9fb6ff,
         sunPower: 1.15,
         skyLight: 0x3a4a80,
@@ -976,8 +976,8 @@ export function createStructureViewer(
     sun.shadow.normalBias = 0.03;
     sun.shadow.radius = SHADOW_RADIUS;
 
-    const cyanAccent = new PointLight(CYAN_ACCENT, palette.accent, 0, 0);
-    const magentaAccent = new PointLight(MAGENTA_ACCENT, palette.accent, 0, 0);
+    const cyanAccent = new PointLight(MINERAL_ACCENT, palette.accent, 0, 0);
+    const magentaAccent = new PointLight(TERRACOTTA_ACCENT, palette.accent, 0, 0);
     const ambient = new AmbientLight(0xffffff, 0.2);
     const skyLight = new HemisphereLight(palette.skyLight, 0x2a3326, palette.skyPower);
     scene.add(ambient, skyLight, sun, sun.target, cyanAccent, magentaAccent);
