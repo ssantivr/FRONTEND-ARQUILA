@@ -6,6 +6,7 @@ import { Input, PasswordInput } from "../components/ui/Input";
 import { errorMessage } from "../hooks/useAsync";
 import { useFieldErrors } from "../hooks/useFieldErrors";
 import { authApi } from "../services/api";
+import { ApiError } from "../services/http";
 import type { User } from "../types/api";
 import {
     MAX_EMAIL_LENGTH,
@@ -110,9 +111,22 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                     "Si ese correo tiene una cuenta, te enviamos un enlace para elegir una contraseña nueva. Vale 30 minutos.",
                 );
             } else if (mode === "register") {
-                onAuthenticated(
-                    await authApi.register({ name: name.trim(), email: email.trim(), password }),
-                );
+                await authApi.register({ name: name.trim(), email: email.trim(), password });
+
+                try {
+                    onAuthenticated(await authApi.login({ email: email.trim(), password }));
+                } catch (reason) {
+                    if (!(reason instanceof ApiError) || reason.status !== 401) {
+                        throw reason;
+                    }
+
+                    // The email already had an account, with another password.
+                    setMode("login");
+                    setPassword("");
+                    setMessage(
+                        "No pudimos abrir tu sesión. Si ya tenías una cuenta con ese correo, entra con su contraseña.",
+                    );
+                }
             } else {
                 onAuthenticated(await authApi.login({ email: email.trim(), password }));
             }

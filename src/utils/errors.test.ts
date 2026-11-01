@@ -30,7 +30,6 @@ const BACKEND_MESSAGES: [string, string][] = [
         "El cambio entra en conflicto con datos que ya existen.",
     ],
     ["Nothing to redo", "No hay nada que rehacer."],
-    ["Email is already registered", "Ese correo ya está registrado."],
     ["Invalid email or password", "Correo o contraseña incorrectos."],
     ["Not authenticated", "Tu sesión terminó. Vuelve a iniciar sesión."],
     [

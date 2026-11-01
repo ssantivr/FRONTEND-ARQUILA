@@ -72,8 +72,9 @@ export const preferencesApi = {
 
 export const authApi = {
     me: () => request<User>("/auth/me"),
+    /** Answers the same whether the email was free or not, and opens no session. */
     register: (data: RegisterRequest) =>
-        request<User>("/auth/register", { method: "POST", body: data }),
+        request<void>("/auth/register", { method: "POST", body: data }),
     login: (data: LoginRequest) => request<User>("/auth/login", { method: "POST", body: data }),
     logout: () => request<void>("/auth/logout", { method: "POST" }),
     requestPasswordReset: (email: string) =>

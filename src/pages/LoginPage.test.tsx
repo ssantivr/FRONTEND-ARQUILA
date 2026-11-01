@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { authApi } from "../services/api";
+import { ApiError } from "../services/http";
 import type { User } from "../types/api";
 import { LoginPage } from "./LoginPage";
 
@@ -99,9 +100,11 @@ describe("LoginPage", () => {
     });
 
     it("asks for the name and a minimum password length when registering", async () => {
-        api.register.mockResolvedValue(USER);
+        api.register.mockResolvedValue(undefined);
+        api.login.mockResolvedValue(USER);
+        const onAuthenticated = vi.fn();
 
-        render(<LoginPage onAuthenticated={() => undefined} />);
+        render(<LoginPage onAuthenticated={onAuthenticated} />);
         await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta nueva" }));
 
         expect(screen.getByRole("heading", { name: "Crear cuenta" })).toBeInTheDocument();
@@ -117,6 +120,28 @@ describe("LoginPage", () => {
             email: "ana@example.com",
             password: "correct-horse",
         });
+        expect(api.login).toHaveBeenCalledWith({
+            email: "ana@example.com",
+            password: "correct-horse",
+        });
+        expect(onAuthenticated).toHaveBeenCalledWith(USER);
+    });
+
+    it("sends a taken email to sign in without saying that it exists", async () => {
+        api.register.mockResolvedValue(undefined);
+        api.login.mockRejectedValue(new ApiError(401, "Invalid email or password"));
+        const onAuthenticated = vi.fn();
+
+        render(<LoginPage onAuthenticated={onAuthenticated} />);
+        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta nueva" }));
+        await userEvent.type(screen.getByLabelText("Nombre"), "Ana");
+        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
+        await userEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+        expect(await screen.findByText(/No pudimos abrir tu sesión/)).toBeInTheDocument();
+        expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+        expect(onAuthenticated).not.toHaveBeenCalled();
     });
 
     it("confirms the reset request without asking for a password", async () => {
