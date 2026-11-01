@@ -86,7 +86,7 @@
 }
 
 /* On a phone a hint at the side would run off the screen: it goes above, and wraps. */
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .tip {
         max-width: min(var(--tooltip-width-phone), 70vw);
         white-space: normal;

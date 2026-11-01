@@ -58,6 +58,7 @@ import type {
     User,
     Walkthrough,
 } from "../types/api";
+import { forgetProject, rememberProjects } from "../state/knownProjects";
 import { apiUrl, isUnavailable, onWrite, request, requestWithTotal, upload } from "./http";
 
 export const healthApi = {
@@ -81,12 +82,22 @@ export const authApi = {
 
 export const projectsApi = {
     list: (filters: ProjectFilters = {}) =>
-        request<Project[]>("/projects", { query: { ...filters } }),
-    get: (id: number) => request<Project>(`/projects/${id}`),
+        request<Project[]>("/projects", { query: { ...filters } }).then((projects) => {
+            rememberProjects(projects);
+
+            return projects;
+        }),
+    get: (id: number) =>
+        request<Project>(`/projects/${id}`).then((project) => {
+            rememberProjects([project]);
+
+            return project;
+        }),
     create: (data: ProjectCreate) => request<Project>("/projects", { method: "POST", body: data }),
     update: (id: number, data: ProjectUpdate) =>
         request<Project>(`/projects/${id}`, { method: "PATCH", body: data }),
-    remove: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
+    remove: (id: number) =>
+        request<void>(`/projects/${id}`, { method: "DELETE" }).then(() => forgetProject(id)),
     /** A copy with its terrains, plans, rooms and materials; the API names it «… (copia)». */
     duplicate: (id: number, name?: string) =>
         request<Project>(`/projects/${id}/duplicate`, {
@@ -105,6 +116,8 @@ export const projectsApi = {
                 archived: query.archived === undefined ? undefined : String(query.archived),
             },
         });
+
+        rememberProjects(Array.isArray(data) ? data : data.items);
 
         if (Array.isArray(data)) {
             const found = pageLocally(data, query);

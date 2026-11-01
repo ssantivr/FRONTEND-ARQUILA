@@ -12,13 +12,17 @@ export const VIEWER_SHORTCUTS: { keys: string[]; action: string }[] = [
     { keys: ["F"], action: "Enfocar lo seleccionado" },
     { keys: ["I"], action: "Aislar el cuarto seleccionado, o volver a mostrar todo" },
     { keys: ["Esc"], action: "Salir de la vista interior, del cuarto aislado o de la selección" },
-    { keys: ["?"], action: "Abrir esta ayuda" },
+    { keys: ["M"], action: "Mover el cuarto seleccionado" },
+    { keys: ["←", "↑", "↓", "→"], action: "Mientras se mueve, desplazar el cuarto" },
+    { keys: ["Ctrl", "Z"], action: "Deshacer" },
+    { keys: ["Ctrl", "Y"], action: "Rehacer" },
 ];
 
 /** The keys that work on every screen. */
 export const GLOBAL_SHORTCUTS: { keys: string[]; action: string }[] = [
     { keys: COMMANDS_KEY.split(" "), action: "Abrir la paleta de comandos" },
     { keys: ["/"], action: "Buscar proyectos" },
+    { keys: ["?"], action: "Abrir esta ayuda" },
 ];
 
 const TEXT_INPUTS = ["text", "search", "email", "password", "number", "url", "tel", "date"];
@@ -45,6 +49,21 @@ export function shortcutsBlocked(event: KeyboardEvent): boolean {
         (target instanceof HTMLInputElement && TEXT_INPUTS.includes(target.type));
 
     return writing || target.closest("[role='dialog']") !== null;
+}
+
+/**
+ * True when the «?» of the application must open its help. It is stricter than the keys of the
+ * viewer, which keep working after ticking a layer: here any field blocks it. The viewer, with the
+ * focus on it, answers on its own, to draw the help inside its full screen.
+ */
+export function globalHelpRequested(event: KeyboardEvent): boolean {
+    if (event.key !== "?" || shortcutsBlocked(event) || event.target instanceof HTMLInputElement) {
+        return false;
+    }
+
+    const viewer = document.querySelector<HTMLElement>("[data-viewer-keys]");
+
+    return viewer === null || !focusAllowsShortcuts(viewer);
 }
 
 /**

@@ -2,7 +2,7 @@ import * as RadixDialog from "@radix-ui/react-dialog";
 import { useEffect, useId, useState } from "react";
 
 import { useAnimatedClose } from "../hooks/useAnimatedClose";
-import { useProjectSearch } from "../hooks/useProjectSearch";
+import { useKnownProjects } from "../state/knownProjects";
 import { Icon, type IconName } from "./Icon";
 import styles from "./CommandPalette.module.css";
 
@@ -23,6 +23,8 @@ interface CommandPaletteProps {
     onClose: () => void;
 }
 
+const MAX_PROJECTS = 6;
+
 /** Lower case and without accents, so «analisis» finds «Análisis». */
 function plain(text: string): string {
     return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -30,27 +32,35 @@ function plain(text: string): string {
 
 /**
  * The command palette (Ctrl/Cmd+K): one field to jump to a screen, to a tab of the open project
- * or to a project by name, and to run an action, without leaving the keyboard.
+ * or to a project by name, and to run an action, without leaving the keyboard. Projects come from
+ * what the app already received, so typing here sends no request.
  */
 export function CommandPalette({ commands, onOpenProject, onClose }: CommandPaletteProps) {
     const closing = useAnimatedClose<HTMLDivElement>(onClose);
+    const projects = useKnownProjects();
     const [query, setQuery] = useState("");
     const [active, setActive] = useState(0);
     const listId = useId();
-    const search = useProjectSearch(query);
     const wanted = plain(query.trim());
     const matching = commands.filter((command) => plain(command.label).includes(wanted));
     const found: Command[] =
-        search.state === "ready"
-            ? search.projects.map((project) => ({
-                  id: `project-${project.id}`,
-                  group: "Proyectos",
-                  label: project.name,
-                  icon: "projects",
-                  hint: project.location ?? undefined,
-                  run: () => onOpenProject(project.id),
-              }))
-            : [];
+        wanted === ""
+            ? []
+            : projects
+                  .filter((project) =>
+                      [project.name, project.location ?? ""].some((text) =>
+                          plain(text).includes(wanted),
+                      ),
+                  )
+                  .slice(0, MAX_PROJECTS)
+                  .map((project) => ({
+                      id: `project-${project.id}`,
+                      group: "Proyectos",
+                      label: project.name,
+                      icon: "projects",
+                      hint: project.location ?? undefined,
+                      run: () => onOpenProject(project.id),
+                  }));
     const options = [...matching, ...found];
     const groups = [...new Set(options.map((option) => option.group))];
     const current = Math.min(active, Math.max(options.length - 1, 0));
@@ -153,22 +163,12 @@ export function CommandPalette({ commands, onOpenProject, onClose }: CommandPale
                             </div>
                         ))}
                     </div>
-                    {search.state === "loading" && (
-                        <p className={styles.note}>Buscando proyectos…</p>
-                    )}
-                    {search.state === "error" && (
-                        <p className={`${styles.note} message-error`} role="alert">
-                            No se pudieron buscar los proyectos: {search.message}
+                    {options.length === 0 && (
+                        <p className={styles.note} role="status">
+                            Nada coincide con «{query.trim()}». Prueba con el nombre de una pantalla
+                            o de un proyecto que ya hayas abierto en esta sesión.
                         </p>
                     )}
-                    {options.length === 0 &&
-                        search.state !== "loading" &&
-                        search.state !== "error" && (
-                            <p className={styles.note} role="status">
-                                Nada coincide con «{query.trim()}». Prueba con el nombre de una
-                                pantalla o de un proyecto.
-                            </p>
-                        )}
                     <p className={styles.foot} aria-hidden="true">
                         <span>
                             <kbd className={styles.key}>↑</kbd>

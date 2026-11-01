@@ -70,7 +70,7 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                     {user.name.trim().charAt(0).toUpperCase()}
                 </span>
                 <div>
-                    <h2>{user.name}</h2>
+                    <h1>{user.name}</h1>
                     <p>
                         {user.email} · Cuenta creada el{" "}
                         {dateFormat.format(new Date(user.created_at))}

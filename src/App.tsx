@@ -11,6 +11,7 @@ import { AuthScreen } from "./components/AuthScreen";
 import { CommandPalette, type Command } from "./components/CommandPalette";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MobileNav } from "./components/MobileNav";
+import type { Crumb } from "./components/ui/Breadcrumbs";
 import { Button } from "./components/ui/Button";
 import { EmptyState } from "./components/ui/EmptyState";
 import { Loader } from "./components/ui/Loader";
@@ -18,6 +19,8 @@ import { Skeleton } from "./components/ui/Skeleton";
 import { Toasts } from "./components/Toasts";
 import { MODULES, Sidebar, type View } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
+import { ShortcutsDialog } from "./components/viewer/ShortcutsDialog";
+import { globalHelpRequested } from "./components/viewer/shortcuts";
 import { errorMessage } from "./hooks/useAsync";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -26,8 +29,9 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { canonicalPath, parsePath, projectPath, viewPath } from "./routes";
 import { authApi } from "./services/api";
+import { forgetProjects } from "./state/knownProjects";
 import { setTheme, useTheme } from "./state/theme";
-import { TopBarSlotProvider } from "./state/topBarSlot";
+import { TopBarCrumbsProvider, TopBarSlotProvider } from "./state/topBarSlot";
 import { withViewTransition } from "./state/viewTransition";
 import { ApiError, SESSION_ENDED_EVENT } from "./services/http";
 import type { User } from "./types/api";
@@ -103,7 +107,9 @@ export function App() {
     const theme = useTheme();
     const [commandsOpen, setCommandsOpen] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [shortcutsOpen, setShortcutsOpen] = useState(false);
     const [topBarSlot, setTopBarSlot] = useState<HTMLElement | null>(null);
+    const [topBarCrumbs, setTopBarCrumbs] = useState<HTMLElement | null>(null);
     const signedIn = session.state === "authenticated" && resetToken === null;
     const canonical = canonicalPath(location.pathname);
 
@@ -131,6 +137,9 @@ export function App() {
             ) {
                 event.preventDefault();
                 setCommandsOpen((open) => !open);
+            } else if (globalHelpRequested(event)) {
+                event.preventDefault();
+                setShortcutsOpen(true);
             }
         }
 
@@ -226,6 +235,7 @@ export function App() {
             await authApi.logout();
         } catch {
         } finally {
+            forgetProjects();
             go(viewPath("home"));
             setSession({ state: "anonymous" });
         }
@@ -286,6 +296,21 @@ export function App() {
                 run: () => setTheme(theme === "dark" ? "light" : "dark"),
             },
             {
+                id: "sidebar",
+                group: "Acciones",
+                label: collapsed ? "Expandir el menú" : "Contraer el menú",
+                icon: "collapse",
+                run: toggleSidebar,
+            },
+            {
+                id: "shortcuts",
+                group: "Acciones",
+                label: "Ver los atajos de teclado",
+                icon: "keyboard",
+                hint: "?",
+                run: () => setShortcutsOpen(true),
+            },
+            {
                 id: "logout",
                 group: "Acciones",
                 label: "Cerrar sesión",
@@ -293,7 +318,7 @@ export function App() {
                 run: () => void handleLogout(),
             },
         ],
-        [project?.id, theme, go],
+        [project?.id, theme, go, collapsed],
     );
 
     function renderView(user: User) {
@@ -322,7 +347,7 @@ export function App() {
             return (
                 <EmptyState
                     title="Página no encontrada"
-                    titleAs="h2"
+                    titleAs="h1"
                     art="plan"
                     text={`La dirección ${location.pathname} no corresponde a ninguna pantalla de ARQUILA.`}
                     action={
@@ -415,7 +440,20 @@ export function App() {
     }
 
     if (resetToken === null && session.state === "authenticated") {
-        const current = MODULES.find((item) => item.id === view);
+        const here =
+            MODULES.find((item) => item.id === view)?.label ??
+            (route.kind === "design-system" ? "Sistema de diseño" : "Página no encontrada");
+        const crumbs: Crumb[] =
+            view === "home"
+                ? [{ label: here }]
+                : [
+                      {
+                          label: "Inicio",
+                          href: viewPath("home"),
+                          onSelect: () => navigate("home"),
+                      },
+                      { label: here },
+                  ];
 
         return (
             <div
@@ -436,21 +474,14 @@ export function App() {
                 />
                 <div className="workspace">
                     <TopBar
-                        eyebrow="ARQUILA"
-                        title={
-                            current?.label ??
-                            (route.kind === "design-system" ? "Sistema de diseño" : "ARQUILA")
-                        }
+                        crumbs={project !== null ? [] : crumbs}
                         user={session.user}
                         onOpenProject={(id) => openProject(id)}
                         onOpenCommands={() => setCommandsOpen(true)}
-                        onCreateProject={() =>
-                            go(viewPath("projects"), { state: { create: true } })
-                        }
-                        createIsSecondary={view === "projects" && project === null}
                         onOpenSettings={() => navigate("settings")}
                         onLogout={() => void handleLogout()}
                         onSlot={setTopBarSlot}
+                        onCrumbsSlot={setTopBarCrumbs}
                         onOpenMenu={() => setMenuOpen(true)}
                     />
                     <main id="content" className="content" tabIndex={-1}>
@@ -460,9 +491,11 @@ export function App() {
                             <Suspense
                                 fallback={<Skeleton shape="cards" label="Cargando la pantalla…" />}
                             >
-                                <TopBarSlotProvider value={topBarSlot}>
-                                    {renderView(session.user)}
-                                </TopBarSlotProvider>
+                                <TopBarCrumbsProvider value={topBarCrumbs}>
+                                    <TopBarSlotProvider value={topBarSlot}>
+                                        {renderView(session.user)}
+                                    </TopBarSlotProvider>
+                                </TopBarCrumbsProvider>
                             </Suspense>
                         </ErrorBoundary>
                     </main>
@@ -483,6 +516,7 @@ export function App() {
                         onClose={() => setCommandsOpen(false)}
                     />
                 )}
+                {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
                 <Toasts />
             </div>
         );
@@ -517,7 +551,7 @@ export function App() {
             {session.state === "error" ? (
                 <EmptyState
                     title="No se pudo conectar con ARQUILA"
-                    titleAs="h2"
+                    titleAs="h1"
                     art="site"
                     text={`${session.message} Revisa tu conexión e inténtalo de nuevo.`}
                     action={

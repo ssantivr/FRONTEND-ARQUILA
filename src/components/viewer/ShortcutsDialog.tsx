@@ -30,7 +30,7 @@ interface ShortcutsDialogProps {
     onClose: () => void;
 }
 
-/** The help window of the 3D viewer, opened with «?». */
+/** The help of the application and of the 3D viewer, opened with «?». */
 export function ShortcutsDialog({ container, onClose }: ShortcutsDialogProps) {
     return (
         <Dialog title="Atajos de teclado" size="compact" container={container} onClose={onClose}>

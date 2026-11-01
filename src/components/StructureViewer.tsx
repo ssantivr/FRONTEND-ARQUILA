@@ -1061,6 +1061,7 @@ function ViewerScene({
                           .join(" ")
             }
             ref={stage}
+            data-viewer-keys={preview ? undefined : ""}
         >
             <div
                 ref={container}

@@ -39,7 +39,7 @@
     animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .shell,
     .shell-collapsed {
         grid-template-columns: minmax(0, 1fr);
@@ -238,7 +238,7 @@
 }
 
 /* Tablet: the navigation folds to its icon rail so the work area keeps its width. */
-@media (min-width: 721px) and (max-width: 1024px) {
+@media (min-width: 768px) and (max-width: 1024px) {
     .shell {
         --sidebar-width: 68px;
     }

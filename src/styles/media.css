@@ -82,7 +82,7 @@ tfoot :is(th, td) {
 
 /* ---- Audit fixes: the 3D viewer on small screens ---- */
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .structure-viewer {
         height: min(62vh, 480px);
         min-height: 300px;

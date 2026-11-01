@@ -267,13 +267,13 @@ export function ProjectsPage({
         <>
             <header className="page-head">
                 <div>
-                    <h2>
+                    <h1>
                         {summary.data
                             ? summary.data.projects === 1
                                 ? "1 proyecto"
                                 : `${formatNumber(summary.data.projects)} proyectos`
                             : "Proyectos"}
-                    </h2>
+                    </h1>
                     {/* The line is there from the start, so the list does not move down when it fills. */}
                     <p className="page-head-meta">{summary.data ? countsOf(summary.data) : " "}</p>
                     {summary.error && (

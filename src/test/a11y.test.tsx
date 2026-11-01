@@ -1,11 +1,13 @@
 import { render } from "@testing-library/react";
 import { axe } from "jest-axe";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CommandPalette } from "../components/CommandPalette";
 import CostChart from "../components/CostChart";
 import { FormActions } from "../components/RowActions";
+import { Sidebar } from "../components/Sidebar";
 import { Toasts } from "../components/Toasts";
+import { TopBar } from "../components/TopBar";
 import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -21,10 +23,12 @@ import { ShortcutsDialog } from "../components/viewer/ShortcutsDialog";
 import { StatusBar } from "../components/viewer/StatusBar";
 import { ToolRail } from "../components/viewer/ToolRail";
 import { ViewerProblem } from "../components/viewer/ViewerBoundary";
+import { setThemePreference } from "../state/theme";
 import { showToast } from "../state/toasts";
 
 vi.mock("../services/api", () => ({
     projectsApi: { list: vi.fn().mockResolvedValue([]) },
+    notificationsApi: { list: vi.fn().mockResolvedValue([]) },
 }));
 
 /** Runs axe-core on what was rendered and gives back its violations, by rule. */
@@ -37,6 +41,47 @@ async function violations(container: Element): Promise<string[]> {
 
     return results.violations.map((violation) => `${violation.id}: ${violation.help}`);
 }
+
+describe("accessibility of the shell (axe-core)", () => {
+    afterEach(() => setThemePreference("auto"));
+
+    it.each(["light", "dark"] as const)("finds nothing wrong in the %s theme", async (theme) => {
+        setThemePreference(theme);
+
+        const { container } = render(
+            <div>
+                <a className="skip-link" href="#content">
+                    Saltar al contenido
+                </a>
+                <Sidebar
+                    current="terrains"
+                    onNavigate={() => undefined}
+                    onToggle={() => undefined}
+                    onLogout={() => undefined}
+                    user={{ name: "Ana", email: "ana@example.com" }}
+                />
+                <div>
+                    <TopBar
+                        crumbs={[{ label: "Inicio", href: "/" }, { label: "Terrenos" }]}
+                        user={{ name: "Ana", email: "ana@example.com" }}
+                        onOpenProject={() => undefined}
+                        onOpenCommands={() => undefined}
+                        onOpenSettings={() => undefined}
+                        onLogout={() => undefined}
+                        onSlot={() => undefined}
+                        onCrumbsSlot={() => undefined}
+                        onOpenMenu={() => undefined}
+                    />
+                    <main id="content" tabIndex={-1}>
+                        <h1>Terrenos</h1>
+                    </main>
+                </div>
+            </div>,
+        );
+
+        expect(await violations(container)).toEqual([]);
+    });
+});
 
 describe("accessibility of the shared components (axe-core)", () => {
     it("finds nothing wrong in the pieces of ui/", async () => {

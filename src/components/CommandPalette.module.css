@@ -154,7 +154,7 @@
     gap: var(--space-1);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .palette {
         top: var(--space-4);
         max-height: calc(100dvh - var(--space-6));

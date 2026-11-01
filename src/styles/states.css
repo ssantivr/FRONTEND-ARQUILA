@@ -183,7 +183,7 @@ label {
     border-color: var(--border);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .tabs {
         /* Relative, not static: the sliding underline is positioned against the row. */
         position: relative;
@@ -322,14 +322,14 @@ label :is(input, select, textarea) {
     padding: 10px 0;
 }
 
-@media (min-width: 721px) and (max-width: 1024px) {
+@media (min-width: 768px) and (max-width: 1024px) {
     .sidebar-user {
         justify-content: center;
         padding: 10px 0;
     }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .toasts {
         right: 12px;
         bottom: 12px;

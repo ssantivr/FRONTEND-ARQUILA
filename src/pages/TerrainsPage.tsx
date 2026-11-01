@@ -165,13 +165,13 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
         <>
             <header className="page-head">
                 <div>
-                    <h2>
+                    <h1>
                         {data.data === null
                             ? "Terrenos"
                             : terrains.length === 1
                               ? "1 terreno"
                               : `${formatNumber(terrains.length)} terrenos`}
-                    </h2>
+                    </h1>
                     <p className="page-head-meta">
                         De todos tus proyectos · se editan desde su proyecto
                     </p>

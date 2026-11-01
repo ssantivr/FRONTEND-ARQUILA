@@ -9,6 +9,15 @@ const TopBarSlotContext = createContext<HTMLElement | null>(null);
 
 export const TopBarSlotProvider = TopBarSlotContext.Provider;
 
+/** The place of the trail in the top bar, for the screen that knows more of the path. */
+const TopBarCrumbsContext = createContext<HTMLElement | null>(null);
+
+export const TopBarCrumbsProvider = TopBarCrumbsContext.Provider;
+
+export function useTopBarCrumbs(): HTMLElement | null {
+    return useContext(TopBarCrumbsContext);
+}
+
 export function useTopBarSlot(): HTMLElement | null {
     return useContext(TopBarSlotContext);
 }

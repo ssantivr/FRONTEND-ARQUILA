@@ -89,7 +89,7 @@
     animation-play-state: paused;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .region {
         right: var(--space-4);
         bottom: calc(var(--mobile-nav-height) + var(--space-3));

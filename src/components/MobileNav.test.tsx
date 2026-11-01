@@ -89,7 +89,7 @@ describe("MobileNav", () => {
         );
         // The same list as the sidebar, by group, so nothing is only reachable on a wide screen.
         expect(within(all).getByRole("button", { name: "Inicio" })).toBeInTheDocument();
-        expect(within(all).getByText("Visualización")).toBeInTheDocument();
+        expect(within(all).getByText("Sistema")).toBeInTheDocument();
         expect(within(sheet).getByRole("radiogroup", { name: "Tema" })).toBeInTheDocument();
         expect(sheet).toHaveTextContent("ana@example.com");
 

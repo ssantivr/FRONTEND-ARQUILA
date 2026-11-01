@@ -114,7 +114,7 @@ button:not([class]):hover:not(:disabled) {
 
 /* ---- Page titles: a lime mark draws under the figure ---- */
 
-.page-head h2::after {
+.page-head h1::after {
     content: "";
     display: block;
     width: 56px;

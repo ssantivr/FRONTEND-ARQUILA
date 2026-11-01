@@ -11,7 +11,7 @@
     padding: 12px 0 4px;
 }
 
-.page-head h2 {
+.page-head h1 {
     margin: 0;
     font-size: clamp(32px, 3.4vw, 44px);
     font-weight: 600;

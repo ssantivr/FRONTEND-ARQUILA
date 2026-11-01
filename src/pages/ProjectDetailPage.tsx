@@ -27,7 +27,7 @@ import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { trackSave, useProjectSave } from "../state/projectSave";
 import { SaveStatusProvider } from "../state/saveStatus";
-import { useTopBarSlot } from "../state/topBarSlot";
+import { useTopBarCrumbs, useTopBarSlot } from "../state/topBarSlot";
 import { projectPath, viewPath } from "../routes";
 import { SECTIONS, type SectionId } from "./sections";
 import { filesApi, projectsApi, undoApi } from "../services/api";
@@ -67,6 +67,7 @@ export function ProjectDetailPage({
     const [actionPending, setActionPending] = useState(false);
     const save = useProjectSave(projectId);
     const topBarSlot = useTopBarSlot();
+    const crumbsSlot = useTopBarCrumbs();
     const running = useRef(false);
     const [panelsVersion, setPanelsVersion] = useState(0);
     const [plansVersion, setPlansVersion] = useState(0);
@@ -156,6 +157,20 @@ export function ProjectDetailPage({
         </>
     );
 
+    const trail = (
+        <Breadcrumbs
+            items={[
+                { label: "Proyectos", href: viewPath("projects"), onSelect: onBack },
+                {
+                    label: current.name,
+                    href: projectPath(current.id),
+                    onSelect: () => setSection("summary"),
+                },
+                { label: SECTIONS.find((item) => item.id === section)?.label ?? "" },
+            ]}
+        />
+    );
+
     return (
         <SaveStatusProvider value={{ pending: actionPending, failed: actionError !== null }}>
             {/* On the 3D model the head shrinks to one line, so the scene fits in the window. */}
@@ -169,18 +184,8 @@ export function ProjectDetailPage({
                     <ProjectCover id={current.id} name={current.name} />
                 </div>
                 <div className="project-head-main">
-                    <Breadcrumbs
-                        items={[
-                            { label: "Proyectos", href: viewPath("projects"), onSelect: onBack },
-                            {
-                                label: current.name,
-                                href: projectPath(current.id),
-                                onSelect: () => setSection("summary"),
-                            },
-                            { label: SECTIONS.find((item) => item.id === section)?.label ?? "" },
-                        ]}
-                    />
-                    <h2>{current.name}</h2>
+                    {crumbsSlot === null ? trail : createPortal(trail, crumbsSlot)}
+                    <h1>{current.name}</h1>
                     <p className="project-head-meta">
                         <StatusBadge status={current.status} />
                         <span>{current.location ?? "Sin ubicación"}</span>

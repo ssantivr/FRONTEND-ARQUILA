@@ -123,38 +123,20 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
         <>
             <header className="page-head">
                 <div>
-                    <h2>
+                    <h1>
                         {data.data === null
                             ? "Tareas"
                             : tasks.length === 1
                               ? "1 tarea"
                               : `${formatNumber(tasks.length)} tareas`}
-                    </h2>
+                    </h1>
                     <p className="page-head-meta">
                         Obras registradas en todos tus proyectos · el avance sale de su estado
                     </p>
                 </div>
-                {tasks.length > 0 && (
-                    <dl className="stat-strip">
-                        <div>
-                            <dt>En curso</dt>
-                            <dd>{progress.inProgress}</dd>
-                        </div>
-                        <div>
-                            <dt>Terminadas</dt>
-                            <dd>
-                                {progress.completed} de {progress.total - progress.cancelled}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>Atrasadas</dt>
-                            <dd>{progress.overdue}</dd>
-                        </div>
-                    </dl>
-                )}
                 <div className="page-head-actions">
                     <Button
-                        className="button-lime"
+                        icon="plus"
                         aria-expanded={creating}
                         disabled={projects.length === 0}
                         onClick={() => setCreating((open) => !open)}
@@ -163,6 +145,24 @@ export function TasksPage({ onOpenProject }: TasksPageProps) {
                     </Button>
                 </div>
             </header>
+            {tasks.length > 0 && (
+                <dl className="stat-strip">
+                    <div>
+                        <dt>En curso</dt>
+                        <dd>{progress.inProgress}</dd>
+                    </div>
+                    <div>
+                        <dt>Terminadas</dt>
+                        <dd>
+                            {progress.completed} de {progress.total - progress.cancelled}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Atrasadas</dt>
+                        <dd>{progress.overdue}</dd>
+                    </div>
+                </dl>
+            )}
 
             {progress.done !== null && (
                 <div className="task-progress">

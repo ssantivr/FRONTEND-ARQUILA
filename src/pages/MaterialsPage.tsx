@@ -66,7 +66,7 @@ export function MaterialsPage({ onOpenProject, onOpenViewer }: MaterialsPageProp
         <>
             <header className="page-head">
                 <div>
-                    <h2>Biblioteca de materiales</h2>
+                    <h1>Biblioteca de materiales</h1>
                     {/* The line is there from the start, so nothing moves when the figures arrive. */}
                     <p className="page-head-meta">
                         {`${SURFACE_MATERIAL_IDS.length} superficies del motor`}

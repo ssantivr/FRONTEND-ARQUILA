@@ -98,7 +98,7 @@
 }
 
 /* Phone: every target of the navigation and the header is at least 44px. */
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .sidebar-item,
     .user-menu .icon-button {
         min-width: 44px;

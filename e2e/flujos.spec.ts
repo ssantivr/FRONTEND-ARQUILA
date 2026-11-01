@@ -40,11 +40,11 @@ test.describe("entrar", () => {
 });
 
 test.describe("crear un proyecto", () => {
-    test("lo crea desde la cabecera, lo confirma y lo deja en la lista", async ({ page }) => {
+    test("lo crea desde la portada, lo confirma y lo deja en la lista", async ({ page }) => {
         await mockApi(page);
         await page.goto("/");
 
-        await page.getByRole("button", { name: "Nuevo proyecto" }).click();
+        await page.getByRole("button", { name: "Crear proyecto" }).first().click();
         await expect(page).toHaveURL(/\/proyectos$/);
 
         await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Casa del Lago");

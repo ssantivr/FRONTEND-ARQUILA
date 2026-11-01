@@ -18,7 +18,7 @@ export function ToolHead({ title, meta, choice, children }: ToolHeadProps) {
         <>
             <header className="page-head tool-head">
                 <div>
-                    <h2>{title}</h2>
+                    <h1>{title}</h1>
                     <p className="page-head-meta">{meta}</p>
                 </div>
                 <div className="tool-head-actions">

@@ -98,7 +98,7 @@ input.switch:checked::before {
 .settings {
     display: grid;
     width: 100%;
-    max-width: 720px;
+    max-width: 767px;
     margin: 0 auto;
 }
 
@@ -110,7 +110,7 @@ input.switch:checked::before {
     padding: 12px 0 32px;
 }
 
-.settings-account h2 {
+.settings-account h1 {
     margin: 0;
     font-size: var(--fs-30);
     font-weight: 600;

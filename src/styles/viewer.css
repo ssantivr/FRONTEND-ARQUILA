@@ -65,7 +65,7 @@
 }
 
 /* Under the scene, on a phone, a folded panel must not leave a gap. */
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .hud-layer-min > :is(.hud-levels, .hud-works, .hud-dock) {
         display: none;
     }
@@ -486,7 +486,7 @@
     border-color: var(--accent-text);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .hud-layer {
         position: static;
         display: block;

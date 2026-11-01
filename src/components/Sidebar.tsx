@@ -30,13 +30,12 @@ export interface Module {
     group: GroupId;
 }
 
-export type GroupId = "work" | "design" | "view" | "account";
+export type GroupId = "work" | "project" | "system";
 
 export const GROUPS: { id: GroupId; label: string }[] = [
     { id: "work", label: "Trabajo" },
-    { id: "design", label: "Diseño" },
-    { id: "view", label: "Visualización" },
-    { id: "account", label: "Gestión y cuenta" },
+    { id: "project", label: "Proyecto" },
+    { id: "system", label: "Sistema" },
 ];
 
 export const MODULES: Module[] = [
@@ -69,29 +68,36 @@ export const MODULES: Module[] = [
         description: "Materiales de todos los proyectos, su costo y las superficies del modelo.",
     },
     {
+        id: "tasks",
+        group: "work",
+        label: "Gestión de tareas",
+        icon: "tasks",
+        description: "Las obras de todos tus proyectos por estado, con su avance real.",
+    },
+    {
         id: "plans",
-        group: "design",
+        group: "project",
         label: "Planos 2D",
         icon: "plans",
         description: "Plantas con cotas, fachadas, corte e implantación de un proyecto.",
     },
     {
         id: "viewer",
-        group: "design",
+        group: "project",
         label: "Editor y modelos 3D",
         icon: "viewer",
         description: "Modelo 3D de un proyecto: terrenos, niveles, cuartos y estructura.",
     },
     {
         id: "lighting",
-        group: "view",
+        group: "project",
         label: "Iluminación y clima",
         icon: "lighting",
         description: "Hora, sol, cielo, nubes y exposición, vistos sobre el modelo.",
     },
     {
         id: "interior",
-        group: "view",
+        group: "project",
         label: "Recorridos virtuales",
         icon: "interior",
         description:
@@ -99,28 +105,21 @@ export const MODULES: Module[] = [
     },
     {
         id: "render",
-        group: "view",
+        group: "project",
         label: "Renderizado",
         icon: "render",
         description: "Genera y descarga una imagen del modelo con la luz elegida.",
     },
     {
-        id: "tasks",
-        group: "account",
-        label: "Gestión de tareas",
-        icon: "tasks",
-        description: "Las obras de todos tus proyectos por estado, con su avance real.",
-    },
-    {
         id: "assistant",
-        group: "account",
+        group: "project",
         label: "Asistente IA",
         icon: "assistant",
         description: "Pregunta sobre un proyecto; responde con sus datos reales.",
     },
     {
         id: "settings",
-        group: "account",
+        group: "system",
         label: "Configuración",
         icon: "settings",
         description: "Tu cuenta, la contraseña y el estado de la IA y de la API.",
@@ -152,7 +151,7 @@ interface NavGroupsProps {
     current: View | null;
     onNavigate: (view: View) => void;
     label: string;
-    /** `band` on the forest sidebar; `surface` on a panel of the theme, such as the phone menu. */
+    /** `band` on the graphite sidebar; `surface` on a panel of the theme, such as the phone menu. */
     tone?: "band" | "surface";
     iconsOnly?: boolean;
 }
@@ -206,7 +205,7 @@ interface SidebarProps {
 }
 
 /**
- * The navigation of wide screens, on the forest band in both themes: the mark, the modules by
+ * The navigation of wide screens, on the graphite band in both themes: the mark, the modules by
  * group and, at the foot, the account, sign-out and the toggle that leaves only the icons. On a
  * phone it is not drawn: `MobileNav` and its menu take its place.
  */
@@ -221,8 +220,8 @@ export function Sidebar({
     // With only icons left, the name of the one under the pointer or the focus is shown beside
     // it. It is drawn fixed, so the scrolling list does not clip it.
     const [tip, setTip] = useState<{ text: string; top: number; left: number } | null>(null);
-    // Between 721 and 1024 px the menu shows only its icons even when it is not collapsed.
-    const narrow = useMediaQuery("(min-width: 721px) and (max-width: 1024px)");
+    // Between 768 and 1024 px the menu shows only its icons even when it is not collapsed.
+    const narrow = useMediaQuery("(min-width: 768px) and (max-width: 1024px)");
     const iconsOnly = collapsed || narrow;
 
     function showTip(event: FocusEvent<HTMLElement> | PointerEvent<HTMLElement>) {
@@ -240,6 +239,7 @@ export function Sidebar({
     return (
         <aside
             className={iconsOnly ? `${styles.sidebar} ${styles.iconsOnly}` : styles.sidebar}
+            data-theme="dark"
             onPointerOver={showTip}
             onFocus={showTip}
             onPointerLeave={() => setTip(null)}
@@ -287,7 +287,7 @@ export function Sidebar({
                             type="button"
                             className={`${styles.item} ${styles.toggle}`}
                             aria-expanded={!collapsed}
-                            data-name="Expandir el menú"
+                            data-name={collapsed ? "Expandir el menú" : "Contraer el menú"}
                             onClick={onToggle}
                         >
                             <Icon name="collapse" />

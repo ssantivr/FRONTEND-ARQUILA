@@ -104,7 +104,7 @@ td,
 }
 
 /* Twelve modules: on a short window the list scrolls and the account stays in view. */
-@media (min-width: 721px) {
+@media (min-width: 768px) {
     .sidebar {
         overflow: hidden;
     }
@@ -126,7 +126,7 @@ td,
     }
 }
 
-@media (min-width: 721px) and (max-height: 960px) {
+@media (min-width: 768px) and (max-height: 960px) {
     .sidebar .sidebar-item {
         min-height: 36px;
         padding-block: 6px;
@@ -193,7 +193,7 @@ td,
 }
 
 /* Phone: the navigation is one scrolling row, without group titles. */
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .sidebar {
         gap: 4px;
         padding: 8px 12px;

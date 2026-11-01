@@ -3,7 +3,7 @@ import type { User } from "../types/api";
 import { GlobalSearch } from "./GlobalSearch";
 import { Notifications } from "./Notifications";
 import { Avatar } from "./ui/Avatar";
-import { Button } from "./ui/Button";
+import { Breadcrumbs, type Crumb } from "./ui/Breadcrumbs";
 import { IconButton } from "./ui/IconButton";
 import { Menu } from "./ui/Menu";
 import { SegmentedControl, type Segment } from "./ui/SegmentedControl";
@@ -17,38 +17,35 @@ export const THEME_OPTIONS: readonly Segment<ThemePreference>[] = [
 ];
 
 interface TopBarProps {
-    /** Small line above the title: «ARQUILA», or «Proyecto» inside one. */
-    eyebrow: string;
-    title: string;
+    /** Where you are. Empty when the open screen draws its own trail in `onCrumbsSlot`. */
+    crumbs: Crumb[];
     user: Pick<User, "name" | "email">;
     onOpenProject: (projectId: number) => void;
     onOpenCommands: () => void;
-    onCreateProject: () => void;
-    /** On the projects screen «Nuevo proyecto» gives up the lime: the screen has its own. */
-    createIsSecondary: boolean;
     onOpenSettings: () => void;
     onLogout: () => void;
     /** Receives the element where the open screen puts its own controls (`TopBarSlotProvider`). */
     onSlot: (element: HTMLElement | null) => void;
+    /** Receives the element where a screen that knows more of the path draws its trail. */
+    onCrumbsSlot: (element: HTMLElement | null) => void;
     /** Opens the menu with every module; the button is only shown on a phone. */
     onOpenMenu?: () => void;
 }
 
 /**
  * The bar over every screen: where you are, the search, what the open screen adds (the save state
- * and the assistant of a project), the main action, the notifications, the theme and the account.
+ * and the assistant of a project), the notifications, the theme and the account. The title and
+ * the main action of a screen are in its head, always there.
  */
 export function TopBar({
-    eyebrow,
-    title,
+    crumbs,
     user,
     onOpenProject,
     onOpenCommands,
-    onCreateProject,
-    createIsSecondary,
     onOpenSettings,
     onLogout,
     onSlot,
+    onCrumbsSlot,
     onOpenMenu,
 }: TopBarProps) {
     const theme = useThemePreference();
@@ -66,23 +63,14 @@ export function TopBar({
                     />
                 </span>
             )}
-            <div className={styles.where}>
-                <p className={styles.eyebrow}>{eyebrow}</p>
-                <h1 className={styles.title}>{title}</h1>
+            <div ref={onCrumbsSlot} className={styles.where}>
+                {crumbs.length > 0 && <Breadcrumbs items={crumbs} />}
             </div>
             <div className={styles.search}>
                 <GlobalSearch onOpenProject={onOpenProject} onOpenCommands={onOpenCommands} />
             </div>
             <div className={styles.actions}>
                 <div ref={onSlot} className={styles.slot} />
-                <Button
-                    variant={createIsSecondary ? "secondary" : "primary"}
-                    icon="plus"
-                    className={styles.create}
-                    onClick={onCreateProject}
-                >
-                    <span className={styles.createLabel}>Nuevo proyecto</span>
-                </Button>
                 <Notifications />
                 <div className={styles.theme}>
                     <SegmentedControl

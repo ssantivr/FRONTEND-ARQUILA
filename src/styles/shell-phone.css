@@ -1,6 +1,6 @@
 /* Phone header: actions keep to one line; theme and account fold to their icon. */
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .user-menu {
         flex-wrap: nowrap;
         gap: var(--space-2);

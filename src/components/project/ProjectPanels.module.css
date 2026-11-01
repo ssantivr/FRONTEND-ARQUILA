@@ -180,7 +180,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .summary {
         grid-template-columns: minmax(0, 1fr);
     }

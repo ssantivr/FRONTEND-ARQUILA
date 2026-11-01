@@ -363,7 +363,7 @@
 
 /* ---- Phone: one column; the scene first, the panels under it ---- */
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .structure-stage.ws3d,
     .structure-stage.ws3d.ws3d-tree,
     .structure-stage.ws3d.ws3d-inspector,
@@ -628,7 +628,7 @@
 }
 
 /* Phone: less padding around the drawing. */
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .board-canvas {
         padding: var(--space-2);
     }

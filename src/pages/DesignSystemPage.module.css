@@ -160,7 +160,7 @@
     background: var(--scene-panel);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .page,
     .theme {
         padding: var(--space-4);

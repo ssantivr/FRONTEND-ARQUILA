@@ -1,16 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { projectsApi } from "../services/api";
+import { forgetProjects, rememberProjects } from "../state/knownProjects";
 import type { Project } from "../types/api";
 import { CommandPalette, type Command } from "./CommandPalette";
 
-vi.mock("../services/api", () => ({
-    projectsApi: { list: vi.fn() },
-}));
-
-const projects = vi.mocked(projectsApi);
 const found: Project = {
     id: 3,
     owner_id: 1,
@@ -49,12 +44,9 @@ function setup() {
     return { runs, onOpenProject, onClose, input: screen.getByRole("combobox") };
 }
 
-beforeEach(() => {
-    vi.resetAllMocks();
-    projects.list.mockResolvedValue([]);
-});
-
 describe("CommandPalette", () => {
+    afterEach(() => forgetProjects());
+
     it("opens with the cursor in its field and lists the commands by group", () => {
         const { input } = setup();
 
@@ -100,32 +92,43 @@ describe("CommandPalette", () => {
         expect(runs.terrains).toHaveBeenCalledTimes(1);
     });
 
-    it("finds projects by name through the API and opens the chosen one", async () => {
-        projects.list.mockResolvedValue([found]);
+    it("finds the projects already loaded, by name or place, and opens the chosen one", async () => {
+        rememberProjects([found]);
         const { onOpenProject, input } = setup();
 
-        await userEvent.type(input, "mirador");
-        await userEvent.click(await screen.findByRole("option", { name: /Casa Mirador/ }));
+        expect(screen.queryByRole("option", { name: /Casa Mirador/ })).not.toBeInTheDocument();
 
-        expect(projects.list).toHaveBeenCalledWith({ search: "mirador" });
+        await userEvent.type(input, "manizales");
+        await userEvent.click(screen.getByRole("option", { name: /Casa Mirador/ }));
+
         expect(onOpenProject).toHaveBeenCalledWith(3);
     });
 
-    it("says so when nothing matches and when the search fails", async () => {
+    it("groups the results by category and points the field at the active one", async () => {
+        rememberProjects([{ ...found, name: "Terrenos del lago" }]);
+        const { input } = setup();
+
+        await userEvent.type(input, "terrenos");
+
+        expect(screen.getByRole("group", { name: "Ir a" })).toHaveTextContent("Terrenos");
+        expect(screen.getByRole("group", { name: "Proyectos" })).toHaveTextContent(
+            "Terrenos del lago",
+        );
+
+        await userEvent.keyboard("{ArrowDown}");
+
+        const active = screen.getByRole("option", { selected: true });
+
+        expect(active).toHaveTextContent("Terrenos del lago");
+        expect(input).toHaveAttribute("aria-activedescendant", active.id);
+    });
+
+    it("says so when nothing matches", async () => {
         const { input } = setup();
 
         await userEvent.type(input, "zzz");
 
         expect(await screen.findByText(/Nada coincide con «zzz»/)).toBeInTheDocument();
-
-        projects.list.mockRejectedValue(new Error("sin red"));
-        await userEvent.clear(input);
-        await userEvent.type(input, "casa");
-
-        expect(await screen.findByRole("alert")).toHaveTextContent(
-            "No se pudieron buscar los proyectos",
-        );
-        expect(screen.queryByText(/Nada coincide/)).not.toBeInTheDocument();
     });
 
     it("closes with Escape", async () => {

@@ -12,16 +12,14 @@ vi.mock("../services/api", () => ({
 
 function renderBar(overrides: Partial<Parameters<typeof TopBar>[0]> = {}) {
     const props = {
-        eyebrow: "ARQUILA",
-        title: "Terrenos",
+        crumbs: [{ label: "Inicio", href: "/" }, { label: "Terrenos" }],
         user: { name: "Ana Torres", email: "ana@example.com" },
         onOpenProject: vi.fn(),
         onOpenCommands: vi.fn(),
-        onCreateProject: vi.fn(),
-        createIsSecondary: false,
         onOpenSettings: vi.fn(),
         onLogout: vi.fn(),
         onSlot: vi.fn(),
+        onCrumbsSlot: vi.fn(),
         ...overrides,
     };
 
@@ -33,10 +31,13 @@ function renderBar(overrides: Partial<Parameters<typeof TopBar>[0]> = {}) {
 afterEach(() => setThemePreference("auto"));
 
 describe("TopBar", () => {
-    it("says where you are with the only level-one heading", () => {
+    it("says where you are with the trail, and leaves the title to the screen", () => {
         renderBar();
 
-        expect(screen.getByRole("heading", { level: 1, name: "Terrenos" })).toBeInTheDocument();
+        const trail = screen.getByRole("navigation", { name: "Migas de pan" });
+
+        expect(within(trail).getByText("Terrenos")).toHaveAttribute("aria-current", "page");
+        expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
         expect(screen.getByRole("searchbox", { name: "Buscar proyectos" })).toBeInTheDocument();
     });
 
@@ -55,14 +56,17 @@ describe("TopBar", () => {
         expect(document.documentElement.dataset.theme).toBe("light");
     });
 
-    it("keeps «Nuevo proyecto» as the lime action except on the projects screen", () => {
-        const props = renderBar();
+    it("leaves the main action to the head of each screen", () => {
+        renderBar();
 
-        const create = screen.getByRole("button", { name: "Nuevo proyecto" });
+        expect(screen.queryByRole("button", { name: "Nuevo proyecto" })).not.toBeInTheDocument();
+    });
 
-        expect(create).toHaveAttribute("data-variant", "primary");
-        create.click();
-        expect(props.onCreateProject).toHaveBeenCalledTimes(1);
+    it("gives a screen that knows more of the path the place of the trail", () => {
+        const props = renderBar({ crumbs: [] });
+
+        expect(props.onCrumbsSlot).toHaveBeenCalledWith(expect.any(HTMLDivElement));
+        expect(screen.queryByRole("navigation", { name: "Migas de pan" })).not.toBeInTheDocument();
     });
 
     it("opens the account menu with who is signed in, the settings and sign-out", async () => {
@@ -87,15 +91,6 @@ describe("TopBar", () => {
         const props = renderBar();
 
         expect(props.onSlot).toHaveBeenCalledWith(expect.any(HTMLDivElement));
-    });
-
-    it("gives «Nuevo proyecto» the secondary look where the screen has its own main action", () => {
-        renderBar({ createIsSecondary: true });
-
-        expect(screen.getByRole("button", { name: "Nuevo proyecto" })).toHaveAttribute(
-            "data-variant",
-            "secondary",
-        );
     });
 
     it("says there are no notifications when the API has none", async () => {

@@ -629,7 +629,7 @@
     }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .task-board {
         grid-template-columns: minmax(0, 1fr);
     }

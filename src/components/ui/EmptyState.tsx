@@ -11,8 +11,8 @@ export type EmptyArt = "plan" | "section" | "volume" | "site";
 interface EmptyStateProps {
     /** Short headline; the text below it explains what to do. */
     title?: string;
-    /** `h2` when the empty state is the whole screen and its title names it. */
-    titleAs?: "p" | "h2";
+    /** `h1` when the empty state is the whole screen and its title names it. */
+    titleAs?: "p" | "h1" | "h2";
     text: string;
     /** Optional next step, such as the button that creates the first item. */
     action?: ReactNode;

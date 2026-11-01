@@ -205,3 +205,11 @@ El 31 de octubre `npm test` falló una vez en `feat/fase1`, con varias pruebas d
 - `Button` cierra `type="button"` por defecto; los `<button>` sin `type` migrados declaran `type="submit"` para conservar su comportamiento.
 - Los botones que no son acciones siguen como `<button>`: elementos del visor (`hud-*`), navegación, tarjetas y filas enteras, enlaces en línea, pestañas y opciones. `Button` les quitaría su forma; los del visor se revisan en la Fase 5.
 - La banda oscura del proyecto lleva `data-theme="dark"`: sus controles toman los tokens oscuros también en tema claro.
+
+### Shell y navegación (31 de octubre)
+
+- **Acción principal en el encabezado de la página, siempre a la derecha.** Se quitó «Nuevo proyecto» de la barra; sigue en la paleta como «Crear un proyecto» y en Inicio y Proyectos.
+- **El título es de la página y la barra solo lleva migas.** El `h1` pasó a cada pantalla. El proyecto dibuja sus migas en la barra con un portal (`useTopBarCrumbs`), porque solo él conoce su nombre.
+- **La paleta busca proyectos sin pedir nada al servidor.** `appState` no guardaba proyectos, así que `state/knownProjects.ts` recuerda los que ya llegaron en las respuestas de `projectsApi`, y se vacía al cerrar sesión. Un proyecto que aún no se cargó en la sesión no aparece; la búsqueda de la barra sigue consultando la API.
+- **Móvil por debajo de 768 px.** Antes el corte era 720 px. El menú lateral es un `Drawer` sobre `ModalFrame` y la barra inferior se mantiene.
+- **«?» de la aplicación y del visor.** Con el foco en el visor responde el visor, para dibujar la ayuda dentro de su pantalla completa. El de la aplicación no se dispara en ningún `input`; el visor conserva sus teclas tras marcar una casilla o mover un control.

@@ -127,6 +127,22 @@ describe("Sidebar", () => {
         );
     });
 
+    it.each([
+        [true, "Expandir el menú"],
+        [false, "Contraer el menú"],
+    ])("gives the toggle a hint that follows its state (collapsed: %s)", (collapsed, hint) => {
+        render(
+            <Sidebar
+                current="home"
+                onNavigate={() => undefined}
+                collapsed={collapsed}
+                onToggle={() => undefined}
+            />,
+        );
+
+        expect(screen.getByRole("button", { name: hint })).toHaveAttribute("data-name", hint);
+    });
+
     it("names the brand and keeps every module named while only the icons show", () => {
         render(<Sidebar current="home" onNavigate={() => undefined} collapsed />);
 

@@ -203,7 +203,7 @@
 
 /* ---- Phone: the bottom bar (MobileNav) replaces the sidebar ---- */
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .shell .sidebar {
         display: none;
     }

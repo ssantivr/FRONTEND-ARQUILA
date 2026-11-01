@@ -39,13 +39,23 @@ const SCREENS = [
     ["configuracion", "/configuracion"],
 ];
 // The three widths of the delivery: a laptop, a tablet held upright and a phone.
-const SIZES = {
+const DELIVERY = {
     escritorio: { width: 1280, height: 800 },
     tablet: { width: 820, height: 1180 },
     movil: { width: 390, height: 844 },
 };
+// CAPTURAS_TAMANOS=360,768,1280,1920 takes those widths instead, each named by its width.
+const WIDTHS = (process.env.CAPTURAS_TAMANOS ?? "").split(",").filter(Boolean).map(Number);
+const SIZES: Record<string, { width: number; height: number }> =
+    WIDTHS.length === 0
+        ? DELIVERY
+        : Object.fromEntries(
+              WIDTHS.map((width) => [`${width}px`, { width, height: width < 768 ? 800 : 900 }]),
+          );
 
-type Size = keyof typeof SIZES;
+type Size = string;
+const overflowing: string[] = [];
+const IMAGE_WAIT_MS = 5000;
 
 async function open(
     browser: Browser,
@@ -74,8 +84,19 @@ async function open(
 async function shoot(page: Page, name: string): Promise<void> {
     await page.waitForLoadState("networkidle");
     // A picture still decoding would be caught halfway through its fade-in.
-    await page.waitForFunction("[...document.images].every((image) => image.complete)");
+    await page
+        .waitForFunction(
+            "[...document.images].every((image) => image.complete || image.loading === 'lazy')",
+            undefined,
+            { timeout: IMAGE_WAIT_MS },
+        )
+        .catch(() => console.log(`  ${name}: una imagen no terminó de cargar`));
     await page.waitForTimeout(900);
+
+    if (await page.evaluate("document.documentElement.scrollWidth > window.innerWidth")) {
+        overflowing.push(name);
+    }
+
     await page.screenshot({
         path: fileURLToPath(new URL(`${name}.jpg`, OUT)),
         type: "jpeg",
@@ -278,6 +299,12 @@ const results = [
 for (const [label, ok] of results) {
     console.log(`  ${ok ? "ok   " : "FALLA"} ${label}`);
 }
+
+console.log(
+    overflowing.length === 0
+        ? "Sin desplazamiento horizontal."
+        : `Con desplazamiento horizontal: ${overflowing.join(", ")}`,
+);
 
 await browser.close();
 process.exitCode = results.every(([, ok]) => ok) ? 0 : 1;

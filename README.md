@@ -91,7 +91,7 @@ src/
 | `npm run accesibilidad` | Con `npm run dev` en marcha, pasa axe-core por las pantallas principales. |
 | `npm run capturas` | Con `npm run dev` en marcha, guarda en `docs/capturas/` las pantallas principales (claro y oscuro, a 1280, 820 y 390 px) y comprueba con clics reales el visor 3D. Usa datos de muestra, sin backend. |
 
-Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar con `demo@example.com`, contraseña `arquila-demo` (credencial pública, solo para desarrollo).
+Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar con el usuario de demostración `demo@example.com`. Su contraseña no se publica aquí; ver «Datos de ejemplo» en el README de `BASE-DE-DATOS-ARQUILA`.
 
 ## Documentación
 

@@ -1,9 +1,10 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, renderHook, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation, useNavigate, type NavigateFunction } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
+import { forgetProjects, rememberProjects, useKnownProjects } from "./state/knownProjects";
 import { ApiError, request } from "./services/http";
 
 vi.mock("./services/http", async (original) => ({
@@ -18,7 +19,7 @@ const project = {
     name: "Casa Andina",
     description: null,
     location: "Quito",
-    status: "active",
+    status: "active" as const,
     created_at: "2026-10-01T12:00:00Z",
     updated_at: "2026-10-04T12:00:00Z",
 };
@@ -73,6 +74,85 @@ beforeEach(() => {
     });
 });
 
+function trail() {
+    return screen.getByRole("navigation", { name: "Migas de pan" });
+}
+
+describe("App shell", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+        forgetProjects();
+    });
+
+    it("keeps the menu collapsed after a reload, from its toggle and from the palette", async () => {
+        const { unmount } = render(
+            <MemoryRouter>
+                <App />
+            </MemoryRouter>,
+        );
+
+        await userEvent.click(await screen.findByRole("button", { name: "Contraer el menú" }));
+        expect(window.localStorage.getItem("arquila:sidebar")).toBe("collapsed");
+        unmount();
+
+        renderAt("/");
+        expect(await screen.findByRole("button", { name: "Expandir el menú" })).toHaveAttribute(
+            "aria-expanded",
+            "false",
+        );
+
+        await userEvent.keyboard("{Control>}k{/Control}");
+        await userEvent.click(await screen.findByRole("option", { name: "Expandir el menú" }));
+        expect(window.localStorage.getItem("arquila:sidebar")).toBe("expanded");
+    });
+
+    it("finds a project already loaded in the palette, without asking the server", async () => {
+        renderAt("/terrenos");
+        await screen.findByRole("navigation", { name: "Migas de pan" });
+        rememberProjects([project]);
+
+        await userEvent.keyboard("{Control>}k{/Control}");
+        vi.mocked(request).mockClear();
+        await userEvent.type(await screen.findByRole("combobox"), "andina");
+
+        expect(await screen.findByRole("option", { name: /Casa Andina/ })).toBeInTheDocument();
+        // The screen below may still be loading its own list: what must not exist is a search.
+        expect(JSON.stringify(vi.mocked(request).mock.calls)).not.toContain("andina");
+    });
+
+    it("forgets the projects of the account at sign-out", async () => {
+        renderAt("/terrenos");
+        await screen.findByRole("navigation", { name: "Migas de pan" });
+        rememberProjects([project]);
+
+        const known = renderHook(() => useKnownProjects());
+
+        expect(known.result.current).toHaveLength(1);
+
+        await userEvent.click(screen.getAllByRole("button", { name: "Cerrar sesión" })[0]);
+
+        await waitFor(() => expect(known.result.current).toEqual([]));
+    });
+
+    it("opens the list of shortcuts with «?», and not while writing", async () => {
+        renderAt("/terrenos");
+        await screen.findByRole("navigation", { name: "Migas de pan" });
+
+        await userEvent.click(screen.getByRole("searchbox", { name: "Buscar proyectos" }));
+        await userEvent.keyboard("?");
+        expect(screen.queryByRole("dialog", { name: "Atajos de teclado" })).not.toBeInTheDocument();
+
+        await userEvent.click(document.body);
+        (document.activeElement as HTMLElement | null)?.blur();
+        await userEvent.keyboard("?");
+
+        const help = await screen.findByRole("dialog", { name: "Atajos de teclado" });
+
+        expect(help).toHaveTextContent("Abrir la paleta de comandos");
+        expect(help).toHaveTextContent("Vista isométrica");
+    });
+});
+
 describe("App routing", () => {
     it("opens a project on the tab named in the address", async () => {
         renderAt("/proyectos/7/materiales");
@@ -91,12 +171,13 @@ describe("App routing", () => {
 
         await userEvent.click(await screen.findByRole("button", { name: "Terrenos" }));
         expect(screen.getByTestId("path")).toHaveTextContent("/terrenos");
-        expect(screen.getByRole("heading", { level: 1, name: "Terrenos" })).toBeInTheDocument();
+        expect(trail()).toHaveTextContent("InicioTerrenos");
 
         act(() => void navigate(-1));
 
         expect(screen.getByTestId("path")).toHaveTextContent("/");
-        expect(screen.getByRole("heading", { level: 1, name: "Inicio" })).toBeInTheDocument();
+        expect(trail()).toHaveTextContent("Inicio");
+        expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Hola");
     });
 
     it("opens the edit form of a project from «Editar» on the dashboard", async () => {
@@ -130,16 +211,18 @@ describe("App routing", () => {
         await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
         await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
-        expect(
-            await screen.findByRole("heading", { level: 1, name: "Configuración" }),
-        ).toBeInTheDocument();
+        expect(await screen.findByRole("navigation", { name: "Migas de pan" })).toHaveTextContent(
+            "Configuración",
+        );
         expect(screen.getByTestId("path")).toHaveTextContent("/configuracion");
     });
 
-    it("takes Nuevo proyecto to the creation form with the cursor in its name", async () => {
+    it("takes «Crear un proyecto» of the palette to the form, with the cursor in its name", async () => {
         renderAt("/terrenos");
+        await screen.findByRole("navigation", { name: "Migas de pan" });
 
-        await userEvent.click(await screen.findByRole("button", { name: "Nuevo proyecto" }));
+        await userEvent.keyboard("{Control>}k{/Control}");
+        await userEvent.click(await screen.findByRole("option", { name: "Crear un proyecto" }));
 
         expect(screen.getByTestId("path")).toHaveTextContent("/proyectos");
         expect(await screen.findByLabelText("Nombre")).toHaveFocus();
@@ -167,17 +250,24 @@ describe("App routing", () => {
         reachable = true;
         await userEvent.click(screen.getByRole("button", { name: "Reintentar" }));
 
-        expect(
-            await screen.findByRole("heading", { level: 1, name: "Inicio" }),
-        ).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Hola");
     });
 
     it("says so when the address is not a screen of the app", async () => {
         renderAt("/no-existe");
 
         expect(
-            await screen.findByRole("heading", { name: "Página no encontrada" }),
+            await screen.findByRole("heading", { level: 1, name: "Página no encontrada" }),
         ).toBeInTheDocument();
+    });
+
+    it("gives every screen one level-one heading, and the project its own", async () => {
+        renderAt("/proyectos/7/materiales");
+
+        expect(
+            await screen.findByRole("heading", { level: 1, name: "Casa Andina" }),
+        ).toBeInTheDocument();
+        expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     });
 
     it("rewrites the old address of the 3D model", async () => {

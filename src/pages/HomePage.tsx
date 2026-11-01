@@ -241,9 +241,9 @@ export function HomePage({
                 <div className={styles.copy}>
                     <BlueprintGrid className={styles.heroGrid} />
                     <span className={styles.eyebrow}>Tu espacio de trabajo</span>
-                    <h2 id="home-greeting" className={styles.greeting}>
+                    <h1 id="home-greeting" className={styles.greeting}>
                         Hola, {user.name}
-                    </h2>
+                    </h1>
                     <p className={styles.lead}>
                         Proyectos, terrenos, planos, materiales y modelo 3D en un solo lugar, con un
                         asistente que conoce cada proyecto.

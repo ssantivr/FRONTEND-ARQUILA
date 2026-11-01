@@ -25,7 +25,7 @@ const THEMES: readonly Segment<ThemePreference>[] = [
 ];
 
 /** Where the sidebar gives way to this bar; the same width as in the style sheets. */
-export const PHONE_QUERY = "(max-width: 720px)";
+export const PHONE_QUERY = "(max-width: 767px)";
 
 interface MobileNavProps {
     current: View | null;
@@ -39,7 +39,7 @@ interface MobileNavProps {
 }
 
 /**
- * The navigation of small screens (up to 720 px, where the sidebar is hidden): a bar at the
+ * The navigation of small screens (under 768 px, where the sidebar is hidden): a bar at the
  * bottom with the four main modules and «Más», which opens the menu. The menu is the sidebar in a
  * drawer, with the theme and the account; the menu button of the top bar opens it too.
  */

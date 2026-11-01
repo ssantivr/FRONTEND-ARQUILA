@@ -83,35 +83,39 @@
     text-overflow: ellipsis;
 }
 
-/* The open module: a rule at the edge, the icon in the accent and a raised band behind. */
+/* The open module: a 2 px rule at the edge and the icon in the accent, without a fill. */
 .item[aria-current="page"]::before {
     position: absolute;
     top: var(--space-2);
     bottom: var(--space-2);
     left: calc(-1 * var(--space-3));
-    width: 3px;
-    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    width: var(--space-0);
     content: "";
 }
 
 /* ---- On the forest band ---- */
 
 .sidebar .groupLabel {
-    color: var(--brand-forest-text);
+    color: var(--text-muted);
 }
 
-.sidebar .item:hover,
-.sidebar .item[aria-current="page"] {
+.sidebar .item:hover {
     background: var(--brand-forest-raised);
     color: var(--white);
 }
 
+/* The active item is told by its 2 px mark and its weight, without a fill. */
+.sidebar .item[aria-current="page"] {
+    color: var(--white);
+    font-weight: var(--weight-semibold);
+}
+
 .sidebar .item[aria-current="page"]::before {
-    background: var(--brand-lime);
+    background: var(--accent);
 }
 
 .sidebar .item[aria-current="page"] :global(.icon) {
-    color: var(--brand-lime);
+    color: var(--accent-text);
 }
 
 .sidebar .item:focus-visible {
@@ -135,12 +139,12 @@
 }
 
 .surface .item[aria-current="page"] {
-    background: var(--color-action-soft);
+    font-weight: var(--weight-semibold);
 }
 
 .surface .item[aria-current="page"]::before {
     left: 0;
-    background: var(--color-accent-hi);
+    background: var(--accent);
 }
 
 .surface .item[aria-current="page"] :global(.icon) {
@@ -192,7 +196,7 @@
     white-space: nowrap;
 }
 
-/* ---- Only the icons: collapsed, or between 721 and 1024 px ---- */
+/* ---- Only the icons: collapsed, or between 768 and 1024 px ---- */
 
 .iconsOnly .label,
 .iconsOnly .groupLabel,
@@ -238,7 +242,7 @@
     animation: fade-in var(--dur-fast) var(--ease-out) both;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
     .sidebar {
         display: none;
     }
