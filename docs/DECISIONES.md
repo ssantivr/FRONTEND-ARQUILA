@@ -250,3 +250,7 @@ Medición: 695 clases en las 30 hojas; se borró una clase solo si su nombre no 
 - `rich.css`: card-list-rows, continue-card, continue-cover, empty-art, empty-title, list-count, quick-list, quick-main, sidebar-item, status-bar
 - `numbers.css`: metric-value, range-value, status-legend
 - `navigation.css`: bar-progress, continue-card, global-search-commands, home-row-arriving, hud-save, menu-items, sidebar-item, sidebar-section, sidebar-tip, status-card
+
+### Registro neutral, con una deuda (31 de octubre)
+
+`POST /auth/register` responde 202 sin cuerpo ni sesión, exista o no el correo, y la pantalla inicia sesión justo después. **La respuesta no es neutral del todo:** quien registre un correo y luego intente entrar con esa contraseña puede deducir si ya existía. Se acepta por ahora. Es deuda atada a la verificación de correo (N4 de la auditoría): con ella, la cuenta solo se activa desde el correo y esa deducción desaparece.
