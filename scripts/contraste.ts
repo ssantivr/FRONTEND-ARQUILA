@@ -1,8 +1,9 @@
-// Checks the WCAG AA contrast (4.5:1) of every text/background pair of the design tokens, in the
-// light and the dark theme. Run it with:  npm run contraste
+// Checks the WCAG AA contrast of the design tokens in the light and the dark theme: 4.5:1 for every
+// text/background pair and 3:1 for the edges and marks of a control. Run it with:  npm run contraste
 import { readFileSync } from "node:fs";
 
 const MINIMUM = 4.5;
+const MINIMUM_UI = 3;
 const css = readFileSync(new URL("../src/styles/tokens.css", import.meta.url), "utf8").replace(
     /\r\n/g,
     "\n",
@@ -77,20 +78,19 @@ const TEXTS = [
     "color-text-muted",
     "color-action",
     "color-accent-hi",
+    "accent-text",
+    "mineral-text",
     "color-success",
     "color-warning",
     "color-danger",
     "color-info",
 ];
-// In light, secondary text (#68736b) falls short on the sunken surface (4.33:1) and on every tint
-// (3.64 to 4.48:1), so it is not used there: those places take --color-text-muted, checked below.
-// This script checks the tokens, not where the style sheets use them; `npm run accesibilidad`,
-// which renders the screens, is what sees a rule that breaks this.
-const SKIPPED = new Set(["color-text-secondary/color-surface-sunken"]);
+// In light, secondary text falls short on the tints (from 4.0:1), so it is not used there: those
+// places take --color-text-muted, checked below. This script checks the tokens, not where the style
+// sheets use them; `npm run accesibilidad`, which renders the screens, is what sees a rule that
+// breaks this.
 const PAIRS = [
-    ...TEXTS.flatMap((text) => SURFACES.map((surface) => [text, surface])).filter(
-        ([text, surface]) => !SKIPPED.has(`${text}/${surface}`),
-    ),
+    ...TEXTS.flatMap((text) => SURFACES.map((surface) => [text, surface])),
     ...["color-text", "color-text-muted"].flatMap((text) =>
         TINTS.flatMap((tint) => SURFACES.map((surface) => [text, `${tint}+${surface}`])),
     ),
@@ -109,36 +109,46 @@ const PAIRS = [
     ["band-info", "brand-forest"],
     ["scene-text", "scene-panel"],
 ];
+// What must be seen but is not text: the edge of a field, the focus outline, an icon.
+const UI = ["color-border-strong", "color-focus", "accent-text", "mineral-text"];
+const UI_PAIRS = UI.flatMap((mark) => SURFACES.map((surface) => [mark, surface]));
 
 let failures = 0;
 
 for (const [theme, tokens] of Object.entries(themes)) {
     console.log(`Tema ${theme}:`);
 
-    for (const [text, background] of PAIRS) {
-        if (tokens[text] === undefined || tokens[background] === undefined) {
-            failures += 1;
-            console.log(`  FALLA  falta --${tokens[text] === undefined ? text : background}`);
-            continue;
+    for (const [pairs, minimum] of [
+        [PAIRS, MINIMUM],
+        [UI_PAIRS, MINIMUM_UI],
+    ] as const) {
+        for (const [text, background] of pairs) {
+            if (tokens[text] === undefined || tokens[background] === undefined) {
+                failures += 1;
+                console.log(`  FALLA  falta --${tokens[text] === undefined ? text : background}`);
+                continue;
+            }
+
+            const value = ratio(tokens[text], tokens[background]);
+            const ok = value >= minimum;
+
+            failures += ok ? 0 : 1;
+            console.log(
+                `  ${ok ? "ok   " : "FALLA"} ${value.toFixed(2).padStart(5)}:1  --${text} sobre --${background} (mínimo ${minimum})`,
+            );
         }
-
-        const value = ratio(tokens[text], tokens[background]);
-        const ok = value >= MINIMUM;
-
-        failures += ok ? 0 : 1;
-        console.log(
-            `  ${ok ? "ok   " : "FALLA"} ${value.toFixed(2).padStart(5)}:1  --${text} sobre --${background}`,
-        );
     }
 }
 
-// Not a pair the interface uses: it is the reason lime is never text on a light surface.
-const lime = ratio(themes.claro["color-accent"], themes.claro["color-surface"]);
+// Not a pair the interface uses: it is the reason terracotta is never text on stone.
+const terracotta = ratio(themes.claro["color-accent"], themes.claro["color-bg"]);
 
-console.log(`Referencia: lima sobre blanco ${lime.toFixed(2)}:1 (en claro, solo como relleno).`);
+console.log(
+    `Referencia: terracota sobre piedra ${terracotta.toFixed(2)}:1 (en claro, solo como relleno).`,
+);
 console.log(
     failures === 0
-        ? `Todos los pares llegan a ${MINIMUM}:1.`
-        : `${failures} pares no llegan a ${MINIMUM}:1.`,
+        ? `Todos los pares llegan al mínimo (texto ${MINIMUM}:1, interfaz ${MINIMUM_UI}:1).`
+        : `${failures} pares no llegan al mínimo.`,
 );
 process.exitCode = failures === 0 ? 0 : 1;

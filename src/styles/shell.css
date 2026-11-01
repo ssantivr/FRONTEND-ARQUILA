@@ -1,6 +1,6 @@
 .site-plan svg {
     max-width: 640px;
-    border: 1px solid var(--border);
+    border: var(--border-w) solid var(--border);
     border-radius: var(--radius-sm);
 }
 
@@ -10,7 +10,7 @@
 
 .diagram-lot {
     fill: var(--accent-soft);
-    stroke: var(--accent);
+    stroke: var(--accent-text);
     stroke-width: 1.5;
 }
 
@@ -66,7 +66,7 @@
 .row-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .row-editing td {
@@ -82,7 +82,7 @@
 }
 
 .shell-collapsed {
-    --sidebar-width: 68px;
+    --sidebar-width: var(--sidebar-collapsed);
 }
 
 .workspace {
@@ -93,36 +93,28 @@
     width: 100%;
 }
 
-/* The navigation keeps the deep forest green in both themes: it is the brand's constant. */
+/* The navigation keeps the graphite in both themes: it is the brand's constant. */
 .sidebar {
     position: sticky;
     top: 0;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--space-5);
     height: 100vh;
-    padding: 18px 12px;
+    padding: var(--space-4) var(--space-3);
     overflow: hidden auto;
     color: var(--forest-text);
     background: var(--forest);
 }
 
-.sidebar .brand {
-    min-height: 28px;
-    padding: 0 8px;
-    overflow: hidden;
-    color: var(--white);
-    white-space: nowrap;
-}
-
 .sidebar-nav {
     display: grid;
-    gap: 2px;
+    gap: var(--space-0);
 }
 
 .sidebar-foot {
     display: grid;
-    gap: 2px;
+    gap: var(--space-0);
     margin-top: auto;
 }
 
@@ -136,9 +128,9 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-height: 40px;
-    padding: 9px 12px;
+    gap: var(--space-3);
+    min-height: var(--control-md);
+    padding: var(--space-2) var(--space-3);
     overflow: hidden;
     color: var(--forest-text);
     font-weight: 500;
@@ -150,7 +142,7 @@
 
 .sidebar-item:hover:not(:disabled) {
     color: var(--white);
-    background: rgba(255, 255, 255, 0.07);
+    background: var(--on-dark-hover);
 }
 
 .sidebar-item:focus-visible {
@@ -166,10 +158,10 @@
 .sidebar-item[aria-current="page"]::before {
     content: "";
     position: absolute;
-    inset: 9px auto 9px 0;
+    inset: var(--space-2) auto var(--space-2) 0;
     width: 3px;
     background: var(--lime);
-    border-radius: 0 3px 3px 0;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .sidebar-item[aria-current="page"] .icon {
@@ -184,29 +176,24 @@
     clip-path: inset(50%);
 }
 
-.shell-collapsed .sidebar .brand {
-    gap: 0;
-    font-size: 0;
-}
-
-.shell-collapsed .sidebar-toggle .icon {
+.shell-collapsed .shell-collapsed .sidebar-toggle .icon {
     transform: rotate(180deg);
 }
 
 .metrics {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .metric {
     position: relative;
     display: grid;
     align-content: start;
-    gap: 4px;
-    padding: 18px 16px 16px;
+    gap: var(--space-1);
+    padding: var(--space-4) var(--space-4) var(--space-4);
     background: var(--panel-raised);
-    border: 1px solid var(--border);
+    border: var(--border-w) solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
 }
@@ -245,7 +232,7 @@
         display: flex;
         height: auto;
         border-width: 0 0 1px;
-        padding: 8px 16px 0;
+        padding: var(--space-2) var(--space-4) 0;
         overflow-x: auto;
     }
 }
@@ -278,14 +265,14 @@
 
 .diagram-controls {
     display: grid;
-    gap: 8px;
-    margin-top: 8px;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
 }
 
 .diagram-controls fieldset {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 12px;
+    gap: var(--space-1) var(--space-3);
     margin: 0;
     padding: 0;
     border: 0;
@@ -304,7 +291,7 @@
 .checkbox {
     flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-2);
     color: var(--text);
 }
 
@@ -338,16 +325,16 @@
     }
 
     tbody tr {
-        padding: 8px 0;
-        border-bottom: 1px solid var(--border);
+        padding: var(--space-2) 0;
+        border-bottom: var(--border-w) solid var(--border);
     }
 
     td {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        gap: 12px;
-        padding: 4px 0;
+        gap: var(--space-3);
+        padding: var(--space-1) 0;
         text-align: right;
         white-space: normal;
         border: 0;
@@ -363,7 +350,7 @@
     tfoot tr {
         display: flex;
         justify-content: space-between;
-        padding: 8px 0;
+        padding: var(--space-2) 0;
     }
 
     tfoot th {
@@ -399,11 +386,11 @@
 .button-ghost {
     color: var(--white);
     background: transparent;
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--on-dark-edge);
 }
 
 .button-ghost:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--on-dark-pressed);
     border-color: var(--white);
 }
 
@@ -453,7 +440,7 @@
 
 .art-line {
     fill: none;
-    stroke: rgba(255, 255, 255, 0.16);
+    stroke: var(--on-dark-line);
     stroke-width: 1;
 }
 
@@ -473,12 +460,12 @@
 
 .project-picker {
     max-width: 320px;
-    margin: 12px 0;
+    margin: var(--space-3) 0;
 }
 
 .bar-list {
     display: grid;
-    gap: 10px;
+    gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -488,7 +475,7 @@
     display: grid;
     grid-template-columns: minmax(90px, 160px) 1fr auto;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .bar {
@@ -508,8 +495,8 @@
 .definition-list {
     display: grid;
     grid-template-columns: max-content 1fr;
-    gap: 8px 20px;
-    margin: 0 0 14px;
+    gap: var(--space-2) var(--space-5);
+    margin: 0 0 var(--space-3);
 }
 
 .definition-list dt {
@@ -522,11 +509,11 @@
 }
 
 code {
-    padding: 1px 5px;
+    padding: 1px var(--space-1);
     font-size: 0.9em;
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    border: var(--border-w) solid var(--border);
+    border-radius: var(--radius-sm);
 }
 
 .badge-priority-high {
@@ -544,12 +531,12 @@ code {
 .suggestions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
 }
 
 .suggestion {
-    padding: 6px 12px;
+    padding: var(--space-2) var(--space-3);
     color: var(--text-secondary);
     font-weight: 400;
     font-size: var(--fs-13);
@@ -557,8 +544,8 @@ code {
 }
 
 .suggestion:hover:not(:disabled) {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent-text);
 }
 
 .floor-plan svg {

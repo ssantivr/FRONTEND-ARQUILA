@@ -148,7 +148,7 @@
 }
 
 .plan-grid line {
-    stroke: var(--accent);
+    stroke: var(--accent-text);
     stroke-width: 1;
     opacity: 0.16;
     vector-effect: non-scaling-stroke;

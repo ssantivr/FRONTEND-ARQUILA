@@ -26,6 +26,8 @@ const SEMANTIC = [
     "color-border",
     "color-accent",
     "color-accent-hi",
+    "accent-text",
+    "mineral-text",
     "color-on-accent",
     "color-action",
     "color-focus",
@@ -51,19 +53,27 @@ describe("design tokens", () => {
         }
 
         // The dark theme is designed on its own, not the light one inverted or copied.
-        expect(dark).toMatch(/--color-bg:\s*#050f0b/);
-        expect(light).toMatch(/--color-bg:\s*#f4f6f2/);
+        expect(dark).toMatch(/--color-bg:\s*#171918/);
+        expect(light).toMatch(/--color-bg:\s*#e8e4da/);
     });
 
     it("keep the brand palette of ARQUILA", () => {
-        for (const hex of ["#0b211a", "#12382a", "#236b42", "#b8f36b"]) {
+        for (const hex of ["#171918", "#e8e4da", "#d66a3d", "#89968c"]) {
             expect(css.toLowerCase()).toContain(hex);
         }
     });
 
+    it("name the design's semantic tokens as aliases, with the fill apart from the text", () => {
+        expect(css).toMatch(/--accent:\s*var\(--color-accent\)/);
+        expect(css).toMatch(/--accent-contrast:\s*var\(--color-on-accent\)/);
+        expect(css).toMatch(/--surface:\s*var\(--color-surface\)/);
+        expect(css).toMatch(/--surface-2:\s*var\(--color-surface-raised\)/);
+        expect(css).toMatch(/--danger:\s*var\(--color-danger\)/);
+    });
+
     it("follow a dark system before the script has chosen a theme", () => {
         expect(css).toMatch(
-            /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme\]\)\s*\{[^}]*--color-bg:\s*#050f0b/,
+            /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme\]\)\s*\{[^}]*--color-bg:\s*#171918/,
         );
     });
 
@@ -76,7 +86,14 @@ describe("design tokens", () => {
             "shadow-2",
             "dur-fast",
             "dur",
+            "dur-base",
             "dur-slow",
+            "border-w",
+            "radius-0",
+            "space-12",
+            "shadow-thumb",
+            "font-display",
+            "leading-normal",
         ]) {
             expect(css, name).toMatch(new RegExp(`--${name}:`));
         }

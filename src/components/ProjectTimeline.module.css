@@ -98,7 +98,7 @@
 }
 
 .groupTitle button:hover {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: underline;
     background: none;
 }
@@ -149,8 +149,8 @@
 }
 
 .status[data-status="in_progress"] {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent-text);
 }
 
 .status[data-status="completed"] {
@@ -166,7 +166,7 @@
     width: max(4px, calc(var(--to) - var(--at)));
     height: 12px;
     background: var(--panel);
-    border: 1.5px solid var(--accent);
+    border: 1.5px solid var(--accent-text);
     border-radius: 3px;
     transform: translateY(-50%);
 }
@@ -193,7 +193,7 @@
     width: 11px;
     height: 11px;
     background: var(--panel);
-    border: 1.5px solid var(--accent);
+    border: 1.5px solid var(--accent-text);
     transform: translate(-50%, -50%) rotate(45deg);
 }
 
@@ -254,14 +254,14 @@
 .legendBar {
     width: 20px;
     height: 10px;
-    border: 1.5px solid var(--accent);
+    border: 1.5px solid var(--accent-text);
     border-radius: 3px;
 }
 
 .legendPoint {
     width: 9px;
     height: 9px;
-    border: 1.5px solid var(--accent);
+    border: 1.5px solid var(--accent-text);
     transform: rotate(45deg);
 }
 

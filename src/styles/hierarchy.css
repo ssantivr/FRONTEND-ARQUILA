@@ -85,7 +85,7 @@ input:is([type="checkbox"], [type="radio"], [type="range"]) {
     width: 8px;
     height: 8px;
     background: var(--lime);
-    border: 2px solid var(--accent);
+    border: 2px solid var(--accent-text);
     border-radius: 50%;
 }
 

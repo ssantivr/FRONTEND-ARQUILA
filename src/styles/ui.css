@@ -1,7 +1,7 @@
 /* Shared components of src/components/ui, and the user's reduced-motion switch. */
 
 .button-tertiary {
-    color: var(--accent);
+    color: var(--accent-text);
     background: transparent;
     border-color: transparent;
 }

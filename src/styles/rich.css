@@ -70,7 +70,7 @@ button:not([class]):hover:not(:disabled) {
 }
 
 .project-grid:not(.card-list-rows) .project-item:hover {
-    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    border-color: color-mix(in srgb, var(--accent-text) 55%, var(--border));
     box-shadow: var(--shadow-float);
     transform: translateY(-2px);
 }

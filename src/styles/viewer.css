@@ -367,7 +367,7 @@
 .hud-toolbar .hud-field input[type="range"] {
     width: 96px;
     padding: 0;
-    accent-color: var(--accent);
+    accent-color: var(--accent-text);
 }
 
 .hud-tour {
@@ -442,7 +442,7 @@
 .hud-work-layers .checkbox {
     display: flex;
     gap: 4px;
-    accent-color: var(--accent);
+    accent-color: var(--accent-text);
 }
 
 .hud-work-layers .hud-swatch {
@@ -471,7 +471,7 @@
 .hud-toolbar .checkbox {
     display: flex;
     white-space: nowrap;
-    accent-color: var(--accent);
+    accent-color: var(--accent-text);
 }
 
 .hud-item:hover:not(:disabled) {
@@ -480,10 +480,10 @@
 }
 
 .hud-item[aria-pressed="true"] {
-    color: var(--accent);
+    color: var(--accent-text);
     font-weight: 600;
     background: var(--accent-soft);
-    border-color: var(--accent);
+    border-color: var(--accent-text);
 }
 
 @media (max-width: 720px) {

@@ -98,7 +98,7 @@
 
 .option[aria-selected="true"] {
     background: var(--accent-soft);
-    box-shadow: inset 2px 0 0 var(--accent);
+    box-shadow: inset 2px 0 0 var(--accent-text);
 }
 
 .option :global(.icon) {

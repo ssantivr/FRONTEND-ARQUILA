@@ -3,13 +3,14 @@
  * sheets and the components only name them. Movement explains a change (what appeared, what
  * moved, what was saved): it animates `transform` and `opacity` only, so nothing shifts the layout.
  *
- * Durations are in tokens.css: --dur-fast 120 ms (hover, focus, press), --dur 180 ms (panels,
+ * Durations are in tokens.css: --dur-fast 150 ms (hover, focus, press), --dur 220 ms (panels,
  * menus, tooltips) and --dur-slow 240 ms (dialogs, screen changes). Nothing of the interface runs
  * longer; only a presentation (--dur-show: a chart or a model drawing itself in) may.
  */
 
 :root {
     /* Entrances decelerate, exits accelerate, and moves between two states do both. */
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
     --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);

@@ -96,7 +96,7 @@
 
 .interior-level {
     padding-left: 10px;
-    color: var(--accent);
+    color: var(--accent-text);
     border-left: 1px solid var(--glass-border);
 }
 
@@ -137,10 +137,10 @@
 }
 
 .interior-button[aria-pressed="true"] {
-    color: var(--accent);
+    color: var(--accent-text);
     font-weight: 600;
     background: var(--accent-soft);
-    border-color: var(--accent);
+    border-color: var(--accent-text);
 }
 
 .interior-hint {

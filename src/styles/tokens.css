@@ -1,61 +1,69 @@
 /*
- * Design tokens of ARQUILA, «Blueprint premium». Every colour, size, radius, shadow and duration
- * of the interface is defined here; style sheets and components only name these variables.
+ * Design tokens of ARQUILA FUTURE STUDIO. Every colour, size, radius, shadow and duration of the
+ * interface is defined here; style sheets and components only name these variables.
  * `npm run contraste` reads this file and checks every text/background pair of both themes.
  *
- * Two levels:
+ * Three levels:
  *   1. Theme: what each colour is for (--color-*, --shadow-*), once for light and once for dark.
  *      The values are written out here so `npm run contraste` can check them.
  *   2. Scales: brand, type, space, radii, controls, layers and motion, the same in both themes.
+ *   3. Short semantic names (--accent, --surface, --text-muted...), aliases of the first two.
  *
- * The lime accent is for main actions, selection, progress and active states. On a light
- * background it is not readable as text (1.31:1): there it is only a fill, with --color-on-accent
- * text. On a dark background it may be text or an outline.
+ * Palette: graphite #171918, stone #e8e4da, terracotta #d66a3d (the only accent, for actions and
+ * selection) and mineral #89968c (data, edges and neutral states).
+ *
+ * Terracotta is a fill on stone: it reaches 2.76:1 there, so as text, edge or focus the light
+ * theme uses --accent-text, and mineral uses --mineral-text. Text on a terracotta fill is always
+ * graphite (5.04:1). In dark, both colours are readable as they are.
  */
 
 /* ---- 1. Theme: light (the default) ---- */
 :root,
 [data-theme="light"] {
     /* Surfaces, from the page to what floats above it. */
-    --color-bg: #f4f6f2;
-    --color-surface: #ffffff;
-    --color-surface-raised: #f8faf6;
-    --color-surface-sunken: #eef1ec;
-    --color-surface-inverse: #0b211a;
-    --color-border: #dfe5de;
-    --color-border-strong: #8a968d;
-    --color-hover: rgba(23, 33, 27, 0.05);
-    --color-pressed: rgba(23, 33, 27, 0.09);
-    --color-scrim: rgba(5, 15, 11, 0.56);
+    --color-bg: #e8e4da;
+    --color-surface: #f5f2eb;
+    --color-surface-raised: #efebe2;
+    --color-surface-sunken: #dfdace;
+    --color-surface-inverse: #171918;
+    --color-border: #cfc9bb;
+    --color-border-strong: #737e76;
+    --color-hover: rgba(23, 25, 24, 0.05);
+    --color-pressed: rgba(23, 25, 24, 0.09);
+    --color-scrim: rgba(23, 25, 24, 0.56);
 
     /* Text */
-    --color-text: #17211b;
-    --color-text-secondary: #68736b;
-    --color-text-muted: #545f57;
-    --color-text-inverse: #eef3ee;
+    --color-text: #171918;
+    --color-text-secondary: #5a625c;
+    --color-text-muted: #4f5751;
+    --color-text-inverse: #e8e4da;
 
-    /* Interaction: green for links, focus and secondary emphasis; lime fill for the main action. */
-    --color-action: #236b42;
-    --color-action-hover: #1d5c38;
+    /* Terracotta and mineral where they must be read: text, edges, icons and focus. */
+    --accent-text: #964a2b;
+    --mineral-text: #5a625c;
+
+    /* Interaction: dark terracotta for links, focus and secondary emphasis; the fill for the main
+       action. */
+    --color-action: #964a2b;
+    --color-action-hover: #7f3e24;
     --color-on-action: #ffffff;
-    --color-action-soft: rgba(35, 107, 66, 0.1);
-    --color-accent: #b8f36b;
-    --color-accent-hover: #a6e655;
-    --color-on-accent: #0b211a;
-    --color-accent-edge: rgba(11, 33, 26, 0.22);
-    /* The accent where it must be seen as a line, an icon or text on this theme's surfaces. Lime
-       cannot (1.31:1 on paper), so in light it is the interaction green. */
-    --color-accent-hi: #236b42;
-    /* The selection outline: lime needs a dark keyline beside it to be seen on paper. */
-    --color-selection: #b8f36b;
-    --color-selection-keyline: #0b211a;
-    --color-focus: #236b42;
+    --color-action-soft: rgba(150, 74, 43, 0.1);
+    --color-accent: #d66a3d;
+    --color-accent-hover: #e07c52;
+    --color-on-accent: #171918;
+    --color-accent-edge: rgba(23, 25, 24, 0.22);
+    /* The accent where it must be seen as a line, an icon or text on this theme's surfaces. */
+    --color-accent-hi: #964a2b;
+    /* The selection outline: the fill needs a dark keyline beside it to be seen on stone. */
+    --color-selection: #d66a3d;
+    --color-selection-keyline: #171918;
+    --color-focus: #964a2b;
 
     /* States: always with an icon or a word next to the colour. */
-    --color-success: #1a7145;
-    --color-success-soft: rgba(26, 113, 69, 0.1);
-    --color-warning: #8a5d00;
-    --color-warning-soft: rgba(138, 93, 0, 0.1);
+    --color-success: #196d43;
+    --color-success-soft: rgba(25, 109, 67, 0.1);
+    --color-warning: #825800;
+    --color-warning-soft: rgba(130, 88, 0, 0.1);
     --color-danger: #b3261e;
     --color-danger-soft: rgba(179, 38, 30, 0.08);
     --color-on-danger: #ffffff;
@@ -63,52 +71,56 @@
     --color-info-soft: rgba(36, 89, 168, 0.08);
 
     /* The blueprint motif: technical grid, dimension lines and corner marks. */
-    --color-grid-minor: rgba(35, 107, 66, 0.07);
-    --color-grid-major: rgba(35, 107, 66, 0.13);
-    --color-drawing: rgba(23, 33, 27, 0.42);
+    --color-grid-minor: rgba(90, 98, 92, 0.07);
+    --color-grid-major: rgba(90, 98, 92, 0.13);
+    --color-drawing: rgba(23, 25, 24, 0.42);
 
     /* Shadows: edges come from the 1 px borders; shadows only lift what floats. */
-    --shadow-1: 0 1px 2px rgba(11, 33, 26, 0.05);
-    --shadow-2: 0 1px 2px rgba(11, 33, 26, 0.06), 0 8px 20px -10px rgba(11, 33, 26, 0.2);
-    --shadow-3: 0 2px 4px rgba(11, 33, 26, 0.06), 0 18px 40px -16px rgba(11, 33, 26, 0.32);
-    --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #236b42;
+    --shadow-1: 0 1px 2px rgba(23, 25, 24, 0.05);
+    --shadow-2: 0 1px 2px rgba(23, 25, 24, 0.06), 0 8px 20px -10px rgba(23, 25, 24, 0.2);
+    --shadow-3: 0 2px 4px rgba(23, 25, 24, 0.06), 0 18px 40px -16px rgba(23, 25, 24, 0.32);
+    --focus-ring: 0 0 0 2px #f5f2eb, 0 0 0 4px #964a2b;
 
     color-scheme: light;
 }
 
 /* ---- 1. Theme: dark, the CAD/BIM environment ---- */
-/* It is designed on its own, not inverted: levels of deep green and lime only where it matters.
-   The interior walkthrough is a dusk scene, so its overlays keep these tokens in both themes. */
+/* Graphite is the base. The raised surface stops at #202322: any lighter and terracotta, which
+   does not change here, falls under 4.5:1 as text on it. The interior walkthrough is a dusk scene,
+   so its overlays keep these tokens in both themes. */
 [data-theme="dark"],
 .interior-stage {
-    --color-bg: #050f0b;
-    --color-surface: #0b1d16;
-    --color-surface-raised: #10291f;
-    --color-surface-sunken: #07140f;
-    --color-surface-inverse: #f4f6f2;
-    --color-border: #1f4434;
-    --color-border-strong: #4f7a65;
-    --color-hover: rgba(238, 243, 238, 0.06);
-    --color-pressed: rgba(238, 243, 238, 0.1);
+    --color-bg: #171918;
+    --color-surface: #1c1f1e;
+    --color-surface-raised: #202322;
+    --color-surface-sunken: #121413;
+    --color-surface-inverse: #e8e4da;
+    --color-border: #303432;
+    --color-border-strong: #89968c;
+    --color-hover: rgba(232, 228, 218, 0.06);
+    --color-pressed: rgba(232, 228, 218, 0.1);
     --color-scrim: rgba(0, 0, 0, 0.62);
 
-    --color-text: #eef3ee;
-    --color-text-secondary: #a6b8ab;
-    --color-text-muted: #a6b8ab;
-    --color-text-inverse: #17211b;
+    --color-text: #e8e4da;
+    --color-text-secondary: #a9b3ab;
+    --color-text-muted: #a9b3ab;
+    --color-text-inverse: #171918;
 
-    --color-action: #b8f36b;
-    --color-action-hover: #c9f78d;
-    --color-on-action: #0b211a;
-    --color-action-soft: rgba(184, 243, 107, 0.1);
-    --color-accent: #b8f36b;
-    --color-accent-hover: #c9f78d;
-    --color-on-accent: #0b211a;
-    --color-accent-edge: rgba(184, 243, 107, 0);
-    --color-accent-hi: #b8f36b;
-    --color-selection: #b8f36b;
-    --color-selection-keyline: #050f0b;
-    --color-focus: #b8f36b;
+    --accent-text: #d66a3d;
+    --mineral-text: #89968c;
+
+    --color-action: #d66a3d;
+    --color-action-hover: #e07c52;
+    --color-on-action: #171918;
+    --color-action-soft: rgba(214, 106, 61, 0.12);
+    --color-accent: #d66a3d;
+    --color-accent-hover: #e07c52;
+    --color-on-accent: #171918;
+    --color-accent-edge: rgba(214, 106, 61, 0);
+    --color-accent-hi: #d66a3d;
+    --color-selection: #d66a3d;
+    --color-selection-keyline: #121413;
+    --color-focus: #d66a3d;
 
     --color-success: #6fdc9b;
     --color-success-soft: rgba(111, 220, 155, 0.1);
@@ -120,14 +132,14 @@
     --color-info: #8ab4ff;
     --color-info-soft: rgba(138, 180, 255, 0.1);
 
-    --color-grid-minor: rgba(184, 243, 107, 0.045);
-    --color-grid-major: rgba(184, 243, 107, 0.09);
-    --color-drawing: rgba(196, 214, 201, 0.5);
+    --color-grid-minor: rgba(137, 150, 140, 0.05);
+    --color-grid-major: rgba(137, 150, 140, 0.1);
+    --color-drawing: rgba(232, 228, 218, 0.5);
 
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.32);
     --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 24px -12px rgba(0, 0, 0, 0.6);
     --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.36), 0 20px 44px -16px rgba(0, 0, 0, 0.72);
-    --focus-ring: 0 0 0 2px #050f0b, 0 0 0 4px #b8f36b;
+    --focus-ring: 0 0 0 2px #171918, 0 0 0 4px #d66a3d;
 
     color-scheme: dark;
 }
@@ -138,37 +150,38 @@
    system in dark mode gets a dark page instead of a white flash. */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
-        --color-bg: #050f0b;
-        --color-text: #eef3ee;
+        --color-bg: #171918;
+        --color-text: #e8e4da;
         color-scheme: dark;
     }
 }
 
 /* ---- 2. Scales, the same in both themes ---- */
 :root {
-    /* Brand surfaces that do not change with the theme: the forest of the sidebar and the bands. */
-    --brand-forest: #0b211a;
-    --brand-forest-raised: #12382a;
-    --brand-forest-text: #d5e2d8;
-    --brand-lime: #b8f36b;
-    --brand-lime-hover: #c9f78d;
-    --brand-on-lime: #0b211a;
-    /* States on the forest band (toasts), which is dark in both themes. */
+    /* Brand surfaces that do not change with the theme: the graphite of the sidebar and the
+       bands, and terracotta on them. The forest and lime names stay until phase 6. */
+    --brand-forest: #171918;
+    --brand-forest-raised: #202322;
+    --brand-forest-text: #e8e4da;
+    --brand-lime: #d66a3d;
+    --brand-lime-hover: #e07c52;
+    --brand-on-lime: #171918;
+    /* States on the graphite band (toasts), which is dark in both themes. */
     --band-danger: #ff8a80;
     --band-info: #8ab4ff;
     --white: #ffffff;
     /* The faces of the isometric mark: top, left and right. */
-    --brand-face-top: #b8f36b;
-    --brand-face-left: #8fcf4c;
-    --brand-face-right: #236b42;
+    --brand-face-top: #d66a3d;
+    --brand-face-left: #a9502c;
+    --brand-face-right: #89968c;
 
     /* Overlays of the 3D scene, which are dark in both themes. */
-    --scene-text: #eef3ee;
-    --scene-panel: #08160f;
-    --scene-ground: #06110c;
+    --scene-text: #e8e4da;
+    --scene-panel: #121413;
+    --scene-ground: #0e100f;
     --axis-x: #ff8a80;
     --axis-y: #8ab4ff;
-    --axis-z: #b8f36b;
+    --axis-z: #89968c;
 
     /* Type: Inter for the interface (tabular figures where data is shown), JetBrains Mono for
        coordinates and codes. Nothing below 12 px. */
@@ -176,6 +189,8 @@
     --font-mono:
         "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "Cascadia Mono", "Consolas",
         monospace;
+    --font-display: var(--font-sans);
+    --font-body: var(--font-sans);
     --text-xs: 12px;
     --text-sm: 13px;
     --text-md: 14px;
@@ -189,6 +204,7 @@
     --leading-tight: 1.1;
     --leading-snug: 1.3;
     --leading-body: 1.5;
+    --leading-normal: var(--leading-body);
     --weight-regular: 420;
     --weight-medium: 520;
     --weight-semibold: 600;
@@ -209,6 +225,8 @@
     --space-8: 48px;
     --space-9: 64px;
     --space-10: 80px;
+    --space-11: 96px;
+    --space-12: 120px;
 
     /* Radii: small and precise, like a drawing; pills only for chips and toggles. */
     --radius-xs: 2px;
@@ -217,6 +235,9 @@
     --radius-lg: 10px;
     --radius-xl: 14px;
     --radius-pill: 999px;
+    --radius-0: 0;
+    --radius-1: var(--radius-sm);
+    --radius-2: var(--radius-md);
 
     /* Controls. 44 px is the smallest target for touch. */
     --control-xs: 28px;
@@ -231,6 +252,7 @@
     --icon-md: 18px;
     --icon-lg: 22px;
     --border-width: 1px;
+    --border-w: var(--border-width);
     --keyline: 1.5px;
 
     /* Layout */
@@ -249,10 +271,20 @@
     --z-overlay: 100;
     --z-toast: 120;
 
+    /* Shadows and lines that do not change with the theme. */
+    --shadow-none: none;
+    --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.35);
+    /* Tints of white over the bands, which are dark in both themes. */
+    --on-dark-hover: rgba(255, 255, 255, 0.07);
+    --on-dark-pressed: rgba(255, 255, 255, 0.1);
+    --on-dark-line: rgba(255, 255, 255, 0.16);
+    --on-dark-edge: rgba(255, 255, 255, 0.4);
+
     /* Motion: three durations for the interface. The curves and keyframes are in motion.css. */
     --dur-instant: 80ms;
-    --dur-fast: 120ms;
-    --dur: 180ms;
+    --dur-fast: 150ms;
+    --dur: 220ms;
+    --dur-base: var(--dur);
     --dur-slow: 240ms;
 
     font-family: var(--font-sans);
@@ -270,10 +302,10 @@
 }
 
 /*
- * ---- Names of the previous design ----
- * The screens that have not been rebuilt yet still read these names. Each one points at a token
- * above, so they already take the new palette. They go away, with the sheets that use them, when
- * the last of those screens is rebuilt (phase R9); new code never uses them.
+ * ---- 3. Short names ----
+ * The semantic names of the design (--bg, --surface, --surface-2, --accent, --accent-contrast,
+ * --text-muted, --danger...) and those of the previous design. Each one points at a token above.
+ * --accent is the terracotta fill: as text, edge or focus use --accent-text.
  */
 :root,
 [data-theme="light"],
@@ -283,14 +315,16 @@
     --bg-secondary: var(--color-surface);
     --panel: var(--color-surface);
     --panel-raised: var(--color-surface-raised);
+    --surface: var(--color-surface);
+    --surface-2: var(--color-surface-raised);
     --border: var(--color-border);
     --border-strong: var(--color-border-strong);
     --viewport: var(--color-surface-sunken);
     --text: var(--color-text);
     --text-secondary: var(--color-text-secondary);
     --text-muted: var(--color-text-muted);
-    --accent: var(--color-action);
-    --accent-contrast: var(--color-on-action);
+    --accent: var(--color-accent);
+    --accent-contrast: var(--color-on-accent);
     --accent-soft: var(--color-action-soft);
     --accent-alt: var(--color-action);
     --primary: var(--color-action);
@@ -298,6 +332,7 @@
     --hover: var(--color-hover);
     --success: var(--color-success);
     --warning: var(--color-warning);
+    --danger: var(--color-danger);
     --error: var(--color-danger);
     --shadow: var(--shadow-1);
     --shadow-float: var(--shadow-2);
@@ -306,16 +341,16 @@
 }
 
 :root {
-    --vignette: rgba(11, 33, 26, 0.1);
-    --glass-border: rgba(23, 33, 27, 0.14);
+    --vignette: rgba(23, 25, 24, 0.1);
+    --glass-border: rgba(23, 25, 24, 0.14);
     --forest: var(--brand-forest);
     --forest-raised: var(--brand-forest-raised);
     --forest-text: var(--brand-forest-text);
     --lime: var(--brand-lime);
     --lime-hover: var(--brand-lime-hover);
     --lime-contrast: var(--brand-on-lime);
-    --sidebar-top: #0c261d;
-    --sidebar-bottom: #06150f;
+    --sidebar-top: #171918;
+    --sidebar-bottom: #121413;
     --scrim: var(--color-scrim);
     --on-scene: var(--scene-text);
     --viewport-deep: var(--scene-panel);
@@ -324,19 +359,19 @@
     --neon-magenta: #ff007f;
     --work-finishes: #ffc857;
     --work-demolition: #ff5c7a;
-    --art-ink: #0f2e22;
-    --art-paper: #e9eee6;
-    --art-stone: #b9c6b8;
+    --art-ink: #2b2f2d;
+    --art-paper: #e8e4da;
+    --art-stone: #b8b3a6;
     --art-wood: #a8794f;
-    --art-glass: #7fb2a0;
-    --art-leaf: #236b42;
-    --art-leaf-light: #2f8a56;
-    --art-hill: #17432f;
-    --cover-1: #0d2a20;
-    --cover-2: #0f3024;
-    --cover-3: #0b241b;
-    --cover-4: #11362a;
-    --cover-line: #e3efe5;
+    --art-glass: #89968c;
+    --art-leaf: #5a625c;
+    --art-leaf-light: #737e76;
+    --art-hill: #202322;
+    --cover-1: #1c1f1e;
+    --cover-2: #202322;
+    --cover-3: #171918;
+    --cover-4: #232625;
+    --cover-line: #e8e4da;
     --fs-12: var(--text-xs);
     --fs-13: var(--text-sm);
     --fs-14: var(--text-md);

@@ -93,8 +93,8 @@ describe("motion system", () => {
         expect(motion?.css).toMatch(/--ease-out:\s*cubic-bezier\(0\.16, 1, 0\.3, 1\)/);
         expect(motion?.css).toMatch(/--ease-in:\s*cubic-bezier\(0\.7, 0, 0\.84, 0\)/);
         expect(motion?.css).toMatch(/--ease-in-out:\s*cubic-bezier\(0\.65, 0, 0\.35, 1\)/);
-        expect(tokens).toMatch(/--dur-fast:\s*120ms/);
-        expect(tokens).toMatch(/--dur:\s*180ms/);
+        expect(tokens).toMatch(/--dur-fast:\s*150ms/);
+        expect(tokens).toMatch(/--dur:\s*220ms/);
         expect(tokens).toMatch(/--dur-slow:\s*240ms/);
     });
 

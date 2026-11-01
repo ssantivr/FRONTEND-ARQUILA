@@ -42,7 +42,7 @@
 }
 
 .create-panel {
-    border-color: var(--accent);
+    border-color: var(--accent-text);
     box-shadow: var(--ring), var(--shadow);
     animation: rise-in var(--dur-slow) var(--ease-out) both;
 }

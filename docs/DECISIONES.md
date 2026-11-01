@@ -185,3 +185,11 @@ FastAPI responde 404 «Not Found» a una ruta que no existe y 405 a un método q
 
 La CSP (`img-src 'self' data: blob:`) no deja cargar teselas de un servicio de mapas, y no hay librería cartográfica. Con dos o más terrenos con coordenadas reales se dibuja su posición relativa (norte arriba, distancia por haversine) y se dice que no es cartografía. Con uno solo, el detalle enlaza a OpenStreetMap en otra pestaña, como antes. Un mapa de verdad necesitaría ampliar la CSP a un proveedor de teselas.
 
+
+### Identidad ARQUILA FUTURE STUDIO y contraste (31 de octubre)
+
+La paleta verde y lima pasa a grafito `#171918`, piedra `#e8e4da`, terracota `#d66a3d` y mineral `#89968c`; sustituye la decisión 2 de «Aprobadas antes de empezar». En tema claro el terracota queda como relleno, con texto grafito (5,04:1), porque sobre piedra da 2,76:1. Como texto, borde o foco se usa `--accent-text` (`#964a2b`) y, para el mineral, `--mineral-text` (`#5a625c`). `--accent` ahora es el relleno; los usos de `var(--accent)` como texto o borde pasaron a `--accent-text`. En oscuro la superficie elevada llega hasta `#202322`, porque con una más clara el terracota bajaría de 4,5:1.
+
+### Visor 3D en tema claro (31 de octubre)
+
+**El marco del visor (paneles y barras) sigue oscuro en los dos temas; la escena respeta el tema.** Sus superposiciones usan `--scene-*` sobre un fondo que no depende del tema, y un marco oscuro evita que el color de la interfaz compita con el del modelo. El motor de `src/three/` queda sin cambios en esta fase, así que sus acentos propios (lima, cian y magenta escritos en el código) no siguen la nueva paleta.

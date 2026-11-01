@@ -8,7 +8,7 @@
 .panel:has(> .project-summary) .panel-header h2::before {
     width: 4px;
     background: var(--lime);
-    box-shadow: 0 0 0 1px var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-text);
 }
 
 /* A form that adds to the list above it reads as its own block. */

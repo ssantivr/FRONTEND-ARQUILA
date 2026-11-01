@@ -205,8 +205,8 @@ input.switch:checked::before {
 
 .theme-option[aria-pressed="true"] {
     background: var(--accent-soft);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent);
+    border-color: var(--accent-text);
+    box-shadow: 0 0 0 1px var(--accent-text);
 }
 
 .theme-preview {

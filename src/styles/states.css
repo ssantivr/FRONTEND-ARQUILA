@@ -47,7 +47,7 @@
     width: 64px;
     height: 48px;
     fill: none;
-    stroke: var(--accent);
+    stroke: var(--accent-text);
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;

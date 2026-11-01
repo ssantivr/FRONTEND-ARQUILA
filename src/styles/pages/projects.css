@@ -71,7 +71,7 @@
     left: 12px;
     background: var(--panel);
     border-color: transparent;
-    box-shadow: 0 1px 2px rgba(6, 17, 12, 0.3);
+    box-shadow: 0 1px 2px rgba(18, 20, 19, 0.3);
 }
 
 .project-card .project-body {
@@ -237,7 +237,7 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(0deg, rgba(6, 17, 12, 0.55) 0%, rgba(6, 17, 12, 0) 70%);
+    background: linear-gradient(0deg, rgba(18, 20, 19, 0.55) 0%, rgba(18, 20, 19, 0) 70%);
 }
 .project-head-main {
     display: grid;
@@ -278,7 +278,7 @@
 }
 
 .project-head .badge-status {
-    background: rgba(6, 17, 12, 0.6);
+    background: rgba(18, 20, 19, 0.6);
 }
 
 .project-head-text {
@@ -318,7 +318,7 @@
 
 .project-head .project-summary :is(button, select) {
     min-height: var(--control-md);
-    background-color: rgba(6, 17, 12, 0.72);
+    background-color: rgba(18, 20, 19, 0.72);
 }
 
 /* The content gap is 20px; the tabs sit 8px under the head. */

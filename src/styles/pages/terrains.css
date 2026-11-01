@@ -79,8 +79,8 @@
 }
 
 .terrain-list .terrain-card[aria-pressed="true"] {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent);
+    border-color: var(--accent-text);
+    box-shadow: 0 0 0 1px var(--accent-text);
 }
 
 .terrain-card .card-title {
@@ -193,7 +193,7 @@
 }
 
 .fact-grid a.fact-note {
-    color: var(--accent);
+    color: var(--accent-text);
 }
 
 /* Tablet and phone: the detail is a sheet that slides up for the terrain the user chose. */
@@ -214,7 +214,7 @@
         max-height: 82vh;
         overflow: auto;
         border-radius: var(--r-lg) var(--r-lg) 0 0;
-        box-shadow: 0 -16px 48px rgba(6, 17, 12, 0.4);
+        box-shadow: 0 -16px 48px rgba(18, 20, 19, 0.4);
         animation: slide-in-up var(--dur-slow) var(--ease-out) both;
     }
 
