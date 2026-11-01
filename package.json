@@ -25,6 +25,7 @@
         "movimiento": "node scripts/movimiento.ts",
         "renders": "node scripts/renders.ts",
         "favicon": "node scripts/favicon.ts",
+        "og": "node scripts/og.ts",
         "local:wasm": "node scripts/local-wasm.ts"
     },
     "dependencies": {
