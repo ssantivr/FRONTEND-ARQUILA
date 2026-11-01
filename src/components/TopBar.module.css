@@ -57,6 +57,7 @@
 
 /* The account: avatar and name in a pill; the menu says who is signed in. */
 .account summary {
+    width: auto;
     height: var(--control-md);
     padding: 0;
     border-color: var(--color-border);
