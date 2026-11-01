@@ -16,7 +16,7 @@
     max-height: 88vh;
     color: var(--color-text);
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: var(--border-w) solid var(--color-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-2);
     transform: translate(-50%, -50%);
@@ -25,12 +25,12 @@
 }
 
 .viewer {
-    width: min(960px, 94vw);
+    width: min(var(--dialog-width), 94vw);
     height: 88vh;
 }
 
 .compact {
-    width: min(560px, 94vw);
+    width: min(var(--dialog-width-sm), 94vw);
 }
 
 .header {
@@ -39,7 +39,7 @@
     justify-content: space-between;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: var(--border-w) solid var(--color-border);
 }
 
 .title {

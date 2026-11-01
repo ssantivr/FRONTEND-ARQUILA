@@ -13,7 +13,7 @@
     flex-direction: column;
     color: var(--color-text);
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: var(--border-w) solid var(--color-border);
     box-shadow: var(--shadow-2);
 }
 
@@ -21,18 +21,18 @@
 .left {
     top: 0;
     bottom: 0;
-    width: min(400px, 92vw);
+    width: min(var(--drawer-width), 92vw);
 }
 
 .right {
     right: 0;
-    border-width: 0 0 0 1px;
+    border-width: 0 0 0 var(--border-w);
     animation: slide-in-right var(--dur-slow) var(--ease-out);
 }
 
 .left {
     left: 0;
-    border-width: 0 1px 0 0;
+    border-width: 0 var(--border-w) 0 0;
     animation: slide-in-left var(--dur-slow) var(--ease-out);
 }
 
@@ -41,7 +41,7 @@
     bottom: 0;
     left: 0;
     max-height: 85dvh;
-    border-width: 1px 0 0;
+    border-width: var(--border-w) 0 0;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     animation: slide-in-up var(--dur-slow) var(--ease-out);
 }
@@ -53,7 +53,7 @@
     gap: var(--space-3);
     min-height: var(--touch-target);
     padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: var(--border-w) solid var(--color-border);
 }
 
 .title {

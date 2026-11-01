@@ -17,7 +17,7 @@
 }
 
 .text {
-    flex: 1 1 200px;
+    flex: 1 1 var(--text-min);
     min-width: 0;
     color: var(--color-text);
 }

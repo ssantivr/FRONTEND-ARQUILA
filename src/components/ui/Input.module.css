@@ -76,8 +76,8 @@
     inset-inline-end: var(--space-1);
     display: grid;
     place-items: center;
-    width: calc(var(--control-height) - 8px);
-    height: calc(var(--control-height) - 8px);
+    width: calc(var(--control-height) - var(--space-2));
+    height: calc(var(--control-height) - var(--space-2));
     min-height: 0;
     margin: 0;
     padding: 0;
@@ -128,10 +128,10 @@
 
 .tick {
     flex: none;
-    width: 20px;
-    height: 20px;
+    width: var(--kbd-size);
+    height: var(--kbd-size);
     min-height: 0;
-    margin: 2px 0 0;
+    margin: var(--space-0) 0 0;
     accent-color: var(--color-action);
     cursor: pointer;
 }

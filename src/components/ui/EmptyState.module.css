@@ -13,14 +13,14 @@
 .figure {
     position: relative;
     display: block;
-    width: 168px;
+    width: var(--empty-figure);
     aspect-ratio: 5 / 4;
     margin-bottom: var(--space-2);
     padding: var(--space-3);
 }
 
 .compact .figure {
-    width: 120px;
+    width: var(--empty-art);
 }
 
 .art {

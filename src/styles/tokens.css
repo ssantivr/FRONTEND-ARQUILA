@@ -259,6 +259,13 @@
     --kbd-size: 20px;
     --tooltip-width: 280px;
     --tooltip-width-phone: 240px;
+    --dialog-width: 960px;
+    --dialog-width-sm: 560px;
+    --drawer-width: 400px;
+    --card-min: 240px;
+    --text-min: 200px;
+    --empty-figure: 168px;
+    --empty-art: 120px;
     --keyline: 1.5px;
 
     /* Layout */

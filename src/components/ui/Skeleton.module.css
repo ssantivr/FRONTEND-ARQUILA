@@ -16,7 +16,7 @@
 }
 
 .lines .bar {
-    height: 14px;
+    height: var(--icon-sm);
 }
 
 .lines .bar:nth-child(3n + 1) {
@@ -36,7 +36,7 @@
 }
 
 .cards {
-    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min), 100%), 1fr));
     gap: var(--space-4);
 }
 
