@@ -7,7 +7,68 @@ import {
     type LightingSettings,
     type SolarSite,
 } from "../utils/lighting";
-import { SCENE_PALETTES, type ScenePalette } from "./BuildingSceneManager";
+
+export interface ScenePalette {
+    sky: number;
+    fog: number;
+    ground: number;
+    grid: number;
+    axis: number;
+    accent: number;
+    glow: number;
+    horizon: number;
+    sun: number;
+    sunPower: number;
+    skyLight: number;
+    skyPower: number;
+    reflections: number;
+    windowGlow: number;
+    glassOpacity: number;
+    gridOpacity: number;
+    stars: boolean;
+}
+
+export const SCENE_PALETTES: Record<"light" | "dark", ScenePalette> = {
+    light: {
+        sky: 0x5f9fde,
+        fog: 0xe8e4da,
+        ground: 0xdfdace,
+        grid: 0xb8b3a6,
+        axis: 0x89968c,
+        accent: 0,
+        glow: 0,
+        horizon: 0xf7eedf,
+        sun: 0xffeccf,
+        sunPower: 3.4,
+        skyLight: 0xcfe2ff,
+        skyPower: 0.62,
+        reflections: 0.5,
+        windowGlow: 0,
+        glassOpacity: 0.5,
+        gridOpacity: 0.45,
+        stars: false,
+    },
+    // Night: moonlight, lit windows and a dusk glow on the horizon.
+    dark: {
+        sky: 0x0e100f,
+        fog: 0x121413,
+        ground: 0x171918,
+        grid: 0x303432,
+        axis: 0x5a625c,
+        accent: 0,
+        glow: 1,
+        horizon: 0x2b2f2d,
+        sun: 0x9fb6ff,
+        sunPower: 1.15,
+        skyLight: 0x3a4a80,
+        skyPower: 0.4,
+        reflections: 0.14,
+        windowGlow: 2.6,
+        glassOpacity: 0.92,
+        gridOpacity: 0.7,
+        stars: true,
+    },
+};
 
 const SUNSET_WARMTH_K = 2300;
 const OVERCAST_DAY = 0xb3bcc2;

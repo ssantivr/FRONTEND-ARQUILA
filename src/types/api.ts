@@ -505,3 +505,7 @@ export interface RoomSpatial {
     category: string;
     mesh_ref: string | null;
 }
+
+export interface UserPreferences {
+    preview_quality: "low" | "medium" | "high";
+}

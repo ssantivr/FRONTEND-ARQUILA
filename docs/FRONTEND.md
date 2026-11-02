@@ -91,7 +91,24 @@ La pestaña Modelo 3D muestra el proyecto en tres dimensiones con Three.js. Los 
 
 - **Componentes**: las columnas y los muros se apoyan en el piso de su nivel. Una viga se cuelga del techo: su base es la altura del nivel menos el alto de la viga.
 
-En el frontend, `src/three/BuildingSceneManager.ts` arma la escena y no depende de React; `StructureViewer.tsx` la crea al montar, la destruye al desmontar y dibuja encima los paneles flotantes. Tres módulos vecinos se reparten el resto: `cameraRig.ts` (controles, límites y vuelos de la cámara), `postprocessing.ts` (resplandor) y `vegetation.ts` (árboles). Decisiones del visor:
+En el frontend, `src/three/BuildingSceneManager.ts` orquesta la escena y no depende de React; `StructureViewer.tsx` la crea al montar, la destruye al desmontar y dibuja encima los paneles flotantes. El trabajo se reparte así:
+
+| Carpeta | Módulos | Qué hace |
+|---|---|---|
+| `three/engine/` | `ExperienceEngine.ts`, `renderLoop.ts`, `quality.ts`, `resources.ts` | Lo que necesita cualquier escena y no sabe de edificios: renderizador, cámaras, luces, tamaño, render bajo demanda, calidad, registro de recursos e imágenes fijas |
+| `three/camera/` | `cameraRig.ts`, `views.ts`, `frameToFit.ts`, `transitions.ts` | Controles y límites, direcciones de las vistas, distancia de encuadre, ortográfica y vuelos |
+| `three/scene/` | `sceneGraph.ts`, `contents.ts`, `elements.ts`, `appearance.ts`, `layers.ts`, `selection.ts` | Construir el modelo; lo que hay en escena; constructores de cada pieza; color y relieve; visibilidad, aislamiento y corte; selección, contorno y rayo |
+| `three/materials/` | `pbr.ts`, `environment.ts` | Materiales y kit compartido; cielo, mapa de entorno y luces |
+| `three/terrain/` | `terrainBuilder.ts` | Losa, pendiente, zócalo y linderos |
+| `components/viewer/` | `InspectorPanel.tsx`, `ColorPanel.tsx`, `useSceneSync.ts`, `useViewerShortcuts.ts`, `useFrameInsets.ts`, `usePreviewQuality.ts`, `railTools.ts`, `tourStops.ts` | Paneles y hooks del visor React |
+
+`scene/contents.ts` guarda lo que está en escena: `sceneGraph` lo llena y `layers`, `appearance` y `selection` lo leen, así ninguno de ellos depende de los otros. `ScenePalette` y `SCENE_PALETTES` pasaron a `lightingPalette.ts`, que antes importaba del gestor y formaba un ciclo; el gestor los reexporta para no cambiar su API pública. Quedan en la raíz de `three/` los módulos que comparte la escena interior (`postprocessing.ts`, `dispose.ts`, `roomGeometry.ts`) y `vegetation.ts`.
+
+- **Calidad** (`engine/quality.ts`). `preview_quality` decide el tope de `devicePixelRatio`, el tamaño del mapa de sombras, la oclusión y las muestras de antialias. `medium` conserva los valores que el visor tenía siempre (2, 2048 px, oclusión, 4 muestras), así que ninguna cuenta cambia hasta elegir otra cosa. `low` baja a 1, 1024 px, sin oclusión ni antialias del compositor; `high` sube a 4096 px y 8 muestras, sin pasar del tamaño de textura del dispositivo. El visor la lee de `GET /users/me/preferences` al abrirse (`usePreviewQuality`) y empieza en `medium` hasta que llega la respuesta o si falla; cambiarla rehace el pase de posproceso en el siguiente fotograma. Aún no hay pantalla para elegirla.
+- **Recursos** (`engine/resources.ts`). Lo que dura lo que el motor (mapa de entorno, grano, patrones, vidrio, marcos y líneas) se registra al crearse y se libera una sola vez, del último al primero. Lo que pertenece a un modelo sigue liberándose con él en `disposeObject`.
+- **Capturas de comprobación.** Con los servidores en 5180 y 8010, `node scripts/capturas-3d.ts` fotografía `Casa Los Arrayanes` sobre la API real en `docs/capturas-3d/` (fuera de git). Con `CAPTURAS_COMPARAR=<carpeta>` compara cada imagen con otra pasada y da el porcentaje de píxeles distintos; con `CAPTURAS_CALIDAD` responde la preferencia sin tocar la cuenta.
+
+Decisiones del visor:
 
 - **Dibujo bajo demanda**: la escena solo se vuelve a dibujar cuando algo cambia (la cámara, la selección, una capa, el tamaño). En reposo no gasta GPU.
 - **Sombras bajo demanda**: el mapa de sombras depende del sol y del modelo, no de la cámara, así que no se recalcula al girar o hacer zoom (`shadowMap.autoUpdate = false`). `invalidate` lo marca para recalcular cuando cambia la escena; un movimiento de cámara solo pide redibujar. El recorrido interior hace lo mismo: su sombra se calcula una vez y al encender o apagar el neón.
@@ -186,7 +203,7 @@ Las cuatro pantallas trabajan sobre un proyecto que se elige arriba (`ToolHead.t
     - La nubosidad quita luz al sol, se la da al cielo y agrisa el cielo y el horizonte. No se dibujan nubes ni hay entorno HDRI.
     - Es la luz **de presentación**. El editor 3D del proyecto conserva su luz de trabajo, que sigue al tema. Los ajustes se guardan por proyecto en `localStorage` (`arquila:lighting:<id>`), porque la API no tiene dónde guardarlos.
 - **Renderizado** (`/renderizado`, `RenderPage.tsx`). Se elige la vista, la proyección, la relación de aspecto, la resolución (hasta 3840 px de lado mayor), la calidad y el formato (PNG, JPEG o WebP); el encuadre se ajusta girando el modelo dentro de un marco con las proporciones de la imagen.
-    - La imagen la dibuja el mismo motor del visor (`renderStill` en `BuildingSceneManager.ts`) al tamaño pedido. Con más de una pasada, cada una desplaza la cámara una fracción de píxel y el sol una fracción de grado, y se promedian en un lienzo: los bordes salen suaves y las sombras con penumbra. «Alta» usa además un mapa de sombras de 4096 px.
+    - La imagen la dibuja el mismo motor del visor (`renderStill` en `engine/ExperienceEngine.ts`) al tamaño pedido. Con más de una pasada, cada una desplaza la cámara una fracción de píxel y el sol una fracción de grado, y se promedian en un lienzo: los bordes salen suaves y las sombras con penumbra. «Alta» usa además un mapa de sombras de 4096 px.
     - El progreso es real: cuenta las pasadas terminadas. «Cancelar» corta entre dos pasadas y no deja ninguna imagen.
     - **No es trazado de rayos** y la pantalla lo dice: no hay profundidad de campo ni reflejos trazados. El archivo se genera en el navegador; no se guarda en el servidor.
 - **Gestión de tareas** (`/tareas`, `TasksPage.tsx`). Las tareas son las obras del registro (`renovation_logs`) de todos los proyectos, las mismas que se ven al aislar un cuarto en el modelo. Se muestran en un tablero por estado, con búsqueda y filtros por proyecto y capa; el estado se cambia con `PATCH /api/v1/interior-walkthrough/logs/{id}` y una tarea nueva se crea con `POST /api/v1/interior-walkthrough/logs`, sin cuarto asignado.
@@ -211,7 +228,7 @@ Los mensajes de error del backend están en inglés. El frontend los traduce al 
 
 ### Visor 3D y planos: lo que hacen y lo que no
 
-- **Proyección.** «Ortográfica» dibuja y selecciona con una `THREE.OrthographicCamera` real. Los controles de órbita siguen moviendo la cámara en perspectiva; la ortográfica se coloca en su misma posición y ajusta su encuadre para mostrar, a la distancia del punto de órbita, lo mismo que la de perspectiva (`syncOrthographic` en `BuildingSceneManager.ts`). Por eso acercarse o alejarse hace zoom también en ortográfica y cambiar de proyección no desencuadra el modelo. El pase de oclusión ambiental cambia de modo con la cámara (`setCamera` en `postprocessing.ts`).
+- **Proyección.** «Ortográfica» dibuja y selecciona con una `THREE.OrthographicCamera` real. Los controles de órbita siguen moviendo la cámara en perspectiva; la ortográfica se coloca en su misma posición y ajusta su encuadre para mostrar, a la distancia del punto de órbita, lo mismo que la de perspectiva (`matchOrthographic` en `camera/frameToFit.ts`). Por eso acercarse o alejarse hace zoom también en ortográfica y cambiar de proyección no desencuadra el modelo. El pase de oclusión ambiental cambia de modo con la cámara (`setCamera` en `postprocessing.ts`).
 - **Techo.** El techo es una sola pieza apoyada en los cuartos de la última planta. Si se oculta alguno de ellos con su ojo, el techo se oculta también (`topFloorHasHiddenRoom`), en vez de quedar flotando, y el panel «Objetos» lo avisa. Vuelve al mostrar el cuarto.
 - **Estado.** La barra inferior muestra la selección, la proyección y el guardado («Guardando…», «Cambios guardados», «Error al guardar») de lo único que el visor guarda en el servidor: el material de un elemento y la cubierta.
 - **Lo que no hay.** No existe deshacer/rehacer ni mover, rotar o escalar, porque el modelo se genera a partir de los planos y no hay historial que deshacer.

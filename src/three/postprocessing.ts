@@ -18,7 +18,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 
 const BLOOM_RADIUS = 0.55;
 const BLOOM_THRESHOLD = 1.4;
-const MSAA_SAMPLES = 4;
+const DEFAULT_MSAA_SAMPLES = 4;
 const OCCLUSION_RADIUS_M = 1.1;
 const OCCLUSION_INTENSITY = 0.85;
 
@@ -28,12 +28,16 @@ export interface Postprocessing {
     setBloom: (strength: number) => void;
     /** Renders through another camera from now on, for example an orthographic one. */
     setCamera: (camera: Camera) => void;
+    /** Changes what the pipeline spends; it is rebuilt on the next frame. */
+    setQuality: (quality: Pick<PostprocessingOptions, "occlusion" | "msaaSamples">) => void;
     dispose: () => void;
 }
 
 export interface PostprocessingOptions {
     /** Ambient occlusion: soft contact shadows where surfaces meet. */
     occlusion?: boolean;
+    /** Antialiasing samples of the render target; four unless told otherwise. */
+    msaaSamples?: number;
     /** Planes that cut the model, so the occlusion pass ignores what they hide. */
     clippingPlanes?: Plane[];
 }
@@ -97,6 +101,8 @@ export function createPostprocessing(
     options: PostprocessingOptions = {},
 ): Postprocessing {
     let pipeline: Pipeline | null = null;
+    let occlude = options.occlusion === true;
+    let msaaSamples = options.msaaSamples ?? DEFAULT_MSAA_SAMPLES;
     let view = camera;
     let strength = 0;
     let width = 1;
@@ -126,9 +132,9 @@ export function createPostprocessing(
     }
 
     function build(): Pipeline {
-        const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: MSAA_SAMPLES });
+        const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: msaaSamples });
         const composer = new EffectComposer(renderer, target);
-        const occlusion = options.occlusion === true ? buildOcclusion() : null;
+        const occlusion = occlude ? buildOcclusion() : null;
         const bloom = new UnrealBloomPass(
             new Vector2(width, height),
             strength,
@@ -155,9 +161,19 @@ export function createPostprocessing(
         return built;
     }
 
+    function release(): void {
+        if (pipeline !== null) {
+            pipeline.occlusion?.dispose();
+            pipeline.bloom.dispose();
+            pipeline.output.dispose();
+            pipeline.composer.dispose();
+            pipeline = null;
+        }
+    }
+
     return {
         render: () => {
-            if (strength <= 0 && options.occlusion !== true) {
+            if (strength <= 0 && !occlude) {
                 renderer.render(scene, view);
 
                 return;
@@ -201,14 +217,11 @@ export function createPostprocessing(
                 material.needsUpdate = true;
             }
         },
-        dispose: () => {
-            if (pipeline !== null) {
-                pipeline.occlusion?.dispose();
-                pipeline.bloom.dispose();
-                pipeline.output.dispose();
-                pipeline.composer.dispose();
-                pipeline = null;
-            }
+        setQuality: (next) => {
+            occlude = next.occlusion === true;
+            msaaSamples = next.msaaSamples ?? DEFAULT_MSAA_SAMPLES;
+            release();
         },
+        dispose: release,
     };
 }

@@ -1,29 +1,20 @@
-import { prefersReducedMotion } from "../state/motion";
+import { prefersReducedMotion } from "../../state/motion";
 import { MathUtils, PerspectiveCamera, Sphere, Spherical, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-export type ViewName = "isometric" | "front" | "side" | "top";
+import { FOCUS_MARGIN, cameraLimits, fitDistance } from "./frameToFit";
+import {
+    TRANSITION_MS,
+    easeInOut,
+    interpolate,
+    shortestTurn,
+    type Transition,
+} from "./transitions";
+import { VIEW_DIRECTIONS, type ViewName } from "./views";
 
-const VIEW_DIRECTIONS: Record<ViewName, Vector3> = {
-    isometric: new Vector3(0.7, 0.6, 1).normalize(),
-    front: new Vector3(0, 0.22, 1).normalize(),
-    side: new Vector3(1, 0.22, 0).normalize(),
-    top: new Vector3(0, 1, 0.001).normalize(),
-};
+export type { ViewName };
 
-const TRANSITION_MS = 700;
-const FOCUS_MARGIN = 1.8;
 const PAN_LIMIT_FACTOR = 1.5;
-const MIN_DISTANCE_FACTOR = 0.08;
-const MAX_DISTANCE_FACTOR = 4;
-
-interface Transition {
-    startedAt: number | null;
-    fromTarget: Vector3;
-    toTarget: Vector3;
-    from: Spherical;
-    to: Spherical;
-}
 
 export interface CameraRig {
     fit: (bounds: Sphere) => void;
@@ -37,14 +28,6 @@ export interface CameraRig {
     distance: () => number;
     update: (time: number) => boolean;
     dispose: () => void;
-}
-
-function shortestTurn(angle: number): number {
-    return MathUtils.euclideanModulo(angle + Math.PI, Math.PI * 2) - Math.PI;
-}
-
-function easeInOut(progress: number): number {
-    return progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
 }
 
 export function createCameraRig(
@@ -66,9 +49,7 @@ export function createCameraRig(
     let fill = 1;
 
     function viewDistance(radius = scene.radius): number {
-        const fitAngle = Math.min(camera.fov, camera.fov * camera.aspect) / 2;
-
-        return radius / Math.sin(MathUtils.degToRad(fitAngle)) / fill;
+        return fitDistance(radius, camera.fov, camera.aspect, fill);
     }
 
     function distance(): number {
@@ -81,13 +62,14 @@ export function createCameraRig(
 
     function fit(bounds: Sphere): void {
         const whole = viewDistance(bounds.radius);
+        const limits = cameraLimits(bounds.radius, whole);
 
         scene.copy(bounds);
-        camera.near = whole / 200;
-        camera.far = whole * 12;
+        camera.near = limits.near;
+        camera.far = limits.far;
         camera.updateProjectionMatrix();
-        controls.minDistance = scene.radius * MIN_DISTANCE_FACTOR;
-        controls.maxDistance = whole * MAX_DISTANCE_FACTOR;
+        controls.minDistance = limits.minDistance;
+        controls.maxDistance = limits.maxDistance;
     }
 
     function moveTo(target: Vector3, toward: Vector3, reach: number, animate: boolean): void {
@@ -147,15 +129,10 @@ export function createCameraRig(
 
         const progress = Math.min((time - transition.startedAt) / TRANSITION_MS, 1);
         const eased = easeInOut(progress);
-        const { from, to } = transition;
 
         controls.target.lerpVectors(transition.fromTarget, transition.toTarget, eased);
-        current.set(
-            MathUtils.lerp(from.radius, to.radius, eased),
-            MathUtils.lerp(from.phi, to.phi, eased),
-            MathUtils.lerp(from.theta, to.theta, eased),
-        );
-        camera.position.setFromSpherical(current).add(controls.target);
+        camera.position.setFromSpherical(interpolate(transition, eased, current));
+        camera.position.add(controls.target);
         camera.lookAt(controls.target);
 
         if (progress === 1) {

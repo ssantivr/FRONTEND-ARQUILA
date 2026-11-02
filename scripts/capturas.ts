@@ -202,6 +202,7 @@ async function checkStudio(browser: Browser): Promise<[string, boolean][]> {
     await page.goto(`${BASE}/iluminacion`);
     await page.locator(".structure-viewer canvas").waitFor();
     await page.getByRole("slider", { name: /Hora del día/ }).fill("18");
+    await page.getByRole("button", { name: "Atardecer" }).click();
     await page.getByRole("slider", { name: /Nubosidad/ }).fill("40");
     results.push([
         "iluminación: a las 18:00 el cielo pasa a atardecer",
@@ -215,11 +216,11 @@ async function checkStudio(browser: Browser): Promise<[string, boolean][]> {
     await page.locator(".structure-viewer canvas").waitFor();
     results.push([
         "render: usa la luz elegida en iluminación",
-        await page.getByText("Luz de las 18:00, atardecer").isVisible(),
+        await page.locator("dd", { hasText: "Atardecer" }).isVisible(),
     ]);
-    await page.getByRole("button", { name: "Iniciar render" }).click();
+    await page.getByRole("button", { name: "Generar captura" }).click();
 
-    const image = page.getByRole("img", { name: /Render del proyecto/ });
+    const image = page.getByRole("img", { name: /Captura de la vista/ });
 
     await image.waitFor({ timeout: 180_000 });
     const drawn = await image.evaluate(async (element: HTMLImageElement) => {

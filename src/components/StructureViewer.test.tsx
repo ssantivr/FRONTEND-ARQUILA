@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -53,6 +53,10 @@ vi.mock("../services/http", async (original) => ({
             return Promise.resolve({ project_id: 1, steps: [], renovation_logs: [] });
         }
 
+        if (path.includes("preferences")) {
+            return Promise.resolve({ preview_quality: "low" });
+        }
+
         return Promise.resolve([]);
     }),
 }));
@@ -96,6 +100,13 @@ beforeEach(() => {
 });
 
 describe("StructureViewer", () => {
+    it("draws at the default quality and then at the one the account prefers", async () => {
+        render(<StructureViewer structure={structure} />);
+
+        expect(engine.calls.get("setQuality")?.mock.calls[0]).toEqual(["medium"]);
+        await waitFor(() => expect(lastCall("setQuality")).toEqual(["low"]));
+    });
+
     it("hides an object in the model from its eye button and shows it again", async () => {
         render(<StructureViewer structure={structure} />);
 

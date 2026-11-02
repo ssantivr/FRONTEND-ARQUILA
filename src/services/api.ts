@@ -56,6 +56,7 @@ import type {
     TerrainCreate,
     TerrainUpdate,
     User,
+    UserPreferences,
     Walkthrough,
 } from "../types/api";
 import { forgetProject, rememberProjects } from "../state/knownProjects";
@@ -63,6 +64,10 @@ import { apiUrl, isUnavailable, onWrite, request, requestWithTotal, upload } fro
 
 export const healthApi = {
     check: () => request<{ status: string }>("/health"),
+};
+
+export const preferencesApi = {
+    get: () => request<Pick<UserPreferences, "preview_quality">>("/users/me/preferences"),
 };
 
 export const authApi = {

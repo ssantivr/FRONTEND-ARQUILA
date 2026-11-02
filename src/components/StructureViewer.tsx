@@ -6,7 +6,6 @@ import { roomsApi, spatialApi, structureApi, walkthroughApi } from "../services/
 import { apiUrl } from "../services/http";
 import { appState, useProjectState } from "../state/appState";
 import { useProjectSave } from "../state/projectSave";
-import { saveThumbnail, shrinkCapture } from "../state/thumbnails";
 import { showToast } from "../state/toasts";
 import { useTheme } from "../state/theme";
 import {
@@ -15,7 +14,6 @@ import {
     elementKey,
     isSpace,
     overlayKey,
-    type CameraPose,
     type Layers,
     type OverlayLayers,
     type Projection,
@@ -25,7 +23,6 @@ import {
 import { sceneLighting } from "../three/lightingPalette";
 import type { LightingSettings, SolarSite } from "../utils/lighting";
 import type {
-    RecommendationPriority,
     RoofKind,
     SpatialElement,
     SpatialLayer,
@@ -34,41 +31,28 @@ import type {
     StructureRoom,
 } from "../types/api";
 import {
-    HIGH_COLOR,
-    KIND_COLORS,
-    LOW_COLOR,
-    PRIORITY_COLORS,
     alertColors,
     costColors,
-    cssColor,
     estimateCosts,
     findAlerts,
     kindColors,
-    type ColorMode,
     type ElementColors,
 } from "../utils/elementColors";
-import { formatMoney, formatNumber } from "../utils/format";
 import { snapTo } from "../utils/snap";
-import {
-    DEFAULT_SURFACE,
-    SURFACE_MATERIALS,
-    SURFACE_MATERIAL_IDS,
-    savedSurfaces,
-    surfaceOf,
-    type SurfaceMaterialId,
-} from "../utils/surfaceMaterials";
-import {
-    RoomWorksPanel,
-    WORK_LAYERS,
-    WORK_STATUS_LABELS,
-    layerLabel,
-    workSwatch,
-} from "./RoomWorksPanel";
+import { DEFAULT_SURFACE, surfaceOf, type SurfaceMaterialId } from "../utils/surfaceMaterials";
+import { RoomWorksPanel } from "./RoomWorksPanel";
+import { ColorPanel } from "./viewer/ColorPanel";
+import { InspectorPanel } from "./viewer/InspectorPanel";
 import { ObjectTree } from "./viewer/ObjectTree";
+import { railTools } from "./viewer/railTools";
 import { ShortcutsDialog } from "./viewer/ShortcutsDialog";
-import { focusAllowsShortcuts, shortcutsBlocked } from "./viewer/shortcuts";
-import { ToolRail, type RailTool } from "./viewer/ToolRail";
-import { TransformPanel, geometryOf, type RoomGeometry } from "./viewer/TransformPanel";
+import { ToolRail } from "./viewer/ToolRail";
+import { ISOLATION_CUT_PERCENT, TOUR_STEP_MS, tourStops } from "./viewer/tourStops";
+import { geometryOf, type RoomGeometry } from "./viewer/TransformPanel";
+import { useFrameInsets } from "./viewer/useFrameInsets";
+import { usePreviewQuality } from "./viewer/usePreviewQuality";
+import { useSceneSync } from "./viewer/useSceneSync";
+import { useViewerShortcuts } from "./viewer/useViewerShortcuts";
 import { WorkspaceBar } from "./viewer/WorkspaceBar";
 import { ScenePanel } from "./viewer/ScenePanel";
 import { StatusBar } from "./viewer/StatusBar";
@@ -76,65 +60,10 @@ import { Toolbar } from "./viewer/Toolbar";
 import { ViewBar } from "./viewer/ViewBar";
 import { ViewerBoundary, ViewerProblem } from "./viewer/ViewerBoundary";
 import { ViewGizmo, type OrbitListener } from "./viewer/ViewGizmo";
-import { KIND_LABELS, VIEWS, itemLabel } from "./viewer/labels";
-import { SelectControl } from "./ui/Input";
+import { VIEWS, itemLabel } from "./viewer/labels";
 import { ErrorState } from "./ui/ErrorState";
 
 const TABLET_QUERY = "(min-width: 721px) and (max-width: 1024px)";
-
-const COLOR_MODES: { id: ColorMode; label: string }[] = [
-    { id: "realistic", label: "Realista" },
-    { id: "kind", label: "Tipo" },
-    { id: "cost", label: "Costo" },
-    { id: "alerts", label: "Alertas" },
-];
-
-const PRIORITY_LABELS: Record<RecommendationPriority, string> = {
-    high: "Prioridad alta",
-    medium: "Prioridad media",
-    low: "Prioridad baja",
-};
-
-const KIND_LEGEND = (Object.keys(KIND_LABELS) as StructureElement["kind"][]).map((kind) => ({
-    label: KIND_LABELS[kind],
-    swatch: cssColor(KIND_COLORS[kind]),
-}));
-
-const COST_LEGEND = [
-    {
-        label: "De menor a mayor costo estimado",
-        swatch: `linear-gradient(90deg, ${cssColor(LOW_COLOR)}, ${cssColor(HIGH_COLOR)})`,
-    },
-];
-
-const ALERT_LEGEND = (Object.keys(PRIORITY_LABELS) as RecommendationPriority[]).map((priority) => ({
-    label: PRIORITY_LABELS[priority],
-    swatch: cssColor(PRIORITY_COLORS[priority]),
-}));
-
-const HIGHLIGHTS: Record<SpatialLayer, { title: string; empty: string }> = {
-    structure: {
-        title: "Resalta columnas, vigas y muros",
-        empty: "El proyecto no tiene componentes estructurales.",
-    },
-    installations: {
-        title: "Atenúa el modelo para dejar a la vista las instalaciones",
-        empty: "El proyecto no tiene instalaciones registradas.",
-    },
-    finishes: {
-        title: "Resalta los elementos con un material asignado",
-        empty: "Ningún elemento tiene un material distinto al predeterminado.",
-    },
-};
-
-interface TourStop {
-    key: string;
-    title: string;
-    description: string | null;
-    durationMs: number;
-    cut: number;
-    camera: CameraPose | null;
-}
 
 type AssetState = "loading" | "ready" | "error";
 
@@ -143,25 +72,6 @@ const ASSET_NOTES: Record<AssetState, string> = {
     ready: "Modelo 3D del cuarto cargado.",
     error: "No se pudo cargar el modelo 3D del cuarto.",
 };
-
-function isPoint(value: unknown): boolean {
-    return (
-        Array.isArray(value) &&
-        value.length === 3 &&
-        value.every((item) => typeof item === "number")
-    );
-}
-
-function readPose(value: unknown): CameraPose | null {
-    const pose = value as Partial<CameraPose> | null | undefined;
-
-    return typeof pose === "object" &&
-        pose !== null &&
-        isPoint(pose.position) &&
-        isPoint(pose.target)
-        ? (pose as CameraPose)
-        : null;
-}
 
 function assetUrl(reference: string | null): string | null {
     if (reference === null) {
@@ -177,13 +87,9 @@ function assetUrl(reference: string | null): string | null {
 
 const NO_ELEMENTS: SpatialElement[] = [];
 const ALL_WORK_LAYERS: OverlayLayers = { structure: true, installations: true, finishes: true };
-const TOUR_STEP_MS = 5000;
 const TOUR_START_AZIMUTH = 0.6;
 const TOUR_TURN = 0.7;
-const ISOLATION_CUT_PERCENT = 80;
 const TOOL_CUT_PERCENT = 60;
-// The model needs a moment to settle (shadows, textures) before its picture is taken.
-const THUMBNAIL_DELAY_MS = 2000;
 const ALL_LAYERS: Layers = { rooms: true, roof: true, environment: true, grid: true };
 
 interface StructureViewerProps {
@@ -303,6 +209,7 @@ function ViewerScene({
     const [reason, setReason] = useState<string | null>(null);
     const projectId = structure.project_id;
     const theme = useTheme();
+    const quality = usePreviewQuality();
     const save = useProjectSave(projectId);
     const history = useEditHistory(projectId);
     const reload = useRef(onStructureChange);
@@ -347,39 +254,7 @@ function ViewerScene({
     const roomAssets = useAsync(() => spatialApi.rooms(projectId), [projectId, structure]);
     const works = spatial.data?.elements ?? NO_ELEMENTS;
     const steps = walkthrough.data?.steps;
-    const stops = useMemo<TourStop[]>(() => {
-        const planned = (steps ?? []).flatMap((item) => {
-            const room = rooms.find((candidate) => candidate.id === item.room_id);
-            const cut = item.view_config.cut_fraction;
-
-            return room === undefined
-                ? []
-                : [
-                      {
-                          key: elementKey(room),
-                          title: item.title,
-                          description: item.description,
-                          durationMs: item.duration_ms,
-                          cut:
-                              typeof cut === "number"
-                                  ? Math.round(cut * 100)
-                                  : ISOLATION_CUT_PERCENT,
-                          camera: readPose(item.view_config.camera),
-                      },
-                  ];
-        });
-
-        return planned.length > 0
-            ? planned
-            : rooms.map((room) => ({
-                  key: elementKey(room),
-                  title: room.name,
-                  description: null,
-                  durationMs: TOUR_STEP_MS,
-                  cut: ISOLATION_CUT_PERCENT,
-                  camera: null,
-              }));
-    }, [rooms, steps]);
+    const stops = useMemo(() => tourStops(rooms, steps), [rooms, steps]);
     const isolatedRoom = rooms.find((room) => elementKey(room) === isolation) ?? null;
     const isolatedKey = isolatedRoom === null ? null : isolation;
     const stopIndex = stops.findIndex((stop) => stop.key === isolatedKey);
@@ -548,10 +423,6 @@ function ViewerScene({
         viewer.current?.focus(picked === null ? selectedKey : overlayKey(picked.id));
     }
 
-    function toggleCut() {
-        setCut(cut === 100 ? TOOL_CUT_PERCENT : 100);
-    }
-
     /** Leaves one level at a time: the interior view, then the isolated room, then the selection. */
     function stepBack() {
         if (inside) {
@@ -583,72 +454,22 @@ function ViewerScene({
         }
     }
 
-    const tools: RailTool[] = [
-        {
-            id: "move",
-            label: "Mover cuarto",
-            icon: "move",
-            shortcut: "M",
-            pressed: moving && selectedRoom !== null,
-            unavailable:
-                selectedRoom === null
-                    ? "Selecciona un cuarto para moverlo; columnas, vigas y muros se editan en su tabla"
-                    : undefined,
-            onUse: () => setMoving(!moving),
-        },
-        {
-            id: "focus",
-            label: "Enfocar",
-            icon: "focus",
-            shortcut: "F",
-            unavailable: somethingSelected ? undefined : "Selecciona un elemento para enfocarlo",
-            onUse: focusSelection,
-        },
-        {
-            id: "isolate",
-            label: "Aislar cuarto",
-            icon: "isolate",
-            shortcut: "I",
-            pressed: isolatedKey !== null && (!roomSelected || selectedKey === isolatedKey),
-            unavailable:
-                roomSelected || isolatedKey !== null
-                    ? undefined
-                    : "Selecciona un cuarto para aislarlo",
-            onUse: toggleIsolation,
-        },
-        {
-            id: "cut",
-            label: "Corte",
-            icon: "cut",
-            pressed: cut < 100,
-            unavailable: inside ? "Sal de la vista interior para usar el corte" : undefined,
-            onUse: toggleCut,
-        },
-        {
-            id: "inside",
-            label: "Vista interior",
-            icon: "interior",
-            pressed: inside,
-            unavailable:
-                isolatedKey === null
-                    ? "Aísla un cuarto para entrar a la vista interior"
-                    : undefined,
-            onUse: toggleInside,
-        },
-        {
-            id: "capture",
-            label: "Guardar imagen",
-            icon: "download",
-            onUse: downloadCapture,
-        },
-        {
-            id: "help",
-            label: "Atajos de teclado",
-            icon: "keyboard",
-            shortcut: "?",
-            onUse: () => setHelp(true),
-        },
-    ];
+    const tools = railTools({
+        moving,
+        roomSelected,
+        somethingSelected,
+        isolationPressed: isolatedKey !== null && (!roomSelected || selectedKey === isolatedKey),
+        roomIsolated: isolatedKey !== null,
+        cutActive: cut < 100,
+        inside,
+        onMove: () => setMoving(!moving),
+        onFocus: focusSelection,
+        onIsolate: toggleIsolation,
+        onCut: () => setCut(cut === 100 ? TOOL_CUT_PERCENT : 100),
+        onInside: toggleInside,
+        onCapture: downloadCapture,
+        onHelp: () => setHelp(true),
+    });
 
     const tip =
         reason !== null
@@ -661,92 +482,23 @@ function ViewerScene({
                   ? "F enfoca lo seleccionado · Esc lo suelta"
                   : "Clic para seleccionar · 1 a 4 cambian la vista · ? muestra los atajos";
 
-    const handleKey = useRef<(event: KeyboardEvent) => void>(() => undefined);
-    handleKey.current = (event) => {
-        if (unsupported || !focusAllowsShortcuts(stage.current)) {
-            return;
-        }
-
-        const key = event.key?.toLowerCase();
-
-        if ((event.ctrlKey || event.metaKey) && !event.altKey && (key === "z" || key === "y")) {
-            event.preventDefault();
-
-            if (key === "y" || event.shiftKey) {
-                void history.redo();
-            } else {
-                void history.undo();
-            }
-
-            return;
-        }
-
-        if (shortcutsBlocked(event)) {
-            return;
-        }
-
-        const arrows: Record<string, [number, number]> = {
-            ArrowLeft: [-1, 0],
-            ArrowRight: [1, 0],
-            ArrowUp: [0, 1],
-            ArrowDown: [0, -1],
-        };
-
-        if (moving && selectedRoom !== null && event.key in arrows) {
-            event.preventDefault();
-
-            if (!history.working) {
-                nudgeSelected(...arrows[event.key]);
-            }
-
-            return;
-        }
-
-        if (key === "m") {
-            if (selectedRoom !== null) {
-                setMoving(!moving);
-                event.preventDefault();
-            }
-
-            return;
-        }
-
-        const viewIndex = ["1", "2", "3", "4"].indexOf(event.key);
-
-        if (viewIndex !== -1) {
-            chooseView(VIEWS[viewIndex].id);
-        } else if (event.key === "f" || event.key === "F") {
-            if (somethingSelected) {
-                focusSelection();
-            }
-        } else if (event.key === "i" || event.key === "I") {
-            if (roomSelected || isolatedKey !== null) {
-                toggleIsolation();
-            }
-        } else if (event.key === "Escape") {
-            stepBack();
-        } else if (event.key === "?") {
-            setHelp(true);
-        } else {
-            return;
-        }
-
-        event.preventDefault();
-    };
-
-    useEffect(() => {
-        if (preview) {
-            return;
-        }
-
-        function onKeyDown(event: KeyboardEvent) {
-            handleKey.current(event);
-        }
-
-        window.addEventListener("keydown", onKeyDown);
-
-        return () => window.removeEventListener("keydown", onKeyDown);
-    }, [preview]);
+    useViewerShortcuts(stage, !preview, {
+        disabled: unsupported,
+        moving: moving && selectedRoom !== null,
+        roomSelected: selectedRoom !== null,
+        somethingSelected,
+        roomIsolated: isolatedKey !== null,
+        historyBusy: history.working,
+        undo: () => void history.undo(),
+        redo: () => void history.redo(),
+        nudge: nudgeSelected,
+        toggleMoving: () => setMoving(!moving),
+        chooseView,
+        focusSelection,
+        toggleIsolation,
+        stepBack,
+        showHelp: () => setHelp(true),
+    });
 
     const selectByKey = useRef(pick);
     selectByKey.current = pick;
@@ -768,17 +520,6 @@ function ViewerScene({
             setInside(true);
         }
     }, [startInside, stopsReady, firstStop]);
-
-    const selectedCost = selected === null ? undefined : costs.get(elementKey(selected));
-    const selectedAlerts = selected === null ? [] : (alerts.get(elementKey(selected)) ?? []);
-    const legend =
-        colorMode === "kind" ? KIND_LEGEND : colorMode === "cost" ? COST_LEGEND : ALERT_LEGEND;
-    const colorNote =
-        colorMode === "cost" && costs.size === 0
-            ? "Registra materiales con cantidad y costo para ver el reparto."
-            : colorMode === "alerts" && alerts.size === 0
-              ? "Ninguna recomendación menciona un elemento por su nombre."
-              : null;
 
     useEffect(() => {
         if (container.current === null) {
@@ -807,173 +548,51 @@ function ViewerScene({
         };
     }, []);
 
-    // The scene takes the rest of the window below where it starts, and the camera frames the
-    // model in the room that the panels over each side leave free.
-    const treeShown = isolatedRoom === null;
-
-    useEffect(() => {
-        const host = stage.current;
-        const scene = container.current;
-
-        if (preview || host === null || scene === null) {
-            return;
-        }
-
-        function measure(host: HTMLDivElement, scene: HTMLDivElement): void {
-            const top = host.getBoundingClientRect().top + window.scrollY;
-            const box = scene.getBoundingClientRect();
-            let left = 0;
-            let right = 0;
-
-            host.style.setProperty("--viewer-top", `${Math.round(top)}px`);
-
-            for (const panel of host.querySelectorAll<HTMLElement>(".hud-layer > *")) {
-                const rect = panel.getBoundingClientRect();
-                const middle = (rect.left + rect.right) / 2 - box.left;
-
-                if (rect.width === 0 || rect.height < box.height * 0.3) {
-                    continue;
-                }
-
-                if (middle < box.width * 0.4) {
-                    left = Math.max(left, rect.right - box.left);
-                } else if (middle > box.width * 0.6) {
-                    right = Math.max(right, box.right - rect.left);
-                }
-            }
-
-            viewer.current?.setFrameInsets(left, right);
-        }
-
-        measure(host, scene);
-
-        if (typeof ResizeObserver === "undefined") {
-            return;
-        }
-
-        const observer = new ResizeObserver(() => measure(host, scene));
-
-        observer.observe(host);
-        host.querySelectorAll(".hud-layer > *").forEach((panel) => observer.observe(panel));
-
-        return () => observer.disconnect();
-    }, [preview, treeOpen, inspectorOpen, treeShown]);
+    useFrameInsets(stage, container, viewer, !preview, {
+        tree: treeOpen,
+        inspector: inspectorOpen,
+        treeShown: isolatedRoom === null,
+    });
 
     useEffect(() => {
         void appState.refresh(projectId);
     }, [projectId]);
 
-    useEffect(() => {
-        viewer.current?.show(structure);
-    }, [structure]);
-
-    const untouched = isolation === null && selectedKey === null && lighting === undefined;
-    const canPicture = useRef(untouched);
-    canPicture.current = untouched;
-
-    // Once the model is on screen its picture is kept for the project cards. It is taken only of
-    // the whole model as it opens: not of an isolated room, a selection or a presentation light.
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            const image = canPicture.current ? viewer.current?.capture() : undefined;
-
-            if (typeof image === "string") {
-                void shrinkCapture(image).then((thumbnail) => {
-                    if (thumbnail !== null) {
-                        saveThumbnail(projectId, thumbnail);
-                    }
-                });
-            }
-        }, THUMBNAIL_DELAY_MS);
-
-        return () => window.clearTimeout(timer);
-    }, [structure, projectId]);
-
-    useEffect(() => {
-        appState.setSurfaces(projectId, savedSurfaces(elements));
-        appState.setRoof(projectId, structure.roof);
-    }, [projectId, elements, structure.roof]);
-
-    useEffect(() => {
-        viewer.current?.setRoof(roof);
-    }, [roof, structure]);
-
-    useEffect(() => {
-        setReason(null);
-    }, [selectedKey, isolatedKey, pickedId]);
-
-    useEffect(() => {
-        viewer.current?.select(selectedKey);
-    }, [selectedKey, structure]);
-
-    useEffect(() => {
-        viewer.current?.setColors(colors);
-    }, [colors]);
-
-    useEffect(() => {
-        viewer.current?.setSurfaces(surfaces);
-    }, [surfaces, structure]);
-
-    useEffect(() => {
-        viewer.current?.setLayers(layers);
-    }, [layers]);
-
-    useEffect(() => {
-        viewer.current?.setHidden(hiddenKeys);
-    }, [hiddenKeys, structure]);
-
-    useEffect(() => {
-        if (lit === null) {
-            viewer.current?.setSun(sun);
-        } else {
-            viewer.current?.setSun(lit.azimuth, lit.elevation);
-            viewer.current?.setExposure(lit.exposure);
-            viewer.current?.setShadows(lit.shadows);
-        }
-    }, [sun, lit, structure]);
-
-    useEffect(() => {
-        viewer.current?.setProjection(projection);
-    }, [projection, structure]);
-
-    useEffect(() => {
-        viewer.current?.isolate(isolatedKey);
-    }, [isolatedKey, structure]);
-
-    useEffect(() => {
-        viewer.current?.setCutaway(cut / 100);
-    }, [cut, structure]);
-
-    useEffect(() => {
-        viewer.current?.setHighlight(highlighted);
-    }, [highlighted, structure]);
-
-    useEffect(() => {
-        viewer.current?.setOverlays(works);
-    }, [works]);
-
-    useEffect(() => {
-        viewer.current?.setOverlayLayers(workLayers);
-    }, [workLayers]);
-
-    useEffect(() => {
-        viewer.current?.setExplode(explode / 100);
-    }, [explode]);
-
-    const pose = currentStop?.camera ?? null;
-
-    useEffect(() => {
-        viewer.current?.enterRoom(inside ? isolatedKey : null, pose ?? undefined);
-    }, [inside, isolatedKey, pose, structure]);
-
     const meshUrl = assetUrl(
         roomAssets.data?.find((room) => room.id === isolatedRoom?.id)?.mesh_ref ?? null,
     );
 
+    useSceneSync(viewer, {
+        structure,
+        projectId,
+        elements,
+        quality,
+        untouched: isolation === null && selectedKey === null && lighting === undefined,
+        roof,
+        selectedKey,
+        colors,
+        surfaces,
+        layers,
+        hiddenKeys,
+        sun,
+        lit,
+        palette: lit?.palette ?? SCENE_PALETTES[theme],
+        projection,
+        isolatedKey,
+        cut,
+        highlighted,
+        works,
+        workLayers,
+        explode,
+        inside,
+        pose: currentStop?.camera ?? null,
+        meshUrl,
+        onAssetLoading: (url) => setAssetState(url === null ? null : "loading"),
+    });
+
     useEffect(() => {
-        setAssetState(meshUrl === null ? null : "loading");
-        viewer.current?.setAsset(meshUrl);
-    }, [meshUrl, structure]);
+        setReason(null);
+    }, [selectedKey, isolatedKey, pickedId]);
 
     const stopDuration = currentStop?.durationMs ?? TOUR_STEP_MS;
 
@@ -986,10 +605,6 @@ function ViewerScene({
 
         return () => window.clearTimeout(timer);
     }, [touring, isolatedKey, stopDuration]);
-
-    useEffect(() => {
-        viewer.current?.setPalette(lit?.palette ?? SCENE_PALETTES[theme]);
-    }, [theme, lit, structure]);
 
     function chooseView(next: ViewName) {
         setView(next);
@@ -1122,163 +737,22 @@ function ViewerScene({
                         />
                     )}
                     <div className="hud-dock">
-                        <aside
-                            className="hud hud-inspector"
-                            aria-live="polite"
-                            aria-label="Inspector"
-                        >
-                            <details open>
-                                <summary>Inspector</summary>
-                                {picked !== null && (
-                                    <dl className="hud-picked">
-                                        <dt>Elemento</dt>
-                                        <dd>{picked.name}</dd>
-                                        <dt>Capa</dt>
-                                        <dd>
-                                            <span
-                                                className="hud-swatch"
-                                                style={{ background: workSwatch(picked) }}
-                                            />
-                                            {layerLabel(picked.layer)}
-                                        </dd>
-                                        <dt>Estado</dt>
-                                        <dd>{WORK_STATUS_LABELS[picked.work_status]}</dd>
-                                        <dt>Medidas</dt>
-                                        <dd className="numeric">
-                                            {formatNumber(picked.max_x_m - picked.min_x_m)} ×{" "}
-                                            {formatNumber(picked.max_y_m - picked.min_y_m)} ×{" "}
-                                            {formatNumber(picked.max_z_m - picked.min_z_m)} m
-                                        </dd>
-                                        <dt>Altura de la base</dt>
-                                        <dd className="numeric">
-                                            +{formatNumber(picked.min_z_m)} m
-                                        </dd>
-                                    </dl>
-                                )}
-                                {selected === null ? (
-                                    picked === null && (
-                                        <p>
-                                            Haz clic en un cuarto, un componente o una instalación
-                                            para inspeccionarlo, o doble clic para acercar la cámara
-                                            a él.
-                                        </p>
-                                    )
-                                ) : (
-                                    <dl>
-                                        <dt>Nombre</dt>
-                                        <dd>{selected.name}</dd>
-                                        <dt>Tipo</dt>
-                                        <dd>{KIND_LABELS[selected.kind]}</dd>
-                                        <dt className="hud-wide">
-                                            <label htmlFor="inspector-surface">Material</label>
-                                        </dt>
-                                        <dd className="hud-wide">
-                                            <SelectControl
-                                                id="inspector-surface"
-                                                value={surfaceOf(
-                                                    surfaces,
-                                                    elementKey(selected),
-                                                    selected.kind,
-                                                )}
-                                                onChange={(event) =>
-                                                    changeSurface(
-                                                        selected,
-                                                        event.target.value as SurfaceMaterialId,
-                                                    )
-                                                }
-                                            >
-                                                {SURFACE_MATERIAL_IDS.map((id) => (
-                                                    <option key={id} value={id}>
-                                                        {SURFACE_MATERIALS[id].label}
-                                                    </option>
-                                                ))}
-                                            </SelectControl>
-                                        </dd>
-                                        <dt>Plano</dt>
-                                        <dd>{selected.plan_title}</dd>
-                                        <dt>Nivel</dt>
-                                        <dd className="numeric">{selected.level ?? "—"}</dd>
-                                        <dt>Medidas</dt>
-                                        <dd className="numeric">
-                                            {formatNumber(selected.width_m)} ×{" "}
-                                            {formatNumber(selected.depth_m)} ×{" "}
-                                            {formatNumber(selected.height_m)} m
-                                        </dd>
-                                        {isSpace(selected) && (
-                                            <>
-                                                <dt>Área</dt>
-                                                <dd className="numeric">
-                                                    {formatNumber(
-                                                        selected.width_m * selected.depth_m,
-                                                    )}{" "}
-                                                    m²
-                                                </dd>
-                                            </>
-                                        )}
-                                        <dt>Volumen</dt>
-                                        <dd className="numeric">
-                                            {formatNumber(
-                                                selected.width_m *
-                                                    selected.depth_m *
-                                                    selected.height_m,
-                                            )}{" "}
-                                            m³
-                                        </dd>
-                                        <dt>Altura de la base</dt>
-                                        <dd className="numeric">
-                                            +{formatNumber(selected.base_m)} m
-                                        </dd>
-                                        {selectedCost !== undefined && (
-                                            <>
-                                                <dt>Costo estimado</dt>
-                                                <dd className="numeric">
-                                                    {formatMoney(selectedCost)}
-                                                </dd>
-                                            </>
-                                        )}
-                                    </dl>
-                                )}
-                                {selectedRoom !== null && (
-                                    <TransformPanel
-                                        room={selectedRoom}
-                                        snap={snap}
-                                        onSnap={setSnap}
-                                        busy={history.working}
-                                        onCommit={(next, label) =>
-                                            changeRoom(selectedRoom, next, label)
-                                        }
-                                    />
-                                )}
-                                {selected !== null && selectedRoom === null && (
-                                    <p className="hud-note-quiet">
-                                        Solo los cuartos se mueven y se redimensionan aquí.
-                                        {selected.kind === "volume"
-                                            ? " Un volumen sale de un plano sin cuartos: se cambia agregando cuartos."
-                                            : " Columnas, vigas y muros se editan en su tabla, en la pestaña Modelo 3D del proyecto."}
-                                    </p>
-                                )}
-                                {save.state === "error" && save.message !== null && (
-                                    <ErrorState message={save.message} />
-                                )}
-                                {selectedAlerts.length > 0 && (
-                                    <ul className="hud-alerts">
-                                        {selectedAlerts.map((alert) => (
-                                            <li key={alert.id}>
-                                                <span
-                                                    className="hud-swatch"
-                                                    style={{
-                                                        background: cssColor(
-                                                            PRIORITY_COLORS[alert.priority],
-                                                        ),
-                                                    }}
-                                                />
-                                                {alert.content}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </details>
-                        </aside>
+                        <InspectorPanel
+                            picked={picked}
+                            selected={selected}
+                            selectedRoom={selectedRoom}
+                            surfaces={surfaces}
+                            cost={selected === null ? undefined : costs.get(elementKey(selected))}
+                            alerts={
+                                selected === null ? [] : (alerts.get(elementKey(selected)) ?? [])
+                            }
+                            snap={snap}
+                            onSnap={setSnap}
+                            busy={history.working}
+                            saveError={save.state === "error" ? save.message : null}
+                            onSurface={changeSurface}
+                            onRoom={changeRoom}
+                        />
                         <ScenePanel
                             layers={layers}
                             onLayers={setLayers}
@@ -1291,99 +765,18 @@ function ViewerScene({
                             roof={roof}
                             onRoof={changeRoof}
                         />
-                        <aside className="hud hud-colors" aria-label="Color del modelo">
-                            <details>
-                                <summary>
-                                    Color ·{" "}
-                                    {COLOR_MODES.find((mode) => mode.id === colorMode)?.label}
-                                </summary>
-                                <div className="hud-modes" role="group" aria-label="Modo de color">
-                                    {COLOR_MODES.map((mode) => (
-                                        <button
-                                            key={mode.id}
-                                            type="button"
-                                            className="hud-item"
-                                            aria-pressed={mode.id === colorMode}
-                                            onClick={() =>
-                                                appState.setColorMode(projectId, mode.id)
-                                            }
-                                        >
-                                            {mode.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                {colorMode !== "realistic" && (
-                                    <ul className="hud-legend">
-                                        {legend.map((item) => (
-                                            <li key={item.label}>
-                                                <span
-                                                    className="hud-swatch"
-                                                    style={{ background: item.swatch }}
-                                                />
-                                                {item.label}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                                {colorMode === "cost" && costs.size > 0 && (
-                                    <p>
-                                        Reparto del presupuesto de materiales según el volumen de
-                                        cada elemento.
-                                    </p>
-                                )}
-                                {colorNote !== null && <p>{colorNote}</p>}
-                                <h4>Capas de obra</h4>
-                                <div
-                                    className="hud-work-layers"
-                                    role="group"
-                                    aria-label="Capas de obra"
-                                >
-                                    {WORK_LAYERS.map((layer) => (
-                                        <div key={layer.id}>
-                                            <label
-                                                className="checkbox"
-                                                title={`Muestra u oculta los elementos de ${layer.label.toLowerCase()} registrados`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={workLayers[layer.id]}
-                                                    onChange={(event) =>
-                                                        setWorkLayers({
-                                                            ...workLayers,
-                                                            [layer.id]: event.target.checked,
-                                                        })
-                                                    }
-                                                />
-                                                <span
-                                                    className="hud-swatch"
-                                                    style={{ background: layer.swatch }}
-                                                />
-                                                {layer.label}
-                                                <span className="hud-count">
-                                                    {spatial.data?.counts[layer.id] ?? 0}
-                                                </span>
-                                            </label>
-                                            <button
-                                                type="button"
-                                                className="hud-item"
-                                                aria-pressed={layer.id === highlight}
-                                                title={HIGHLIGHTS[layer.id].title}
-                                                onClick={() =>
-                                                    setHighlight(
-                                                        layer.id === highlight ? null : layer.id,
-                                                    )
-                                                }
-                                            >
-                                                Resaltar
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                                {highlight !== null && nothingToHighlight && (
-                                    <p>{HIGHLIGHTS[highlight].empty}</p>
-                                )}
-                            </details>
-                        </aside>
+                        <ColorPanel
+                            colorMode={colorMode}
+                            onColorMode={(mode) => appState.setColorMode(projectId, mode)}
+                            costCount={costs.size}
+                            alertCount={alerts.size}
+                            workLayers={workLayers}
+                            onWorkLayers={setWorkLayers}
+                            workCounts={spatial.data?.counts}
+                            highlight={highlight}
+                            onHighlight={setHighlight}
+                            nothingToHighlight={nothingToHighlight}
+                        />
                     </div>
                     <ViewGizmo listener={orbitListener} />
                     <div className="hud-cambar">
