@@ -21,6 +21,7 @@ import { ProjectActivityPanel } from "../components/project/ProjectActivityPanel
 import { ProjectSummaryPanel } from "../components/project/ProjectSummaryPanel";
 import { ProjectTasksPanel } from "../components/project/ProjectTasksPanel";
 import { ProjectVersionsPanel } from "../components/project/ProjectVersionsPanel";
+import { UndoRedoActions } from "../components/project/UndoRedoActions";
 import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
@@ -31,8 +32,7 @@ import { useTopBarCrumbs, useTopBarSlot } from "../state/topBarSlot";
 import { projectPath, viewPath } from "../routes";
 import { SECTIONS, type SectionId } from "./sections";
 import { filesApi, projectsApi, undoApi } from "../services/api";
-import { undoLastDeletion } from "../services/terrainUndo";
-import type { DeletedItemKind, ProjectStatus } from "../types/api";
+import type { ProjectStatus } from "../types/api";
 import { formatDate, localDay } from "../utils/format";
 import { Button } from "../components/ui/Button";
 import { SelectControl } from "../components/ui/Input";
@@ -114,8 +114,6 @@ export function ProjectDetailPage({
             setPlansVersion((version) => version + 1);
         });
     }
-
-    const lastDeleted = undoable.data?.[0];
 
     if (project.data === null) {
         return (
@@ -228,20 +226,13 @@ export function ProjectDetailPage({
                     >
                         Editar
                     </Button>
-                    {lastDeleted !== undefined && (
-                        <Button
-                            variant="secondary"
-
-                            onClick={() =>
-                                run(
-                                    () => undoLastDeletion(projectId),
-                                    () => setPanelsVersion((version) => version + 1),
-                                )
-                            }
-                        >
-                            {`Deshacer: ${KIND_LABELS[lastDeleted.kind]} «${lastDeleted.label}»`}
-                        </Button>
-                    )}
+                    <UndoRedoActions
+                        key={projectId}
+                        projectId={projectId}
+                        undoable={undoable.data}
+                        run={run}
+                        onChanged={() => setPanelsVersion((version) => version + 1)}
+                    />
                     <Button
                         variant="danger"
 
@@ -404,15 +395,6 @@ const SECTION_QUESTIONS: Record<Exclude<SectionId, "assistant">, readonly string
     materials: ["¿Qué materiales pesan más en el costo?", "¿Dónde podría reducir el costo?"],
     analysis: ["¿Cuáles recomendaciones debería atender primero?"],
     files: ["¿Qué documentos le faltan a este proyecto?"],
-};
-
-const KIND_LABELS: Record<DeletedItemKind, string> = {
-    terrain: "terreno",
-    material: "material",
-    plan: "plano",
-    elevation: "elevación",
-    room: "cuarto",
-    component: "componente",
 };
 
 function BackButton({ onBack }: { onBack: () => void }) {

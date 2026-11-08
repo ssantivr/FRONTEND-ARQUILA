@@ -300,6 +300,9 @@ export const undoApi = {
     list: (projectId: number) => request<DeletedItem[]>(`/projects/${projectId}/undo`),
     undoLast: (projectId: number) =>
         request<DeletedItem>(`/projects/${projectId}/undo`, { method: "POST" }),
+    /** Deletes again what the last undo restored; 404 «Nothing to redo» when nothing is left. */
+    redoLast: (projectId: number) =>
+        request<DeletedItem>(`/projects/${projectId}/redo`, { method: "POST" }),
 };
 
 export const recommendationsApi = {
