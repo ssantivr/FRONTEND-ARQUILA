@@ -108,6 +108,8 @@ const PAIRS = [
     ["band-danger", "brand-forest"],
     ["band-info", "brand-forest"],
     ["scene-text", "scene-panel"],
+    // The figures of the lighting and render caption, on its opaque panel over the canvas.
+    ["brand-lime", "scene-panel"],
 ];
 // What must be seen but is not text: the edge of a field, the focus outline, an icon.
 const UI = ["color-border-strong", "color-focus", "accent-text", "mineral-text"];

@@ -82,7 +82,9 @@
     color: var(--on-scene);
     font-size: var(--fs-13);
     font-variant-numeric: tabular-nums;
-    background: rgba(18, 20, 19, 0.86);
+    /* Opaque: over the canvas a translucent one let the light theme's pale floor through, and the
+       figures fell to 3.5:1. --scene-panel is dark in both themes, like the rest of the scene. */
+    background: var(--scene-panel);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--r-md);
     pointer-events: none;
