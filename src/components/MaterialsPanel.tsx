@@ -14,15 +14,8 @@ import { CostSummary } from "./CostSummary";
 import { costByCategory } from "../utils/materials";
 import { LiveForm } from "./ui/LiveForm";
 import { scrollBehavior } from "../state/motion";
-import { downloadBudgetCsv } from "../utils/budgetCsv";
-import { Button } from "./ui/Button";
 
-interface MaterialsPanelProps extends SectionProps {
-    /** Names the exported file; without it the file is `presupuesto-proyecto.csv`. */
-    projectName?: string;
-}
-
-export function MaterialsPanel({ projectId, projectName = "", run }: MaterialsPanelProps) {
+export function MaterialsPanel({ projectId, run }: SectionProps) {
     const materials = useAsync(() => materialsApi.listByProject(projectId), [projectId]);
     const [editingId, setEditingId] = useState<number | null>(null);
     const form = useRef<HTMLFormElement>(null);
@@ -101,21 +94,7 @@ export function MaterialsPanel({ projectId, projectName = "", run }: MaterialsPa
     const categories = costByCategory(items);
 
     return (
-        <Panel
-            title="Materiales"
-            actions={
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    disabledReason={
-                        items.length === 0 ? "No hay materiales que exportar." : undefined
-                    }
-                    onClick={() => downloadBudgetCsv(items, projectName)}
-                >
-                    Exportar presupuesto (CSV)
-                </Button>
-            }
-        >
+        <Panel title="Materiales">
             <AsyncStatus
                 loading={materials.loading}
                 error={materials.error}

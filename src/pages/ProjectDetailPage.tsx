@@ -315,9 +315,7 @@ export function ProjectDetailPage({
                         />
                     </>
                 )}
-                {section === "materials" && (
-                    <MaterialsPanel projectId={projectId} projectName={current.name} run={run} />
-                )}
+                {section === "materials" && <MaterialsPanel projectId={projectId} run={run} />}
                 {section === "tasks" && (
                     <ProjectTasksPanel
                         projectId={projectId}
