@@ -1,16 +1,18 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useState } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { CountUp } from "../components/CountUp";
 import { Icon } from "../components/Icon";
 import { MODULES, type View } from "../components/Sidebar";
+import { TemplateCards } from "../components/TemplateCards";
 import { describeActivity } from "../components/project/ProjectActivityPanel";
 import { StatusBadge } from "../components/ui/Badge";
 import { BlueprintGrid } from "../components/ui/Blueprint";
 import { Button } from "../components/ui/Button";
+import { ErrorState } from "../components/ui/ErrorState";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { Tag, type TagTone } from "../components/ui/Tag";
-import { useAsync } from "../hooks/useAsync";
+import { errorMessage, useAsync } from "../hooks/useAsync";
 import { viewPath } from "../routes";
 import {
     activityApi,
@@ -18,6 +20,7 @@ import {
     loadProjectTasks,
     projectsApi,
     summaryApi,
+    templatesApi,
 } from "../services/api";
 import type { Activity, Project, RenovationStatus, Summary, User } from "../types/api";
 import {
@@ -183,6 +186,27 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
     const upcoming = upcomingTasks(tasks.data?.items ?? [], TASKS_SHOWN);
     const changes = activity.data ?? [];
     const noProjects = projects.data !== null && all.length === 0;
+    // The examples are only asked for when there is no project yet: a guided first one.
+    const templates = useAsync(
+        () => (noProjects ? templatesApi.list() : Promise.resolve([])),
+        [noProjects],
+    );
+    const examples = noProjects ? (templates.data ?? []) : [];
+    const [creatingTemplate, setCreatingTemplate] = useState<string | null>(null);
+    const [templateError, setTemplateError] = useState<string | null>(null);
+
+    async function startFromTemplate(templateId: string) {
+        setCreatingTemplate(templateId);
+        setTemplateError(null);
+
+        try {
+            const project = await templatesApi.createProject(templateId);
+            onOpenProject(project.id, "model");
+        } catch (reason) {
+            setTemplateError(errorMessage(reason));
+            setCreatingTemplate(null);
+        }
+    }
 
     function create() {
         if (onCreateProject === undefined) {
@@ -229,6 +253,23 @@ export function HomePage({ user, onOpenProject, onNavigate, onCreateProject }: H
                         </Button>
                     }
                 />
+                {examples.length > 0 && (
+                    <section className={styles.examples} aria-labelledby="home-examples">
+                        <h3 id="home-examples" className={styles.examplesTitle}>
+                            O empieza con un ejemplo
+                        </h3>
+                        <p className={styles.examplesText}>
+                            Un proyecto ya armado, con su terreno, planos, cuartos y columnas, que
+                            se abre en el modelo 3D. Después se edita como cualquier otro.
+                        </p>
+                        <TemplateCards
+                            templates={examples}
+                            disabled={creatingTemplate !== null}
+                            onChoose={startFromTemplate}
+                        />
+                        {templateError && <ErrorState message={templateError} />}
+                    </section>
+                )}
                 {focus !== null && (
                     <div className={styles.focusBody}>
                         <div className={styles.cover}>

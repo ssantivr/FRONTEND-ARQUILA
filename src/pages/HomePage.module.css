@@ -57,6 +57,25 @@
     min-width: 0;
 }
 
+/* Without projects: the examples under «Crear proyecto», as the guided way to a first one. */
+.examples {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+}
+
+.examplesTitle {
+    margin: 0;
+    color: var(--color-text);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+}
+
+.examplesText {
+    margin: 0;
+    color: var(--color-text-secondary);
+}
+
 .focusBody {
     display: grid;
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);

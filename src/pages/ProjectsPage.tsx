@@ -4,6 +4,7 @@ import { AsyncStatus } from "../components/AsyncStatus";
 import { ProjectEditForm } from "../components/ProjectEditForm";
 import { ProjectTile } from "../components/ProjectTile";
 import { ProjectTimeline } from "../components/ProjectTimeline";
+import { TemplateCards } from "../components/TemplateCards";
 import { StatusBadge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
@@ -364,34 +365,11 @@ export function ProjectsPage({
                                 Un proyecto ya armado, con su terreno, planos, cuartos y columnas,
                                 que se abre en el modelo 3D. Después se edita como cualquier otro.
                             </p>
-                            <ul className="card-list">
-                                {examples.map((template) => (
-                                    <li key={template.id}>
-                                        <button
-                                            type="button"
-                                            className="card module-card"
-                                            disabled={creatingTemplate !== null}
-                                            onClick={() => handleTemplate(template.id)}
-                                        >
-                                            <span className="badge badge-source-system">
-                                                {template.kind}
-                                            </span>
-                                            <span className="card-title">{template.name}</span>
-                                            <span className="card-subtitle">
-                                                {template.description}
-                                            </span>
-                                            <span className="card-subtitle">
-                                                {template.levels === 1
-                                                    ? "1 nivel"
-                                                    : `${template.levels} niveles`}{" "}
-                                                · {formatNumber(template.built_area_m2)} m²
-                                                construidos · lote de{" "}
-                                                {formatNumber(template.lot_area_m2)} m²
-                                            </span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                            <TemplateCards
+                                templates={examples}
+                                disabled={creatingTemplate !== null}
+                                onChoose={handleTemplate}
+                            />
                             {templateError && <ErrorState message={templateError} />}
                         </>
                     )}

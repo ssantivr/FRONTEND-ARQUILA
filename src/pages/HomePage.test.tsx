@@ -2,17 +2,34 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { activityApi, loadAcrossProjects, projectsApi, summaryApi } from "../services/api";
-import type { Activity, Project, RenovationLog, User } from "../types/api";
+import {
+    activityApi,
+    loadAcrossProjects,
+    projectsApi,
+    summaryApi,
+    templatesApi,
+} from "../services/api";
+import type { Activity, Project, ProjectTemplate, RenovationLog, User } from "../types/api";
 import { HomePage } from "./HomePage";
 
 vi.mock("../services/api", () => ({
     projectsApi: { list: vi.fn() },
     summaryApi: { get: vi.fn() },
     activityApi: { listByProject: vi.fn() },
+    templatesApi: { list: vi.fn(), createProject: vi.fn() },
     loadAcrossProjects: vi.fn(),
     loadProjectTasks: vi.fn(),
 }));
+
+const house: ProjectTemplate = {
+    id: "casa",
+    name: "Casa de ejemplo",
+    kind: "Vivienda",
+    description: "Dos niveles.",
+    levels: 2,
+    built_area_m2: 120,
+    lot_area_m2: 300,
+};
 
 const user: User = {
     id: 1,
@@ -69,6 +86,7 @@ function showHome(onOpenProject = vi.fn(), onNavigate = vi.fn(), onCreateProject
 beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(projectsApi).list.mockResolvedValue([]);
+    vi.mocked(templatesApi).list.mockResolvedValue([]);
     vi.mocked(activityApi).listByProject.mockResolvedValue(noActivity);
     vi.mocked(loadAcrossProjects).mockResolvedValue({ projects: [], items: [] } as never);
     vi.mocked(summaryApi).get.mockResolvedValue({
@@ -231,6 +249,15 @@ describe("HomePage with data", () => {
         await screen.findByRole("heading", { name: "Oficina" });
     });
 
+    it("does not ask for the examples when there are projects", async () => {
+        showHome();
+
+        await screen.findByRole("heading", { name: "Oficina" });
+
+        expect(templatesApi.list).not.toHaveBeenCalled();
+        expect(screen.queryByRole("region", { name: "O empieza con un ejemplo" })).toBeNull();
+    });
+
     it("takes the one main action to the creation form", async () => {
         const { onCreateProject } = showHome();
 
@@ -252,6 +279,46 @@ describe("HomePage without projects", () => {
         await userEvent.click(screen.getByRole("button", { name: "Crear proyecto" }));
 
         expect(onCreateProject).toHaveBeenCalledTimes(1);
+    });
+
+    it("offers the examples and opens the one chosen in the 3D model", async () => {
+        vi.mocked(templatesApi).list.mockResolvedValue([house]);
+        vi.mocked(templatesApi).createProject.mockResolvedValue(
+            project(9, "Casa de ejemplo", "draft"),
+        );
+        const { onOpenProject } = showHome();
+        const examples = await screen.findByRole("region", { name: "O empieza con un ejemplo" });
+
+        expect(
+            within(examples).getByText("2 niveles · 120 m² construidos · lote de 300 m²"),
+        ).toBeInTheDocument();
+        await userEvent.click(within(examples).getByRole("button", { name: /Casa de ejemplo/ }));
+
+        expect(templatesApi.createProject).toHaveBeenCalledWith("casa");
+        expect(onOpenProject).toHaveBeenCalledWith(9, "model");
+    });
+
+    it("keeps the examples and says why when the project cannot be created", async () => {
+        vi.mocked(templatesApi).list.mockResolvedValue([house]);
+        vi.mocked(templatesApi).createProject.mockRejectedValue(new Error("Sin conexión"));
+        const { onOpenProject } = showHome();
+        const examples = await screen.findByRole("region", { name: "O empieza con un ejemplo" });
+        const card = within(examples).getByRole("button", { name: /Casa de ejemplo/ });
+
+        await userEvent.click(card);
+
+        expect(await within(examples).findByRole("alert")).toHaveTextContent("Sin conexión");
+        expect(card).toBeEnabled();
+        expect(onOpenProject).not.toHaveBeenCalled();
+    });
+
+    it("still offers a blank project when the examples cannot be read", async () => {
+        vi.mocked(templatesApi).list.mockRejectedValue(new Error("Plantillas caídas"));
+        showHome();
+
+        expect(await screen.findByText("Todavía no tienes proyectos")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Crear proyecto" })).toBeEnabled();
+        expect(screen.queryByRole("region", { name: "O empieza con un ejemplo" })).toBeNull();
     });
 
     it("gives the empty lists a concrete text and a way forward", async () => {
