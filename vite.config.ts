@@ -6,6 +6,16 @@ const DEFAULT_PROXY_TARGET = "http://localhost:8000";
 
 export default defineConfig(({ mode }) => ({
     plugins: [react()],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    react: ["react", "react-dom"],
+                    three: ["three"],
+                },
+            },
+        },
+    },
     server: {
         proxy: {
             "/api": {
