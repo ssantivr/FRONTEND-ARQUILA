@@ -254,3 +254,22 @@ Medición: 695 clases en las 30 hojas; se borró una clase solo si su nombre no 
 ### Registro neutral, con una deuda (31 de octubre)
 
 `POST /auth/register` responde 202 sin cuerpo ni sesión, exista o no el correo, y la pantalla inicia sesión justo después. **La respuesta no es neutral del todo:** quien registre un correo y luego intente entrar con esa contraseña puede deducir si ya existía. Se acepta por ahora. Es deuda atada a la verificación de correo (N4 de la auditoría): con ella, la cuenta solo se activa desde el correo y esa deducción desaparece.
+
+### Presupuesto en CSV: punto y coma y coma decimal (8 de noviembre, IMP-F1)
+
+El archivo se abre con doble clic en Excel o LibreOffice configurados en español, donde la coma es el separador decimal y por eso el separador de lista es el punto y coma. Los dos son constantes de `utils/budgetCsv.ts`: `CSV_DELIMITER = ";"` y `CSV_DECIMAL = ","`. Los importes van sin separador de miles, para que la hoja los lea como números. Lleva BOM UTF-8, para que Excel no rompa los acentos, y finales de línea CRLF (RFC 4180).
+
+- **Totales en centavos enteros.** Cantidad y costo son `NUMERIC(12, 2)`: se pasan a centésimas exactas, el subtotal de cada línea se redondea al centavo (la mitad hacia arriba) y el total es la suma de los subtotales. Se calcula en `bigint` para que los valores máximos de la columna sigan siendo exactos. La tabla en pantalla sigue sumando en coma flotante y redondeando al mostrar; solo pueden diferir en un caso límite de medio centavo (por ejemplo 0,33 × 0,5).
+- **Sin moneda.** `materials` no tiene columna de moneda, así que el CSV no lleva símbolo.
+- **Inyección de fórmulas.** Las celdas de texto que empiezan por `=`, `+`, `-`, `@`, tabulador o retorno llevan un `'` delante. Las numéricas las genera la propia función y nunca empiezan así.
+
+### Deuda: contraste inestable de `.studio-caption` sobre el canvas, tema claro, LightingPage (9 de noviembre)
+
+`npm run accesibilidad` falla a veces con `color-contrast (serious)` en «claro · iluminación», nodo `.studio-caption > strong`. El rótulo se pinta sobre el canvas 3D con un fondo translúcido, así que axe mide contra lo que el canvas tenga detrás en ese instante, y eso cambia de una pasada a otra. **Es anterior a IMP-F1.** Evidencia (Vite temporal en 5180, mismo procedimiento en las dos versiones):
+
+- Con IMP-F1: 6 pasadas. Falla en 1 (pasada 2); 4 limpias.
+- En `a0da6a7` (IMP-F2, sin IMP-F1): 6 pasadas. Falla en 3 (pasadas 1, 2 y 5); 2 limpias; 1 cortada por `page.evaluate: Execution context was destroyed`, un fallo del script y no de contraste.
+
+En la pasada 3 con IMP-F1 falló una sola vez otro nodo: `color-contrast` en las cabeceras de la cuarta tabla de «claro · proyecto: modelo 3D» (`StructurePanel`, cargado en diferido). IMP-F1 no toca esa ruta, y en las otras 11 pasadas no volvió a salir. Queda anotado como inestabilidad de medición por si reaparece.
+
+Se corrige aparte, con un fondo opaco con token para el rótulo (`fix(a11y): opaque background for lighting caption`).
