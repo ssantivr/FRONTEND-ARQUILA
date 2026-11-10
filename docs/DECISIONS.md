@@ -62,15 +62,19 @@ Immediate job with progress; extraction into terrain and plan proposals (per-fie
 
 ### H1 · History source
 
-Reuse `activity_log` (has `created_at`) and `GET /projects/{id}/activity`. First verify, read-only, which mutations write entries and which do not. Extend the existing endpoint (filters `entity_type`, `entity_id`, `user_id`, date range; pagination); no invented endpoints.
+Reuse `activity_log` (has `created_at`) and `GET /projects/{id}/activity`. First verify, read-only, which mutations write entries and which do not. Extend the existing endpoint (filters `entity_type`, `entity_id`, `user_id`, date range; pagination); no invented endpoints. The column type of `activity_log.created_at` is settled by D-TZ.
 
 ### H2 · What is recorded
 
-Server-side, same transaction as the change, database clock in UTC (`timestamptz`), actor (user or `ai`), action (`created`, `updated`, `deleted`, `restored`, `undone`, `redone`, `ai_applied`), entity type and id, and a `changes` JSON with only the changed fields as before and after. If `detail` cannot hold it, add a `changes jsonb` column with a new migration (next free number, idempotent, down script, `pg_dump` outside the repos first). Never log secrets, password data or file contents. Existing rows stay untouched.
+Server-side, same transaction as the change, database clock in UTC (`timestamptz`), actor (user or `ai`), action (`created`, `updated`, `deleted`, `restored`, `undone`, `redone`, `ai_applied`), entity type and id, and a `changes` JSON with only the changed fields as before and after. If `detail` cannot hold it, add a `changes jsonb` column with a new migration (next free number, idempotent, down script, `pg_dump` outside the repos first). Never log secrets, password data or file contents. Existing rows keep their values (no backfill of `changes`); only the type of `created_at` changes, per D-TZ.
 
 ### H3 · Display
 
 Spanish, `Intl.DateTimeFormat('es-CO')`, absolute and relative time, `<time datetime>`, UTC tooltip, grouped by day, field names through `labels.ts`, "Última modificación" on project and plan cards and headers, time shown in success toasts. Test with a fixed timezone.
+
+### D-TZ · timestamptz conversion (OPEN, row R5b)
+
+Convert `activity_log.created_at` to `timestamptz` with `USING created_at AT TIME ZONE 'UTC'` only after a read-only check on the local database confirms that the stored values are UTC. The check: `SHOW TimeZone`, the per-database and per-role settings in `pg_db_role_setting`, and recent rows compared with known event times; values come from the `CURRENT_TIMESTAMP` default in the session time zone, and the backend sets no time zone on the connection. Run the check separately on every database the migration will touch; if one is not UTC, stop and ask the owner. New migration (next free number, idempotent) with a down script in `rollback/NNN_down.sql` (`arquila-migration` skill); the ALTER runs only when `information_schema.columns.data_type` is `timestamp without time zone`, and the down script guards the reverse the same way, because running the conversion twice would shift every row. `pg_dump` outside the repos first. The type change rebuilds the `activity_log` indexes. In the same change set, `ActivityEntry.created_at` in `app/models.py` becomes `DateTime(timezone=True)`, with a test that the API emits an offset. Agents run it on local databases only; applying it to production is the owner's step, with the owner's explicit OK and a verified backup first.
 
 ## AI knowledge base (R19)
 
@@ -110,9 +114,9 @@ Retrieval score below a threshold means: answer with the fixed "no tengo esa inf
 
 The sections above are the decisions as given by the owner. These are the facts checked against the repositories at R0 that the work rows must account for:
 
-- **H2 and the time zone.** `activity_log.created_at` is `TIMESTAMP` without a time zone today (`BASE-DE-DATOS-ARQUILA/migrations/021_activity_log.sql:9`; no timezone in `BACKEND-ARQUILA/app/models.py:762`). H2 asks for `timestamptz`, so row R5b needs a type conversion migration (new, idempotent, with a down script) that H2 does not yet describe; it changes the column type of existing rows. How to convert existing values is for the owner to confirm at R5b; before any conversion, check the real rows locally to confirm in which time zone the existing values were written (the conversion assumes UTC only if that check supports it).
+- **H2 and the time zone.** `activity_log.created_at` is `TIMESTAMP` without a time zone today (`BASE-DE-DATOS-ARQUILA/migrations/021_activity_log.sql:9`; no timezone in `BACKEND-ARQUILA/app/models.py:762`). H2 asks for `timestamptz`, so row R5b needs a type conversion migration; it changes the column type of existing rows. The conversion method is fixed by D-TZ; the read-only check that the stored values are UTC happens at R5b.
 - **`PasswordField` does not exist yet.** The existing component is `PasswordInput` (`src/components/ui/Input.tsx:80-108`), used on Login and Reset password. `PasswordField` is to be created or renamed in row R4.
-- **`labels.ts`.** The only `labels.ts` is `src/components/viewer/labels.ts` (3D viewer labels). H3 field names need either an extension of that file or a new labels module; decided in row R5b.
+- **`labels.ts`.** The only `labels.ts` today is `src/components/viewer/labels.ts` (3D viewer labels). The `src/messages/labels.ts` for H3 field names is created in row R3, together with `src/messages/es.ts`; row R5b only uses them.
 - **`docs\TEST_ACCOUNTS.md` does not exist yet**; it is to be created in row R4. The daily reset workflow in C2 is `BASE-DE-DATOS-ARQUILA/.github/workflows/reset-demo.yml`.
 - **`src/messages/es.ts` does not exist yet.** `CLAUDE.md` and the language skills name it as the home of Spanish user-facing text, but `FRONTEND-ARQUILA/src/messages/` does not exist. It is created in the first row that adds user-visible text (R3), moving only the strings that row touches; the full migration of Spanish strings belongs to the English-code row of the master plan. Until then the existing mechanism stays (strings in components, `src/components/viewer/labels.ts` for the 3D viewer).
 - **`docs/DECISIONES.md:260`** names `utils/budgetCsv.ts`, removed by ec93280 (see C1).
@@ -134,6 +138,8 @@ Status OPEN; the owner is asked at the right step. Row numbers follow the block 
 - D-200 · rows over 200 characters, row R6 · OPEN
 - D-MAP · tile provider, row R8 · OPEN
 - D-NEST · terrain inside plans, default in N3 · OPEN
+- D-TZ · `activity_log.created_at` to `timestamptz`, row R5b · OPEN
+- D-R08 · R08 uploads in row R10: always the review modal ("nothing saved without confirmation") or the C7 auto-apply rules of R15 · OPEN
 - D-VEC · full-text or pgvector (K2) · OPEN
 - D-KB-1 · which jurisdiction and which official documents the owner will provide · OPEN
 - D-KB-2 · language scope: Spanish only or also English sources · OPEN
