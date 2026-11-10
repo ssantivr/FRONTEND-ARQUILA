@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARQUILA · Opción A · Studio Editorial (maqueta estática)</title>
+<!--
+  Static design option for row R1 (R01, R05). No frameworks, no network requests, system fonts only.
+  Open from disk. Query parameters: screen=login|login-error|panel|empty|error|detail|historial|historial-empty|delete, theme=light|dark,
+  clean=1 hides the mockup switcher. All project data is mock and labelled "Ejemplo".
+-->
+<style>
+/* ===== SKIN START: option A, Studio Editorial ===== */
+:root, [data-theme="light"] {
+  --bg: #e8e4da;
+  --surface: #f5f2eb;
+  --surface-2: #efebe2;
+  --sunken: #dfdace;
+  --border: #cfc9bb;
+  --border-strong: #737e76;
+  --text: #171918;
+  --text-2: #4f5751;
+  --accent: #d66a3d;
+  --accent-hover: #e07c52;
+  --on-accent: #171918;
+  --accent-text: #964a2b;
+  --accent-soft: rgba(150, 74, 43, 0.1);
+  --focus: #b5552c;
+  --tab-line: #964a2b;
+  --hover: rgba(23, 25, 24, 0.05);
+  --scrim: rgba(23, 25, 24, 0.68);
+  --success: #155f3a; --success-soft: rgba(21, 95, 58, 0.1);
+  --warning: #765000; --warning-soft: rgba(118, 80, 0, 0.1);
+  --danger: #b3261e; --danger-soft: rgba(179, 38, 30, 0.08); --on-danger: #ffffff;
+  --info: #2459a8; --info-soft: rgba(36, 89, 168, 0.08);
+  --grid-minor: rgba(90, 98, 92, 0.08);
+  --grid-major: rgba(90, 98, 92, 0.15);
+  --shadow-1: none;
+  --shadow-2: 0 1px 2px rgba(23, 25, 24, 0.06), 0 8px 20px -10px rgba(23, 25, 24, 0.2);
+  --shadow-3: 0 2px 4px rgba(23, 25, 24, 0.06), 0 18px 40px -16px rgba(23, 25, 24, 0.32);
+  --btn-primary-bg: var(--accent);
+  --btn-primary-bg-hover: var(--accent-hover);
+  --block-ink-bg: #171918; --block-ink-text: #e8e4da; --block-ink-muted: #a9b3ab; --block-ink-line: #171918;
+  --block-accent-bg: #d66a3d; --block-accent-text: #171918;
+  --thumb-bg: #dfdace;
+  --iso-top: #f5f2eb; --iso-left: #b8b3a6; --iso-right: #89968c;
+  --iso-roof-f: #d66a3d; --iso-roof-b: #a9502c;
+  --iso-win: #2b2f2d; --iso-edge: rgba(23, 25, 24, 0.55);
+  --iso-ground-top: #cfc9bb; --iso-ground-l: #a59f91; --iso-ground-r: #8f8a7d;
+  --iso-tree: #5a625c; --iso-trunk: #2b2f2d;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #171918;
+  --surface: #1c1f1e;
+  --surface-2: #202322;
+  --sunken: #121413;
+  --border: #303432;
+  --border-strong: #89968c;
+  --text: #e8e4da;
+  --text-2: #a9b3ab;
+  --accent: #d66a3d;
+  --accent-hover: #e07c52;
+  --on-accent: #171918;
+  --accent-text: #e8865c;
+  --accent-soft: rgba(214, 106, 61, 0.12);
+  --focus: #d66a3d;
+  --tab-line: #d66a3d;
+  --hover: rgba(232, 228, 218, 0.06);
+  --scrim: rgba(0, 0, 0, 0.62);
+  --success: #6fdc9b; --success-soft: rgba(111, 220, 155, 0.1);
+  --warning: #f2c35b; --warning-soft: rgba(242, 195, 91, 0.1);
+  --danger: #ff8a80; --danger-soft: rgba(255, 138, 128, 0.1); --on-danger: #1b0503;
+  --info: #8ab4ff; --info-soft: rgba(138, 180, 255, 0.1);
+  --grid-minor: rgba(137, 150, 140, 0.06);
+  --grid-major: rgba(137, 150, 140, 0.12);
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.36), 0 20px 44px -16px rgba(0, 0, 0, 0.72);
+  --block-ink-bg: #202322; --block-ink-text: #e8e4da; --block-ink-muted: #a9b3ab; --block-ink-line: #303432;
+  --thumb-bg: #121413;
+  --iso-top: #e8e4da; --iso-left: #737e76; --iso-right: #4f5751;
+  --iso-roof-f: #d66a3d; --iso-roof-b: #8f4325;
+  --iso-win: #121413; --iso-edge: rgba(0, 0, 0, 0.6);
+  --iso-ground-top: #303432; --iso-ground-l: #232625; --iso-ground-r: #1c1f1e;
+  --iso-tree: #737e76; --iso-trunk: #0e100f;
+  color-scheme: dark;
+}
+:root {
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.02em;
+  --radius-sm: 2px; --radius-md: 4px; --radius-lg: 6px; --radius-xl: 8px; --radius-pill: 999px;
+  --sidebar-bg: #171918; --sidebar-text: #e8e4da; --sidebar-muted: #a9b3ab;
+  --sidebar-line: rgba(255, 255, 255, 0.12); --sidebar-hover: rgba(255, 255, 255, 0.07);
+  --sidebar-active-bg: rgba(214, 106, 61, 0.14); --sidebar-active-text: #e8e4da; --sidebar-active-bar: #d66a3d;
+  --viewer-bg: #121413; --viewer-text: #e8e4da; --viewer-muted: #a9b3ab;
+  --viewer-grid-minor: rgba(137, 150, 140, 0.08); --viewer-grid-major: rgba(137, 150, 140, 0.16);
+  --viewer-panel: rgba(18, 20, 19, 0.86); --viewer-line: rgba(255, 255, 255, 0.14);
+  --viewer-glow: none;
+  --hero-bg: #171918; --hero-text: #e8e4da; --hero-muted: #a9b3ab;
+  --scrim-text: #f5f2eb;
+  --dur-fast: 150ms; --dur: 220ms; --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* Dark-only brand surfaces; html[...] outranks the :root scale block above. */
+html[data-theme="dark"] { --hero-bg: #262a28; --sidebar-bg: #121413; }
+/* Editorial specifics: color-block KPIs, ruled section titles, flat hairline panels. */
+.kpi:nth-child(1) { background: var(--block-ink-bg); color: var(--block-ink-text); border-color: var(--block-ink-line); }
+.kpi:nth-child(1) .kpi-label, .kpi:nth-child(1) .kpi-detail { color: var(--block-ink-muted); }
+.kpi:nth-child(2) { background: var(--block-accent-bg); color: var(--block-accent-text); border-color: var(--block-accent-bg); }
+.kpi:nth-child(2) .kpi-label, .kpi:nth-child(2) .kpi-detail { color: var(--block-accent-text); }
+.kpi-value { font-family: var(--font-display); font-size: 56px; line-height: 1; }
+.block-head { border-bottom: 1px solid var(--text); padding-bottom: 8px; }
+.block-head h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.page-title { font-size: 48px; max-width: 16ch; }
+.card { box-shadow: none; }
+.card .thumb { aspect-ratio: 16 / 10; }
+.login-hero h2 { font-size: 56px; max-width: 12ch; }
+.login-hero { border-left: 1px solid var(--border); }
+.project-head h1 { font-size: 52px; }
+.eyebrow { letter-spacing: 0.14em; }
+/* ===== SKIN END ===== */
+
+/* ===== BASE: layout and components shared by every option, all values from the variables above ===== */
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-body); font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+:root { --sidebar-w: 248px; }
+time { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ic { width: 18px; height: 18px; flex: none; display: inline-block; vertical-align: middle; }
+.ic-sm { width: 14px; height: 14px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Mockup switcher (not part of the design; hidden with clean=1). */
+.mock-bar { position: fixed; right: 12px; bottom: 12px; z-index: 200; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+  max-width: calc(100vw - 24px); padding: 6px; background: #121413; color: #e8e4da; border-radius: 8px; font-size: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.mock-bar a, .mock-bar button { color: #e8e4da; background: transparent; border: 1px solid rgba(255,255,255,.18); border-radius: 4px; padding: 4px 8px; text-decoration: none; cursor: pointer; }
+.mock-bar strong { padding: 0 6px; }
+.clean .mock-bar { display: none; }
+
+/* Mock data tag */
+.mock-tag { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600; letter-spacing: 0.02em; background: var(--info-soft); color: var(--info); border: 1px dashed var(--info); white-space: nowrap; }
+.thumb .mock-tag { position: absolute; top: 8px; left: 8px; background: var(--surface); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px;
+  border-radius: var(--radius-md); border: 1px solid transparent; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--btn-primary-bg); color: var(--on-accent); }
+.btn-primary:hover { background: var(--btn-primary-bg-hover); }
+.btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+.btn-secondary:hover { background: var(--hover); }
+.btn-ghost { background: transparent; color: var(--text); }
+.btn-ghost:hover { background: var(--hover); }
+.btn-danger { background: var(--danger); color: var(--on-danger); }
+.btn-danger-outline { background: transparent; color: var(--danger); border-color: var(--danger); }
+.btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+.btn.is-loading { opacity: 1; cursor: progress; }
+.btn-block { width: 100%; }
+.btn-lg { height: 48px; padding: 0 20px; font-size: 15px; }
+.icon-btn { width: 40px; padding: 0; }
+.link { background: none; border: 0; padding: 0; color: var(--accent-text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Fields */
+.field { display: grid; gap: 6px; }
+.field-label { font-weight: 600; font-size: 13px; }
+.field-hint { font-size: 12px; color: var(--text-2); }
+.control { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 4px 0 12px; background: var(--surface);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-md); color: var(--text-2); }
+.control:focus-within { outline: 2px solid var(--focus); outline-offset: 1px; }
+.control input, .control select { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--text); outline: none; }
+.control input::placeholder { color: var(--text-2); }
+.control.is-disabled { opacity: 0.6; }
+.control.is-valid { border-color: var(--success); }
+.reveal { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text); cursor: pointer; }
+.reveal:hover { background: var(--hover); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.badge-ok { background: var(--success-soft); color: var(--success); }
+.badge-draft { background: var(--hover); color: var(--text-2); border: 1px solid var(--border); }
+.badge-ai { background: var(--accent-soft); color: var(--accent-text); }
+.badge-review { background: var(--warning-soft); color: var(--warning); border: 1px solid var(--warning); }
+
+/* Login */
+.login { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.login-form-side { display: flex; flex-direction: column; gap: 32px; padding: 40px 56px; background: var(--surface); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.12em; font-size: 14px; }
+.brand svg { width: 28px; height: 28px; }
+.login-card { display: grid; gap: 20px; max-width: 400px; width: 100%; margin-top: auto; }
+.login-title { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: 40px; line-height: 1.1; }
+.lead { color: var(--text-2); font-size: 15px; }
+.form { display: grid; gap: 16px; }
+.forgot { justify-self: start; font-size: 13px; }
+.switch { color: var(--text-2); font-size: 14px; }
+.states-note { max-width: 400px; width: 100%; padding: 16px; border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); display: grid; gap: 12px; }
+.note-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; flex-wrap: wrap; }
+.state-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.state-grid .control input { width: 100%; }
+.state-cap { font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+.state-cap code { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+.theme-switch { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-md); align-self: flex-start; margin-top: auto; }
+.theme-switch button { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-2); cursor: pointer; font-size: 13px; }
+.theme-switch button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.login-hero { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 24px; padding: 56px; background: var(--hero-bg); color: var(--hero-text); }
+.login-hero .eyebrow { color: var(--hero-muted); }
+.login-hero h2 { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); line-height: 1.05; }
+.hero-art { flex: 1; min-height: 280px; display: grid; place-items: center;
+  background-image: linear-gradient(var(--viewer-grid-minor) 1px, transparent 1px), linear-gradient(90deg, var(--viewer-grid-minor) 1px, transparent 1px);
+  background-size: 24px 24px; border: 1px solid var(--viewer-line); border-radius: var(--radius-lg); }
+.hero-art svg { width: min(88%, 560px); height: auto; }
+.features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.features li { display: grid; gap: 4px; padding-top: 12px; border-top: 1px solid var(--viewer-line); color: var(--hero-muted); }
+.features b { color: var(--hero-text); font-size: 15px; }
+.eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-2); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* App shell */
+.app { min-height: 100vh; display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); position: relative; }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 24px; padding: 20px 12px; background: var(--sidebar-bg); color: var(--sidebar-text); }
+.sidebar .brand { padding: 4px 8px; }
+.nav { display: grid; gap: 2px; }
+.nav-group { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sidebar-muted); padding: 12px 12px 4px; }
+.nav a { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: var(--radius-md); text-decoration: none; color: var(--sidebar-muted); position: relative; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+.nav a:hover { background: var(--sidebar-hover); color: var(--sidebar-text); }
+.nav a[aria-current="page"] { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); font-weight: 600; }
+.nav a[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; background: var(--sidebar-active-bar); }
+.nav .sub { margin-left: auto; font-size: 12px; color: var(--sidebar-muted); font-weight: 400; }
+.side-foot { margin-top: auto; display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--sidebar-line); }
+.user { display: flex; align-items: center; gap: 10px; padding: 4px 8px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 13px; flex: none; }
+.user small { display: block; color: var(--sidebar-muted); font-size: 12px; }
+.topbar-m, .bottom-nav { display: none; }
+.content { padding: 32px 40px 56px; display: grid; gap: 32px; align-content: start; min-width: 0; }
+
+/* Panel */
+.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+.page-title { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); line-height: 1.05; margin-top: 8px; }
+.page-lead { color: var(--text-2); margin-top: 8px; }
+.head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.kpi { padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); display: grid; gap: 6px; box-shadow: var(--shadow-1); }
+.kpi-label { font-size: 13px; font-weight: 600; color: var(--text-2); }
+.kpi-value { font-variant-numeric: tabular-nums; margin: 0; }
+.kpi-detail { font-size: 12px; color: var(--text-2); margin: 0; }
+.panel-grid { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: 32px; align-items: start; }
+.block-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+.block-head h2 { line-height: 1.2; }
+.filterbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+.filterbar .control { flex: 1 1 260px; height: 40px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { height: 32px; padding: 0 12px; border-radius: var(--radius-pill); border: 1px solid var(--border-strong); background: transparent; color: var(--text); cursor: pointer; font-size: 13px; }
+.chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.filterbar .select-sm { height: 32px; flex: 0 0 auto; }
+.select-sm select { padding-right: 4px; font-size: 13px; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: grid; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.thumb { position: relative; display: grid; place-items: center; background-color: var(--thumb-bg);
+  background-image: linear-gradient(var(--grid-minor) 1px, transparent 1px), linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+  background-size: 16px 16px; border-bottom: 1px solid var(--border); }
+.thumb svg { width: 78%; height: 86%; }
+.card-body { padding: 16px; display: grid; gap: 8px; }
+.card-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card h3 { font-size: 17px; font-weight: 700; }
+.card-meta, .card-mod { font-size: 12px; color: var(--text-2); }
+.progress { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; font-size: 12px; color: var(--text-2); }
+.bar { height: 6px; border-radius: var(--radius-pill); background: var(--sunken); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
+.activity { display: grid; gap: 20px; }
+.day { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-2); margin-bottom: 8px; }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; }
+.feed li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.feed .dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--border); color: var(--text-2); }
+.feed .dot.ai { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; }
+.feed p { font-size: 13px; }
+.when { font-size: 12px; color: var(--text-2); display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.when time { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* Project detail */
+.crumbs { font-size: 13px; color: var(--text-2); display: flex; gap: 8px; align-items: center; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
+.project-head { display: flex; justify-content: space-between; gap: 24px; align-items: flex-end; flex-wrap: wrap; }
+.title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.project-head h1 { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); line-height: 1.05; }
+.modline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; color: var(--text-2); font-size: 13px; }
+.modline time, .modline b { color: var(--text); font-weight: 600; }
+.viewer { position: relative; height: 420px; border-radius: var(--radius-xl); overflow: hidden; background-color: var(--viewer-bg); color: var(--viewer-text); box-shadow: var(--viewer-glow);
+  background-image: linear-gradient(var(--viewer-grid-major) 1px, transparent 1px), linear-gradient(90deg, var(--viewer-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--viewer-grid-minor) 1px, transparent 1px), linear-gradient(90deg, var(--viewer-grid-minor) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; }
+.viewer-stage { position: absolute; inset: 56px 24px 44px; display: grid; place-items: center; }
+.viewer-stage svg { width: auto; height: 100%; max-width: 100%; }
+.viewer-toolbar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; z-index: 2; }
+.vt-group { display: inline-flex; gap: 2px; padding: 3px; background: var(--viewer-panel); border: 1px solid var(--viewer-line); border-radius: var(--radius-md); }
+.vt-group button { height: 32px; min-width: 32px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--viewer-muted); font-size: 13px; cursor: pointer; }
+.vt-group button:hover { color: var(--viewer-text); background: rgba(255,255,255,.07); }
+.vt-group button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.viewer-status { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--viewer-muted); }
+.viewer-status .pill { padding: 4px 10px; background: var(--viewer-panel); border: 1px solid var(--viewer-line); border-radius: var(--radius-pill); }
+.gizmo { position: absolute; right: 16px; bottom: 12px; width: 64px; height: 64px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: thin; }
+.tab { flex: none; height: 44px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-2); font-weight: 600; cursor: pointer; margin-bottom: -1px; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--tab-line, var(--accent)); }
+.subtabs { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+.subtab { height: 32px; padding: 0 14px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-2); font-weight: 600; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.subtab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border-strong); }
+.tabpanel { display: grid; gap: 20px; }
+.terrain-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 24px; align-items: start; }
+.panel-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
+.terrain { padding: 20px; display: grid; gap: 16px; }
+.terrain-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.terrain-head h2 { font-size: 20px; }
+.terrain-head p { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+.fields { display: grid; margin: 0; }
+.frow { display: grid; grid-template-columns: 160px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
+.frow dt { font-size: 13px; color: var(--text-2); font-weight: 600; }
+.frow dd { margin: 0; font-variant-numeric: tabular-nums; }
+.frow dd small { display: block; font-size: 12px; color: var(--text-2); }
+.frow.is-review { background: var(--warning-soft); margin: 0 -20px; padding: 12px 20px; }
+.frow .empty { color: var(--text-2); }
+.assistant { display: grid; grid-template-rows: auto 1fr auto; min-height: 460px; overflow: hidden; }
+.as-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.as-head h2 { font-size: 15px; display: flex; gap: 8px; align-items: center; }
+.as-head small { color: var(--text-2); font-size: 12px; font-weight: 400; }
+.as-body { padding: 16px; display: grid; gap: 12px; align-content: start; }
+.file-chip { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--surface-2); flex-wrap: wrap; }
+.step { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--success); }
+.bubble { padding: 12px 14px; border-radius: var(--radius-lg); background: var(--surface-2); border: 1px solid var(--border); font-size: 13px; display: grid; gap: 10px; }
+.bubble.user { background: var(--accent-soft); border-color: transparent; justify-self: end; max-width: 85%; }
+.bubble .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.notice { font-size: 12px; color: var(--text-2); }
+.composer { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+.composer input { flex: 1; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); color: var(--text); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.composer input::placeholder { color: var(--text-2); text-overflow: ellipsis; }
+.history { padding: 20px; display: grid; gap: 20px; }
+.history-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.hentry { display: grid; grid-template-columns: 184px minmax(0, 1fr); gap: 16px; padding: 14px 0; border-top: 1px solid var(--border); }
+.hentry .when { display: grid; gap: 2px; margin: 0; }
+.hentry h3 { font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.diff { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.diff li { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.diff .k { color: var(--text-2); min-width: 110px; }
+.diff del { color: var(--text-2); }
+.diff ins { text-decoration: none; font-weight: 600; }
+
+/* Delete modal */
+.ghost { display: grid; gap: 24px; }
+.ghost i { display: block; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 5; }
+/* The modal states share the content column (after the sidebar), on top of a dimmed page. */
+.content.ghost { grid-column: 2; grid-row: 1; }
+.modal-stage { grid-column: 2; grid-row: 1; position: relative; z-index: 6; display: grid; grid-template-columns: repeat(2, minmax(0, 420px)); justify-content: center; align-content: start; gap: 32px 24px; padding: 40px 32px; }
+.state-fig { margin: 0; display: grid; gap: 10px; align-content: start; }
+.state-fig figcaption { color: var(--scrim-text); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.dialog { background: var(--surface); color: var(--text); border-radius: var(--radius-xl); box-shadow: var(--shadow-3); padding: 24px; display: grid; gap: 16px; border: 1px solid var(--border); }
+.dialog-icon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--danger-soft); color: var(--danger); }
+.dialog h2 { font-size: 19px; line-height: 1.3; }
+.dialog p { font-size: 14px; color: var(--text-2); }
+.impact { padding: 12px 14px; border-radius: var(--radius-md); background: var(--danger-soft); display: grid; gap: 6px; }
+.impact strong { color: var(--text); font-size: 14px; }
+.ok-line { font-size: 12px; color: var(--success); display: flex; gap: 6px; align-items: center; }
+.err-line { font-size: 12px; color: var(--danger); display: flex; gap: 6px; align-items: flex-start; }
+.control.is-invalid { border-color: var(--danger); }
+.alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radius-md); background: var(--danger-soft); color: var(--text); border: 1px solid var(--danger); font-size: 14px; }
+.alert svg { color: var(--danger); margin-top: 1px; }
+.form-error { margin: 0; }
+.state-block { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 32px; align-items: center; padding: 32px; }
+.state-block h2 { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: 30px; line-height: 1.15; }
+.state-block p { color: var(--text-2); font-size: 15px; margin: 8px 0 20px; max-width: 46ch; }
+.state-art { min-height: 220px; display: grid; place-items: center; border-radius: var(--radius-lg); background-color: var(--thumb-bg); }
+.state-art svg { width: 80%; height: auto; }
+.state-block-single { grid-template-columns: minmax(0, 1fr); gap: 16px; justify-items: start; }
+.state-block-single .state-icon { justify-self: start; }
+.state-icon { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--danger-soft); color: var(--danger); justify-self: center; }
+.state-icon .ic { width: 28px; height: 28px; }
+.history-empty { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 16px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); color: var(--text-2); font-size: 13px; }
+.frow .tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
+.frow.is-review .tags { grid-column: 2 / -1; justify-content: flex-start; }
+.btn-sm { height: 32px; padding: 0 12px; font-size: 13px; }
+/* Motion: entrance and exit at the duration tokens; prefers-reduced-motion turns all of it off. */
+@keyframes enter { from { opacity: 0; transform: translateY(8px); } }
+@keyframes exit { to { opacity: 0; transform: translateY(8px); } }
+@keyframes pop { from { opacity: 0; transform: scale(0.4); } }
+@keyframes pulse-once { from { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); } to { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } }
+.dialog, .toast { animation: enter var(--dur) var(--ease) both; }
+.dialog.is-leaving, .toast.is-leaving { animation: exit var(--dur-fast) var(--ease) both; }
+.ok-line svg { animation: pop var(--dur) var(--ease) both; }
+.toast .btn { animation: pulse-once calc(var(--dur) * 3) var(--ease) var(--dur) 1; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.toast { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: var(--radius-lg); background: #171918; color: #e8e4da; box-shadow: var(--shadow-3); border: 1px solid rgba(255,255,255,.12); }
+.toast .ok { color: #6fdc9b; }
+.toast p { font-size: 14px; }
+.toast time { display: block; font-size: 12px; color: #a9b3ab; }
+.toast .btn { height: 36px; background: transparent; color: #e8e4da; border-color: rgba(255,255,255,.4); }
+
+/* Iso renders */
+.iso polygon, .iso path { stroke: var(--iso-edge); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.iso .t { fill: var(--iso-top); } .iso .l { fill: var(--iso-left); } .iso .r { fill: var(--iso-right); }
+.iso .rf { fill: var(--iso-roof-f); } .iso .rb { fill: var(--iso-roof-b); }
+.iso .w { fill: var(--iso-win); stroke: none; }
+.iso .gt { fill: var(--iso-ground-top); } .iso .gl { fill: var(--iso-ground-l); } .iso .gr { fill: var(--iso-ground-r); }
+.iso .tr { fill: var(--iso-tree); stroke: var(--iso-edge); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.iso .trk { stroke: var(--iso-trunk); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.iso .sh { fill: rgba(0, 0, 0, 0.18); stroke: none; }
+.iso .sel { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 4; }
+.iso .dim { stroke: var(--viewer-muted); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; }
+.iso .dimt { fill: var(--viewer-text); font: 600 1px var(--font-mono); paint-order: stroke; stroke: var(--viewer-bg); stroke-width: 0.32px; stroke-linejoin: round; }
+.iso .gh { fill: none; stroke: var(--accent-text); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.gizmo .ax-x { stroke: var(--axis-x, #ff8a80); } .gizmo .ax-y { stroke: var(--axis-y, #8ab4ff); } .gizmo .ax-z { stroke: var(--axis-z, #89968c); }
+.gizmo .tx-x { fill: var(--axis-x, #ff8a80); } .gizmo .tx-y { fill: var(--axis-y, #8ab4ff); } .gizmo .tx-z { fill: var(--axis-z, #89968c); }
+
+/* Responsive: tablet and phone */
+@media (max-width: 1100px) {
+  .panel-grid, .terrain-grid { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .modal-stage { grid-template-columns: minmax(0, 420px); }
+  .state-block { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .login { grid-template-columns: minmax(0, 1fr); }
+  .login-form-side { padding: 24px 20px; gap: 24px; }
+  .login-card { margin-top: 8px; }
+  .login-title { font-size: 32px; }
+  .login-hero { padding: 28px 20px; order: 2; }
+  .login-hero h2 { font-size: 32px; }
+  .hero-art { min-height: 200px; }
+  .features { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .state-grid { grid-template-columns: minmax(0, 1fr); }
+  .theme-switch { margin-top: 0; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+  .sidebar { display: none; }
+  .topbar-m { display: flex; position: sticky; top: 0; z-index: 10; align-items: center; justify-content: space-between; gap: 8px; height: 56px; padding: 0 12px 0 16px; background: var(--sidebar-bg); color: var(--sidebar-text); }
+  .topbar-m .icon-btn { color: var(--sidebar-text); background: transparent; border: 0; height: 44px; width: 44px; }
+  .bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; height: 64px; background: var(--surface); border-top: 1px solid var(--border); }
+  .bottom-nav a { display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 11.5px; text-decoration: none; color: var(--text-2); min-width: 0; }
+  .bottom-nav a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bottom-nav a[aria-current="page"] { color: var(--accent-text); font-weight: 700; }
+  .content { padding: 20px 16px 96px; gap: 24px; }
+  .page-title { font-size: 32px; }
+  .project-head h1 { font-size: 34px; }
+  .head-actions { width: 100%; }
+  .head-actions .btn { flex: 1 1 auto; }
+  .kpis { gap: 10px; }
+  .kpi { padding: 14px; }
+  .kpi-value { font-size: 36px; }
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .viewer { height: 280px; }
+  .viewer-stage { inset: 56px 8px 40px; }
+  .vt-group .lbl { display: none; }
+  .gizmo { width: 48px; height: 48px; }
+  .frow { grid-template-columns: minmax(0, 1fr) auto; }
+  .frow dd { grid-column: 1 / -1; grid-row: 2; }
+  .hentry { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .content.ghost { display: none; }
+  .modal-stage { grid-column: 1; grid-row: auto; padding: 24px 16px 96px; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .iso .dimt { font-size: 1.5px; stroke-width: 0.45px; }
+  .viewer { height: 300px; }
+  .state-block { padding: 20px; gap: 16px; }
+  .state-block h2 { font-size: 24px; }
+  .hentry .when { display: flex; gap: 8px; }
+  .dialog { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    <symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="m9 20 3-6 3 2v4"/><path d="m6 12 3-4 4 1 3 4"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="mark" viewBox="0 0 32 32"><polygon points="16,3 28,10 16,17 4,10" fill="#d66a3d"/><polygon points="4,10 16,17 16,30 4,23" fill="#a9502c"/><polygon points="28,10 16,17 16,30 28,23" fill="#89968c"/></symbol>
+  </defs>
+</svg>
+
+<nav class="mock-bar" aria-label="Pantallas de la maqueta">
+  <strong>Opción A · maqueta</strong>
+  <a href="?screen=login">Acceso</a>
+  <a href="?screen=login-error">Acceso con error</a>
+  <a href="?screen=panel">Panel</a>
+  <a href="?screen=empty">Panel vacío</a>
+  <a href="?screen=error">Panel con error</a>
+  <a href="?screen=detail">Proyecto</a>
+  <a href="?screen=historial">Historial</a>
+  <a href="?screen=historial-empty">Historial vacío</a>
+  <a href="?screen=delete">Eliminar</a>
+  <button type="button" data-toggle-theme>Cambiar tema</button>
+</nav>
+
+<!-- ============ 1. LOGIN ============ -->
+<main class="screen login" data-screen="login">
+  <section class="login-form-side">
+    <div class="brand"><svg aria-hidden="true"><use href="#mark"/></svg><span>ARQUILA</span></div>
+    <div class="login-card">
+      <div>
+        <h1 class="login-title">Iniciar sesión</h1>
+        <p class="lead" style="margin-top:8px">Entra con tu correo para volver a tus proyectos.</p>
+      </div>
+      <form class="form" onsubmit="return false" novalidate>
+        <div class="field">
+          <label class="field-label" for="email">Correo</label>
+          <div class="control"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg><input id="email" type="email" placeholder="nombre@ejemplo.com" autocomplete="email" maxlength="254"></div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="pw">Contraseña</label>
+          <div class="control"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>
+            <input id="pw" type="password" value="clave-de-ejemplo" autocomplete="current-password" maxlength="128">
+            <button type="button" class="reveal" data-reveal="pw" aria-label="Mostrar contraseña"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg></button>
+          </div>
+        </div>
+        <p class="alert form-error" role="alert" id="login-error" data-login-error hidden><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg><span>Correo o contraseña incorrectos.</span></p>
+        <button type="button" class="link forgot">Olvidé mi contraseña</button>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Entrar</button>
+      </form>
+      <p class="switch">¿Todavía no tienes cuenta? <button type="button" class="link">Crear una cuenta nueva</button></p>
+    </div>
+    <aside class="states-note" aria-label="Estados del botón de contraseña">
+      <p class="note-title">Estados del botón de contraseña <span class="mock-tag">Maqueta</span></p>
+      <div class="state-grid">
+        <div>
+          <p class="state-cap">Oculta · <code>aria-label="Mostrar contraseña"</code></p>
+          <div class="control"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg><input type="password" value="clave-de-ejemplo" readonly aria-label="Contraseña, estado oculto"><button type="button" class="reveal" aria-label="Mostrar contraseña"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg></button></div>
+        </div>
+        <div>
+          <p class="state-cap">Visible · <code>aria-label="Ocultar contraseña"</code></p>
+          <div class="control"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg><input type="text" value="clave-de-ejemplo" readonly aria-label="Contraseña, estado visible"><button type="button" class="reveal" aria-label="Ocultar contraseña"><svg class="ic" aria-hidden="true"><use href="#i-eyeoff"/></svg></button></div>
+        </div>
+      </div>
+    </aside>
+    <div class="theme-switch" role="group" aria-label="Tema">
+      <button type="button" data-set-theme="light" aria-pressed="true"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sun"/></svg>Tema claro</button>
+      <button type="button" data-set-theme="dark" aria-pressed="false"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-moon"/></svg>Tema oscuro</button>
+    </div>
+  </section>
+  <section class="login-hero" aria-label="Qué es ARQUILA">
+    <p class="eyebrow">ARQUILA</p>
+    <h2>Diseña, organiza y visualiza tu arquitectura.</h2>
+    <div class="hero-art" data-iso="ladera" data-iso-label="Render isométrico de ejemplo"></div>
+    <ul class="features">
+      <li><b>Modelo 3D</b>Se arma con los terrenos, planos y cuartos del proyecto.</li>
+      <li><b>Planos con cotas</b>Plantas, fachadas e implantación, descargables en SVG.</li>
+    </ul>
+  </section>
+</main>
+
+<!-- ============ 2. PANEL (/dashboard) ============ -->
+<div class="screen app" data-screen="panel">
+  <aside class="sidebar" data-sidebar="panel"></aside>
+  <header class="topbar-m" data-topbar></header>
+  <main class="content">
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Panel <span class="mock-tag">Datos de ejemplo</span></p>
+        <h1 class="page-title">Retoma el trabajo donde lo dejaste.</h1>
+        <p class="page-lead">Martes, 10 de noviembre de 2026</p>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="btn btn-primary"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"/></svg>Crear con IA</button>
+        <button type="button" class="btn btn-secondary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Crear manualmente</button>
+      </div>
+    </header>
+
+    <dl class="kpis" aria-label="Resumen de tu cuenta">
+      <div class="kpi"><dt class="kpi-label">Proyectos</dt><dd class="kpi-value">4</dd><dd class="kpi-detail">Sin archivar</dd></div>
+      <div class="kpi"><dt class="kpi-label">En progreso</dt><dd class="kpi-value">3</dd><dd class="kpi-detail">Activos con avance menor al 100&nbsp;%</dd></div>
+      <div class="kpi"><dt class="kpi-label">Completados</dt><dd class="kpi-value">1</dd><dd class="kpi-detail">Con el avance al 100&nbsp;%</dd></div>
+      <div class="kpi"><dt class="kpi-label">Planos</dt><dd class="kpi-value">9</dd><dd class="kpi-detail">En todos tus proyectos</dd></div>
+    </dl>
+
+    <div class="panel-grid">
+      <section aria-labelledby="h-projects">
+        <div class="block-head"><h2 id="h-projects">Proyectos</h2><a href="#" class="link">Ver proyectos</a></div>
+        <div class="filterbar">
+          <div class="control"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="search" placeholder="Buscar por nombre, descripción o lugar" aria-label="Buscar por nombre, descripción o lugar" maxlength="200"></div>
+          <div class="chips" role="group" aria-label="Qué proyectos mostrar">
+            <button type="button" class="chip" aria-pressed="true">Sin archivar</button>
+            <button type="button" class="chip" aria-pressed="false">Activos</button>
+            <button type="button" class="chip" aria-pressed="false">En borrador</button>
+            <button type="button" class="chip" aria-pressed="false">Archivados</button>
+          </div>
+          <div class="control select-sm"><select aria-label="Ordenar proyectos"><option>Actualizados recientemente</option><option>Creados recientemente</option><option>Por nombre</option><option>Más avanzados primero</option></select></div>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <div class="thumb" data-iso="ladera" data-iso-label="Vista 3D de ejemplo de Casa Ladera"><span class="mock-tag">Ejemplo</span></div>
+            <div class="card-body">
+              <div class="card-row"><h3>Casa Ladera</h3><span class="badge badge-ok"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Activo</span></div>
+              <p class="card-meta">Sin ubicación · 4 planos · 12 cuartos</p>
+              <p class="card-mod">Última modificación: <time datetime="2026-11-10T09:05:00-05:00" title="Hora UTC: 14:05">10 de nov de 2026, 9:05&nbsp;a.&nbsp;m.</time> · hace 1 hora</p>
+              <div class="progress"><div class="bar" role="progressbar" aria-label="Avance" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"><span style="width:60%"></span></div>60&nbsp;%</div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="thumb" data-iso="patio" data-iso-label="Vista 3D de ejemplo de Edificio Patio"><span class="mock-tag">Ejemplo</span></div>
+            <div class="card-body">
+              <div class="card-row"><h3>Edificio Patio</h3><span class="badge badge-ok"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Activo</span></div>
+              <p class="card-meta">Sin ubicación · 3 planos · 18 cuartos</p>
+              <p class="card-mod">Última modificación: <time datetime="2026-11-10T08:40:00-05:00" title="Hora UTC: 13:40">10 de nov de 2026, 8:40&nbsp;a.&nbsp;m.</time> · hace 2 horas</p>
+              <div class="progress"><div class="bar" role="progressbar" aria-label="Avance" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"><span style="width:35%"></span></div>35&nbsp;%</div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="thumb" data-iso="bosque" data-iso-label="Vista 3D de ejemplo de Cabaña Bosque"><span class="mock-tag">Ejemplo</span></div>
+            <div class="card-body">
+              <div class="card-row"><h3>Cabaña Bosque</h3><span class="badge badge-ok"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Activo</span></div>
+              <p class="card-meta">Sin ubicación · 1 plano · 5 cuartos</p>
+              <p class="card-mod">Última modificación: <time datetime="2026-11-09T14:31:00-05:00" title="Hora UTC: 19:31">9 de nov de 2026, 2:31&nbsp;p.&nbsp;m.</time> · ayer</p>
+              <div class="progress"><div class="bar" role="progressbar" aria-label="Avance" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"><span style="width:100%"></span></div>100&nbsp;%</div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="thumb" data-iso="nido" data-iso-label="Vista 3D de ejemplo de Estudio Nido"><span class="mock-tag">Ejemplo</span></div>
+            <div class="card-body">
+              <div class="card-row"><h3>Estudio Nido</h3><span class="badge badge-draft"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-edit"/></svg>Borrador</span></div>
+              <p class="card-meta">Sin ubicación · 1 plano · 4 cuartos</p>
+              <p class="card-mod">Última modificación: <time datetime="2026-11-09T11:12:00-05:00" title="Hora UTC: 16:12">9 de nov de 2026, 11:12&nbsp;a.&nbsp;m.</time> · ayer</p>
+              <div class="progress"><div class="bar" role="progressbar" aria-label="Avance" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"><span style="width:10%"></span></div>10&nbsp;%</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-activity">
+        <div class="block-head"><h2 id="h-activity">Actividad reciente</h2></div>
+        <div class="activity">
+          <div>
+            <p class="day">Hoy</p>
+            <ul class="feed">
+              <li><span class="dot ai"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sparkles"/></svg></span><div><p><b>Asistente IA</b> rellenó 4 campos del terreno de «Casa Ladera»</p><p class="when"><time datetime="2026-11-10T09:05:00-05:00" title="Hora UTC: 14:05">10 de nov de 2026, 9:05&nbsp;a.&nbsp;m.</time><span>· hace 1 hora</span></p></div></li>
+              <li><span class="dot"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-map"/></svg></span><div><p><b>Usuaria Demo</b> creó el plano «Planta 2» en «Edificio Patio»</p><p class="when"><time datetime="2026-11-10T08:40:00-05:00" title="Hora UTC: 13:40">10 de nov de 2026, 8:40&nbsp;a.&nbsp;m.</time><span>· hace 2 horas</span></p></div></li>
+            </ul>
+          </div>
+          <div>
+            <p class="day">Ayer</p>
+            <ul class="feed">
+              <li><span class="dot"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg></span><div><p><b>Usuaria Demo</b> cambió el estado de «Cabaña Bosque» a Activo</p><p class="when"><time datetime="2026-11-09T14:31:00-05:00" title="Hora UTC: 19:31">9 de nov de 2026, 2:31&nbsp;p.&nbsp;m.</time><span>· ayer</span></p></div></li>
+              <li><span class="dot"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-trash"/></svg></span><div><p><b>Usuaria Demo</b> eliminó el cuarto «Depósito» de «Estudio Nido»</p><p class="when"><time datetime="2026-11-09T11:12:00-05:00" title="Hora UTC: 16:12">9 de nov de 2026, 11:12&nbsp;a.&nbsp;m.</time><span>· ayer</span></p></div></li>
+            </ul>
+          </div>
+          <p class="notice">Personas, proyectos y fechas de esta maqueta son de ejemplo.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <nav class="bottom-nav" data-bottomnav="panel" aria-label="Navegación principal"></nav>
+</div>
+
+<!-- ============ 2b. PANEL, EMPTY ============ -->
+<div class="screen app" data-screen="empty">
+  <aside class="sidebar" data-sidebar="panel"></aside>
+  <header class="topbar-m" data-topbar></header>
+  <main class="content">
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Panel <span class="mock-tag">Estado vacío</span></p>
+        <h1 class="page-title">Empieza por tu primer proyecto.</h1>
+      </div>
+    </header>
+    <section class="panel-box state-block" aria-labelledby="h-empty">
+      <div class="state-art" data-iso="vacio" data-iso-label="Ilustración: un terreno vacío con la silueta de una casa"></div>
+      <div>
+        <h2 id="h-empty">Todavía no hay proyectos</h2>
+        <p>Crea el primero con IA o a mano.</p>
+        <div class="head-actions">
+          <button type="button" class="btn btn-primary btn-lg"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"/></svg>Crear con IA</button>
+          <button type="button" class="btn btn-secondary btn-lg"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Crear manualmente</button>
+        </div>
+      </div>
+    </section>
+    <section aria-labelledby="h-act-empty">
+      <div class="block-head"><h2 id="h-act-empty">Actividad reciente</h2></div>
+      <p class="notice">Aquí aparecerá cada cambio que hagas en tus proyectos.</p>
+    </section>
+  </main>
+  <nav class="bottom-nav" data-bottomnav="panel" aria-label="Navegación principal"></nav>
+</div>
+
+<!-- ============ 2c. PANEL, LOAD ERROR ============ -->
+<div class="screen app" data-screen="error">
+  <aside class="sidebar" data-sidebar="panel"></aside>
+  <header class="topbar-m" data-topbar></header>
+  <main class="content">
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Panel <span class="mock-tag">Estado de error</span></p>
+        <h1 class="page-title">Retoma el trabajo donde lo dejaste.</h1>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="btn btn-secondary"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"/></svg>Crear con IA</button>
+        <button type="button" class="btn btn-secondary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Crear manualmente</button>
+      </div>
+    </header>
+    <section class="panel-box state-block state-block-single" role="alert" aria-labelledby="h-error">
+      <span class="state-icon"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg></span>
+      <div>
+        <h2 id="h-error">No pudimos cargar tus proyectos</h2>
+        <p>El servidor no respondió a tiempo. Tus proyectos siguen guardados. Revisa tu conexión y vuelve a intentarlo.</p>
+        <div class="head-actions"><button type="button" class="btn btn-primary"><svg class="ic" aria-hidden="true"><use href="#i-orbit"/></svg>Reintentar</button></div>
+      </div>
+    </section>
+  </main>
+  <nav class="bottom-nav" data-bottomnav="panel" aria-label="Navegación principal"></nav>
+</div>
+
+<!-- ============ 3. PROJECT DETAIL (Planos > Terreno, Historial) ============ -->
+<div class="screen app" data-screen="detail">
+  <aside class="sidebar" data-sidebar="proyectos"></aside>
+  <header class="topbar-m" data-topbar></header>
+  <main class="content">
+    <nav class="crumbs" aria-label="Ruta"><a href="?screen=panel">Proyectos</a><span aria-hidden="true">/</span><span aria-current="page">Casa Ladera</span></nav>
+    <header class="project-head">
+      <div>
+        <div class="title-row"><h1>Casa Ladera</h1><span class="badge badge-ok"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Activo</span><span class="mock-tag">Datos de ejemplo</span></div>
+        <p class="modline"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-clock"/></svg>Última modificación: <time datetime="2026-11-10T09:05:00-05:00" title="Hora UTC: 14:05">10 de nov de 2026, 9:05&nbsp;a.&nbsp;m.</time><span>· hace 1 hora · por</span><b>Asistente IA</b></p>
+      </div>
+      <div class="head-actions">
+        <a class="btn btn-danger-outline" href="?screen=delete"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Eliminar proyecto…</a>
+      </div>
+    </header>
+
+    <section class="viewer" aria-label="Visor 3D">
+      <div class="viewer-toolbar">
+        <div class="vt-group" role="group" aria-label="Modo del visor">
+          <button type="button" aria-pressed="true"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-box"/></svg><span class="lbl">Modelo 3D</span></button>
+          <button type="button" aria-pressed="false"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-walk"/></svg><span class="lbl">Recorrido</span></button>
+        </div>
+        <div class="vt-group" role="toolbar" aria-label="Vista">
+          <button type="button" aria-label="Orbitar"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-orbit"/></svg></button>
+          <button type="button" aria-label="Encuadrar el modelo"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-frame"/></svg></button>
+          <button type="button" aria-label="Capas"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-layers"/></svg></button>
+        </div>
+      </div>
+      <div class="viewer-stage" data-iso="ladera" data-iso-sel="1" data-iso-label="Modelo 3D de ejemplo de Casa Ladera"></div>
+      <div class="viewer-status"><span class="pill">Modelo de ejemplo</span><span class="pill">4 planos · 12 cuartos</span></div>
+      <svg class="gizmo" viewBox="0 0 64 64" aria-hidden="true"><line class="ax-x" x1="32" y1="36" x2="56" y2="48" stroke-width="2"/><line class="ax-y" x1="32" y1="36" x2="8" y2="48" stroke-width="2"/><line class="ax-z" x1="32" y1="36" x2="32" y2="8" stroke-width="2"/><text class="tx-x" x="57" y="60" font-size="10" font-family="sans-serif">X</text><text class="tx-y" x="2" y="60" font-size="10" font-family="sans-serif">Y</text><text class="tx-z" x="35" y="10" font-size="10" font-family="sans-serif">Z</text></svg>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Secciones del proyecto">
+      <button type="button" class="tab" role="tab" aria-selected="false">Resumen</button>
+      <button type="button" class="tab" role="tab" aria-selected="true" data-tab="planos">Planos</button>
+      <button type="button" class="tab" role="tab" aria-selected="false">Modelo 3D</button>
+      <button type="button" class="tab" role="tab" aria-selected="false">Elevaciones</button>
+      <button type="button" class="tab" role="tab" aria-selected="false">Tareas</button>
+      <button type="button" class="tab" role="tab" aria-selected="false">Versiones</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="historial">Historial</button>
+      <button type="button" class="tab" role="tab" aria-selected="false">Análisis</button>
+      <button type="button" class="tab" role="tab" aria-selected="false">Archivos</button>
+    </div>
+
+    <section class="tabpanel" data-panel="planos" role="tabpanel" aria-label="Planos">
+      <div class="subtabs" role="tablist" aria-label="Contenido de Planos">
+        <button type="button" class="subtab" role="tab" aria-selected="false"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-map"/></svg>Planos · 4</button>
+        <button type="button" class="subtab" role="tab" aria-selected="true">Terreno</button>
+      </div>
+      <div class="terrain-grid">
+        <section class="panel-box terrain" aria-labelledby="h-terrain">
+          <div class="terrain-head">
+            <div>
+              <h2 id="h-terrain">Lote de ejemplo</h2>
+              <p>Extraído de <b>terreno-ejemplo.pdf</b> · <time datetime="2026-11-10T09:05:00-05:00" title="Hora UTC: 14:05">10 de nov de 2026, 9:05&nbsp;a.&nbsp;m.</time></p>
+            </div>
+            <span class="mock-tag">Datos de ejemplo</span>
+          </div>
+          <dl class="fields">
+            <div class="frow"><dt>Nombre</dt><dd>Lote de ejemplo</dd><span></span></div>
+            <div class="frow"><dt>Forma</dt><dd>Rectangular<small>Fuente: página 1</small></dd><span class="badge badge-ai"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sparkles"/></svg>Rellenado por IA</span></div>
+            <div class="frow"><dt>Área (m²)</dt><dd>420<small>Fuente: página 1, cuadro de áreas</small></dd><span class="badge badge-ai"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sparkles"/></svg>Rellenado por IA</span></div>
+            <div class="frow"><dt>Pendiente (%)</dt><dd>8<small>Fuente: página 1, curvas de nivel</small></dd><span class="badge badge-ai"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sparkles"/></svg>Rellenado por IA</span></div>
+            <div class="frow is-review"><dt>Suelo</dt><dd>Arcilloso<small>Fuente: página 1, notas. Confianza baja. Confírmalo o corrígelo.</small></dd><span class="tags"><span class="badge badge-ai"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sparkles"/></svg>Rellenado por IA</span><span class="badge badge-review"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg>Revisar</span><button type="button" class="btn btn-secondary btn-sm"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Confirmar</button></span></div>
+            <div class="frow"><dt>Orientación</dt><dd class="empty">—<small>No aparece en el documento.</small></dd><span></span></div>
+            <div class="frow"><dt>Polígono</dt><dd class="empty">Sin vértices<small>El documento no da vértices explícitos.</small></dd><span></span></div>
+          </dl>
+          <div class="head-actions"><button type="button" class="btn btn-secondary"><svg class="ic" aria-hidden="true"><use href="#i-edit"/></svg>Editar terreno</button></div>
+        </section>
+
+        <aside class="panel-box assistant" aria-labelledby="h-assist">
+          <div class="as-head">
+            <h2 id="h-assist"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"/></svg>Asistente IA <small>· en Terreno</small></h2>
+            <button type="button" class="btn btn-ghost icon-btn" aria-label="Cerrar el asistente"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+          </div>
+          <div class="as-body" role="log" aria-label="Conversación">
+            <div class="file-chip"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>terreno-ejemplo.pdf <span class="mock-tag">Ejemplo</span></div>
+            <p class="step" role="status"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Lectura terminada · <time datetime="2026-11-10T09:05:00-05:00" title="Hora UTC: 14:05">9:05&nbsp;a.&nbsp;m.</time></p>
+            <div class="bubble">
+              <p>Rellené forma, área, pendiente y suelo desde la página 1. Confirma el suelo: la confianza es baja. Orientación y vértices no aparecen, así que quedan vacíos.</p>
+              <div class="row">
+                <span class="badge badge-ai">4 rellenados por IA</span>
+                <span class="badge badge-review">1 para revisar</span>
+              </div>
+              <div class="row">
+                <button type="button" class="btn btn-secondary"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg>Deshacer el rellenado</button>
+              </div>
+            </div>
+            <p class="notice">Las respuestas sobre estructura no reemplazan la revisión de un ingeniero con matrícula profesional.</p>
+          </div>
+          <form class="composer" onsubmit="return false">
+            <input type="text" aria-label="Mensaje para el asistente" placeholder="Pregunta sobre este terreno" maxlength="2000">
+            <button type="submit" class="btn btn-primary icon-btn" aria-label="Enviar"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg></button>
+          </form>
+        </aside>
+      </div>
+    </section>
+
+    <section class="tabpanel" data-panel="historial" role="tabpanel" aria-label="Historial" hidden>
+      <div class="panel-box history">
+        <div class="history-filters">
+          <div class="chips" role="group" aria-label="Filtrar el historial">
+            <button type="button" class="chip" aria-pressed="true">Todos los cambios</button>
+            <button type="button" class="chip" aria-pressed="false">Terreno</button>
+            <button type="button" class="chip" aria-pressed="false">Planos</button>
+            <button type="button" class="chip" aria-pressed="false">Cuartos</button>
+          </div>
+          <span class="mock-tag">Datos de ejemplo</span>
+        </div>
+        <div data-history-entries>
+          <p class="day">Hoy · martes 10 de noviembre</p>
+          <div class="hentry">
+            <p class="when"><time datetime="2026-11-10T09:05:00-05:00" title="Hora UTC: 14:05">10 de nov de 2026, 9:05&nbsp;a.&nbsp;m.</time><span>hace 1 hora</span></p>
+            <div><h3>Asistente IA actualizó el terreno «Lote de ejemplo» <span class="badge badge-ai">Rellenado por IA</span></h3>
+              <ul class="diff">
+                <li><span class="k">Forma</span><del>—</del>→<ins>Rectangular</ins></li>
+                <li><span class="k">Área (m²)</span><del>—</del>→<ins>420</ins></li>
+                <li><span class="k">Pendiente (%)</span><del>—</del>→<ins>8</ins></li>
+                <li><span class="k">Suelo</span><del>—</del>→<ins>Arcilloso</ins><span class="badge badge-review">Revisar</span></li>
+              </ul></div>
+          </div>
+          <div class="hentry">
+            <p class="when"><time datetime="2026-11-10T08:40:00-05:00" title="Hora UTC: 13:40">10 de nov de 2026, 8:40&nbsp;a.&nbsp;m.</time><span>hace 2 horas</span></p>
+            <div><h3>Usuaria Demo subió el archivo «terreno-ejemplo.pdf»</h3><ul class="diff"><li><span class="k">Archivo</span><ins>terreno-ejemplo.pdf</ins></li></ul></div>
+          </div>
+        </div>
+        <div data-history-entries>
+          <p class="day">Ayer · lunes 9 de noviembre</p>
+          <div class="hentry">
+            <p class="when"><time datetime="2026-11-09T14:31:00-05:00" title="Hora UTC: 19:31">9 de nov de 2026, 2:31&nbsp;p.&nbsp;m.</time><span>ayer</span></p>
+            <div><h3>Usuaria Demo cambió el estado del proyecto</h3><ul class="diff"><li><span class="k">Estado</span><del>Borrador</del>→<ins>Activo</ins></li></ul></div>
+          </div>
+          <div class="hentry">
+            <p class="when"><time datetime="2026-11-09T10:02:00-05:00" title="Hora UTC: 15:02">9 de nov de 2026, 10:02&nbsp;a.&nbsp;m.</time><span>ayer</span></p>
+            <div><h3>Usuaria Demo creó el plano «Planta 1»</h3><ul class="diff"><li><span class="k">Nombre</span><ins>Planta 1</ins></li><li><span class="k">Nivel</span><ins>1</ins></li></ul></div>
+          </div>
+        </div>
+        <p class="history-empty" data-history-empty hidden><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Todavía no hay cambios en este proyecto.</p>
+      </div>
+    </section>
+  </main>
+  <nav class="bottom-nav" data-bottomnav="proyectos" aria-label="Navegación principal"></nav>
+</div>
+
+<!-- ============ 4. DELETE MODAL (three states) ============ -->
+<div class="screen app" data-screen="delete">
+  <aside class="sidebar" data-sidebar="proyectos"></aside>
+  <header class="topbar-m" data-topbar></header>
+  <main class="content ghost" aria-hidden="true">
+    <i style="height:20px;width:180px"></i>
+    <i style="height:56px;width:360px;max-width:100%"></i>
+    <i style="height:380px"></i>
+    <i style="height:44px"></i>
+    <i style="height:220px"></i>
+  </main>
+  <div class="scrim"></div>
+  <div class="modal-stage">
+    <figure class="state-fig">
+      <figcaption>1 · Confirmar: el nombre no coincide</figcaption>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d1-title" aria-describedby="d1-desc">
+        <span class="dialog-icon"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span>
+        <h2 id="d1-title">¿Eliminar el proyecto «Casa Ladera»?</h2>
+        <div class="impact" id="d1-desc"><strong>Se eliminarán el terreno «Lote de ejemplo», 4 planos, 12 cuartos, 1 archivo, sus tareas, versiones e historial.</strong><p>Podrás deshacerlo desde el aviso que aparece al eliminar. <span class="mock-tag">Datos de ejemplo</span></p></div>
+        <div class="field">
+          <label class="field-label" for="d1-name">Escribe «Casa Ladera» para confirmar</label>
+          <div class="control is-invalid"><input id="d1-name" value="casa ladera" maxlength="200" autocomplete="off" aria-invalid="true" aria-describedby="d1-hint d1-err" data-confirm-name="Casa Ladera"></div>
+          <p class="field-hint" id="d1-hint">El botón se activa cuando el nombre coincide.</p>
+          <p class="err-line" id="d1-err" data-name-error><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg><span>El nombre no coincide. Escríbelo igual, con mayúsculas y tildes.</span></p>
+          <p class="ok-line" data-name-ok hidden><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>El nombre coincide.</p>
+        </div>
+        <div class="dialog-actions"><button type="button" class="btn btn-secondary" data-dismiss>Cancelar</button><button type="button" class="btn btn-danger" disabled data-confirm-button><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Eliminar proyecto</button></div>
+      </div>
+    </figure>
+    <figure class="state-fig">
+      <figcaption>2 · Confirmar: el nombre coincide</figcaption>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d2-title" aria-describedby="d2-desc">
+        <span class="dialog-icon"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span>
+        <h2 id="d2-title">¿Eliminar el proyecto «Casa Ladera»?</h2>
+        <div class="impact" id="d2-desc"><strong>Se eliminarán el terreno «Lote de ejemplo», 4 planos, 12 cuartos, 1 archivo, sus tareas, versiones e historial.</strong><p>Podrás deshacerlo desde el aviso que aparece al eliminar. <span class="mock-tag">Datos de ejemplo</span></p></div>
+        <div class="field">
+          <label class="field-label" for="d2-name">Escribe «Casa Ladera» para confirmar</label>
+          <div class="control is-valid"><input id="d2-name" value="Casa Ladera" maxlength="200" autocomplete="off" aria-describedby="d2-hint" data-confirm-name="Casa Ladera"></div>
+          <p class="field-hint" id="d2-hint">El botón se activa cuando el nombre coincide.</p>
+          <p class="err-line" data-name-error hidden><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg><span>El nombre no coincide. Escríbelo igual, con mayúsculas y tildes.</span></p>
+          <p class="ok-line" data-name-ok><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>El nombre coincide.</p>
+        </div>
+        <div class="dialog-actions"><button type="button" class="btn btn-secondary" data-dismiss>Cancelar</button><button type="button" class="btn btn-danger" data-confirm-button><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Eliminar proyecto</button></div>
+      </div>
+    </figure>
+    <figure class="state-fig">
+      <figcaption>3 · Eliminando</figcaption>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d3-title" aria-busy="true">
+        <span class="dialog-icon"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span>
+        <h2 id="d3-title">¿Eliminar el proyecto «Casa Ladera»?</h2>
+        <div class="impact"><strong>Se eliminarán el terreno «Lote de ejemplo», 4 planos, 12 cuartos, 1 archivo, sus tareas, versiones e historial.</strong><p>Podrás deshacerlo desde el aviso que aparece al eliminar.</p></div>
+        <div class="field">
+          <label class="field-label" for="d3-name">Escribe «Casa Ladera» para confirmar</label>
+          <div class="control is-disabled"><input id="d3-name" value="Casa Ladera" disabled></div>
+          <p class="field-hint" role="status">Eliminando el proyecto…</p>
+        </div>
+        <div class="dialog-actions"><button type="button" class="btn btn-secondary" disabled>Cancelar</button><button type="button" class="btn btn-danger is-loading" disabled><span class="spinner" aria-hidden="true"></span>Eliminando…</button></div>
+      </div>
+    </figure>
+    <figure class="state-fig">
+      <figcaption>4 · Error al eliminar</figcaption>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d4-title">
+        <span class="dialog-icon"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span>
+        <h2 id="d4-title">¿Eliminar el proyecto «Casa Ladera»?</h2>
+        <p class="alert" role="alert"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg><span>No se pudo eliminar «Casa Ladera». No se borró nada. Revisa tu conexión y vuelve a intentarlo.</span></p>
+        <div class="field">
+          <label class="field-label" for="d4-name">Escribe «Casa Ladera» para confirmar</label>
+          <div class="control is-valid"><input id="d4-name" value="Casa Ladera" maxlength="200" autocomplete="off"></div>
+        </div>
+        <div class="dialog-actions"><button type="button" class="btn btn-secondary" data-dismiss>Cancelar</button><button type="button" class="btn btn-danger"><svg class="ic" aria-hidden="true"><use href="#i-orbit"/></svg>Reintentar</button></div>
+      </div>
+    </figure>
+    <figure class="state-fig">
+      <figcaption>5 · Eliminado, con Deshacer</figcaption>
+      <div class="toast" role="status">
+        <svg class="ic ok" aria-hidden="true"><use href="#i-check"/></svg>
+        <div><p>Proyecto «Casa Ladera» eliminado.</p><time datetime="2026-11-10T10:15:00-05:00" title="Hora UTC: 15:15">10 de nov de 2026, 10:15&nbsp;a.&nbsp;m.</time></div>
+        <button type="button" class="btn"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg>Deshacer</button>
+      </div>
+    </figure>
+  </div>
+  <nav class="bottom-nav" data-bottomnav="proyectos" aria-label="Navegación principal"></nav>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search);
+  var screen = q.get("screen") || "login";
+  var root = document.documentElement;
+  function setTheme(t) {
+    root.setAttribute("data-theme", t);
+    document.querySelectorAll("[data-set-theme]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.setTheme === t)); });
+  }
+  setTheme(q.get("theme") === "dark" ? "dark" : "light");
+  if (q.get("clean") === "1") root.classList.add("clean");
+
+  // Navigation shared by the app screens (N1). Planos contains Terreno, Visor 3D contains Recorrido.
+  var NAV = [
+    ["panel", "Panel", "i-dash", "?screen=panel", ""],
+    ["proyectos", "Proyectos", "i-folder", "?screen=detail", ""],
+    ["planos", "Planos", "i-map", "#", "Terreno"],
+    ["visor", "Visor 3D", "i-box", "#", "Recorrido"],
+    ["tareas", "Tareas", "i-tasks", "#", ""],
+    ["config", "Configuración", "i-settings", "#", ""]
+  ];
+  function icon(id, cls) { return '<svg class="ic ' + (cls || "") + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; }
+  document.querySelectorAll("[data-sidebar]").forEach(function (el) {
+    var active = el.dataset.sidebar;
+    var links = NAV.map(function (n) {
+      return '<a href="' + n[3] + '"' + (n[0] === active ? ' aria-current="page"' : "") + (n[4] ? ' title="Incluye ' + n[4] + '"' : "") + ">" + icon(n[2]) + "<span>" + n[1] + "</span>" + (n[4] ? '<span class="sub">' + n[4] + "</span>" : "") + "</a>";
+    }).join("");
+    el.innerHTML = '<div class="brand"><svg aria-hidden="true"><use href="#mark"/></svg><span>ARQUILA</span></div>' +
+      '<nav class="nav" aria-label="Navegación principal">' + links + "</nav>" +
+      '<div class="side-foot"><div class="user"><span class="avatar" aria-hidden="true">UD</span><span>Usuaria Demo<small>Cuenta de ejemplo</small></span></div>' +
+      '<nav class="nav" aria-label="Sesión"><a href="?screen=login">' + icon("i-logout") + "<span>Cerrar sesión</span></a></nav></div>";
+  });
+  document.querySelectorAll("[data-bottomnav]").forEach(function (el) {
+    var active = el.dataset.bottomnav;
+    el.innerHTML = NAV.slice(0, 5).map(function (n) {
+      return '<a href="' + n[3] + '"' + (n[0] === active ? ' aria-current="page"' : "") + ">" + icon(n[2]) + "<span>" + n[1] + "</span></a>";
+    }).join("");
+  });
+  document.querySelectorAll("[data-topbar]").forEach(function (el) {
+    el.innerHTML = '<div class="brand"><svg aria-hidden="true"><use href="#mark"/></svg><span>ARQUILA</span></div>' +
+      '<div><button type="button" class="icon-btn" aria-label="Buscar proyectos">' + icon("i-search") + '</button>' +
+      '<button type="button" class="icon-btn" aria-label="Configuración">' + icon("i-settings") + "</button></div>";
+  });
+
+  // Screens
+  var base = { historial: "detail", "historial-empty": "detail", "login-error": "login" }[screen] || screen;
+  document.querySelectorAll("[data-screen]").forEach(function (s) { s.hidden = s.dataset.screen !== base; });
+  function selectTab(name) {
+    document.querySelectorAll("[data-tab]").forEach(function (t) { t.setAttribute("aria-selected", String(t.dataset.tab === name)); });
+    document.querySelectorAll("[data-panel]").forEach(function (p) { p.hidden = p.dataset.panel !== name; });
+  }
+  if (screen === "historial" || screen === "historial-empty") selectTab("historial");
+  if (screen === "historial-empty") {
+    document.querySelectorAll("[data-history-entries]").forEach(function (e) { e.hidden = true; });
+    document.querySelectorAll("[data-history-empty]").forEach(function (e) { e.hidden = false; });
+  }
+  if (screen === "login-error") {
+    document.querySelectorAll("[data-login-error]").forEach(function (e) { e.hidden = false; });
+    var em = document.getElementById("email"), pw = document.getElementById("pw");
+    em.value = "usuaria@ejemplo.com";
+    [em, pw].forEach(function (i) { i.setAttribute("aria-invalid", "true"); i.setAttribute("aria-describedby", "login-error"); i.parentNode.classList.add("is-invalid"); });
+  }
+  // Typed-name check: the confirm button only works when the name matches exactly.
+  document.querySelectorAll("[data-confirm-name]").forEach(function (input) {
+    input.addEventListener("input", function () {
+      var dialog = input.closest(".dialog"), ok = input.value === input.dataset.confirmName;
+      input.parentNode.classList.toggle("is-valid", ok);
+      input.parentNode.classList.toggle("is-invalid", !ok && input.value !== "");
+      input.setAttribute("aria-invalid", String(!ok));
+      dialog.querySelector("[data-name-ok]").hidden = !ok;
+      dialog.querySelector("[data-name-error]").hidden = ok || input.value === "";
+      dialog.querySelector("[data-confirm-button]").disabled = !ok;
+    });
+  });
+  // Exit motion demo: Cancelar plays the exit animation, then the mock dialog comes back.
+  document.querySelectorAll("[data-dismiss]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var d = b.closest(".dialog");
+      d.classList.add("is-leaving");
+      setTimeout(function () { d.classList.remove("is-leaving"); }, 600);
+    });
+  });
+  document.querySelectorAll("[data-tab]").forEach(function (t) { t.addEventListener("click", function () { selectTab(t.dataset.tab); }); });
+
+  // Password toggle (R17): the label always names the next action.
+  document.querySelectorAll("[data-reveal]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var input = document.getElementById(b.dataset.reveal);
+      var show = input.type === "password";
+      input.type = show ? "text" : "password";
+      b.setAttribute("aria-label", show ? "Ocultar contraseña" : "Mostrar contraseña");
+      b.querySelector("use").setAttribute("href", show ? "#i-eyeoff" : "#i-eye");
+    });
+  });
+  document.querySelectorAll("[data-set-theme]").forEach(function (b) { b.addEventListener("click", function () { setTheme(b.dataset.setTheme); }); });
+  document.querySelectorAll("[data-toggle-theme]").forEach(function (b) {
+    b.addEventListener("click", function () { setTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+  });
+
+  // Isometric mock renders (inline SVG; no images). Units are metres of an invented example model.
+  var C = 0.866;
+  function P(x, y, z) { return [(x - y) * C, (x + y) * 0.5 - z]; }
+  var MODELS = {
+    ladera: [
+      ["g", 0, 0, -0.8, 16, 13, 0.8],
+      ["t", 2, 2, 1.0, 2.6],
+      ["b", 2, 3, 0, 8, 5, 3.2, 2.4, "house"],
+      ["wl", 3, 4.4, 8, 0.9, 2.3], ["wl", 5.4, 6.8, 8, 0.9, 2.3], ["wl", 8, 9, 8, 0, 2.2],
+      ["wr", 10, 4, 5.5, 1, 2.3], ["wr", 10, 6.2, 7.4, 1, 2.3],
+      ["b", 10, 4.5, 0, 3.5, 3.5, 2.2, 0],
+      ["wl", 10.6, 12.8, 8, 0.8, 1.8],
+      ["b", 3, 8, 0, 6, 2.2, 0.3, 0],
+      ["t", 14, 10.5, 1.1, 2.6],
+      ["t", 1.4, 11, 0.9, 2.2]
+    ],
+    patio: [
+      ["g", 0, 0, -0.8, 15, 15, 0.8],
+      ["b", 2, 2, 0, 11, 3.5, 6.5, 0],
+      ["wr", 13, 2.6, 3.4, 1, 2], ["wr", 13, 4, 4.9, 1, 2], ["wr", 13, 2.6, 3.4, 3.4, 4.4], ["wr", 13, 4, 4.9, 3.4, 4.4], ["wr", 13, 2.6, 3.4, 5.6, 6.1], ["wr", 13, 4, 4.9, 5.6, 6.1],
+      ["wl", 6, 7, 5.5, 3.4, 4.4], ["wl", 8, 9, 5.5, 3.4, 4.4], ["wl", 10, 11, 5.5, 3.4, 4.4], ["wl", 6, 7, 5.5, 1, 2], ["wl", 8, 9, 5.5, 1, 2], ["wl", 10, 11, 5.5, 1, 2], ["wl", 6, 7, 5.5, 5.4, 6.1], ["wl", 8, 9, 5.5, 5.4, 6.1], ["wl", 10, 11, 5.5, 5.4, 6.1],
+      ["b", 2, 5.5, 0, 3.5, 7.5, 6.5, 0],
+      ["wr", 5.5, 6.5, 7.5, 1, 2], ["wr", 5.5, 8.5, 9.5, 1, 2], ["wr", 5.5, 10.5, 11.5, 1, 2], ["wr", 5.5, 6.5, 7.5, 3.4, 4.4], ["wr", 5.5, 8.5, 9.5, 3.4, 4.4], ["wr", 5.5, 10.5, 11.5, 3.4, 4.4], ["wr", 5.5, 6.5, 7.5, 5.4, 6.1], ["wr", 5.5, 8.5, 9.5, 5.4, 6.1], ["wr", 5.5, 10.5, 11.5, 5.4, 6.1],
+      ["wl", 2.6, 4.9, 13, 1, 2], ["wl", 2.6, 4.9, 13, 3.4, 4.4], ["wl", 2.6, 4.9, 13, 5.4, 6.1],
+      ["t", 9, 8, 1.3, 2.8],
+      ["b", 9, 10.5, 0, 4, 3, 2.4, 0],
+      ["wl", 9.6, 12.4, 13.5, 0.8, 1.8]
+    ],
+    bosque: [
+      ["g", 0, 0, -0.8, 14, 13, 0.8],
+      ["t", 2, 2, 1.1, 3], ["t", 5.5, 1.5, 1.2, 3.4], ["t", 11, 2.2, 1.0, 2.8],
+      ["b", 4, 4.5, 0, 6, 4, 2.2, 3.2],
+      ["wl", 5, 6.4, 8.5, 0.8, 1.8], ["wl", 7.6, 8.6, 8.5, 0, 1.9],
+      ["wr", 10, 5.6, 7.4, 0.8, 1.9],
+      ["b", 4, 8.5, 0, 6, 1.6, 0.35, 0],
+      ["t", 12.6, 6, 1.1, 3],
+      ["t", 1.8, 10, 1.0, 2.8], ["t", 12, 11, 1.2, 3.2]
+    ],
+    vacio: [
+      ["g", 0, 0, -0.8, 15, 12, 0.8],
+      ["t", 2, 2, 1.0, 2.6], ["t", 12.5, 2.2, 0.9, 2.4],
+      ["gb", 4, 3.5, 0, 7, 5, 3, 2.3],
+      ["t", 13, 9.5, 1.1, 2.8]
+    ],
+    nido: [
+      ["g", 0, 0, -0.8, 14, 14, 0.8],
+      ["b", 3, 4, 0, 8, 6, 3, 0],
+      ["wl", 3.6, 10.4, 10, 0.9, 2.3],
+      ["b", 5, 2.5, 3, 7, 6, 3, 0],
+      ["wl", 5.6, 11.4, 8.5, 3.8, 5.3], ["wr", 12, 3, 8, 3.8, 5.3],
+      ["b", 6, 4, 6, 3.5, 3.5, 2, 0],
+      ["wr", 9.5, 4.5, 7, 6.5, 7.4],
+      ["t", 2, 12, 1.0, 2.6]
+    ]
+  };
+  function poly(pts, cls) { return '<polygon class="' + cls + '" points="' + pts.map(function (p) { return p[0].toFixed(2) + "," + p[1].toFixed(2); }).join(" ") + '"/>'; }
+  function render(name, withSel) {
+    var out = [], pts = [];
+    function add(list, cls) { list.forEach(function (p) { pts.push(p); }); out.push(poly(list, cls)); }
+    MODELS[name].forEach(function (m) {
+      var k = m[0];
+      if (k === "g" || k === "b") {
+        var x = m[1], y = m[2], z = m[3], w = m[4], d = m[5], h = m[6], r = m[7] || 0, zh = z + h;
+        var ground = k === "g";
+        add([P(x, y, zh), P(x + w, y, zh), P(x + w, y + d, zh), P(x, y + d, zh)], ground ? "gt" : "t");
+        add([P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, zh), P(x + w, y, zh)], ground ? "gr" : "r");
+        add([P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, zh), P(x, y + d, zh)], ground ? "gl" : "l");
+        if (r) {
+          add([P(x, y, zh), P(x + w, y, zh), P(x + w, y + d / 2, zh + r), P(x, y + d / 2, zh + r)], "rb");
+          add([P(x + w, y, zh), P(x + w, y + d, zh), P(x + w, y + d / 2, zh + r)], "r");
+          add([P(x, y + d / 2, zh + r), P(x + w, y + d / 2, zh + r), P(x + w, y + d, zh), P(x, y + d, zh)], "rf");
+        }
+        if (withSel && m[8] === "house") {
+          var s = [P(x, y + d, z), P(x + w, y + d, z), P(x + w, y, z), P(x + w, y, zh), P(x + w, y + d / 2, zh + r), P(x, y + d / 2, zh + r), P(x, y + d, zh)];
+          out.push(poly(s, "sel"));
+          // Dimension line outside the slab (ground ends at y = 13), with ticks and a haloed label.
+          var a = P(x, 14.4, -0.8), b = P(x + w, 14.4, -0.8), mid = P(x + w / 2, 17.8, -0.8);
+          var a2 = P(x, 13.9, -0.8), a3 = P(x, 14.9, -0.8), b2 = P(x + w, 13.9, -0.8), b3 = P(x + w, 14.9, -0.8);
+          out.push('<path class="dim" d="M' + a[0] + "," + a[1] + " L" + b[0] + "," + b[1] + " M" + a2[0] + "," + a2[1] + " L" + a3[0] + "," + a3[1] + " M" + b2[0] + "," + b2[1] + " L" + b3[0] + "," + b3[1] + '"/>');
+          out.push('<text class="dimt" x="' + mid[0].toFixed(2) + '" y="' + mid[1].toFixed(2) + '" text-anchor="middle">8,00 m · ejemplo</text>');
+          pts.push([mid[0] - 7.6, mid[1] + 1], [mid[0] + 7.6, mid[1] - 1.6], [a3[0], a3[1]], [b3[0], b3[1]]);
+        }
+      } else if (k === "gb") {
+        var gx = m[1], gy = m[2], gw = m[4], gd = m[5], gh = m[6], gr = m[7], gz = gh;
+        add([P(gx, gy + gd, 0), P(gx + gw, gy + gd, 0), P(gx + gw, gy + gd, gz), P(gx, gy + gd, gz)], "gh");
+        add([P(gx + gw, gy, 0), P(gx + gw, gy + gd, 0), P(gx + gw, gy + gd, gz), P(gx + gw, gy, gz)], "gh");
+        add([P(gx, gy + gd / 2, gz + gr), P(gx + gw, gy + gd / 2, gz + gr), P(gx + gw, gy + gd, gz), P(gx, gy + gd, gz)], "gh");
+        add([P(gx + gw, gy, gz), P(gx + gw, gy + gd, gz), P(gx + gw, gy + gd / 2, gz + gr)], "gh");
+      } else if (k === "wl") {
+        out.push(poly([P(m[1], m[3] + 0.001, m[4]), P(m[2], m[3] + 0.001, m[4]), P(m[2], m[3] + 0.001, m[5]), P(m[1], m[3] + 0.001, m[5])], "w"));
+      } else if (k === "wr") {
+        out.push(poly([P(m[1] + 0.001, m[2], m[4]), P(m[1] + 0.001, m[3], m[4]), P(m[1] + 0.001, m[3], m[5]), P(m[1] + 0.001, m[2], m[5])], "w"));
+      } else if (k === "t") {
+        var base = P(m[1], m[2], 0), top = P(m[1], m[2], m[4]);
+        out.push('<ellipse class="sh" cx="' + (base[0] + 0.5).toFixed(2) + '" cy="' + base[1].toFixed(2) + '" rx="' + (m[3] * 1.1).toFixed(2) + '" ry="' + (m[3] * 0.5).toFixed(2) + '"/>');
+        out.push('<line class="trk" x1="' + base[0] + '" y1="' + base[1] + '" x2="' + top[0] + '" y2="' + top[1] + '"/>');
+        out.push('<circle class="tr" cx="' + top[0].toFixed(2) + '" cy="' + top[1].toFixed(2) + '" r="' + m[3] + '"/>');
+        pts.push([top[0] - m[3], top[1] - m[3]], [top[0] + m[3], top[1] + m[3]]);
+      }
+    });
+    var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+    var pad = 1, x0 = Math.min.apply(null, xs) - pad, y0 = Math.min.apply(null, ys) - pad;
+    var vw = Math.max.apply(null, xs) - x0 + pad, vh = Math.max.apply(null, ys) - y0 + pad + (withSel ? 1.5 : 0);
+    return '<svg class="iso" viewBox="' + [x0, y0, vw, vh].map(function (v) { return v.toFixed(2); }).join(" ") + '" preserveAspectRatio="xMidYMid meet">' + out.join("") + "</svg>";
+  }
+  document.querySelectorAll("[data-iso]").forEach(function (el) {
+    var wrap = document.createElement("div");
+    wrap.innerHTML = render(el.dataset.iso, el.dataset.isoSel === "1");
+    var svg = wrap.firstChild;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", el.dataset.isoLabel || "Render isométrico de ejemplo");
+    el.insertBefore(svg, el.firstChild);
+  });
+})();
+</script>
+</body>
+</html>

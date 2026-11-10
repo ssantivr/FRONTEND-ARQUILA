@@ -130,7 +130,9 @@ The sections above are the decisions as given by the owner. These are the facts 
 
 Status OPEN unless marked DECIDED; the owner is asked at the right step. Row numbers follow the block R order in `ARQUILA/PROGRESS.md`, as confirmed by the owner after R0.
 
-- D-DESIGN · visual direction, row R1 · OPEN
+- D-DESIGN · visual direction, row R1 · DECIDED: option A · Studio Editorial (`docs/design-options/option-a-studio-editorial.html`, compared in `docs/design-options/COMPARISON.md`).
+  Reason: it is the only option that scored at least 4 on every rubric criterion (average 4.30); like B and C, it passes AA in both themes.
+  It keeps the Graphite/Stone/Terracotta/Mineral identity already in `src/styles/tokens.css` (lowest effort) and its dark viewer fits the existing 3D scene tokens.
 - D-AI · model provider, row R10 · OPEN
 - D-AI-2 · hide the manual path or not, row R11 · OPEN
 - D-AI-3 · auto-apply threshold for R15 and R08 (D-R08) · OPEN
