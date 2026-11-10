@@ -34,7 +34,7 @@ Model provider configured by environment variables, keys only in the backend. Fi
 
 ### C7 · R13 and R15 interpretation
 
-AI-first, not AI-only. The AI proposes through the same validated services as manual edits, in one transaction, with a version snapshot before applying and undo afterwards. For R15 auto-apply is allowed only with the snapshot, a visible undo, AI-field marking and a fallback to a review modal when confidence is low or a required field is missing. Manual creation stays as a secondary path.
+AI-first, not AI-only. The AI proposes through the same validated services as manual edits, in one transaction, with a version snapshot before applying and undo afterwards. For R15 auto-apply is allowed only with the snapshot, a visible undo, AI-field marking and a fallback to a review modal when confidence is low or a required field is missing. Manual creation stays as a secondary path. D-R08 (DECIDED): R08 uploads (PDF and PNG) follow the C7 auto-apply rule, the same flow as R15: version snapshot, one transaction, visible "Deshacer", AI-filled fields badged, and the review modal only when confidence is low or a required field is missing.
 
 ## Navigation
 
@@ -74,7 +74,7 @@ Spanish, `Intl.DateTimeFormat('es-CO')`, absolute and relative time, `<time date
 
 ### D-TZ · timestamptz conversion (OPEN, row R5b)
 
-Convert `activity_log.created_at` to `timestamptz` with `USING created_at AT TIME ZONE 'UTC'` only after a read-only check on the local database confirms that the stored values are UTC. The check: `SHOW TimeZone`, the per-database and per-role settings in `pg_db_role_setting`, and recent rows compared with known event times; values come from the `CURRENT_TIMESTAMP` default in the session time zone, and the backend sets no time zone on the connection. Run the check separately on every database the migration will touch; if one is not UTC, stop and ask the owner. New migration (next free number, idempotent) with a down script in `rollback/NNN_down.sql` (`arquila-migration` skill); the ALTER runs only when `information_schema.columns.data_type` is `timestamp without time zone`, and the down script guards the reverse the same way, because running the conversion twice would shift every row. `pg_dump` outside the repos first. The type change rebuilds the `activity_log` indexes. In the same change set, `ActivityEntry.created_at` in `app/models.py` becomes `DateTime(timezone=True)`, with a test that the API emits an offset. Agents run it on local databases only; applying it to production is the owner's step, with the owner's explicit OK and a verified backup first.
+Convert `activity_log.created_at` to `timestamptz` with `USING created_at AT TIME ZONE 'UTC'` only after a read-only check on the local database confirms that the stored values are UTC. The check: `SHOW TimeZone`, the per-database and per-role settings in `pg_db_role_setting`, and recent rows compared with known event times; values come from the `CURRENT_TIMESTAMP` default in the session time zone, and the backend sets no time zone on the connection. Run the check separately on every database the migration will touch; if one is not UTC, stop and ask the owner. New migration (next free number, idempotent) with a down script in `rollback/NNN_down.sql` (`arquila-migration` skill); the ALTER runs only when `information_schema.columns.data_type` is `timestamp without time zone`, and the down script guards the reverse the same way, because running the conversion twice would shift every row. `pg_dump` outside the repos first. The type change rebuilds the `activity_log` indexes. In the same change set, `ActivityEntry.created_at` in `BACKEND-ARQUILA/app/models.py` becomes `DateTime(timezone=True)`, with a test that the API emits an offset. Agents run it on local databases only; applying it to production is the owner's step, with the owner's explicit OK and a verified backup first.
 
 ## AI knowledge base (R19)
 
@@ -128,18 +128,18 @@ The sections above are the decisions as given by the owner. These are the facts 
 
 ## Open decisions
 
-Status OPEN; the owner is asked at the right step. Row numbers follow the block R order in `ARQUILA/PROGRESS.md`, as confirmed by the owner after R0.
+Status OPEN unless marked DECIDED; the owner is asked at the right step. Row numbers follow the block R order in `ARQUILA/PROGRESS.md`, as confirmed by the owner after R0.
 
 - D-DESIGN · visual direction, row R1 · OPEN
 - D-AI · model provider, row R10 · OPEN
 - D-AI-2 · hide the manual path or not, row R11 · OPEN
-- D-AI-3 · auto-apply threshold for R15 · OPEN
+- D-AI-3 · auto-apply threshold for R15 and R08 (D-R08) · OPEN
 - D-ENC · encryption of stored files, default no · OPEN
 - D-200 · rows over 200 characters, row R6 · OPEN
 - D-MAP · tile provider, row R8 · OPEN
 - D-NEST · terrain inside plans, default in N3 · OPEN
 - D-TZ · `activity_log.created_at` to `timestamptz`, row R5b · OPEN
-- D-R08 · R08 uploads in row R10: always the review modal ("nothing saved without confirmation") or the C7 auto-apply rules of R15 · OPEN
+- D-R08 · R08 uploads in row R10 · DECIDED: R08 uploads (PDF and PNG) follow the C7 auto-apply rule, the same flow as R15: version snapshot, one transaction, visible "Deshacer", AI-filled fields badged, and the review modal only when confidence is low or a required field is missing (C7)
 - D-VEC · full-text or pgvector (K2) · OPEN
 - D-KB-1 · which jurisdiction and which official documents the owner will provide · OPEN
 - D-KB-2 · language scope: Spanish only or also English sources · OPEN
