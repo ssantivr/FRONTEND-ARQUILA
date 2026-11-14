@@ -3,91 +3,79 @@ import { useState } from "react";
 import { useAsync } from "../../hooks/useAsync";
 import { activityApi } from "../../services/api";
 import type { Activity } from "../../types/api";
-import { formatDateTime } from "../../utils/format";
+import {
+    formatHistoryDay,
+    formatHistoryTime,
+    formatRelative,
+    formatUtc,
+    historyDayKey,
+} from "../../utils/format";
 import { AsyncStatus } from "../AsyncStatus";
+import { Icon } from "../Icon";
 import { Unavailable } from "../Unavailable";
 import { Pagination } from "../ui/Pagination";
 import { Panel } from "../ui/Panel";
 
+import { activityIcon, changeEntries, describeActivity, describeSource } from "./activityText";
+
 import styles from "./ProjectPanels.module.css";
+
+export { describeActivity, describeChanges, describeSource } from "./activityText";
 
 const PAGE_SIZE = 20;
 
-/** The kinds of records of the history, with the article they take. */
-const ENTITIES: Record<string, string> = {
-    project: "el proyecto",
-    terrain: "el terreno",
-    material: "el material",
-    plan: "el plano",
-    elevation: "la elevación",
-    room: "el cuarto",
-    component: "el componente",
-    file: "el archivo",
-    recommendation: "la recomendación",
-    task: "la tarea",
-    walkthrough_point: "el punto de recorrido",
-    scene_settings: "la escena",
-    version: "la versión",
-};
+/** The entries of a page split by local day, in the order they come. */
+export function groupByDay(
+    items: Activity[],
+    timeZone?: string,
+): { key: string; day: string; items: Activity[] }[] {
+    const groups: { key: string; day: string; items: Activity[] }[] = [];
 
-/** The fields `updated` lists, as the forms call them; an unknown one is shown as it comes. */
-const FIELDS: Record<string, string> = {
-    name: "nombre",
-    title: "título",
-    description: "descripción",
-    location: "ubicación",
-    status: "estado",
-    progress: "avance",
-    cover_file_id: "portada",
-    area_m2: "área",
-    width_m: "ancho",
-    length_m: "largo",
-    slope_percent: "pendiente",
-    soil_type: "suelo",
-    quantity: "cantidad",
-    unit_cost: "costo unitario",
-    category: "categoría",
-    due_date: "fecha límite",
-    assignee_id: "responsable",
-    lighting: "iluminación",
-    camera_presets: "cámaras",
-};
+    for (const item of items) {
+        const key = historyDayKey(item.created_at, timeZone);
+        const last = groups[groups.length - 1] as (typeof groups)[number] | undefined;
 
-/**
- * One record of `/projects/{id}/activity` in a sentence: «Se actualizó el terreno «Lote 14»
- * (área, suelo)». Everything comes from the record; an action it does not know is named as is.
- */
-export function describeActivity(item: Activity): string {
-    const what = ENTITIES[item.entity_type ?? ""] ?? item.entity_type ?? "un elemento";
-    const label = typeof item.detail.label === "string" ? ` «${item.detail.label}»` : "";
-    const fields = Array.isArray(item.detail.fields)
-        ? item.detail.fields.map((field) => FIELDS[field] ?? field).join(", ")
-        : "";
-    const number =
-        typeof item.detail.version_number === "number" ? ` ${item.detail.version_number}` : "";
-
-    switch (item.action) {
-        case "created":
-            return `Se creó ${what}${label}`;
-        case "updated":
-            return `Se actualizó ${what}${label}${fields === "" ? "" : ` (${fields})`}`;
-        case "deleted":
-            return `Se eliminó ${what}${label}`;
-        case "restored":
-            return `Se restauró ${what}${label} con «Deshacer»`;
-        case "archived":
-            return "Se archivó el proyecto";
-        case "unarchived":
-            return "Se desarchivó el proyecto";
-        case "duplicated":
-            return "Se creó este proyecto como copia de otro";
-        case "version_saved":
-            return `Se guardó la versión${number}`;
-        case "version_restored":
-            return `Se restauró la versión${number}`;
-        default:
-            return `${item.action}: ${what}${label}`;
+        if (last !== undefined && last.key === key) {
+            last.items.push(item);
+        } else {
+            groups.push({ key, day: formatHistoryDay(item.created_at, timeZone), items: [item] });
+        }
     }
+
+    return groups;
+}
+
+/** One entry: what changed, the values, where it came from and when. */
+export function ActivityRow({ item, timeZone }: { item: Activity; timeZone?: string }) {
+    const changes = changeEntries(item);
+    const source = describeSource(item);
+
+    return (
+        <li className={`${styles.row} ${styles.activityRow}`}>
+            <span className={styles.activityIcon}>
+                <Icon name={activityIcon(item.action)} />
+            </span>
+            <div className={styles.rowMain}>
+                <p className={styles.rowTitle}>{describeActivity(item)}</p>
+                {changes.length > 0 && (
+                    <ul className={styles.changes} aria-label="Valores antes y después">
+                        {changes.map((change) => (
+                            <li key={change.field}>{change.text}</li>
+                        ))}
+                    </ul>
+                )}
+                {source !== "" && <p className={styles.meta}>{source}</p>}
+            </div>
+            <time
+                className={`${styles.meta} ${styles.when}`}
+                dateTime={item.created_at}
+                title={formatUtc(item.created_at)}
+            >
+                <span>{formatHistoryTime(item.created_at, timeZone)}</span>
+                <span>{formatRelative(item.created_at)}</span>
+            </time>
+        </li>
+    );
 }
 
 /** What happened in the project, the latest first, as the API records it. */
@@ -122,16 +110,15 @@ export function ProjectActivityPanel({ projectId }: { projectId: number }) {
                 emptyText="Cada vez que se cree, cambie o elimine algo del proyecto aparecerá aquí."
             />
             {items.length > 0 && (
-                <ol className={styles.list} aria-label="Cambios del proyecto">
-                    {items.map((item) => (
-                        <li key={item.id} className={styles.row}>
-                            <p className={styles.rowMain}>{describeActivity(item)}</p>
-                            <time
-                                className={`${styles.meta} ${styles.when}`}
-                                dateTime={item.created_at}
-                            >
-                                {formatDateTime(item.created_at)}
-                            </time>
+                <ol className={styles.days} aria-label="Cambios del proyecto">
+                    {groupByDay(items).map((group) => (
+                        <li key={group.key} className={styles.day}>
+                            <h3 className={styles.dayHeading}>{group.day}</h3>
+                            <ol className={styles.list}>
+                                {group.items.map((item) => (
+                                    <ActivityRow key={item.id} item={item} />
+                                ))}
+                            </ol>
                         </li>
                     ))}
                 </ol>

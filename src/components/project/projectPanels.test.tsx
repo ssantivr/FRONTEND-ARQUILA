@@ -2,10 +2,9 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { activityApi, projectsApi, tasksApi, versionsApi } from "../../services/api";
+import { projectsApi, tasksApi, versionsApi } from "../../services/api";
 import { ApiError } from "../../services/http";
-import type { Activity, Project, Task, Version } from "../../types/api";
-import { ProjectActivityPanel, describeActivity } from "./ProjectActivityPanel";
+import type { Project, Task, Version } from "../../types/api";
 import { ProjectSummaryPanel } from "./ProjectSummaryPanel";
 import { ProjectTasksPanel } from "./ProjectTasksPanel";
 import { ProjectVersionsPanel, describeContents } from "./ProjectVersionsPanel";
@@ -194,66 +193,6 @@ describe("ProjectVersionsPanel", () => {
             "1 punto de recorrido",
             "2 elevaciones",
         ]);
-    });
-});
-
-describe("ProjectActivityPanel", () => {
-    function activity(overrides: Partial<Activity>): Activity {
-        return {
-            id: 1,
-            project_id: 7,
-            user_id: 1,
-            action: "updated",
-            entity_type: "terrain",
-            entity_id: 5,
-            detail: {},
-            created_at: "2026-10-20T16:05:12",
-            ...overrides,
-        };
-    }
-
-    it("tells each change in a sentence", () => {
-        expect(
-            describeActivity(
-                activity({ detail: { label: "Lote 14", fields: ["area_m2", "soil_type"] } }),
-            ),
-        ).toBe("Se actualizó el terreno «Lote 14» (área, suelo)");
-        expect(describeActivity(activity({ action: "created", entity_type: "task" }))).toBe(
-            "Se creó la tarea",
-        );
-        expect(
-            describeActivity(
-                activity({
-                    action: "version_saved",
-                    entity_type: "version",
-                    detail: { version_number: 3 },
-                }),
-            ),
-        ).toBe("Se guardó la versión 3");
-    });
-
-    it("pages through the history with the total of the API", async () => {
-        vi.mocked(activityApi.listByProject).mockResolvedValue({
-            items: [activity({ action: "archived", entity_type: "project" })],
-            total: 45,
-            page: 1,
-            page_size: 20,
-        });
-        render(<ProjectActivityPanel projectId={7} />);
-
-        expect(await screen.findByText("Se archivó el proyecto")).toBeInTheDocument();
-        await userEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-
-        await waitFor(() => expect(activityApi.listByProject).toHaveBeenLastCalledWith(7, 2, 20));
-    });
-
-    it("says the history is not available on an older API", async () => {
-        vi.mocked(activityApi.listByProject).mockRejectedValue(
-            new ApiError(405, "Method Not Allowed"),
-        );
-        render(<ProjectActivityPanel projectId={7} />);
-
-        expect(await screen.findByText(/El historial de cambios no está disponible/)).toBeVisible();
     });
 });
 

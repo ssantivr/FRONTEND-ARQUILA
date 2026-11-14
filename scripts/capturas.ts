@@ -29,6 +29,7 @@ const SCREENS = [
     ["proyecto-modelo-3d", "/proyectos/1/modelo-3d"],
     ["proyecto-terreno", "/proyectos/1/terreno"],
     ["proyecto-elevaciones", "/proyectos/1/elevaciones"],
+    ["proyecto-historial", "/proyectos/1/historial"],
     ["terrenos", "/terrenos"],
     ["materiales", "/materiales"],
     ["visor", "/visor"],

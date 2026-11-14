@@ -12,6 +12,7 @@ import {
 
 const fetchMock = vi.fn();
 const dispatchEvent = vi.fn();
+const location = { pathname: "/" };
 
 function respond(status: number, body?: unknown): void {
     fetchMock.mockResolvedValueOnce(
@@ -21,7 +22,8 @@ function respond(status: number, body?: unknown): void {
 
 beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
-    vi.stubGlobal("window", { dispatchEvent });
+    location.pathname = "/";
+    vi.stubGlobal("window", { dispatchEvent, location });
 });
 
 afterEach(() => {
@@ -38,9 +40,18 @@ describe("request", () => {
         expect(fetchMock).toHaveBeenCalledWith("/api/projects", {
             method: "GET",
             credentials: "include",
-            headers: undefined,
+            headers: { "X-Arquila-Module": "home" },
             body: undefined,
         });
+    });
+
+    it("names the module the user works in, for the change history", async () => {
+        respond(200, []);
+        location.pathname = "/proyectos/3/terreno";
+
+        await request("/projects/3/terrains");
+
+        expect(fetchMock.mock.calls[0][1].headers).toEqual({ "X-Arquila-Module": "terrain" });
     });
 
     it("leaves empty query values out of the address", async () => {

@@ -1,3 +1,5 @@
+import { MODULE_HEADER, sourceModuleOf } from "./sourceModule";
+
 export const BASE_URL: string = import.meta.env.VITE_API_URL ?? "/api";
 
 export class ApiError extends Error {
@@ -88,6 +90,18 @@ export function isUnavailable(reason: unknown): boolean {
     );
 }
 
+function requestHeaders(hasBody: boolean): Record<string, string> {
+    const headers: Record<string, string> = hasBody ? { "Content-Type": "application/json" } : {};
+    const pathname = window.location?.pathname;
+    const module = pathname === undefined ? null : sourceModuleOf(pathname);
+
+    if (module !== null) {
+        headers[MODULE_HEADER] = module;
+    }
+
+    return headers;
+}
+
 async function send<T>(
     path: string,
     options: RequestOptions,
@@ -97,7 +111,7 @@ async function send<T>(
     const response = await fetch(buildUrl(path, query), {
         method,
         credentials: "include",
-        headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+        headers: requestHeaders(body !== undefined),
         body: body === undefined ? undefined : JSON.stringify(body),
     });
 
@@ -137,7 +151,12 @@ export async function upload<T>(path: string, file: File): Promise<T> {
     const body = new FormData();
     body.append("file", file);
 
-    const response = await fetch(buildUrl(path), { method: "POST", credentials: "include", body });
+    const response = await fetch(buildUrl(path), {
+        method: "POST",
+        credentials: "include",
+        headers: requestHeaders(false),
+        body,
+    });
 
     if (!response.ok) {
         notifyIfSessionEnded(path, response.status);

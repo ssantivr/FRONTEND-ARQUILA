@@ -293,6 +293,13 @@ export interface Activity {
     entity_type: string | null;
     entity_id: number | null;
     detail: { label?: string; fields?: string[]; [key: string]: unknown };
+    /** Who made the change (migration 028); older entries and test doubles may lack it. */
+    origin?: "user" | "ai" | "system" | null;
+    /** The module the change was made from, one of `SourceModule`, or null. */
+    source_module?: string | null;
+    /** The fields an update changed, before and after (migration 028); null otherwise. */
+    old_value?: Record<string, unknown> | null;
+    new_value?: Record<string, unknown> | null;
     created_at: string;
 }
 

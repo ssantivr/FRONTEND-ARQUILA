@@ -63,6 +63,47 @@ export function formatRelative(value: string, now: Date = new Date()): string {
     return "hace un momento";
 }
 
+/*
+ * The change history (R18, H3) speaks `es-CO` in the zone of the browser. The zone can be
+ * passed so a test pins it; the stored time is always UTC.
+ */
+
+/** The hour of a change: «9:05 a. m.». */
+export function formatHistoryTime(value: string, timeZone?: string): string {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? "—"
+        : new Intl.DateTimeFormat("es-CO", { timeStyle: "short", timeZone }).format(date);
+}
+
+/** The day a group of changes belongs to: «jueves, 13 de noviembre de 2026». */
+export function formatHistoryDay(value: string, timeZone?: string): string {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? "—"
+        : new Intl.DateTimeFormat("es-CO", { dateStyle: "full", timeZone }).format(date);
+}
+
+/** A key that is equal for two changes of the same local day. */
+export function historyDayKey(value: string, timeZone?: string): string {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? value
+        : new Intl.DateTimeFormat("en-CA", { dateStyle: "short", timeZone }).format(date);
+}
+
+/** The stored instant as it is kept, for a tooltip: «2026-11-13 14:05:12 UTC». */
+export function formatUtc(value: string): string {
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? "—"
+        : `${date.toISOString().slice(0, 19).replace("T", " ")} UTC`;
+}
+
 export function formatNumber(value: number | null): string {
     return value === null ? "—" : numberFormat.format(value);
 }

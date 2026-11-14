@@ -177,7 +177,45 @@
 }
 
 .when {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
     font-variant-numeric: tabular-nums;
+}
+
+/* The history, one group per local day. */
+.days {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.day {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.dayHeading {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+}
+
+.dayHeading::first-letter {
+    text-transform: uppercase;
+}
+
+.changes {
+    margin: var(--space-1) 0 0;
+    padding: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    list-style: none;
+    overflow-wrap: anywhere;
 }
 
 @media (max-width: 767px) {
@@ -189,7 +227,52 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
+    .when {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
     .rowActions {
         justify-content: start;
     }
+
+    /* Two classes: the base layout of a history row comes later in this file. */
+    .row.activityRow {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .row.activityRow > time {
+        grid-column: 2;
+    }
+}
+
+/* A history entry: what was done as a glyph, the sentence, and when. */
+.activityRow {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.activityRow:hover {
+    border-color: var(--color-border-strong);
+}
+
+.activityRow .rowTitle {
+    font-size: var(--text-sm);
+}
+
+.activityIcon {
+    display: grid;
+    place-items: center;
+    width: var(--space-6);
+    height: var(--space-6);
+    color: var(--color-text-secondary);
+    background: var(--color-surface-sunken);
+    border-radius: var(--radius-sm);
+}
+
+.activityIcon :global(.icon) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
 }

@@ -639,6 +639,35 @@ export const projectVersions: Version[] = [
 ];
 
 export const projectActivity: Activity[] = [
+    // Entries written after migration 028 carry the values before and after, and the module.
+    {
+        id: 5,
+        project_id: 1,
+        user_id: 1,
+        action: "updated",
+        entity_type: "room",
+        entity_id: 3,
+        detail: { label: "Cocina", fields: ["width_m", "category"] },
+        origin: "user",
+        source_module: "viewer",
+        old_value: { width_m: 3.2, category: "service" },
+        new_value: { width_m: 3.6, category: "kitchen" },
+        created_at: "2026-10-12T15:30:00Z",
+    },
+    {
+        id: 4,
+        project_id: 1,
+        user_id: 1,
+        action: "updated",
+        entity_type: "project",
+        entity_id: 1,
+        detail: { label: "Casa Mirador", fields: ["status"] },
+        origin: "user",
+        source_module: "summary",
+        old_value: { status: "draft" },
+        new_value: { status: "active" },
+        created_at: "2026-10-12T14:05:00Z",
+    },
     {
         id: 3,
         project_id: 1,
