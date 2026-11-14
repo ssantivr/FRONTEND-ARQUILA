@@ -110,6 +110,24 @@ Retrieval score below a threshold means: answer with the fixed "no tengo esa inf
 
 `tests/ai_eval/golden.yaml` with at least 60 questions: 20 application help, 20 about seeded project data, 10 domain glossary, 10 out of scope (must trigger the gate). Deterministic tests with a fake provider: retrieval recall at 3 at least 85 percent on answerable questions, gate triggers on 100 percent of out-of-scope questions, citations present when documents are used, no cross-user data leak (a question about another user's project returns nothing). An optional manual run against the real provider is documented but is never a CI requirement.
 
+## Data structures (R20)
+
+### S-DS1 · Hand-written
+
+Each structure is implemented by hand in its own module, generic, iterable, with `size`, `isEmpty`, `clear` and documented Big-O. Native arrays may be used inside (the array itself, ring buffers, typed arrays); the public API and invariants are ours. If the owner says "just use the built-ins", this rule is dropped.
+
+### S-DS2 · Real usage only
+
+Every structure serves a feature in the DS feature map (`PROGRESS.md`, block DS). No decorative code in production paths. A binary search tree is added only if a real use appears; otherwise `docs/DATA_STRUCTURES.md` says why not.
+
+### S-DS3 · Iterative traversal
+
+No recursion that can overflow on deep or large data; tree traversals are iterative. Python uses `Generic[T]` and type hints; TypeScript uses generics, no `any`.
+
+### S-DS4 · Where they live
+
+Frontend `src/structures/`; backend `app/structures/` only if a backend feature needs a structure (the DS0 audit decides). No duplicated copies: what the backend already has is merged.
+
 ## Verified state at R0
 
 The sections above are the decisions as given by the owner. These are the facts checked against the repositories at R0 that the work rows must account for:
