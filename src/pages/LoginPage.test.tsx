@@ -32,8 +32,10 @@ describe("LoginPage", () => {
     it("labels every field of the form", () => {
         render(<LoginPage onAuthenticated={() => undefined} />);
 
-        expect(screen.getByRole("heading", { name: "Iniciar sesión" })).toBeInTheDocument();
-        expect(screen.getByLabelText("Correo")).toHaveAttribute("type", "email");
+        expect(
+            screen.getByRole("heading", { name: "Te damos la bienvenida a ARQUILA" }),
+        ).toBeInTheDocument();
+        expect(screen.getByLabelText("Correo electrónico")).toHaveAttribute("type", "email");
         expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
         expect(screen.queryByLabelText("Nombre")).not.toBeInTheDocument();
     });
@@ -43,9 +45,9 @@ describe("LoginPage", () => {
         api.login.mockResolvedValue(USER);
 
         render(<LoginPage onAuthenticated={onAuthenticated} />);
-        await userEvent.type(screen.getByLabelText("Correo"), "  ana@example.com ");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "  ana@example.com ");
         await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
-        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
         expect(api.login).toHaveBeenCalledWith({
             email: "ana@example.com",
@@ -72,15 +74,15 @@ describe("LoginPage", () => {
         api.login.mockReturnValue(new Promise<User>((resolve) => (finish = resolve)));
 
         render(<LoginPage onAuthenticated={() => undefined} />);
-        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
-        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
-        expect(screen.getByRole("button", { name: "Entrar" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeDisabled();
 
         finish(USER);
 
-        expect(await screen.findByRole("button", { name: "Entrar" })).toBeEnabled();
+        expect(await screen.findByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
     });
 
     it("shows the translated error and lets the user try again", async () => {
@@ -88,14 +90,14 @@ describe("LoginPage", () => {
         api.login.mockRejectedValue(new Error("Invalid email or password"));
 
         render(<LoginPage onAuthenticated={onAuthenticated} />);
-        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.type(screen.getByLabelText("Contraseña"), "wrong-password");
-        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
         expect(await screen.findByRole("alert")).toHaveTextContent(
             "Correo o contraseña incorrectos.",
         );
-        expect(screen.getByRole("button", { name: "Entrar" })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
         expect(onAuthenticated).not.toHaveBeenCalled();
     });
 
@@ -105,13 +107,13 @@ describe("LoginPage", () => {
         const onAuthenticated = vi.fn();
 
         render(<LoginPage onAuthenticated={onAuthenticated} />);
-        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta nueva" }));
+        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta" }));
 
         expect(screen.getByRole("heading", { name: "Crear cuenta" })).toBeInTheDocument();
         expect(screen.getByLabelText("Contraseña")).toHaveAttribute("minlength", "8");
 
         await userEvent.type(screen.getByLabelText("Nombre"), "Ana");
-        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
         await userEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
@@ -133,9 +135,9 @@ describe("LoginPage", () => {
         const onAuthenticated = vi.fn();
 
         render(<LoginPage onAuthenticated={onAuthenticated} />);
-        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta nueva" }));
+        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta" }));
         await userEvent.type(screen.getByLabelText("Nombre"), "Ana");
-        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
         await userEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
@@ -148,11 +150,11 @@ describe("LoginPage", () => {
         api.requestPasswordReset.mockResolvedValue(undefined);
 
         render(<LoginPage onAuthenticated={() => undefined} />);
-        await userEvent.click(screen.getByRole("button", { name: "Olvidé mi contraseña" }));
+        await userEvent.click(screen.getByRole("button", { name: "¿Olvidaste tu contraseña?" }));
 
         expect(screen.queryByLabelText("Contraseña")).not.toBeInTheDocument();
 
-        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.click(screen.getByRole("button", { name: "Enviar enlace" }));
 
         expect(api.requestPasswordReset).toHaveBeenCalledWith("ana@example.com");
@@ -168,22 +170,26 @@ describe("LoginPage", () => {
     it("reveals and hides the password on request", async () => {
         render(<LoginPage onAuthenticated={() => undefined} />);
 
-        // One name, and aria-pressed says whether the password is in view.
-        const toggle = screen.getByRole("button", { name: "Mostrar contraseña" });
-
-        await userEvent.click(toggle);
+        // The button is named by what it will do, and its name changes with the state (R03).
+        await userEvent.click(screen.getByRole("button", { name: "Mostrar contraseña" }));
         expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text");
-        expect(toggle).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByRole("button", { name: "Ocultar contraseña" })).toHaveAttribute(
+            "aria-pressed",
+            "true",
+        );
 
-        await userEvent.click(toggle);
+        await userEvent.click(screen.getByRole("button", { name: "Ocultar contraseña" }));
         expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
-        expect(toggle).toHaveAttribute("aria-pressed", "false");
+        expect(screen.getByRole("button", { name: "Mostrar contraseña" })).toHaveAttribute(
+            "aria-pressed",
+            "false",
+        );
     });
 
     it("explains a wrong email as soon as the field is left", async () => {
         render(<LoginPage onAuthenticated={() => undefined} />);
 
-        const email = screen.getByLabelText("Correo");
+        const email = screen.getByLabelText("Correo electrónico");
 
         await userEvent.type(email, "ana@");
         await userEvent.tab();
@@ -201,9 +207,9 @@ describe("LoginPage", () => {
     it("shows every missing field when sent empty, takes the cursor to the first and calls nothing", async () => {
         render(<LoginPage onAuthenticated={() => undefined} />);
 
-        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
-        const email = screen.getByLabelText("Correo");
+        const email = screen.getByLabelText("Correo electrónico");
 
         expect(email).toHaveFocus();
         expect(email).toHaveAccessibleDescription("Escribe tu correo.");
@@ -216,7 +222,7 @@ describe("LoginPage", () => {
     it("clears a message as soon as the value is right", async () => {
         render(<LoginPage onAuthenticated={() => undefined} />);
 
-        const email = screen.getByLabelText("Correo");
+        const email = screen.getByLabelText("Correo electrónico");
 
         await userEvent.type(email, "ana@");
         await userEvent.tab();
@@ -229,10 +235,10 @@ describe("LoginPage", () => {
 
     it("refuses a short password when registering, before asking the API", async () => {
         render(<LoginPage onAuthenticated={() => undefined} />);
-        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta nueva" }));
+        await userEvent.click(screen.getByRole("button", { name: "Crear una cuenta" }));
 
         await userEvent.type(screen.getByLabelText("Nombre"), "Ana");
-        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.type(screen.getByLabelText("Contraseña"), "corta");
         await userEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
@@ -246,9 +252,9 @@ describe("LoginPage", () => {
         api.login.mockRejectedValue(new Error("Too many failed attempts, try again in a minute"));
 
         render(<LoginPage onAuthenticated={() => undefined} />);
-        await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(screen.getByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.type(screen.getByLabelText("Contraseña"), "wrong-password");
-        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
         expect(await screen.findByRole("alert")).toHaveTextContent(
             "Demasiados intentos fallidos. Espera un minuto e inténtalo de nuevo.",

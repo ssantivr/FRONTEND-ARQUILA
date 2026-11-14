@@ -23,7 +23,7 @@ import {
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 import type { ScenePalette } from "../lightingPalette";
-import { MINERAL_ACCENT, TERRACOTTA_ACCENT } from "./pbr";
+import { CYBER_ACCENT, VIOLET_ACCENT } from "./pbr";
 
 const SHADOW_RADIUS = 4;
 const AMBIENT_SHARE = 0.28;
@@ -156,13 +156,13 @@ export function createSceneLights(
     sun.shadow.normalBias = 0.03;
     sun.shadow.radius = SHADOW_RADIUS;
 
-    const mineralAccent = new PointLight(MINERAL_ACCENT, palette.accent, 0, 0);
-    const terracottaAccent = new PointLight(TERRACOTTA_ACCENT, palette.accent, 0, 0);
+    const cyberAccent = new PointLight(CYBER_ACCENT, palette.accent, 0, 0);
+    const violetAccent = new PointLight(VIOLET_ACCENT, palette.accent, 0, 0);
     const ambient = new AmbientLight(0xffffff, 0.2);
     const skyLight = new HemisphereLight(palette.skyLight, 0x2a3326, palette.skyPower);
     const direction = LIGHT_DIRECTION.clone();
 
-    scene.add(ambient, skyLight, sun, sun.target, mineralAccent, terracottaAccent);
+    scene.add(ambient, skyLight, sun, sun.target, cyberAccent, violetAccent);
 
     function placeSun(bounds: Sphere): void {
         sun.position.copy(bounds.center).addScaledVector(direction, bounds.radius * 2);
@@ -182,10 +182,10 @@ export function createSceneLights(
             sun.shadow.camera.far = bounds.radius * 3.5;
             sun.shadow.camera.updateProjectionMatrix();
 
-            mineralAccent.position
+            cyberAccent.position
                 .copy(bounds.center)
                 .add(new Vector3(-1.2, 0.5, 1).multiplyScalar(bounds.radius));
-            terracottaAccent.position
+            violetAccent.position
                 .copy(bounds.center)
                 .add(new Vector3(1.2, 0.35, -1).multiplyScalar(bounds.radius));
         },
@@ -211,8 +211,8 @@ export function createSceneLights(
             }
         },
         applyPalette: (next) => {
-            mineralAccent.intensity = next.accent;
-            terracottaAccent.intensity = next.accent;
+            cyberAccent.intensity = next.accent;
+            violetAccent.intensity = next.accent;
             sun.color.setHex(next.sun);
             sun.intensity = next.sunPower;
             skyLight.color.setHex(next.skyLight);

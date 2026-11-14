@@ -19,14 +19,14 @@ afterEach(() => {
 });
 
 describe("theme preference", () => {
-    it("follows the system until the user picks a theme", async () => {
+    it("starts in the dark theme until the user picks one, even on a light system", async () => {
         systemLight = true;
 
         const theme = await import("./theme");
 
-        expect(theme.getThemePreference()).toBe("auto");
-        expect(theme.getTheme()).toBe("light");
-        expect(document.documentElement.dataset.theme).toBe("light");
+        expect(theme.getThemePreference()).toBe("dark");
+        expect(theme.getTheme()).toBe("dark");
+        expect(document.documentElement.dataset.theme).toBe("dark");
     });
 
     it("keeps a chosen theme and can go back to automatic", async () => {
@@ -58,12 +58,12 @@ describe("theme preference", () => {
         const theme = await import("./theme");
         const { result } = renderHook(() => theme.useTheme());
 
-        expect(result.current).toBe("light");
-
-        act(() => theme.setThemePreference("dark"));
-
         expect(result.current).toBe("dark");
-        expect(document.documentElement.dataset.theme).toBe("dark");
+
+        act(() => theme.setThemePreference("light"));
+
+        expect(result.current).toBe("light");
+        expect(document.documentElement.dataset.theme).toBe("light");
     });
 });
 

@@ -60,7 +60,7 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
 
     return (
         <div className={styles.login}>
-            <h2 className={styles.title}>Elegir contraseña nueva</h2>
+            <h1 className={styles.title}>Elegir contraseña nueva</h1>
             <p className={styles.lead}>
                 Al guardarla se cierran las sesiones abiertas de tu cuenta en otros equipos.
             </p>

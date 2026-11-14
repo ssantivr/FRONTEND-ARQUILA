@@ -81,6 +81,28 @@ describe("RenderPage", () => {
         expect(document.body).not.toHaveTextContent(/render fotorrealista(?!:)/);
     });
 
+    it("leaves «Descargar» as the one primary action once a capture is ready", async () => {
+        const panel = await openPanel();
+
+        expect(await panel.findByRole("button", { name: "Generar captura" })).toHaveAttribute(
+            "data-variant",
+            "primary",
+        );
+
+        await userEvent.click(panel.getByRole("button", { name: "Generar captura" }));
+        expect(await panel.findByRole("status")).toHaveTextContent("Captura lista");
+
+        expect(panel.getByRole("button", { name: "Generar otra captura" })).toHaveAttribute(
+            "data-variant",
+            "secondary",
+        );
+        expect(
+            within(screen.getByRole("figure", { name: "Captura de la vista" })).getByRole("link", {
+                name: "Descargar",
+            }),
+        ).toHaveClass("button-lime");
+    });
+
     it("says it failed when the browser hands back another format", async () => {
         encodedAs = () => "image/png";
         const panel = await openPanel();

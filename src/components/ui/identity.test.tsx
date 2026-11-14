@@ -15,7 +15,7 @@ import { IconButton } from "./IconButton";
 import { PasswordInput } from "./Input";
 import { Kbd } from "./Kbd";
 import { Loader } from "./Loader";
-import { Logo, LogoMark } from "./Logo";
+import { ArquilaLogo, LogoMark } from "./Logo";
 import { LOGO_PIECES } from "./logoGeometry";
 import { MaterialPicker } from "./MaterialPicker";
 import { PropertyField, PropertyPanel, PropertyRow, PropertySection } from "./PropertyPanel";
@@ -24,11 +24,11 @@ import { Range } from "./Range";
 import { DerivedTag, Tag } from "./Tag";
 
 describe("Logo", () => {
-    it("is named by its word and draws each volume as a piece the entrance can move", () => {
-        const { container } = render(<Logo tagline />);
+    it("is named by its word and draws each group of lines as a piece the entrance can move", () => {
+        const { container } = render(<ArquilaLogo tagline />);
 
         expect(screen.getByText("ARQUILA")).toBeInTheDocument();
-        expect(screen.getByText("Diseña · Planifica · Construye")).toBeInTheDocument();
+        expect(screen.getByText("Diseña · Visualiza · Construye")).toBeInTheDocument();
 
         const mark = container.querySelector("svg");
 
@@ -38,6 +38,15 @@ describe("Logo", () => {
                 piece.getAttribute("data-piece"),
             ),
         ).toEqual(LOGO_PIECES);
+    });
+
+    it("is a line drawing in one colour, so it works white, graphite or as a watermark", () => {
+        const { container } = render(<LogoMark tone="dark" />);
+        const mark = container.querySelector("svg") as SVGElement;
+
+        expect(mark).toHaveAttribute("stroke", "currentColor");
+        expect(mark).toHaveAttribute("fill", "none");
+        expect(container.querySelectorAll("path").length).toBeGreaterThan(5);
     });
 
     it("keeps the proportions of the drawing at any height", () => {
@@ -197,16 +206,16 @@ describe("Button and IconButton", () => {
 });
 
 describe("PasswordInput", () => {
-    it("shows what was typed with a button that keeps its name", async () => {
+    it("shows what was typed with a button named by what it will do (R03)", async () => {
         render(<PasswordInput label="Contraseña" />);
 
         const field = screen.getByLabelText("Contraseña");
-        const reveal = screen.getByRole("button", { name: "Mostrar contraseña" });
 
         expect(field).toHaveAttribute("type", "password");
-        await userEvent.click(reveal);
+        await userEvent.click(screen.getByRole("button", { name: "Mostrar contraseña" }));
         expect(field).toHaveAttribute("type", "text");
-        expect(reveal).toHaveAttribute("aria-pressed", "true");
+        await userEvent.click(screen.getByRole("button", { name: "Ocultar contraseña" }));
+        expect(field).toHaveAttribute("type", "password");
     });
 });
 

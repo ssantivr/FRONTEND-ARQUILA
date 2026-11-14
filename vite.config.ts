@@ -78,7 +78,11 @@ function chunkOf(id: string): string | undefined {
     return undefined;
 }
 
+const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
+
 export default defineConfig(({ mode }) => ({
+    // The version shown on the sign-in screen («ARQUILA v1.0»), read from package.json.
+    define: { "import.meta.env.VITE_APP_VERSION": JSON.stringify(version) },
     plugins: [
         react(),
         ...(mode === "demo" ? [demoWorker()] : []),
@@ -175,6 +179,9 @@ export default defineConfig(({ mode }) => ({
                     environment: "jsdom",
                     include: ["src/**/*.test.tsx"],
                     setupFiles: ["src/test/setup.ts"],
+                    // jsdom tests with userEvent take seconds each on a loaded machine; the
+                    // default 5 s turned slow runs into failures that were not bugs.
+                    testTimeout: 20_000,
                 },
             },
         ],

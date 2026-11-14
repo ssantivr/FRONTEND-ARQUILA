@@ -31,7 +31,9 @@ function systemTheme(): Theme {
     }
 }
 
-let preference: ThemePreference = readStored() ?? "auto";
+// Dark is the identity of ARQUILA (owner, 2026-11-11): the 3D model is the protagonist.
+// "auto" stays available for whoever prefers to follow the system.
+let preference: ThemePreference = readStored() ?? "dark";
 let theme: Theme = preference === "auto" ? systemTheme() : preference;
 
 /**

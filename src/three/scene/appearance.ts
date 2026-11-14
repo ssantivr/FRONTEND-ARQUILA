@@ -6,7 +6,7 @@ import { EDGE_COLOR, GRAIN_BUMP, PATTERN_BUMP, SELECTION_COLOR } from "../materi
 import type { SceneKit } from "../materials/pbr";
 import type { SceneContents } from "./contents";
 
-const HOVER_COLOR = 0xe07c52;
+const HOVER_COLOR = 0x7552ff;
 const MUTED_COLOR = 0x39414d;
 const GHOST_OPACITY = 0.3;
 const HIGHLIGHT_GLOW = 0.45;

@@ -11,16 +11,13 @@
     animation: piece-pulse calc(var(--dur-spin) * 2) var(--ease-in-out) infinite;
 }
 
-.mark :global([data-piece="lintel"]) {
-    animation-delay: calc(var(--dur-spin) * 0.25);
+/* Construction lines, then the frame, then the detail: the sketch is drawn again and again. */
+.mark :global([data-piece="frame"]) {
+    animation-delay: calc(var(--dur-spin) * 0.33);
 }
 
-.mark :global([data-piece="post"]) {
-    animation-delay: calc(var(--dur-spin) * 0.5);
-}
-
-.mark :global([data-piece="floor"]) {
-    animation-delay: calc(var(--dur-spin) * 0.75);
+.mark :global([data-piece="detail"]) {
+    animation-delay: calc(var(--dur-spin) * 0.66);
 }
 
 .label {

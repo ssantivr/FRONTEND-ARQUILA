@@ -92,7 +92,7 @@
 
 /* ---- Variants ---- */
 
-/* Terracotta is a fill here: its text is graphite in both themes. */
+/* Violet is a fill here: its text is white in both themes (4.77:1). */
 .primary {
     background: var(--color-accent);
     border-color: var(--color-accent-edge);

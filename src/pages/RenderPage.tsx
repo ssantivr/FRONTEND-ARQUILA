@@ -618,7 +618,12 @@ export function RenderPage({ onLighting }: RenderPageProps) {
                                         Cancelar
                                     </Button>
                                 ) : (
-                                    <Button disabled={!ready} onClick={start}>
+                                    <Button
+                                        // After a capture, «Descargar» is the one primary action.
+                                        variant={result === null ? "primary" : "secondary"}
+                                        disabled={!ready}
+                                        onClick={start}
+                                    >
                                         {result === null
                                             ? "Generar captura"
                                             : "Generar otra captura"}

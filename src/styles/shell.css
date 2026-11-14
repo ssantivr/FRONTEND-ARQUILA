@@ -93,7 +93,7 @@
     width: 100%;
 }
 
-/* The navigation keeps the graphite in both themes: it is the brand's constant. */
+/* The navigation keeps the deep space of ARQUILA in both themes: it is the brand's constant. */
 .sidebar {
     position: sticky;
     top: 0;
@@ -297,62 +297,6 @@
 .button-lime:hover:not(:disabled) {
     background: var(--lime-hover);
     border-color: var(--lime-hover);
-}
-
-.hero-art {
-    align-self: stretch;
-    width: 100%;
-    height: 100%;
-    min-height: 220px;
-}
-
-.art-sky {
-    fill: var(--forest-raised);
-}
-
-.art-ground {
-    fill: var(--art-ink);
-}
-
-.art-wall {
-    fill: var(--art-paper);
-}
-
-.art-wall-shade {
-    fill: var(--art-stone);
-}
-
-.art-wood {
-    fill: var(--art-wood);
-}
-
-.art-glass {
-    fill: var(--art-glass);
-}
-
-.art-glass-lit {
-    fill: var(--lime);
-    opacity: 0.85;
-}
-
-.art-tree {
-    fill: var(--art-leaf);
-}
-
-.art-tree-light {
-    fill: var(--art-leaf-light);
-}
-
-.art-line {
-    fill: none;
-    stroke: var(--on-dark-line);
-    stroke-width: 1;
-}
-
-@media (max-width: 900px) {
-    .hero-art {
-        max-height: 200px;
-    }
 }
 
 .module-card {

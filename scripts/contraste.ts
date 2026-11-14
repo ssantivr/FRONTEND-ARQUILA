@@ -56,8 +56,8 @@ function ratio(text: string, background: string): number {
 
 const shared = block("/* ---- 2. Scales, the same in both themes ---- */\n:root {");
 const themes = {
-    claro: { ...shared, ...block(':root,\n[data-theme="light"] {') },
-    oscuro: { ...shared, ...block('[data-theme="dark"],\n.interior-stage {') },
+    light: { ...shared, ...block(':root,\n[data-theme="light"] {') },
+    dark: { ...shared, ...block('[data-theme="dark"] {') },
 };
 
 const SURFACES = ["color-bg", "color-surface", "color-surface-raised", "color-surface-sunken"];
@@ -118,7 +118,7 @@ const UI_PAIRS = UI.flatMap((mark) => SURFACES.map((surface) => [mark, surface])
 let failures = 0;
 
 for (const [theme, tokens] of Object.entries(themes)) {
-    console.log(`Tema ${theme}:`);
+    console.log(`Theme ${theme}:`);
 
     for (const [pairs, minimum] of [
         [PAIRS, MINIMUM],
@@ -127,7 +127,7 @@ for (const [theme, tokens] of Object.entries(themes)) {
         for (const [text, background] of pairs) {
             if (tokens[text] === undefined || tokens[background] === undefined) {
                 failures += 1;
-                console.log(`  FALLA  falta --${tokens[text] === undefined ? text : background}`);
+                console.log(`  FAIL   missing --${tokens[text] === undefined ? text : background}`);
                 continue;
             }
 
@@ -136,21 +136,21 @@ for (const [theme, tokens] of Object.entries(themes)) {
 
             failures += ok ? 0 : 1;
             console.log(
-                `  ${ok ? "ok   " : "FALLA"} ${value.toFixed(2).padStart(5)}:1  --${text} sobre --${background} (mínimo ${minimum})`,
+                `  ${ok ? "ok   " : "FAIL "} ${value.toFixed(2).padStart(5)}:1  --${text} on --${background} (minimum ${minimum})`,
             );
         }
     }
 }
 
-// Not a pair the interface uses: it is the reason terracotta is never text on stone.
-const terracotta = ratio(themes.claro["color-accent"], themes.claro["color-bg"]);
+// Not a pair the interface uses: it is the reason violet is never text on the dark surfaces.
+const violet = ratio(themes.dark["color-accent"], themes.dark["color-bg"]);
 
 console.log(
-    `Referencia: terracota sobre piedra ${terracotta.toFixed(2)}:1 (en claro, solo como relleno).`,
+    `Reference: violet on the dark background ${violet.toFixed(2)}:1 (fill only; text uses --accent-text).`,
 );
 console.log(
     failures === 0
-        ? `Todos los pares llegan al mínimo (texto ${MINIMUM}:1, interfaz ${MINIMUM_UI}:1).`
-        : `${failures} pares no llegan al mínimo.`,
+        ? `Every pair reaches its minimum (text ${MINIMUM}:1, interface ${MINIMUM_UI}:1).`
+        : `${failures} pairs do not reach their minimum.`,
 );
 process.exitCode = failures === 0 ? 0 : 1;

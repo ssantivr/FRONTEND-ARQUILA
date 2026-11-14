@@ -37,19 +37,19 @@ const FIELDS: Record<Mode, readonly FieldName[]> = {
 };
 
 const TITLES: Record<Mode, string> = {
-    login: "Iniciar sesión",
+    login: "Te damos la bienvenida a ARQUILA",
     register: "Crear cuenta",
     forgot: "Recuperar contraseña",
 };
 
 const LEADS: Record<Mode, string> = {
-    login: "Entra con tu correo para volver a tus proyectos.",
+    login: "Accede a tu espacio de diseño arquitectónico.",
     register: "Con una cuenta guardas tus proyectos, terrenos y materiales.",
     forgot: "Escribe tu correo y te enviamos un enlace para elegir otra contraseña.",
 };
 
 const SUBMIT: Record<Mode, string> = {
-    login: "Entrar",
+    login: "Iniciar sesión",
     register: "Crear cuenta",
     forgot: "Enviar enlace",
 };
@@ -139,7 +139,15 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
 
     return (
         <div className={styles.login}>
-            <h2 className={styles.title}>{TITLES[mode]}</h2>
+            <h1 className={styles.title}>
+                {mode === "login" ? (
+                    <>
+                        Te damos la bienvenida a <span className={styles.accent}>ARQUILA</span>
+                    </>
+                ) : (
+                    TITLES[mode]
+                )}
+            </h1>
             <p className={styles.lead}>{LEADS[mode]}</p>
             <form ref={form} className={styles.form} noValidate onSubmit={handleSubmit}>
                 {mode === "register" && (
@@ -156,7 +164,7 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                     />
                 )}
                 <Input
-                    label="Correo"
+                    label="Correo electrónico"
                     name="email"
                     type="email"
                     icon="mail"
@@ -194,7 +202,7 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                         className={`${styles.link} ${styles.forgot}`}
                         onClick={() => switchTo("forgot")}
                     >
-                        Olvidé mi contraseña
+                        ¿Olvidaste tu contraseña?
                     </button>
                 )}
                 {message && (
@@ -209,28 +217,30 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                         <span>{error}</span>
                     </p>
                 )}
-                <Button type="submit" block loading={submitting}>
+                <Button type="submit" block loading={submitting} className={styles.submit}>
                     {SUBMIT[mode]}
                 </Button>
             </form>
-            <p className={styles.switch}>
-                {mode === "login" ? (
-                    <>
-                        ¿Todavía no tienes cuenta?{" "}
-                        <button
-                            type="button"
-                            className={styles.link}
-                            onClick={() => switchTo("register")}
-                        >
-                            Crear una cuenta nueva
-                        </button>
-                    </>
-                ) : (
+            {mode === "login" ? (
+                <div className={styles.register}>
+                    <span className={styles.or}>¿Todavía no tienes cuenta?</span>
+                    <Button
+                        variant="secondary"
+                        block
+                        icon="plus"
+                        className={styles.secondary}
+                        onClick={() => switchTo("register")}
+                    >
+                        Crear una cuenta
+                    </Button>
+                </div>
+            ) : (
+                <p className={styles.switch}>
                     <button type="button" className={styles.link} onClick={() => switchTo("login")}>
                         Volver a iniciar sesión
                     </button>
-                )}
-            </p>
+                </p>
+            )}
         </div>
     );
 }

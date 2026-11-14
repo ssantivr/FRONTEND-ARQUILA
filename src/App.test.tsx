@@ -196,9 +196,9 @@ describe("App routing", () => {
         signedIn = false;
         renderAt("/configuracion");
 
-        await userEvent.type(await screen.findByLabelText("Correo"), "ana@example.com");
+        await userEvent.type(await screen.findByLabelText("Correo electrónico"), "ana@example.com");
         await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
-        await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
+        await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
         expect(await screen.findByRole("navigation", { name: "Migas de pan" })).toHaveTextContent(
             "Configuración",

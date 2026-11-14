@@ -1,6 +1,6 @@
 /*
- * Design tokens of ARQUILA FUTURE STUDIO. Every colour, size, radius, shadow and duration of the
- * interface is defined here; style sheets and components only name these variables.
+ * Design tokens of ARQUILA. Every colour, size, radius, shadow and duration of the interface is
+ * defined here; style sheets and components only name these variables.
  * `npm run contraste` reads this file and checks every text/background pair of both themes.
  *
  * Three levels:
@@ -9,137 +9,148 @@
  *   2. Scales: brand, type, space, radii, controls, layers and motion, the same in both themes.
  *   3. Short semantic names (--accent, --surface, --text-muted...), aliases of the first two.
  *
- * Palette: graphite #171918, stone #e8e4da, terracotta #d66a3d (the only accent, for actions and
- * selection) and mineral #89968c (data, edges and neutral states).
+ * Palette (owner, 2026-11-11): deep space #080b16, secondary #111729, panels #192239, violet
+ * #7552ff (primary action), cyber blue #00c8ff (selection, focus and live data), text #f5f7ff and
+ * #929db5, success #22c55e, warning #f59e0b. Dark is the default theme: the 3D model is the
+ * protagonist and the interface recedes around it.
  *
- * Terracotta is a fill on stone: it reaches 2.76:1 there, so as text, edge or focus the light
- * theme uses --accent-text, and mineral uses --mineral-text. Text on a terracotta fill is always
- * graphite (5.04:1). In dark, both colours are readable as they are.
+ * Violet is a fill: white text on it reaches 4.77:1. As text on the dark surfaces it falls under
+ * 4.5:1, so text, icons and edges in violet use --accent-text (#a08bff). Cyber blue is readable
+ * as it is on dark; on light it becomes --cyber-text.
  */
 
 /* ---- 1. Theme: light (the default) ---- */
 :root,
 [data-theme="light"] {
     /* Surfaces, from the page to what floats above it. */
-    --color-bg: #e8e4da;
-    --color-surface: #f5f2eb;
-    --color-surface-raised: #efebe2;
-    --color-surface-sunken: #dfdace;
-    --color-surface-inverse: #171918;
-    --color-border: #cfc9bb;
-    --color-border-strong: #737e76;
-    --color-hover: rgba(23, 25, 24, 0.05);
-    --color-pressed: rgba(23, 25, 24, 0.09);
-    --color-scrim: rgba(23, 25, 24, 0.56);
+    --color-bg: #f5f7ff;
+    --color-surface: #ffffff;
+    --color-surface-raised: #eef1fa;
+    --color-surface-sunken: #e3e7f3;
+    --color-surface-inverse: #080b16;
+    --color-border: #d5dae8;
+    --color-border-strong: #6b7694;
+    --color-hover: rgba(8, 11, 22, 0.05);
+    --color-pressed: rgba(8, 11, 22, 0.09);
+    --color-scrim: rgba(8, 11, 22, 0.56);
 
     /* Text */
-    --color-text: #171918;
-    --color-text-secondary: #5a625c;
-    --color-text-muted: #4f5751;
-    --color-text-inverse: #e8e4da;
+    --color-text: #080b16;
+    --color-text-secondary: #4a5470;
+    --color-text-muted: #4a5470;
+    --color-text-inverse: #f5f7ff;
 
-    /* Terracotta and mineral where they must be read: text, edges, icons and focus. */
-    --accent-text: #964a2b;
-    --mineral-text: #5a625c;
+    /* Violet and cyber blue where they must be read: text, edges, icons and focus. */
+    --accent-text: #5534e0;
+    --mineral-text: #4a5470;
+    --cyber-text: #006591;
 
-    /* Interaction: dark terracotta for links, focus and secondary emphasis; the fill for the main
-       action. */
-    --color-action: #964a2b;
-    --color-action-hover: #7f3e24;
+    /* Interaction: deep violet for links and focus; the violet fill for the main action. */
+    --color-action: #5534e0;
+    --color-action-hover: #4527c4;
     --color-on-action: #ffffff;
-    --color-action-soft: rgba(150, 74, 43, 0.1);
-    --color-accent: #d66a3d;
-    --color-accent-hover: #e07c52;
-    --color-on-accent: #171918;
-    --color-accent-edge: rgba(23, 25, 24, 0.22);
-    /* The accent where it must be seen as a line, an icon or text on this theme's surfaces. */
-    --color-accent-hi: #964a2b;
-    /* The selection outline: the fill needs a dark keyline beside it to be seen on stone. */
-    --color-selection: #d66a3d;
-    --color-selection-keyline: #171918;
-    --color-focus: #964a2b;
+    --color-action-soft: rgba(117, 82, 255, 0.1);
+    --color-accent: #7552ff;
+    --color-accent-hover: #6440f5;
+    --color-on-accent: #ffffff;
+    --color-accent-edge: rgba(8, 11, 22, 0.16);
+    --color-accent-hi: #5534e0;
+    --color-cyber: #006591;
+    --color-cyber-soft: rgba(0, 200, 255, 0.12);
+    --color-selection: #7552ff;
+    --color-selection-keyline: #080b16;
+    --color-focus: #5534e0;
 
     /* States: always with an icon or a word next to the colour. */
-    --color-success: #196d43;
-    --color-success-soft: rgba(25, 109, 67, 0.1);
-    --color-warning: #825800;
-    --color-warning-soft: rgba(130, 88, 0, 0.1);
-    --color-danger: #b3261e;
-    --color-danger-soft: rgba(179, 38, 30, 0.08);
+    --color-success: #116b33;
+    --color-success-soft: rgba(21, 128, 61, 0.1);
+    --color-warning: #83560a;
+    --color-warning-soft: rgba(146, 96, 10, 0.1);
+    --color-danger: #b91c1c;
+    --color-danger-soft: rgba(185, 28, 28, 0.08);
     --color-on-danger: #ffffff;
-    --color-info: #2459a8;
-    --color-info-soft: rgba(36, 89, 168, 0.08);
+    --color-info: #006591;
+    --color-info-soft: rgba(0, 119, 168, 0.08);
 
     /* The blueprint motif: technical grid, dimension lines and corner marks. */
-    --color-grid-minor: rgba(90, 98, 92, 0.07);
-    --color-grid-major: rgba(90, 98, 92, 0.13);
-    --color-drawing: rgba(23, 25, 24, 0.42);
+    --color-grid-minor: rgba(74, 84, 112, 0.07);
+    --color-grid-major: rgba(74, 84, 112, 0.13);
+    --color-drawing: rgba(8, 11, 22, 0.42);
+
+    /* Moderate glass: translucent panels over the scene. */
+    --glass-bg: rgba(255, 255, 255, 0.78);
+    --glass-border: rgba(8, 11, 22, 0.14);
 
     /* Shadows: edges come from the 1 px borders; shadows only lift what floats. */
-    --shadow-1: 0 1px 2px rgba(23, 25, 24, 0.05);
-    --shadow-2: 0 1px 2px rgba(23, 25, 24, 0.06), 0 8px 20px -10px rgba(23, 25, 24, 0.2);
-    --shadow-3: 0 2px 4px rgba(23, 25, 24, 0.06), 0 18px 40px -16px rgba(23, 25, 24, 0.32);
-    --focus-ring: 0 0 0 2px #f5f2eb, 0 0 0 4px #964a2b;
+    --shadow-1: 0 1px 2px rgba(8, 11, 22, 0.05);
+    --shadow-2: 0 1px 2px rgba(8, 11, 22, 0.06), 0 8px 20px -10px rgba(8, 11, 22, 0.2);
+    --shadow-3: 0 2px 4px rgba(8, 11, 22, 0.06), 0 18px 40px -16px rgba(8, 11, 22, 0.32);
+    --glow: 0 0 0 1px rgba(117, 82, 255, 0.28), 0 0 16px -4px rgba(117, 82, 255, 0.35);
+    --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #5534e0;
 
     color-scheme: light;
 }
 
-/* ---- 1. Theme: dark, the CAD/BIM environment ---- */
-/* Graphite is the base. The raised surface stops at #202322: any lighter and terracotta, which
-   does not change here, falls under 4.5:1 as text on it. The interior walkthrough is a dusk scene,
-   so its overlays keep these tokens in both themes. */
-[data-theme="dark"],
-.interior-stage {
-    --color-bg: #171918;
-    --color-surface: #1c1f1e;
-    --color-surface-raised: #202322;
-    --color-surface-sunken: #121413;
-    --color-surface-inverse: #e8e4da;
-    --color-border: #303432;
-    --color-border-strong: #89968c;
-    --color-hover: rgba(232, 228, 218, 0.06);
-    --color-pressed: rgba(232, 228, 218, 0.1);
-    --color-scrim: rgba(0, 0, 0, 0.62);
+/* ---- 1. Theme: dark, the default: deep space around the 3D model ---- */
+[data-theme="dark"] {
+    --color-bg: #080b16;
+    --color-surface: #111729;
+    --color-surface-raised: #192239;
+    --color-surface-sunken: #05070f;
+    --color-surface-inverse: #f5f7ff;
+    /* rgba(255, 255, 255, 0.08) over the panels, written out so contraste can check it. */
+    --color-border: #262e44;
+    --color-border-strong: #6b7694;
+    --color-hover: rgba(245, 247, 255, 0.06);
+    --color-pressed: rgba(245, 247, 255, 0.1);
+    --color-scrim: rgba(3, 5, 12, 0.66);
 
-    --color-text: #e8e4da;
-    --color-text-secondary: #a9b3ab;
-    --color-text-muted: #a9b3ab;
-    --color-text-inverse: #171918;
+    --color-text: #f5f7ff;
+    --color-text-secondary: #929db5;
+    --color-text-muted: #a3adc2;
+    --color-text-inverse: #080b16;
 
-    --accent-text: #d66a3d;
-    --mineral-text: #89968c;
+    --accent-text: #a08bff;
+    --mineral-text: #929db5;
+    --cyber-text: #00c8ff;
 
-    --color-action: #d66a3d;
-    --color-action-hover: #e07c52;
-    --color-on-action: #171918;
-    --color-action-soft: rgba(214, 106, 61, 0.12);
-    --color-accent: #d66a3d;
-    --color-accent-hover: #e07c52;
-    --color-on-accent: #171918;
-    --color-accent-edge: rgba(214, 106, 61, 0);
-    --color-accent-hi: #d66a3d;
-    --color-selection: #d66a3d;
-    --color-selection-keyline: #121413;
-    --color-focus: #d66a3d;
+    --color-action: #a08bff;
+    --color-action-hover: #b3a1ff;
+    --color-on-action: #080b16;
+    --color-action-soft: rgba(117, 82, 255, 0.16);
+    --color-accent: #7552ff;
+    --color-accent-hover: #6440f5;
+    --color-on-accent: #ffffff;
+    --color-accent-edge: rgba(255, 255, 255, 0.08);
+    --color-accent-hi: #a08bff;
+    --color-cyber: #00c8ff;
+    --color-cyber-soft: rgba(0, 200, 255, 0.12);
+    --color-selection: #00c8ff;
+    --color-selection-keyline: #05070f;
+    --color-focus: #00c8ff;
 
-    --color-success: #6fdc9b;
-    --color-success-soft: rgba(111, 220, 155, 0.1);
-    --color-warning: #f2c35b;
-    --color-warning-soft: rgba(242, 195, 91, 0.1);
-    --color-danger: #ff8a80;
-    --color-danger-soft: rgba(255, 138, 128, 0.1);
-    --color-on-danger: #1b0503;
-    --color-info: #8ab4ff;
-    --color-info-soft: rgba(138, 180, 255, 0.1);
+    --color-success: #22c55e;
+    --color-success-soft: rgba(34, 197, 94, 0.12);
+    --color-warning: #f59e0b;
+    --color-warning-soft: rgba(245, 158, 11, 0.12);
+    --color-danger: #f87171;
+    --color-danger-soft: rgba(248, 113, 113, 0.12);
+    --color-on-danger: #080b16;
+    --color-info: #00c8ff;
+    --color-info-soft: rgba(0, 200, 255, 0.1);
 
-    --color-grid-minor: rgba(137, 150, 140, 0.05);
-    --color-grid-major: rgba(137, 150, 140, 0.1);
-    --color-drawing: rgba(232, 228, 218, 0.5);
+    --color-grid-minor: rgba(146, 157, 181, 0.05);
+    --color-grid-major: rgba(146, 157, 181, 0.1);
+    --color-drawing: rgba(245, 247, 255, 0.5);
 
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.32);
-    --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 24px -12px rgba(0, 0, 0, 0.6);
-    --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.36), 0 20px 44px -16px rgba(0, 0, 0, 0.72);
-    --focus-ring: 0 0 0 2px #171918, 0 0 0 4px #d66a3d;
+    --glass-bg: rgba(25, 34, 57, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.08);
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 24px -12px rgba(0, 0, 0, 0.7);
+    --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.44), 0 20px 44px -16px rgba(0, 0, 0, 0.8);
+    --glow: 0 0 0 1px rgba(0, 200, 255, 0.3), 0 0 18px -4px rgba(0, 200, 255, 0.45);
+    --focus-ring: 0 0 0 2px #080b16, 0 0 0 4px #00c8ff;
 
     color-scheme: dark;
 }
@@ -150,38 +161,70 @@
    system in dark mode gets a dark page instead of a white flash. */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
-        --color-bg: #171918;
-        --color-text: #e8e4da;
+        --color-bg: #080b16;
+        --color-text: #f5f7ff;
         color-scheme: dark;
     }
 }
 
 /* ---- 2. Scales, the same in both themes ---- */
 :root {
-    /* Brand surfaces that do not change with the theme: the graphite of the sidebar and the
-       bands, and terracotta on them. The forest and lime names stay until phase 6. */
-    --brand-forest: #171918;
-    --brand-forest-raised: #202322;
-    --brand-forest-text: #e8e4da;
-    --brand-lime: #d66a3d;
-    --brand-lime-hover: #e07c52;
-    --brand-on-lime: #171918;
-    /* States on the graphite band (toasts), which is dark in both themes. */
-    --band-danger: #ff8a80;
-    --band-info: #8ab4ff;
+    /* Brand surfaces that do not change with the theme: the deep space of the sidebar and the
+       bands, and violet on them. The forest and lime names stay until the reskin renames them. */
+    --brand-forest: #080b16;
+    --brand-forest-raised: #111729;
+    --brand-forest-text: #f5f7ff;
+    --brand-lime: #a08bff;
+    --brand-lime-hover: #b3a1ff;
+    --brand-on-lime: #080b16;
+    --brand-cyber: #00c8ff;
+    /* States on the dark band (toasts), which is dark in both themes. */
+    --band-danger: #f87171;
+    --band-info: #00c8ff;
     --white: #ffffff;
-    /* The faces of the isometric mark: top, left and right. */
-    --brand-face-top: #d66a3d;
-    --brand-face-left: #a9502c;
-    --brand-face-right: #89968c;
+    /* The graphite of the logo on paper (owner's brief: #171717). */
+    --logo-graphite: #171717;
 
     /* Overlays of the 3D scene, which are dark in both themes. */
-    --scene-text: #e8e4da;
-    --scene-panel: #121413;
-    --scene-ground: #0e100f;
-    --axis-x: #ff8a80;
-    --axis-y: #8ab4ff;
-    --axis-z: #89968c;
+    --scene-text: #f5f7ff;
+    --scene-panel: #111729;
+    --scene-ground: #05070f;
+    --axis-x: #f87171;
+    --axis-y: #22c55e;
+    --axis-z: #00c8ff;
+
+    /* Glass: the blur of translucent panels. Their colours are in the theme. */
+    --glass-blur: 12px;
+    --blur-card: 16px;
+
+    /* Brand gradients. White text needs a darker blue than #00c8ff (2:1) at the end of the
+       action: #0077a8 keeps it at 5:1, and the cyan comes back as the glow on hover. */
+    --gradient-brand: linear-gradient(90deg, #7552ff, #00c8ff);
+    --gradient-action: linear-gradient(90deg, #7552ff 0%, #0077a8 100%);
+    --glow-action:
+        0 0 0 1px rgba(0, 200, 255, 0.45), 0 8px 28px -6px rgba(0, 200, 255, 0.6),
+        0 0 22px -4px rgba(117, 82, 255, 0.7);
+    --glow-violet-text: 0 0 28px rgba(117, 82, 255, 0.65);
+
+    /* The sign-in screen, which is dark in both themes. */
+    --auth-backdrop:
+        radial-gradient(60% 50% at 0% 0%, rgba(117, 82, 255, 0.14), transparent 70%),
+        radial-gradient(50% 40% at 30% 100%, rgba(0, 200, 255, 0.08), transparent 70%);
+    --auth-card-bg: rgba(17, 23, 41, 0.72);
+    --auth-pill-bg: rgba(17, 23, 41, 0.55);
+    --auth-edge: rgba(255, 255, 255, 0.16);
+    --auth-card-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(117, 82, 255, 0.06);
+    --auth-shade:
+        linear-gradient(
+            180deg,
+            rgba(8, 11, 22, 0.55) 0%,
+            rgba(8, 11, 22, 0.35) 35%,
+            rgba(8, 11, 22, 0.92) 78%,
+            #080b16 100%
+        ),
+        linear-gradient(90deg, rgba(8, 11, 22, 0.7) 0%, rgba(8, 11, 22, 0) 45%);
+    --auth-form-min: 420px;
+    --auth-card-width: 440px;
 
     /* Type: Inter for the interface (tabular figures where data is shown), JetBrains Mono for
        coordinates and codes. Nothing below 12 px. */
@@ -289,6 +332,10 @@
     /* Shadows and lines that do not change with the theme. */
     --shadow-none: none;
     --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.35);
+    /* The deep-space ink as channels, for scrims and shades: rgb(var(--ink-rgb) / 0.72). */
+    --ink-rgb: 8 11 22;
+    /* The small cyan glow of a hovered gizmo axis, for filter: drop-shadow(). */
+    --glow-cyber-sm: 0 0 4px var(--color-cyber);
     /* Tints of white over the bands, which are dark in both themes. */
     --on-dark-hover: rgba(255, 255, 255, 0.07);
     --on-dark-pressed: rgba(255, 255, 255, 0.1);
@@ -300,7 +347,7 @@
     --nudge-arrow: 3px;
     --dur-instant: 80ms;
     --dur-fast: 150ms;
-    --dur: 220ms;
+    --dur: 200ms;
     --dur-base: var(--dur);
     --dur-slow: 240ms;
 
@@ -322,12 +369,11 @@
  * ---- 3. Short names ----
  * The semantic names of the design (--bg, --surface, --surface-2, --accent, --accent-contrast,
  * --text-muted, --danger...) and those of the previous design. Each one points at a token above.
- * --accent is the terracotta fill: as text, edge or focus use --accent-text.
+ * --accent is the violet fill: as text, edge or focus use --accent-text.
  */
 :root,
 [data-theme="light"],
-[data-theme="dark"],
-.interior-stage {
+[data-theme="dark"] {
     --bg: var(--color-bg);
     --bg-secondary: var(--color-surface);
     --panel: var(--color-surface);
@@ -353,42 +399,36 @@
     --error: var(--color-danger);
     --shadow: var(--shadow-1);
     --shadow-float: var(--shadow-2);
-    --glass: var(--color-surface);
+    --glass: var(--glass-bg);
     --ring: var(--focus-ring);
 }
 
 :root {
-    --vignette: rgba(23, 25, 24, 0.1);
-    --glass-border: rgba(23, 25, 24, 0.14);
+    --vignette: rgba(8, 11, 22, 0.1);
     --forest: var(--brand-forest);
     --forest-raised: var(--brand-forest-raised);
     --forest-text: var(--brand-forest-text);
-    --lime: var(--brand-lime);
-    --lime-hover: var(--brand-lime-hover);
-    --lime-contrast: var(--brand-on-lime);
-    --sidebar-top: #171918;
-    --sidebar-bottom: #121413;
+    /* The fill violet of every primary control (D-DESIGN): one violet for fills across the app.
+       Readable violet text is --accent-text, or --brand-lime on the dark bands. */
+    --lime: var(--color-accent);
+    --lime-hover: var(--color-accent-hover);
+    --lime-contrast: var(--color-on-accent);
+    --sidebar-top: #111729;
+    --sidebar-bottom: #080b16;
     --scrim: var(--color-scrim);
     --on-scene: var(--scene-text);
     --viewport-deep: var(--scene-panel);
     --gizmo-ground: var(--scene-ground);
-    --neon-cyan: #89968c;
-    --neon-magenta: #d66a3d;
+    --neon-cyan: #00c8ff;
+    --neon-magenta: #7552ff;
     --work-finishes: #ffc857;
     --work-demolition: #ff5c7a;
-    --art-ink: #2b2f2d;
-    --art-paper: #e8e4da;
-    --art-stone: #b8b3a6;
-    --art-wood: #a8794f;
-    --art-glass: #89968c;
-    --art-leaf: #5a625c;
-    --art-leaf-light: #737e76;
-    --art-hill: #202322;
-    --cover-1: #1c1f1e;
-    --cover-2: #202322;
-    --cover-3: #171918;
-    --cover-4: #232625;
-    --cover-line: #e8e4da;
+    --art-hill: #111729;
+    --cover-1: #111729;
+    --cover-2: #192239;
+    --cover-3: #080b16;
+    --cover-4: #1c2540;
+    --cover-line: #f5f7ff;
     --fs-12: var(--text-xs);
     --fs-13: var(--text-sm);
     --fs-14: var(--text-md);
@@ -407,8 +447,6 @@
     --control-height-sm: var(--control-sm);
 }
 
-[data-theme="dark"],
-.interior-stage {
+[data-theme="dark"] {
     --vignette: rgba(0, 0, 0, 0.4);
-    --glass-border: rgba(255, 255, 255, 0.12);
 }

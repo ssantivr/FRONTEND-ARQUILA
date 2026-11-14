@@ -41,7 +41,7 @@ const SEMANTIC = [
 
 describe("design tokens", () => {
     const light = block(':root,\n[data-theme="light"]');
-    const dark = block('[data-theme="dark"],\n.interior-stage');
+    const dark = block('[data-theme="dark"]');
 
     it("give every semantic token a value of its own in the light and the dark theme", () => {
         for (const name of SEMANTIC) {
@@ -53,14 +53,34 @@ describe("design tokens", () => {
         }
 
         // The dark theme is designed on its own, not the light one inverted or copied.
-        expect(dark).toMatch(/--color-bg:\s*#171918/);
-        expect(light).toMatch(/--color-bg:\s*#e8e4da/);
+        expect(dark).toMatch(/--color-bg:\s*#080b16/);
+        expect(light).toMatch(/--color-bg:\s*#f5f7ff/);
     });
 
-    it("keep the brand palette of ARQUILA", () => {
-        for (const hex of ["#171918", "#e8e4da", "#d66a3d", "#89968c"]) {
-            expect(css.toLowerCase()).toContain(hex);
+    it("keep the official palette of ARQUILA in the dark theme", () => {
+        for (const hex of [
+            "#080b16",
+            "#111729",
+            "#192239",
+            "#7552ff",
+            "#00c8ff",
+            "#f5f7ff",
+            "#929db5",
+            "#22c55e",
+            "#f59e0b",
+        ]) {
+            expect(dark.toLowerCase()).toContain(hex);
         }
+    });
+
+    it("give the glass panels a moderate blur and a subtle edge", () => {
+        expect(css).toMatch(/--glass-blur:\s*12px/);
+        expect(dark).toMatch(/--glass-border:\s*rgba\(255, 255, 255, 0\.08\)/);
+    });
+
+    it("keep violet text readable: the fill is never the text colour on dark", () => {
+        expect(dark).toMatch(/--accent-text:\s*#a08bff/);
+        expect(dark).toMatch(/--color-on-accent:\s*#ffffff/);
     });
 
     it("name the design's semantic tokens as aliases, with the fill apart from the text", () => {
@@ -71,9 +91,17 @@ describe("design tokens", () => {
         expect(css).toMatch(/--danger:\s*var\(--color-danger\)/);
     });
 
+    it("fill every primary control with one violet, never the text violet", () => {
+        // `--lime` once pointed at `--brand-lime`, which D-BRAND turned into the text violet
+        // #a08bff, so legacy fills read lighter than the app's primaries (#7552ff).
+        expect(css).toMatch(/--lime:\s*var\(--color-accent\)/);
+        expect(css).toMatch(/--lime-hover:\s*var\(--color-accent-hover\)/);
+        expect(css).toMatch(/--lime-contrast:\s*var\(--color-on-accent\)/);
+    });
+
     it("follow a dark system before the script has chosen a theme", () => {
         expect(css).toMatch(
-            /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme\]\)\s*\{[^}]*--color-bg:\s*#171918/,
+            /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme\]\)\s*\{[^}]*--color-bg:\s*#080b16/,
         );
     });
 

@@ -20,9 +20,9 @@ export const ROOF_COLOR = 0x8a4f43;
 export const SLAB_COLOR = 0xb9c0c8;
 export const DOOR_COLOR = 0x4a3526;
 export const EDGE_COLOR = 0x1b1410;
-export const MINERAL_ACCENT = 0x89968c;
-export const TERRACOTTA_ACCENT = 0xd66a3d;
-export const SELECTION_COLOR = 0xd66a3d;
+export const CYBER_ACCENT = 0x00c8ff;
+export const VIOLET_ACCENT = 0x7552ff;
+export const SELECTION_COLOR = 0x00c8ff;
 export const PATTERN_BUMP = 1.4;
 export const GRAIN_BUMP = 2;
 

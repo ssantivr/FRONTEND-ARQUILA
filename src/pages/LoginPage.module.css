@@ -1,7 +1,7 @@
-/* A sober form without a card: title, one line of context, the fields and one action. */
+/* The form inside the glass card of the sign-in screen: title, one line of context, the
+   fields, the main action and the way to create an account. */
 .login {
     width: 100%;
-    max-width: 400px;
     margin: 0;
 }
 
@@ -12,6 +12,15 @@
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-display);
     line-height: var(--leading-tight);
+}
+
+/* «ARQUILA» in the violet-to-cyan gradient of the brand. The title is large text (28 px,
+   bold), so 3:1 is its minimum: violet reaches 3.7:1 and cyan 9.9:1 on the card. */
+.accent {
+    background: var(--gradient-brand);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
 }
 
 .lead {
@@ -25,14 +34,14 @@
     --control-height: var(--control-lg);
 }
 
-/* Text buttons: «Olvidé mi contraseña», «Crear una cuenta nueva». */
+/* Text buttons: «¿Olvidaste tu contraseña?», «Volver a iniciar sesión». */
 .link {
     min-height: 0;
     margin: 0;
     padding: 0;
     border: 0;
     background: none;
-    color: var(--color-accent-hi);
+    color: var(--accent-text);
     font: inherit;
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
@@ -86,6 +95,56 @@
 .error {
     background: var(--color-danger-soft);
     color: var(--color-danger);
+}
+
+/* The main action in the brand gradient (--gradient-action keeps white text at 5:1). */
+.submit {
+    position: relative;
+    isolation: isolate;
+    color: var(--white);
+    background: var(--gradient-action);
+    border-color: transparent;
+}
+
+.submit::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    box-shadow: var(--glow-action);
+    opacity: 0;
+    content: "";
+    transition: opacity var(--dur) var(--ease-in-out);
+}
+
+.submit:hover:not(:disabled)::after,
+.submit:focus-visible::after {
+    opacity: 1;
+}
+
+.submit:hover:not(:disabled) {
+    color: var(--white);
+    background: var(--gradient-action);
+}
+
+.register {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+    border-top: var(--border-w) solid var(--glass-border);
+    --control-height: var(--control-lg);
+}
+
+.or {
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    text-align: center;
+}
+
+.secondary {
+    background: transparent;
+    border-color: var(--auth-edge);
 }
 
 .switch {

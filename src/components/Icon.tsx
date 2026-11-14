@@ -1,4 +1,7 @@
 import {
+    BrainCircuit,
+    Expand,
+    ShieldCheck,
     Save,
     MapPin,
     LayoutDashboard,
@@ -156,6 +159,10 @@ const ICONS = {
     undo: Undo2,
     redo: Redo2,
     move: Move,
+    scale: Expand,
+    layers: Layers,
+    brain: BrainCircuit,
+    shield: ShieldCheck,
     rotate: RotateCw,
     arrowRight: ArrowRight,
     chevronDown: ChevronDown,

@@ -1,9 +1,11 @@
-/* Wide screen: the render on the left (a little wider), the form on the right. */
+/* Split screen: the form in a glass card on the left (45 %), the showcase on the right (55 %).
+   Always dark (data-theme="dark" on the screen), on the deep background of ARQUILA. */
 .auth {
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(400px, 1fr);
+    grid-template-columns: minmax(var(--auth-form-min), 45fr) minmax(0, 55fr);
     min-height: 100dvh;
-    background: var(--color-surface);
+    color: var(--color-text);
+    background: var(--auth-backdrop), var(--color-bg);
 }
 
 .auth:focus {
@@ -11,171 +13,249 @@
 }
 
 .formSide {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    place-items: center;
+    padding: var(--space-7) var(--space-6);
+}
+
+.card {
+    display: grid;
     gap: var(--space-6);
-    padding: var(--space-6) var(--space-7);
-    background: var(--color-surface);
+    width: min(100%, var(--auth-card-width));
+    padding: var(--space-7) var(--space-6) var(--space-6);
+    background: var(--auth-card-bg);
+    border: var(--border-w) solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--auth-card-shadow);
+    backdrop-filter: blur(var(--blur-card));
     animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
 
-.top {
+.brand {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
 }
 
 .body {
     display: grid;
-    flex: 1;
-    align-content: center;
-    justify-items: center;
-    padding-bottom: var(--space-7);
 }
 
-/* The render takes the upper part whole, with nothing over it but its label; the claim sits
-   under it on solid forest green, so its contrast does not depend on the picture. */
-.visual {
+.secure {
     display: flex;
-    flex-direction: column;
-    order: -1;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding-top: var(--space-4);
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    border-top: var(--border-w) solid var(--glass-border);
+}
+
+.secure :global(.icon) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+    color: var(--color-success);
+}
+
+/* ---- The showcase ---- */
+
+.showcase {
+    position: relative;
+    isolation: isolate;
     min-height: 100%;
     overflow: hidden;
     color: var(--white);
-    background: var(--brand-forest);
+    background: var(--color-surface);
 }
 
-.picture {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 240px;
-    overflow: hidden;
-    background: var(--brand-forest-raised);
-}
-
-.picture :global(.render),
-.picture :global(.hero-art) {
+.photo {
     position: absolute;
     inset: 0;
+    z-index: -3;
     width: 100%;
     height: 100%;
-    min-height: 0;
     object-fit: cover;
-    object-position: 75% 60%;
+    object-position: 62% 50%;
 }
 
-.picture :global(.render-label) {
-    top: var(--space-5);
-    right: var(--space-5);
-    bottom: auto;
+/* The photograph is bright: a deep shade over it keeps the white text readable on any part of it,
+   strongest at the bottom where the claim and the pillars sit. */
+.shade {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: var(--auth-shade);
+}
+
+.blueprint {
+    position: absolute;
+    /* The mask of the grid fades with currentColor: white is full strength. */
+    color: var(--white);
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+}
+
+.blueprint pattern path {
+    fill: none;
+    stroke: var(--brand-cyber);
+    stroke-width: 1;
+    stroke-opacity: 0.15;
+}
+
+.grid {
+    fill: url(#auth-grid);
+}
+
+.wire path {
+    fill: none;
+    stroke: var(--brand-cyber);
+    stroke-width: 1.4;
+    stroke-opacity: 0.55;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.wire path:nth-child(3) {
+    stroke: var(--color-accent);
+    stroke-opacity: 0.7;
+}
+
+.overlay {
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    gap: var(--space-6);
+    min-height: 100%;
+    padding: var(--space-6) var(--space-8) var(--space-6);
+}
+
+.header {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* The ui Button, as a glass pill over the photograph. */
+.access {
+    min-height: var(--touch-target);
+    padding: 0 var(--space-5);
+    color: var(--white);
+    background: var(--auth-pill-bg);
+    border-color: var(--auth-edge);
+    border-radius: var(--radius-pill);
+    backdrop-filter: blur(var(--glass-blur));
 }
 
 .claim {
-    flex: none;
-    padding: var(--space-7) var(--space-8) var(--space-8);
-    border-top: 2px solid var(--brand-lime);
+    align-self: end;
 }
 
 .claim h2 {
-    max-width: 20ch;
-    margin: 0 0 var(--space-3);
-    font-size: clamp(1.875rem, 2.8vw, 2.75rem);
+    max-width: 16ch;
+    margin: 0 0 var(--space-4);
+    font-size: clamp(2.25rem, 3.6vw, 3.5rem);
     font-weight: 760;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.035em;
     line-height: 1.04;
+    text-wrap: balance;
+}
+
+/* «Visualiza el futuro.» in glowing violet. #a08bff is the violet that reads on dark (7:1). */
+.claim h2 span {
+    color: var(--accent-text);
+    text-shadow: var(--glow-violet-text);
 }
 
 .claim p {
     max-width: 46ch;
     margin: 0;
-    color: var(--brand-forest-text);
+    color: var(--color-text);
     font-size: var(--text-lg);
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
-.features {
+.pillars {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
-    margin: var(--space-5) 0 0;
-    padding: var(--space-5) 0 0;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
     list-style: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-.features li {
-    display: grid;
-    align-content: start;
-    gap: var(--space-2);
-    color: var(--brand-forest-text);
+.pillars li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    color: var(--color-text-secondary);
     font-size: var(--text-sm);
     line-height: 1.45;
+    background: var(--auth-card-bg);
+    border: var(--border-w) solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(var(--glass-blur));
 }
 
-.features :global(.icon) {
-    width: 20px;
-    height: 20px;
-    margin-top: 1px;
-    color: var(--brand-lime);
+.pillars :global(.icon) {
+    flex: none;
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+    color: var(--color-cyber);
 }
 
-.features strong {
+.pillars strong {
     display: block;
+    margin-bottom: var(--space-1);
     color: var(--white);
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
 }
 
-/* Tablet and phone: one column, the form first and the picture after it as a band. */
-@media (max-width: 900px) {
+.version {
+    justify-self: end;
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+}
+
+/* Tablet and phone: one column, the form first and the showcase after it. */
+@media (max-width: 960px) {
     .auth {
         grid-template-columns: minmax(0, 1fr);
     }
 
     .formSide {
-        padding: var(--space-5) var(--space-5) var(--space-6);
+        padding: var(--space-5) var(--space-4);
     }
 
-    .body {
-        padding-bottom: 0;
+    .card {
+        padding: var(--space-6) var(--space-5) var(--space-5);
     }
 
-    .visual {
-        order: 0;
+    .overlay {
+        padding: var(--space-5);
     }
 
-    .picture {
-        flex-basis: 260px;
-    }
-
-    .picture :global(.render-label) {
-        top: var(--space-4);
-        right: var(--space-4);
-    }
-
-    .claim {
-        padding: var(--space-6) var(--space-5);
+    /* The showcase follows the form here, so a pill that focuses the form would point up. */
+    .access {
+        display: none;
     }
 }
 
-@media (max-width: 1100px) {
-    .features {
+/* Below this width three pillars side by side leave each card too narrow for its title. */
+@media (max-width: 1200px) {
+    .pillars {
         grid-template-columns: minmax(0, 1fr);
     }
-
-    .features li {
-        grid-template-columns: 20px minmax(0, 1fr);
-        gap: var(--space-3);
-    }
 }
 
-@media (max-width: 480px) {
-    .formSide {
-        gap: var(--space-5);
-        padding: var(--space-4) var(--space-4) var(--space-6);
-    }
-
-    .features {
-        display: none;
+@media (prefers-reduced-transparency: reduce) {
+    .card,
+    .pillars li,
+    .access {
+        background: var(--color-surface);
+        backdrop-filter: none;
     }
 }

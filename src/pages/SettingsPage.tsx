@@ -19,7 +19,7 @@ const dateFormat = new Intl.DateTimeFormat("es", { dateStyle: "long" });
 
 const THEMES: { id: ThemePreference; label: string; note: string }[] = [
     { id: "light", label: "Claro", note: "Fondo claro" },
-    { id: "dark", label: "Oscuro", note: "Fondo verde oscuro" },
+    { id: "dark", label: "Oscuro", note: "Fondo azul noche" },
     { id: "auto", label: "Automático", note: "Sigue al sistema" },
 ];
 

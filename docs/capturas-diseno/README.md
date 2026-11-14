@@ -6,7 +6,7 @@ Para regenerarlas, con el servidor de desarrollo en el puerto 5173 (`npm run dev
 
 ```bash
 CAPTURAS_SALIDA=docs/capturas-diseno \
-CAPTURAS_SOLO=inicio,proyectos,proyecto-materiales,proyecto-planos,proyecto-modelo-3d,proyecto-terreno,proyecto-elevaciones,terrenos,materiales,recorrido,planos,iluminacion,renderizado,tareas,configuracion,inicio-de-sesion,estados \
+CAPTURAS_SOLO=inicio,proyectos,proyecto-materiales,proyecto-planos,proyecto-modelo-3d,proyecto-terreno,proyecto-elevaciones,terrenos,materiales,visor,planos,iluminacion,renderizado,tareas,configuracion,inicio-de-sesion,estados \
 node scripts/capturas.ts
 ```
 

@@ -24,7 +24,7 @@ import { IconButton } from "../components/ui/IconButton";
 import { Checkbox, Input, PasswordInput, Select, Textarea } from "../components/ui/Input";
 import { Kbd } from "../components/ui/Kbd";
 import { Loader } from "../components/ui/Loader";
-import { Logo, LogoMark } from "../components/ui/Logo";
+import { ArquilaLogo, LogoMark } from "../components/ui/Logo";
 import { MaterialPicker } from "../components/ui/MaterialPicker";
 import { Menu } from "../components/ui/Menu";
 import { MetricCard } from "../components/ui/MetricCard";
@@ -85,7 +85,7 @@ const COLOR_GROUPS: { title: string; tokens: string[] }[] = [
     },
     {
         title: "Marca (igual en los dos temas)",
-        tokens: ["--brand-forest", "--brand-forest-raised", "--brand-lime", "--brand-face-left"],
+        tokens: ["--brand-forest", "--brand-forest-raised", "--brand-lime", "--brand-cyber"],
     },
 ];
 
@@ -157,11 +157,14 @@ function Showcase() {
 
     return (
         <div className={styles.blocks}>
-            <Block title="Identidad" note="Logotipo isométrico y motivo de plano.">
+            <Block
+                title="Identidad"
+                note="Logotipo de trazo técnico, en sus variantes, y motivo de plano."
+            >
                 <Row>
-                    <Logo size="lg" tagline />
-                    <Logo />
-                    <Logo size="sm" />
+                    <ArquilaLogo size="lg" tagline />
+                    <ArquilaLogo />
+                    <ArquilaLogo size="sm" />
                     <LogoMark size={20} />
                 </Row>
                 <div className={styles.sheet}>
@@ -626,7 +629,7 @@ export function DesignSystemPage() {
     return (
         <div className={styles.page} data-density={compact ? "compact" : undefined}>
             <header className={styles.head}>
-                <Logo size="sm" />
+                <ArquilaLogo size="sm" />
                 <h1 className={styles.title}>Sistema de diseño</h1>
                 <Switch
                     label="Densidad compacta"

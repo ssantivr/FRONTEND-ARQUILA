@@ -55,7 +55,7 @@ td,
 
 .project-monogram {
     color: var(--white);
-    background: rgba(18, 20, 19, 0.72);
+    background: rgb(var(--ink-rgb) / 0.72);
     border: 1px solid rgba(255, 255, 255, 0.24);
 }
 
@@ -90,24 +90,6 @@ td,
     .sidebar {
         overflow: hidden;
     }
-}
-
-/* ---- Picture label ---- */
-
-.render-label {
-    position: absolute;
-    right: 16px;
-    bottom: 14px;
-    z-index: 1;
-    padding: 3px 10px;
-    color: rgba(255, 255, 255, 0.86);
-    font-size: var(--fs-12);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    background: rgba(18, 20, 19, 0.82);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--r-pill);
 }
 
 /* Phone: the navigation is one scrolling row, without group titles. */

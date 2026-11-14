@@ -142,7 +142,7 @@ interface NavGroupsProps {
     current: View | null;
     onNavigate: (view: View) => void;
     label: string;
-    /** `band` on the graphite sidebar; `surface` on a panel of the theme, such as the phone menu. */
+    /** `band` on the deep-space sidebar; `surface` on a panel of the theme, such as the phone menu. */
     tone?: "band" | "surface";
     iconsOnly?: boolean;
 }
@@ -196,7 +196,7 @@ interface SidebarProps {
 }
 
 /**
- * The navigation of wide screens, on the graphite band in both themes: the mark, the modules by
+ * The navigation of wide screens, on the deep-space band in both themes: the mark, the modules by
  * group and, at the foot, the account, sign-out and the toggle that leaves only the icons. On a
  * phone it is not drawn: `MobileNav` and its menu take its place.
  */

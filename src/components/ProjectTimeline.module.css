@@ -217,7 +217,7 @@
     bottom: -4px;
     left: var(--at);
     width: 0;
-    border-left: 1.5px dashed var(--lime-contrast);
+    border-left: 1.5px dashed var(--color-text-secondary);
     opacity: 0.45;
 }
 

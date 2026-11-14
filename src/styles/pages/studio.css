@@ -91,7 +91,8 @@
 }
 
 .studio-caption strong {
-    color: var(--lime);
+    /* Readable violet on the dark scene panel, the same in both themes. */
+    color: var(--brand-lime);
     font-weight: 600;
 }
 
@@ -206,7 +207,7 @@
     gap: 12px;
     padding: 12px 16px;
     color: var(--on-scene);
-    background: rgba(18, 20, 19, 0.94);
+    background: rgb(var(--ink-rgb) / 0.94);
     border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -218,7 +219,8 @@
 }
 
 .render-result-foot strong {
-    color: var(--lime);
+    /* Readable violet on the dark scene panel, the same in both themes. */
+    color: var(--brand-lime);
 }
 
 .render-result-foot p span {

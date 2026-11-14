@@ -214,7 +214,7 @@
         max-height: 82vh;
         overflow: auto;
         border-radius: var(--r-lg) var(--r-lg) 0 0;
-        box-shadow: 0 -16px 48px rgba(18, 20, 19, 0.4);
+        box-shadow: 0 -16px 48px rgb(var(--ink-rgb) / 0.4);
         animation: slide-in-up var(--dur-slow) var(--ease-out) both;
     }
 

@@ -12,13 +12,15 @@ test.describe("entrar", () => {
         await mockApi(page, { signedIn: false });
         await page.goto("/proyectos/1/materiales");
 
-        await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeVisible();
+        await expect(
+            page.getByRole("button", { name: "Iniciar sesión", exact: true }),
+        ).toBeVisible();
         // The address is kept while the login is shown, so signing in returns to it.
         await expect(page).toHaveURL(/\/proyectos\/1\/materiales$/);
 
         await page.getByLabel("Correo").fill("demo@example.com");
         await page.getByLabel("Contraseña", { exact: true }).fill("arquila-demo");
-        await page.getByRole("button", { name: "Entrar", exact: true }).click();
+        await page.getByRole("button", { name: "Iniciar sesión", exact: true }).click();
 
         await expect(page.getByRole("heading", { name: "Casa Mirador" })).toBeVisible();
         await expect(page.getByRole("navigation", { name: "Migas de pan" })).toContainText(

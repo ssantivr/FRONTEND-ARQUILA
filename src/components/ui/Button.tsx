@@ -12,7 +12,7 @@ export type ButtonSize = "sm" | "md";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     /**
-     * `primary`: the one main action of a view, a terracotta fill. `secondary`: bordered.
+     * `primary`: the one main action of a view, a violet fill. `secondary`: bordered.
      * `ghost`: text only, for actions next to others. `danger`: destructive, red and bordered.
      */
     variant?: ButtonVariant;

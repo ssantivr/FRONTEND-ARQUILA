@@ -1,25 +1,7 @@
+/* The mark is drawn in currentColor: the tone classes only choose that colour. */
 .mark {
     flex: none;
     overflow: visible;
-}
-
-/* Thin keylines between the faces, like the edges of a CAD solid. */
-.mark path {
-    stroke: var(--logo-edge, var(--brand-forest));
-    stroke-width: 0.6;
-    stroke-linejoin: round;
-}
-
-.top {
-    fill: var(--brand-face-top);
-}
-
-.left {
-    fill: var(--brand-face-left);
-}
-
-.right {
-    fill: var(--brand-face-right);
 }
 
 .logo {
@@ -29,31 +11,48 @@
     color: var(--color-text);
 }
 
-.onDark {
+.light {
     color: var(--white);
+}
+
+.dark {
+    color: var(--logo-graphite);
+}
+
+.stacked {
+    flex-direction: column;
+    text-align: center;
 }
 
 .words {
     display: grid;
-    gap: var(--space-0);
+    gap: var(--space-1);
 }
 
+/* Geometric sans, in capitals and widely spaced, like the title block of a drawing. */
 .name {
-    font-weight: var(--weight-bold);
-    letter-spacing: 0.16em;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.25em;
     line-height: 1;
+    /* The spacing after the last letter would push the word off centre. */
+    margin-right: -0.25em;
 }
 
 .tagline {
     color: var(--color-text-secondary);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
-    letter-spacing: var(--tracking-label);
+    letter-spacing: 0.22em;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
-.onDark .tagline {
+.light .tagline {
     color: var(--brand-forest-text);
+}
+
+.dark .tagline {
+    color: var(--logo-graphite);
 }
 
 .sm .name {
@@ -70,4 +69,13 @@
 
 .lg .name {
     font-size: var(--text-3xl);
+}
+
+/* On a phone the slogan stays on one line: tighter tracking makes it fit a 360 px card, and
+   only if it still cannot fit does it break, between whole words. */
+@media (max-width: 420px) {
+    .tagline {
+        letter-spacing: var(--tracking-label);
+        text-wrap: balance;
+    }
 }

@@ -29,9 +29,9 @@ import { elementKey, rectOf, roofShape, unionOf, type Opening } from "../../util
 import {
     DOOR_COLOR,
     EDGE_COLOR,
-    MINERAL_ACCENT,
+    CYBER_ACCENT,
     SLAB_COLOR,
-    TERRACOTTA_ACCENT,
+    VIOLET_ACCENT,
     buildMaterial,
     patterned,
     standard,
@@ -44,8 +44,8 @@ import { buildTrees, type TreeSpot } from "../vegetation";
 
 const DEMOLITION_COLOR = 0xff5c7a;
 const OVERLAY_COLORS: Record<SpatialLayer, number> = {
-    structure: MINERAL_ACCENT,
-    installations: TERRACOTTA_ACCENT,
+    structure: CYBER_ACCENT,
+    installations: VIOLET_ACCENT,
     finishes: 0xffc857,
 };
 const OVERLAY_OPACITY: Record<WorkStatus, number> = {

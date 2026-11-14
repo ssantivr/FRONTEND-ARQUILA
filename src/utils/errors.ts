@@ -31,7 +31,7 @@ export const MESSAGES: Record<string, string> = {
     "Failed to fetch": "No se pudo conectar con el servidor.",
     "Unexpected error": "Error inesperado.",
     "The reset link is invalid or has expired":
-        "El enlace no es válido o ya caducó. Pide uno nuevo desde «Olvidé mi contraseña».",
+        "El enlace no es válido o ya caducó. Pide uno nuevo desde «¿Olvidaste tu contraseña?».",
     // The routes of the contract of 20 October (BACKEND-ARQUILA/docs/API_CONTRATO.md).
     "Version not found": "Versión no encontrada.",
     "Task not found": "Tarea no encontrada.",

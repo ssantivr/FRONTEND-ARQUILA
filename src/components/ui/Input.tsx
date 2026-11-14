@@ -74,8 +74,8 @@ type PasswordInputProps = LabelledProps &
     Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "type">;
 
 /**
- * A password field with a button that shows what was typed. The button keeps one name and says
- * its state with `aria-pressed`.
+ * A password field with a button that shows what was typed. The button is named by what it
+ * will do: «Mostrar contraseña» while hidden, «Ocultar contraseña» while in view (R03).
  */
 export function PasswordInput({
     label,
@@ -97,7 +97,7 @@ export function PasswordInput({
                     <button
                         type="button"
                         className={styles.reveal}
-                        aria-label="Mostrar contraseña"
+                        aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
                         aria-pressed={visible}
                         onClick={() => setVisible((value) => !value)}
                     >

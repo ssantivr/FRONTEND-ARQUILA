@@ -130,10 +130,15 @@ The sections above are the decisions as given by the owner. These are the facts 
 
 Status OPEN unless marked DECIDED; the owner is asked at the right step. Row numbers follow the block R order in `ARQUILA/PROGRESS.md`, as confirmed by the owner after R0.
 
-- D-DESIGN · visual direction, row R1 · DECIDED: option A · Studio Editorial (`docs/design-options/option-a-studio-editorial.html`, compared in `docs/design-options/COMPARISON.md`).
-  Reason: it is the only option that scored at least 4 on every rubric criterion (average 4.30); like B and C, it passes AA in both themes.
-  It keeps the Graphite/Stone/Terracotta/Mineral identity already in `src/styles/tokens.css` (lowest effort) and its dark viewer fits the existing 3D scene tokens.
+- D-DESIGN · visual direction, row R1 · DECIDED (replaced 2026-11-11 by the owner): the ARQUILA palette of the master prompt (`prompts/prompt_maestro_arquila.md` §4): `#080B16`, `#111729`, `#192239`, violet `#7552FF`, cyber blue `#00C8FF`, text `#F5F7FF` / `#929DB5`, success `#22C55E`, warning `#F59E0B`; moderate glass (blur 12 px, 1 px `rgba(255,255,255,0.08)` edge), 200 ms motion, dark theme by default.
+  Violet is a fill only on dark (4.12:1 as text); readable violet text is `#A08BFF`. The earlier option A (Studio Editorial) work in progress is kept in `git stash` ("D-DESIGN option A ... discarded by owner 2026-11-11"), not deleted.
 - D-MASTER · master prompt phase 2 (owner, 2026-11-11) · DECIDED: Three.js without React Three Fiber, `ExperienceEngine` as the only renderer; the fixed loft scene of the walkthrough is removed and `/recorrido` redirects to `/visor?modo=recorrido` (R14, N2); one Materials Library shared by the system (replaces the R11 reading "remove the Materials UI"); Plans 2D live inside Terrains (replaces the R16 nesting "terrains inside plans"). R11 and R16 were literal client requests: the product-owner agent must re-read them against these decisions before marking anything DONE.
+- D-BRAND · logo and sign-in screen (owner, `prompts/prompt_maestro_arquila_completo.md`, 2026-11-11) · DECIDED: technical-sketch line logo (`src/components/ui/logoGeometry.ts`, `<ArquilaLogo />`, `<LogoMark />`), slogan «Diseña · Visualiza · Construye», favicon and `public/og.jpg` regenerated from it; split-screen sign-in with a glass card. Deviations from the brief, each for a rule of this repo:
+  the showcase photo (Unsplash `photo-1600596542815-ffad4c1539a9`, Unsplash License) is self-hosted in `src/assets/auth/showcase.jpg`, because the production CSP (`img-src 'self' data: blob:`) blocks the remote URL; it is a daytime photo, so a dark shade keeps the white text readable;
+  no «Recordarme» (the API has no session length to choose, a checkbox would do nothing) and no «Acerca de» / «Contacto» links (no such pages exist); «Acceder →» moves the focus to the form;
+  «Create an account» is shown in Spanish, «Crear una cuenta»; the main button runs from `#7552FF` to `#0077A8` instead of `#00C8FF`, because white text on `#00C8FF` is 2:1 (the cyan stays in the hover glow);
+  the audit columns of migration 028 are named in English (`origin`, `source_module`, `old_value`, `new_value`, values `user` / `ai` / `system`), per the language rule; the interface shows them in Spanish.
+- D-AUTH-THEME · the sign-in screen is always dark (`AuthScreen.tsx`, `data-theme="dark"`) and has no theme switch, while the rest of the app follows the theme setting · OPEN
 - D-AI · model provider, row R10 · OPEN
 - D-AI-2 · hide the manual path or not, row R11 · OPEN
 - D-AI-3 · auto-apply threshold for R15 and R08 (D-R08) · OPEN
