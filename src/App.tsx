@@ -27,7 +27,14 @@ import { LoginPage } from "./pages/LoginPage";
 import { SECTIONS, type SectionId } from "./pages/sections";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-import { canonicalPath, parsePath, projectPath, viewPath } from "./routes";
+import {
+    canonicalPath,
+    isWalkthrough,
+    parsePath,
+    projectPath,
+    viewPath,
+    withQuery,
+} from "./routes";
 import { authApi } from "./services/api";
 import { forgetProjects } from "./state/knownProjects";
 import { setTheme, useTheme } from "./state/theme";
@@ -57,10 +64,6 @@ const RenderPage = page(() => import("./pages/RenderPage"), "RenderPage");
 const SettingsPage = page(() => import("./pages/SettingsPage"), "SettingsPage");
 const TasksPage = page(() => import("./pages/TasksPage"), "TasksPage");
 const TerrainsPage = page(() => import("./pages/TerrainsPage"), "TerrainsPage");
-
-const InteriorPage = lazy(() =>
-    import("./pages/InteriorPage").then((module) => ({ default: module.InteriorPage })),
-);
 
 // The design system page is a development tool: the production build leaves it out.
 const DesignSystemPage = import.meta.env.DEV
@@ -116,7 +119,7 @@ export function App() {
     // An address of an earlier version, such as /proyectos/7/modelo, is replaced by the current one.
     useEffect(() => {
         if (canonical !== null) {
-            go(`${canonical}${location.search}${location.hash}`, {
+            go(`${withQuery(canonical, location.search)}${location.hash}`, {
                 replace: true,
                 state: location.state,
             });
@@ -416,21 +419,9 @@ export function App() {
                     <ProjectToolPage
                         key="viewer"
                         tool="viewer"
+                        walkthrough={isWalkthrough(location.search)}
                         onOpenProject={(id) => openProject(id, "model")}
                     />
-                );
-            case "interior":
-                return (
-                    <>
-                        <ProjectToolPage
-                            key="interior"
-                            tool="interior"
-                            onOpenProject={(id) => openProject(id, "model")}
-                        />
-                        <Suspense fallback={<Skeleton />}>
-                            <InteriorPage />
-                        </Suspense>
-                    </>
                 );
             case "assistant":
                 return (

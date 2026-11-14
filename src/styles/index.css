@@ -17,7 +17,6 @@
 @import url("./base.css") layer(legacy);
 @import url("./viewer.css") layer(legacy);
 @import url("./shell.css") layer(legacy);
-@import url("./interior.css") layer(legacy);
 @import url("./features.css") layer(legacy);
 @import url("./hierarchy.css") layer(legacy);
 @import url("./states.css") layer(legacy);

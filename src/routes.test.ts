@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { canonicalPath, parsePath, projectPath, viewPath } from "./routes";
+import {
+    canonicalPath,
+    isWalkthrough,
+    parsePath,
+    projectPath,
+    viewPath,
+    withQuery,
+} from "./routes";
 
 describe("routes", () => {
     it("gives every screen its own address and reads it back", () => {
@@ -45,6 +52,27 @@ describe("routes", () => {
         expect(canonicalPath("/proyectos/7")).toBeNull();
         expect(canonicalPath("/terrenos")).toBeNull();
         expect(canonicalPath("/no-existe")).toBeNull();
+    });
+
+    it("opens the 3D viewer from the old walkthrough address and rewrites it (R14)", () => {
+        expect(parsePath("/recorrido")).toEqual({ kind: "view", view: "viewer" });
+        expect(canonicalPath("/recorrido")).toBe("/visor?modo=recorrido");
+        expect(canonicalPath("/recorrido/")).toBe("/visor?modo=recorrido");
+        expect(canonicalPath("/visor")).toBeNull();
+    });
+
+    it("keeps the query of an old address when it adds its own", () => {
+        expect(withQuery("/visor?modo=recorrido", "")).toBe("/visor?modo=recorrido");
+        expect(withQuery("/visor?modo=recorrido", "?proyecto=3")).toBe(
+            "/visor?modo=recorrido&proyecto=3",
+        );
+        expect(withQuery("/proyectos/7/modelo-3d", "?a=1")).toBe("/proyectos/7/modelo-3d?a=1");
+    });
+
+    it("tells when the viewer is opened as a walkthrough (N2)", () => {
+        expect(isWalkthrough("?modo=recorrido")).toBe(true);
+        expect(isWalkthrough("?modo=otro")).toBe(false);
+        expect(isWalkthrough("")).toBe(false);
     });
 
     it("does not guess when the address is not one of the app's", () => {

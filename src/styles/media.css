@@ -98,18 +98,4 @@ tfoot :is(th, td) {
     .hud-dock .hud {
         overflow-y: visible;
     }
-
-    .interior-viewer {
-        height: min(60vh, 440px);
-        min-height: 280px;
-    }
-
-    .interior-bar {
-        position: static;
-        border-radius: 0;
-    }
-
-    .interior-hint {
-        display: none;
-    }
 }

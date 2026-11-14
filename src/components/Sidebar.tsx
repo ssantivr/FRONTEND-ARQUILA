@@ -16,7 +16,6 @@ export type View =
     | "plans"
     | "viewer"
     | "lighting"
-    | "interior"
     | "render"
     | "tasks"
     | "assistant"
@@ -94,14 +93,6 @@ export const MODULES: Module[] = [
         label: "Iluminación y clima",
         icon: "lighting",
         description: "Hora, sol, cielo, nubes y exposición, vistos sobre el modelo.",
-    },
-    {
-        id: "interior",
-        group: "project",
-        label: "Recorridos virtuales",
-        icon: "interior",
-        description:
-            "Recorre tu proyecto por dentro, cuarto por cuarto, con lo que se va a hacer en cada uno.",
     },
     {
         id: "render",

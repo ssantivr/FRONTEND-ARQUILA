@@ -133,13 +133,14 @@ Status OPEN unless marked DECIDED; the owner is asked at the right step. Row num
 - D-DESIGN · visual direction, row R1 · DECIDED: option A · Studio Editorial (`docs/design-options/option-a-studio-editorial.html`, compared in `docs/design-options/COMPARISON.md`).
   Reason: it is the only option that scored at least 4 on every rubric criterion (average 4.30); like B and C, it passes AA in both themes.
   It keeps the Graphite/Stone/Terracotta/Mineral identity already in `src/styles/tokens.css` (lowest effort) and its dark viewer fits the existing 3D scene tokens.
+- D-MASTER · master prompt phase 2 (owner, 2026-11-11) · DECIDED: Three.js without React Three Fiber, `ExperienceEngine` as the only renderer; the fixed loft scene of the walkthrough is removed and `/recorrido` redirects to `/visor?modo=recorrido` (R14, N2); one Materials Library shared by the system (replaces the R11 reading "remove the Materials UI"); Plans 2D live inside Terrains (replaces the R16 nesting "terrains inside plans"). R11 and R16 were literal client requests: the product-owner agent must re-read them against these decisions before marking anything DONE.
 - D-AI · model provider, row R10 · OPEN
 - D-AI-2 · hide the manual path or not, row R11 · OPEN
 - D-AI-3 · auto-apply threshold for R15 and R08 (D-R08) · OPEN
 - D-ENC · encryption of stored files, default no · OPEN
 - D-200 · rows over 200 characters, row R6 · OPEN
 - D-MAP · tile provider, row R8 · OPEN
-- D-NEST · terrain inside plans, default in N3 · OPEN
+- D-NEST · nesting of terrains and plans · DECIDED by D-MASTER: plans inside terrains
 - D-TZ · `activity_log.created_at` to `timestamptz`, row R5b · OPEN
 - D-R08 · R08 uploads in row R10 · DECIDED: R08 uploads (PDF and PNG) follow the C7 auto-apply rule, the same flow as R15: version snapshot, one transaction, visible "Deshacer", AI-filled fields badged, and the review modal only when confidence is low or a required field is missing (C7)
 - D-VEC · full-text or pgvector (K2) · OPEN
