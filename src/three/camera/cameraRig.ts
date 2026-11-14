@@ -27,6 +27,8 @@ export interface CameraRig {
     zoomPercent: () => number;
     distance: () => number;
     update: (time: number) => boolean;
+    /** Off while the transform gizmo is dragged, so the drag moves the room, not the camera. */
+    setEnabled: (enabled: boolean) => void;
     dispose: () => void;
 }
 
@@ -165,6 +167,9 @@ export function createCameraRig(
         zoomPercent: () => Math.round((viewDistance() / distance()) * 100),
         distance,
         update,
+        setEnabled: (enabled) => {
+            controls.enabled = enabled;
+        },
         dispose: () => {
             controls.removeEventListener("change", handleChange);
             controls.removeEventListener("start", cancelTransition);

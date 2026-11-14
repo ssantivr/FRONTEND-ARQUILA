@@ -129,6 +129,15 @@
     border-color: var(--lime);
 }
 
+/* The selected object in the tree takes the colour of its outline in the model, so one
+   selection reads in one colour. */
+.hud-tree-row .hud-item:not(.hud-eye)[aria-pressed="true"] {
+    color: var(--text);
+    background: var(--color-cyber-soft);
+    border-color: transparent;
+    box-shadow: inset 2px 0 0 var(--color-selection);
+}
+
 .hud-readout,
 .hud-count,
 .hud h3,
@@ -282,12 +291,38 @@
     justify-self: start;
     width: 72px;
     height: 72px;
-    pointer-events: none;
 }
 
 .hud-gizmo-disc {
-    fill: rgba(18, 20, 19, 0.72);
-    stroke: rgba(255, 255, 255, 0.14);
+    fill: var(--glass-bg);
+    stroke: var(--glass-border);
+    cursor: pointer;
+}
+
+.hud-gizmo-axis {
+    cursor: pointer;
+}
+
+.hud-gizmo-axis:hover,
+.hud-gizmo-disc:hover {
+    filter: drop-shadow(var(--glow-cyber-sm));
+}
+
+/* Firefox draws no outline on SVG groups, so focus is a stroke: on the disc, and on the
+   24 px target of each axis. */
+.hud-gizmo :is(.hud-gizmo-axis, .hud-gizmo-disc):focus-visible {
+    outline: none;
+}
+
+.hud-gizmo .hud-gizmo-axis .hud-gizmo-hit {
+    fill: transparent;
+    stroke: none;
+}
+
+.hud-gizmo .hud-gizmo-disc:focus-visible,
+.hud-gizmo .hud-gizmo-axis:focus-visible .hud-gizmo-hit {
+    stroke: var(--color-focus);
+    stroke-width: 2;
 }
 
 .hud-gizmo line {
@@ -312,8 +347,8 @@
 }
 
 .hud-gizmo-z :is(line, circle) {
-    stroke: var(--lime);
-    fill: var(--lime);
+    stroke: var(--axis-z);
+    fill: var(--axis-z);
 }
 
 @media (max-width: 767px) {

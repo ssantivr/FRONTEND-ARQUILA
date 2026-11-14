@@ -16,7 +16,10 @@ export function paintElements(
     contents: SceneContents,
     { grain, patterns }: Pick<SceneKit, "grain" | "patterns">,
 ): void {
-    const { colors, highlight, hoveredKey, selectedKey, surfaces } = contents;
+    const { highlight, hoveredKey, selectedKey, surfaces } = contents;
+    // The materials mode shows the finishes, so data colours give way to them.
+    const flat = contents.renderMode === "materials";
+    const colors = flat ? null : contents.colors;
 
     for (const mesh of contents.elements) {
         const key = mesh.userData.key as string;
@@ -70,5 +73,23 @@ export function paintElements(
 
         mesh.material.emissive.setHex(hovered ? HOVER_COLOR : marked ? SELECTION_COLOR : 0x000000);
         mesh.material.emissiveIntensity = !hovered && marked ? HIGHLIGHT_GLOW : 0.2;
+
+        // Unlit finishes: the surface colour and pattern are emitted as they are and the lit
+        // colour goes black, so light, shadow and reflections no longer change them. The
+        // selection stays visible through the edge colour.
+        if (flat) {
+            mesh.material.emissive.copy(mesh.material.color);
+            mesh.material.emissiveIntensity = 1;
+            mesh.material.color.setHex(0x000000);
+            mesh.material.roughness = 1;
+            mesh.material.metalness = 0;
+        }
+
+        const emissiveMap = flat ? mesh.material.map : null;
+
+        if (mesh.material.emissiveMap !== emissiveMap) {
+            mesh.material.emissiveMap = emissiveMap;
+            mesh.material.needsUpdate = true;
+        }
     }
 }

@@ -2,6 +2,7 @@ import {
     ACESFilmicToneMapping,
     Color,
     Fog,
+    Group,
     OrthographicCamera,
     PCFShadowMap,
     PerspectiveCamera,
@@ -28,38 +29,14 @@ import {
 } from "./quality";
 import { createRenderLoop, type RenderLoop } from "./renderLoop";
 import { createResources, type Resources } from "./resources";
+import { jitterSample, type StillJob } from "./still";
 
 const FIELD_OF_VIEW = 45;
 const FOG_DEPTH_FACTOR = 5;
 const BLOOM_STRENGTH = 0.55;
-const STILL_SUN_SPREAD = 0.024;
 export const CUT_DISABLED_M = 1e6;
 
-/** Low-discrepancy sequence: spreads the samples of a still evenly inside the pixel. */
-function halton(index: number, base: number): number {
-    let result = 0;
-    let fraction = 1 / base;
-
-    for (let rest = index; rest > 0; rest = Math.floor(rest / base)) {
-        result += fraction * (rest % base);
-        fraction /= base;
-    }
-
-    return result;
-}
-
-export interface StillJob {
-    width: number;
-    height: number;
-    /**
-     * Frames averaged into the image: each one shifts the camera a fraction of a pixel and the
-     * sun a fraction of a degree, which smooths the edges and softens the shadows.
-     */
-    samples: number;
-    shadowMapSize: number;
-    onProgress: (done: number, total: number) => void;
-    signal?: AbortSignal;
-}
+export type { StillJob } from "./still";
 
 export interface EngineOptions {
     palette: ScenePalette;
@@ -80,6 +57,9 @@ export interface EngineOptions {
 export interface ExperienceEngine {
     canvas: HTMLCanvasElement;
     scene: Scene;
+    /** Editing aids drawn over the model (gizmo, measurement). They are on screen only: images
+     *  of the model (`capture`, `renderStill`) are drawn without them. */
+    overlay: Group;
     rig: CameraRig;
     lights: SceneLights;
     resources: Resources;
@@ -128,6 +108,7 @@ export function createExperienceEngine(
 
     const canvas = renderer.domElement;
     const scene = new Scene();
+    const overlay = new Group();
     const fog = new Fog(options.palette.fog, 1, 2);
     const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 0.1, 1000);
     // The orbit controls keep driving the perspective camera. The orthographic one follows it and
@@ -159,6 +140,8 @@ export function createExperienceEngine(
     scene.fog = fog;
     scene.environment = environmentMap.texture;
     scene.environmentIntensity = options.palette.reflections;
+    overlay.name = "overlay";
+    scene.add(overlay);
 
     function handleCameraChange(): void {
         loop.invalidate();
@@ -234,12 +217,29 @@ export function createExperienceEngine(
         resize();
     }
 
+    /** Draws once without the editing aids, so an image of the model shows only the model. */
+    function drawWithoutOverlay(): void {
+        const shown = overlay.visible;
+
+        overlay.visible = false;
+
+        try {
+            loop.drawNow();
+        } finally {
+            overlay.visible = shown;
+        }
+    }
+
     function capture(): string {
         // The drawing buffer is only readable in the same task that rendered it.
         renderer.shadowMap.needsUpdate = true;
-        loop.drawNow();
+        drawWithoutOverlay();
+        const image = canvas.toDataURL("image/png");
 
-        return canvas.toDataURL("image/png");
+        // The screen shows the aids again.
+        invalidate();
+
+        return image;
     }
 
     async function renderStill(job: StillJob): Promise<HTMLCanvasElement | null> {
@@ -266,7 +266,6 @@ export function createExperienceEngine(
         const total = Math.max(1, Math.round(job.samples));
         const restingDirection = lights.direction.clone();
         const active = projection === "orthographic" ? orthographic : camera;
-        const offset = new Vector3();
         let cancelled = false;
 
         loop.setPaused(true);
@@ -282,23 +281,11 @@ export function createExperienceEngine(
                 }
 
                 if (total > 1) {
-                    active.setViewOffset(
-                        job.width,
-                        job.height,
-                        halton(index + 1, 2) - 0.5,
-                        halton(index + 1, 3) - 0.5,
-                        job.width,
-                        job.height,
-                    );
-                    offset
-                        .set(halton(index + 1, 5) - 0.5, 0, halton(index + 1, 7) - 0.5)
-                        .multiplyScalar(STILL_SUN_SPREAD);
-                    lights.direction.copy(restingDirection).add(offset).normalize();
-                    lights.placeSun(bounds);
+                    jitterSample(index, job, active, lights, restingDirection, bounds);
                 }
 
                 renderer.shadowMap.needsUpdate = true;
-                loop.drawNow();
+                drawWithoutOverlay();
 
                 if (renderer.getContext().isContextLost()) {
                     throw new Error("The graphics context was lost while rendering");
@@ -337,6 +324,7 @@ export function createExperienceEngine(
     return {
         canvas,
         scene,
+        overlay,
         rig,
         lights,
         resources,

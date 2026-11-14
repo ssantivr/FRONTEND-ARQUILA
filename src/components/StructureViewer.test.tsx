@@ -145,8 +145,10 @@ describe("StructureViewer", () => {
             expect(this.download).toBe("arquila-proyecto-1.png");
         });
 
+        // Rendered and clicked without yielding, so the project-card thumbnail timer
+        // (useSceneSync) cannot capture in between, however slow the run is.
         render(<StructureViewer structure={structure} />);
-        await userEvent.click(screen.getByRole("button", { name: "Guardar imagen" }));
+        fireEvent.click(screen.getByRole("button", { name: "Guardar imagen" }));
 
         expect(engine.calls.get("capture")).toHaveBeenCalledTimes(1);
         expect(click).toHaveBeenCalledTimes(1);
@@ -284,6 +286,23 @@ describe("StructureViewer", () => {
 
             expect(screen.getByRole("status", { name: "Estado del modelo" })).toHaveTextContent(
                 "Sin selección",
+            );
+        });
+
+        it("turns scaling off when M turns moving on, as the rail does", async () => {
+            render(<StructureViewer structure={structure} />);
+
+            await userEvent.click(screen.getByRole("button", { name: "Sala" }));
+            await userEvent.click(screen.getByRole("button", { name: "Cambiar tamaño" }));
+            await userEvent.keyboard("m");
+
+            expect(screen.getByRole("button", { name: "Mover cuarto" })).toHaveAttribute(
+                "aria-pressed",
+                "true",
+            );
+            expect(screen.getByRole("button", { name: "Cambiar tamaño" })).toHaveAttribute(
+                "aria-pressed",
+                "false",
             );
         });
 

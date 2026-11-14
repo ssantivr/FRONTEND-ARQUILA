@@ -17,6 +17,13 @@ export interface Selection {
     removeOutline: () => void;
     /** Hover is resolved once per frame, however many times the pointer moved. */
     flushHover: () => void;
+    /** Off while another tool (measuring, the gizmo) owns the clicks on the canvas. */
+    setPicking: (enabled: boolean) => void;
+    /**
+     * The pointer release that ends a gizmo drag is not a selection click, even when the
+     * pointer did not move. The next press clears it, whatever order the listeners run in.
+     */
+    ignoreNextClick: () => void;
     attach: () => void;
     detach: () => void;
 }
@@ -35,6 +42,8 @@ export function createSelection(
     let pendingHover: PointerEvent | null = null;
     let pressX = 0;
     let pressY = 0;
+    let picking = true;
+    let ignoringClick = false;
 
     function removeOutline(): void {
         if (outline !== null) {
@@ -100,12 +109,16 @@ export function createSelection(
     function handlePointerDown(event: PointerEvent): void {
         pressX = event.clientX;
         pressY = event.clientY;
+        ignoringClick = false;
     }
 
     function handlePointerUp(event: PointerEvent): void {
         const moved = Math.hypot(event.clientX - pressX, event.clientY - pressY);
+        const ignored = ignoringClick;
 
-        if (event.button === 0 && moved <= CLICK_TOLERANCE_PX) {
+        ignoringClick = false;
+
+        if (!ignored && picking && event.button === 0 && moved <= CLICK_TOLERANCE_PX) {
             onSelect(pick(event));
         }
     }
@@ -129,6 +142,10 @@ export function createSelection(
     }
 
     function handleDoubleClick(event: MouseEvent): void {
+        if (!picking) {
+            return;
+        }
+
         const key = pick(event);
 
         if (key !== null) {
@@ -150,7 +167,7 @@ export function createSelection(
         removeOutline,
         flushHover: () => {
             if (pendingHover !== null) {
-                const key = pendingHover.buttons === 0 ? pick(pendingHover) : null;
+                const key = picking && pendingHover.buttons === 0 ? pick(pendingHover) : null;
 
                 if (key !== contents.hoveredKey) {
                     setHovered(key);
@@ -158,6 +175,16 @@ export function createSelection(
 
                 pendingHover = null;
             }
+        },
+        setPicking: (enabled) => {
+            picking = enabled;
+
+            if (!enabled && contents.hoveredKey !== null) {
+                setHovered(null);
+            }
+        },
+        ignoreNextClick: () => {
+            ignoringClick = true;
         },
         attach: () => {
             canvas.addEventListener("pointerdown", handlePointerDown);

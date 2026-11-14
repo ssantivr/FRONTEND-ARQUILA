@@ -92,6 +92,13 @@ class SolidOcclusionPass extends GTAOPass {
             this.skipped.length = 0;
         }
     }
+
+    // The stock dispose (three r186) leaves these two materials and their shader programs alive.
+    override dispose(): void {
+        super.dispose();
+        this.gtaoMaterial.dispose();
+        this.blendMaterial.dispose();
+    }
 }
 
 export function createPostprocessing(
@@ -165,6 +172,8 @@ export function createPostprocessing(
         if (pipeline !== null) {
             pipeline.occlusion?.dispose();
             pipeline.bloom.dispose();
+            // Left out by the stock dispose (three r186), with its shader program.
+            pipeline.bloom.materialHighPassFilter.dispose();
             pipeline.output.dispose();
             pipeline.composer.dispose();
             pipeline = null;

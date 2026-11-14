@@ -2,6 +2,10 @@ import type { RailTool } from "./ToolRail";
 
 interface RailState {
     moving: boolean;
+    scaling: boolean;
+    measuring: boolean;
+    /** Why measuring cannot be used now, if it cannot. */
+    measureUnavailable: string | undefined;
     roomSelected: boolean;
     somethingSelected: boolean;
     /** The tool stays pressed while what it isolated is what the user is looking at. */
@@ -10,6 +14,8 @@ interface RailState {
     cutActive: boolean;
     inside: boolean;
     onMove: () => void;
+    onScale: () => void;
+    onMeasure: () => void;
     onFocus: () => void;
     onIsolate: () => void;
     onCut: () => void;
@@ -33,6 +39,24 @@ export function railTools(state: RailState): RailTool[] {
                 ? "Selecciona un cuarto para moverlo; columnas, vigas y muros se editan en su tabla"
                 : undefined,
             onUse: state.onMove,
+        },
+        {
+            id: "scale",
+            label: "Cambiar tamaño",
+            icon: "scale",
+            pressed: state.scaling && roomSelected,
+            unavailable: !roomSelected
+                ? "Selecciona un cuarto para cambiar su ancho y su fondo con las asas"
+                : undefined,
+            onUse: state.onScale,
+        },
+        {
+            id: "measure",
+            label: "Medir distancia",
+            icon: "measure",
+            pressed: state.measuring && state.measureUnavailable === undefined,
+            unavailable: state.measureUnavailable,
+            onUse: state.onMeasure,
         },
         {
             id: "focus",

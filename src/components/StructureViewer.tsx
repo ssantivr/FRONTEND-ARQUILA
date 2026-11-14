@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { useAsync } from "../hooks/useAsync";
 import { useEditHistory } from "../hooks/useEditHistory";
-import { roomsApi, spatialApi, structureApi, walkthroughApi } from "../services/api";
+import { spatialApi, walkthroughApi } from "../services/api";
 import { apiUrl } from "../services/http";
 import { appState, useProjectState } from "../state/appState";
 import { useProjectSave } from "../state/projectSave";
@@ -14,6 +14,7 @@ import {
     elementKey,
     isSpace,
     overlayKey,
+    type GizmoChange,
     type Layers,
     type OverlayLayers,
     type Projection,
@@ -23,7 +24,6 @@ import {
 import { sceneLighting } from "../three/lightingPalette";
 import type { LightingSettings, SolarSite } from "../utils/lighting";
 import type {
-    RoofKind,
     SpatialElement,
     SpatialLayer,
     Structure,
@@ -39,7 +39,7 @@ import {
     type ElementColors,
 } from "../utils/elementColors";
 import { snapTo } from "../utils/snap";
-import { DEFAULT_SURFACE, surfaceOf, type SurfaceMaterialId } from "../utils/surfaceMaterials";
+import { DEFAULT_SURFACE, surfaceOf } from "../utils/surfaceMaterials";
 import { RoomWorksPanel } from "./RoomWorksPanel";
 import { ColorPanel } from "./viewer/ColorPanel";
 import { InspectorPanel } from "./viewer/InspectorPanel";
@@ -48,7 +48,11 @@ import { railTools } from "./viewer/railTools";
 import { ShortcutsDialog } from "./viewer/ShortcutsDialog";
 import { ToolRail } from "./viewer/ToolRail";
 import { ISOLATION_CUT_PERCENT, TOUR_STEP_MS, tourStops } from "./viewer/tourStops";
-import { geometryOf, type RoomGeometry } from "./viewer/TransformPanel";
+import { gizmoEdit } from "./viewer/gizmoEdit";
+import { modelEdits } from "./viewer/modelEdits";
+import { geometryOf } from "./viewer/TransformPanel";
+import { useViewerTools } from "./viewer/useViewerTools";
+import { viewerTip } from "./viewer/viewerTip";
 import { useFrameInsets } from "./viewer/useFrameInsets";
 import { usePreviewQuality } from "./viewer/usePreviewQuality";
 import { useSceneSync } from "./viewer/useSceneSync";
@@ -296,68 +300,13 @@ function ViewerScene({
         }
     }
 
-    /** The model changes at once; if the server says no, it goes back and the error is shown. */
-    function putSurface(
-        element: StructureElement,
-        surface: SurfaceMaterialId,
-        back: SurfaceMaterialId,
-    ) {
-        return async () => {
-            appState.setSurface(projectId, elementKey(element), surface);
-
-            try {
-                await structureApi.setSurface(projectId, element, surface);
-            } catch (reason) {
-                appState.setSurface(projectId, elementKey(element), back);
-                throw reason;
-            }
-        };
-    }
-
-    function changeSurface(element: StructureElement, surface: SurfaceMaterialId) {
-        const previous = surfaceOf(surfaces, elementKey(element), element.kind);
-
-        void history.run({
-            label: `material de ${itemLabel(element)}`,
-            apply: putSurface(element, surface, previous),
-            revert: putSurface(element, previous, surface),
-        });
-    }
-
-    function putRoof(kind: RoofKind, back: RoofKind) {
-        return async () => {
-            appState.setRoof(projectId, kind);
-
-            try {
-                await structureApi.setRoof(projectId, kind);
-            } catch (reason) {
-                appState.setRoof(projectId, back);
-                throw reason;
-            }
-        };
-    }
-
-    function changeRoof(next: RoofKind) {
-        void history.run({
-            label: "cubierta",
-            apply: putRoof(next, roof),
-            revert: putRoof(roof, next),
-        });
-    }
-
-    /** Moves or resizes a room with PATCH /rooms/{id}; the model is then loaded again. */
-    function putRoom(room: StructureRoom, geometry: RoomGeometry) {
-        return async () => {
-            await roomsApi.update(room.id, geometry);
-            reload.current?.();
-        };
-    }
-
-    function changeRoom(room: StructureRoom, next: RoomGeometry, label: string) {
-        const before = geometryOf(room);
-
-        void history.run({ label, apply: putRoom(room, next), revert: putRoom(room, before) });
-    }
+    const { changeSurface, changeRoof, changeRoom } = modelEdits({
+        projectId,
+        history,
+        surfaces,
+        roof,
+        reload,
+    });
 
     function visit(key: string | null, stop = stops.findIndex((item) => item.key === key)) {
         setIsolation(key);
@@ -425,7 +374,9 @@ function ViewerScene({
 
     /** Leaves one level at a time: the interior view, then the isolated room, then the selection. */
     function stepBack() {
-        if (inside) {
+        if (measuring) {
+            setMeasuring(false);
+        } else if (inside) {
             toggleInside();
         } else if (isolatedKey !== null) {
             visit(null);
@@ -437,6 +388,25 @@ function ViewerScene({
 
     const selectedRoom: StructureRoom | null =
         selected !== null && selected.kind === "room" ? selected : null;
+    const {
+        scaling,
+        setScaling,
+        measuring,
+        setMeasuring,
+        measurement,
+        setMeasurement,
+        measureUnavailable,
+        renderMode,
+        setRenderMode,
+        sectionAxis,
+        setSectionAxis,
+    } = useViewerTools(viewer, {
+        inside,
+        explode,
+        roomKey: selectedRoom === null ? null : selectedKey,
+        moving,
+        snap,
+    });
 
     function nudgeSelected(dx: number, dy: number) {
         if (selectedRoom !== null) {
@@ -454,15 +424,41 @@ function ViewerScene({
         }
     }
 
+    /** A drag of the gizmo, saved like any other edit and recorded in the history. */
+    function applyGizmo(change: GizmoChange) {
+        const edit = gizmoEdit(change, rooms, snap);
+
+        if (edit !== null) {
+            changeRoom(edit.room, edit.next, edit.label);
+        }
+    }
+
+    const gizmoChange = useRef(applyGizmo);
+    gizmoChange.current = applyGizmo;
+
+    // Move and scale share the gizmo: turning one on turns the other off, from the rail and the keyboard alike.
+    const toggleMoving = () => {
+        setMoving(!moving);
+        setScaling(false);
+    };
+
     const tools = railTools({
         moving,
+        scaling,
+        measuring,
+        measureUnavailable,
+        onScale: () => {
+            setScaling(!scaling);
+            setMoving(false);
+        },
+        onMeasure: () => setMeasuring(!measuring),
         roomSelected,
         somethingSelected,
         isolationPressed: isolatedKey !== null && (!roomSelected || selectedKey === isolatedKey),
         roomIsolated: isolatedKey !== null,
         cutActive: cut < 100,
         inside,
-        onMove: () => setMoving(!moving),
+        onMove: toggleMoving,
         onFocus: focusSelection,
         onIsolate: toggleIsolation,
         onCut: () => setCut(cut === 100 ? TOOL_CUT_PERCENT : 100),
@@ -471,16 +467,14 @@ function ViewerScene({
         onHelp: () => setHelp(true),
     });
 
-    const tip =
-        reason !== null
-            ? reason
-            : inside || isolatedKey !== null
-              ? "Esc vuelve un paso atrás"
-              : roomSelected
-                ? "I aísla el cuarto · F lo enfoca"
-                : somethingSelected
-                  ? "F enfoca lo seleccionado · Esc lo suelta"
-                  : "Clic para seleccionar · 1 a 4 cambian la vista · ? muestra los atajos";
+    const tip = viewerTip({
+        reason,
+        measuring,
+        measurement,
+        steppedIn: inside || isolatedKey !== null,
+        roomSelected,
+        somethingSelected,
+    });
 
     useViewerShortcuts(stage, !preview, {
         disabled: unsupported,
@@ -492,7 +486,7 @@ function ViewerScene({
         undo: () => void history.undo(),
         redo: () => void history.redo(),
         nudge: nudgeSelected,
-        toggleMoving: () => setMoving(!moving),
+        toggleMoving,
         chooseView,
         focusSelection,
         toggleIsolation,
@@ -533,6 +527,8 @@ function ViewerScene({
                 onOrbit: (azimuth, elevation) => orbitListener.current?.(azimuth, elevation),
                 onAsset: setAssetState,
                 onContextLost: () => reportLost.current(),
+                onMeasure: setMeasurement,
+                onGizmoChange: (change) => gizmoChange.current(change),
             });
         } catch {
             setUnsupported(true);
@@ -764,6 +760,10 @@ function ViewerScene({
                             onSun={setSun}
                             roof={roof}
                             onRoof={changeRoof}
+                            renderMode={renderMode}
+                            onRenderMode={setRenderMode}
+                            sectionAxis={sectionAxis}
+                            onSectionAxis={setSectionAxis}
                         />
                         <ColorPanel
                             colorMode={colorMode}
@@ -778,7 +778,7 @@ function ViewerScene({
                             nothingToHighlight={nothingToHighlight}
                         />
                     </div>
-                    <ViewGizmo listener={orbitListener} />
+                    <ViewGizmo listener={orbitListener} onView={chooseView} />
                     <div className="hud-cambar">
                         <ViewBar
                             view={view}

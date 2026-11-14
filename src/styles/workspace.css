@@ -80,6 +80,9 @@
 
 .ws3d :is(.hud-levels, .hud-works) {
     grid-area: tree;
+    /* Fill the row and scroll inside it; with the floating HUD's `start` the list grew past
+       the toolbar and the status bar. */
+    align-self: stretch;
     width: auto;
     max-height: none;
     min-height: 0;

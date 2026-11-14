@@ -140,13 +140,15 @@ test.describe("ver el modelo 3D", () => {
         ).toBeVisible();
         await expect(x).toHaveValue("1");
 
+        // The viewer's own undo and redo; the project header has a pair of its own.
+        const workbar = page.getByRole("toolbar", { name: "Espacio de trabajo 3D" });
         const undone = sent({ x_m: 0 });
-        await page.getByRole("button", { name: "Deshacer" }).click();
+        await workbar.getByRole("button", { name: "Deshacer" }).click();
         await undone;
         await expect(x).toHaveValue("0");
 
         const redone = sent({ x_m: 1 });
-        await page.getByRole("button", { name: "Rehacer" }).click();
+        await workbar.getByRole("button", { name: "Rehacer" }).click();
         await redone;
         await expect(x).toHaveValue("1");
 

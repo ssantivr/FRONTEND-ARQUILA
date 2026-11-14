@@ -134,6 +134,19 @@
     font-size: inherit;
 }
 
+/* A choice whose options are longer than the 58 px label column: the label goes above, and the
+   select takes the whole width of the panel so its value is never cut. */
+.hud-scene .hud-field-stack {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+}
+
+.hud-scene .hud-field-stack > *,
+.hud-scene .hud-field-stack select {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
 .hud-scene .hud-readout {
     padding: 0;
     text-align: right;

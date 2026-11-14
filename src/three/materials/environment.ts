@@ -22,6 +22,7 @@ import {
 } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
+import { disposeObject } from "../dispose";
 import type { ScenePalette } from "../lightingPalette";
 import { CYBER_ACCENT, VIOLET_ACCENT } from "./pbr";
 
@@ -124,7 +125,8 @@ export function buildEnvironmentMap(renderer: WebGLRenderer): WebGLRenderTarget 
     const room = new RoomEnvironment();
     const map = pmrem.fromScene(room, 0.04);
 
-    room.dispose();
+    // RoomEnvironment.dispose (three r186) frees meshes but not its InstancedMesh's matrix buffer.
+    disposeObject(room);
     pmrem.dispose();
 
     return map;

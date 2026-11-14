@@ -1,4 +1,4 @@
-import type { LayerName, Layers } from "../../three/BuildingSceneManager";
+import type { LayerName, Layers, RenderMode, SectionAxis } from "../../three/BuildingSceneManager";
 import type { RoofKind } from "../../types/api";
 import { Select } from "../ui/Input";
 
@@ -12,6 +12,19 @@ const LAYERS: { id: LayerName; label: string }[] = [
 const ROOFS: { id: RoofKind; label: string }[] = [
     { id: "gable", label: "A dos aguas" },
     { id: "flat", label: "Plana" },
+];
+
+const RENDER_MODES: { id: RenderMode; label: string }[] = [
+    { id: "solid", label: "Sólido con luz" },
+    { id: "wireframe", label: "Sólido con malla" },
+    { id: "materials", label: "Solo materiales" },
+];
+
+/** What the cut crosses, and what its percentage is a share of. */
+const SECTION_AXES: { id: SectionAxis; label: string; share: string }[] = [
+    { id: "y", label: "Corte en planta (altura)", share: "de la altura" },
+    { id: "x", label: "Corte transversal (ancho)", share: "del ancho" },
+    { id: "z", label: "Corte longitudinal (fondo)", share: "del fondo" },
 ];
 
 const SUN_STEP_DEG = 15;
@@ -32,6 +45,10 @@ interface ScenePanelProps {
     onSun: (sun: number) => void;
     roof: RoofKind;
     onRoof: (roof: RoofKind) => void;
+    renderMode: RenderMode;
+    onRenderMode: (mode: RenderMode) => void;
+    sectionAxis: SectionAxis;
+    onSectionAxis: (axis: SectionAxis) => void;
 }
 
 /** Layers, section cut, exploded levels, sun and roof of the scene. */
@@ -46,11 +63,29 @@ export function ScenePanel({
     onSun,
     roof,
     onRoof,
+    renderMode,
+    onRenderMode,
+    sectionAxis,
+    onSectionAxis,
 }: ScenePanelProps) {
+    const share = SECTION_AXES.find((item) => item.id === sectionAxis)?.share ?? "";
+
     return (
         <aside className="hud hud-scene" aria-label="Corte, despiece y capas">
             <details open>
                 <summary>Escena</summary>
+                <Select
+                    label="Modo de vista"
+                    fieldClassName="hud-field hud-field-stack"
+                    value={renderMode}
+                    onChange={(event) => onRenderMode(event.target.value as RenderMode)}
+                >
+                    {RENDER_MODES.map((item) => (
+                        <option key={item.id} value={item.id}>
+                            {item.label}
+                        </option>
+                    ))}
+                </Select>
                 <div className="hud-scene-layers" role="group" aria-label="Capas del modelo">
                     {LAYERS.map((layer) => (
                         <label key={layer.id} className="checkbox">
@@ -67,7 +102,7 @@ export function ScenePanel({
                 </div>
                 <label
                     className="hud-field"
-                    title="Corta el modelo a una altura para ver su interior"
+                    title="Corta el modelo para ver su interior, en planta o de lado."
                 >
                     Corte
                     <input
@@ -76,11 +111,23 @@ export function ScenePanel({
                         max={100}
                         step={CUT_STEP_PERCENT}
                         value={cut}
-                        aria-valuetext={cut === 100 ? "Sin corte" : `${cut} % de la altura`}
+                        aria-valuetext={cut === 100 ? "Sin corte" : `Corte al ${cut} % ${share}`}
                         onChange={(event) => onCut(Number(event.target.value))}
                     />
                     <output className="hud-readout">{cut} %</output>
                 </label>
+                <Select
+                    label="Eje del corte"
+                    fieldClassName="hud-field hud-field-stack"
+                    value={sectionAxis}
+                    onChange={(event) => onSectionAxis(event.target.value as SectionAxis)}
+                >
+                    {SECTION_AXES.map((item) => (
+                        <option key={item.id} value={item.id}>
+                            {item.label}
+                        </option>
+                    ))}
+                </Select>
                 <label className="hud-field" title="Separa los niveles para ver cada planta">
                     Despiece
                     <input
@@ -112,7 +159,7 @@ export function ScenePanel({
                 </label>
                 <Select
                     label="Cubierta"
-                    fieldClassName="hud-field"
+                    fieldClassName="hud-field hud-field-stack"
                     value={roof}
                     onChange={(event) => onRoof(event.target.value as RoofKind)}
                 >

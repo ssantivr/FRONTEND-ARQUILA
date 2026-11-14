@@ -2,6 +2,7 @@ import { MathUtils, Vector3 } from "three";
 
 import type { RoofKind, SpatialElement, Structure } from "../types/api";
 import type { ElementColors } from "../utils/elementColors";
+import type { Measurement } from "../utils/measure";
 import { elementKey } from "../utils/openings";
 import type { ElementSurfaces } from "../utils/surfaceMaterials";
 import type { Projection, ViewName } from "./camera/views";
@@ -10,8 +11,9 @@ import type { PreviewQuality } from "./engine/quality";
 import { SCENE_PALETTES, type ScenePalette } from "./lightingPalette";
 import { applyPaletteToKit, createSceneKit } from "./materials/pbr";
 import { paintElements } from "./scene/appearance";
-import { createSceneContents } from "./scene/contents";
+import { createSceneContents, type RenderMode } from "./scene/contents";
 import { isSpace, overlayKey } from "./scene/elements";
+import { createRoomGizmo, type GizmoChange, type GizmoMode } from "./scene/gizmo";
 import {
     createLayerManager,
     type LayerName,
@@ -19,16 +21,23 @@ import {
     type OverlayLayers,
 } from "./scene/layers";
 import { createSceneGraph, type CameraPose, type PlanPoint } from "./scene/sceneGraph";
+import { createMeasureTool } from "./scene/measure";
+import { createRenderModes } from "./scene/renderMode";
+import type { SectionAxis } from "./scene/section";
 import { createSelection } from "./scene/selection";
 
 export type {
     CameraPose,
+    GizmoChange,
+    GizmoMode,
     LayerName,
     Layers,
     OverlayLayers,
     PlanPoint,
     Projection,
+    RenderMode,
     ScenePalette,
+    SectionAxis,
     StillJob,
     ViewName,
 };
@@ -77,6 +86,14 @@ export interface StructureViewer {
     maxImageSize: number;
     /** Switches between the perspective camera and a real orthographic one, keeping the framing. */
     setProjection: (projection: Projection) => void;
+    /** Lit solids, solids with their wireframe, or the finishes alone. */
+    setRenderMode: (mode: RenderMode) => void;
+    /** The axis of the cutaway set by `setCutaway`: y cuts a floor plan, x and z an elevation. */
+    setSectionAxis: (axis: SectionAxis) => void;
+    /** While on, clicks on the model place the ends of a measurement instead of selecting. */
+    setMeasuring: (measuring: boolean) => void;
+    /** The transform gizmo on a room, or none with null. */
+    setGizmo: (key: string | null, mode: GizmoMode, snapM: number) => void;
     dispose: () => void;
 }
 
@@ -88,6 +105,10 @@ export interface ViewerEvents {
     onAsset: (state: "ready" | "error") => void;
     /** The browser took the graphics context away (driver reset, too many contexts, sleep). */
     onContextLost?: () => void;
+    /** A measurement was completed, or cleared with null. */
+    onMeasure?: (measurement: Measurement | null) => void;
+    /** A drag of the transform gizmo ended with a change to save. */
+    onGizmoChange?: (change: GizmoChange) => void;
 }
 
 /**
@@ -138,6 +159,26 @@ export function createStructureViewer(
     const graph = createSceneGraph(contents, engine, kit, layers);
     const selection = createSelection(contents, engine, kit.outline, paint, (key) =>
         events.onSelect(key),
+    );
+
+    const renderModes = createRenderModes(contents, engine.resources, engine.cutPlanes);
+    const measure = createMeasureTool(contents, engine, (measurement) =>
+        events.onMeasure?.(measurement),
+    );
+    let measuring = false;
+    const gizmo = createRoomGizmo(
+        contents,
+        engine,
+        (dragging) => {
+            // The drag belongs to the room: the camera and the selection wait for it to end.
+            rig.setEnabled(!dragging);
+            selection.setPicking(!dragging && !measuring);
+
+            if (!dragging) {
+                selection.ignoreNextClick();
+            }
+        },
+        (change) => events.onGizmoChange?.(change),
     );
 
     engine.trackLineMaterials(kit.outline, kit.lotEdge);
@@ -203,6 +244,10 @@ export function createStructureViewer(
         graph.rebuildOverlays();
         selection.outline();
         paint();
+        renderModes.sync();
+        gizmo.sync();
+        // A measurement taken on the previous geometry no longer describes this one.
+        measure.clear();
 
         if (!framed) {
             setView("isometric");
@@ -289,9 +334,31 @@ export function createStructureViewer(
         capture: engine.capture,
         renderStill: engine.renderStill,
         maxImageSize: engine.maxImageSize,
-        setProjection: changing(engine.setProjection),
+        setProjection: changing((projection) => {
+            engine.setProjection(projection);
+            gizmo.sync();
+        }),
+        setRenderMode: changing((mode) => {
+            contents.renderMode = mode;
+            paint();
+            renderModes.sync();
+        }),
+        setSectionAxis: changing(layers.setSectionAxis),
+        setMeasuring: changing((next) => {
+            measuring = next;
+            // Picking off first: it clears the hover cursor, which would undo the crosshair.
+            selection.setPicking(!next);
+            measure.setActive(next);
+        }),
+        setGizmo: changing((key, mode, snapM) => {
+            gizmo.setMode(mode);
+            gizmo.setSnap(snapM);
+            gizmo.attach(key);
+        }),
         dispose: () => {
             engine.stop();
+            measure.dispose();
+            gizmo.dispose();
             selection.detach();
             selection.removeOutline();
             graph.clear();

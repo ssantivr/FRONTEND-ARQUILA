@@ -6,6 +6,12 @@ import type { ScenePalette } from "../lightingPalette";
 import type { ElementMesh, OverlayMesh } from "./elements";
 
 /**
+ * How the elements are drawn: lit PBR solids, solids with their wireframe over them, or the
+ * finishes alone, unlit, to judge materials and colours without light and shadow.
+ */
+export type RenderMode = "solid" | "wireframe" | "materials";
+
+/**
  * What is on stage and how it should look. The scene graph fills it; layers, appearance and
  * selection read it, each from its own module, so that none of them depends on the others.
  */
@@ -25,6 +31,7 @@ export interface SceneContents {
     colors: ElementColors | null;
     surfaces: ElementSurfaces;
     highlight: ReadonlySet<string> | null;
+    renderMode: RenderMode;
 }
 
 export function createSceneContents(palette: ScenePalette): SceneContents {
@@ -44,5 +51,6 @@ export function createSceneContents(palette: ScenePalette): SceneContents {
         colors: null,
         surfaces: {},
         highlight: null,
+        renderMode: "solid",
     };
 }

@@ -1,7 +1,7 @@
 import { Box3, type Plane } from "three";
 
 import type { SpatialLayer } from "../../types/api";
-import { CUT_DISABLED_M } from "../engine/ExperienceEngine";
+import { placeSection, type SectionAxis } from "./section";
 import type { SceneContents } from "./contents";
 
 const COMPANION_REACH_M = 0.05;
@@ -16,6 +16,8 @@ export interface LayerManager {
     updateIsolation: () => void;
     isolate: (key: string | null) => void;
     setCutaway: (fraction: number) => void;
+    /** The axis the cutaway crosses: y for a floor plan, x or z for a vertical section. */
+    setSectionAxis: (axis: SectionAxis) => void;
     setHidden: (keys: ReadonlySet<string>) => void;
     setLayers: (layers: Layers) => void;
     setOverlayLayers: (layers: OverlayLayers) => void;
@@ -28,6 +30,7 @@ export function createLayerManager(contents: SceneContents, cutPlane: Plane): La
     let isolatedKey: string | null = null;
     let companions: ReadonlySet<string> = new Set();
     let cutFraction = 1;
+    let sectionAxis: SectionAxis = "y";
 
     /**
      * The roof is one piece that sits on the rooms of the top floor. With one of them hidden it
@@ -117,10 +120,7 @@ export function createLayerManager(contents: SceneContents, cutPlane: Plane): La
         }
 
         companions = kept;
-        cutPlane.constant =
-            cutFraction >= 1 || range.isEmpty()
-                ? CUT_DISABLED_M
-                : range.min.y + (range.max.y - range.min.y) * cutFraction;
+        placeSection(cutPlane, sectionAxis, cutFraction, range);
     }
 
     return {
@@ -133,6 +133,10 @@ export function createLayerManager(contents: SceneContents, cutPlane: Plane): La
         },
         setCutaway: (fraction) => {
             cutFraction = fraction;
+            updateIsolation();
+        },
+        setSectionAxis: (axis) => {
+            sectionAxis = axis;
             updateIsolation();
         },
         setHidden: (keys) => {
