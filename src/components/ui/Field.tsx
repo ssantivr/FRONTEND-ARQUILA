@@ -20,6 +20,8 @@ interface FieldProps {
     aside?: ReactNode;
     /** Class of the whole field, to place it in a layout. */
     className?: string;
+    /** A known id for the note, so another control can point at it (half of a range). */
+    noteId?: string;
     /** The input, select or textarea; the field wires its label, hint and error to it. */
     children: ReactElement<ControlProps>;
 }
@@ -36,10 +38,11 @@ export function Field({
     optional = false,
     aside,
     className,
+    noteId: givenNoteId,
     children,
 }: FieldProps) {
     const id = useId();
-    const noteId = `${id}-note`;
+    const noteId = givenNoteId ?? `${id}-note`;
     const failed = error !== undefined && error !== null && error !== "";
     const note = failed ? error : hint;
 

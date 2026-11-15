@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { useAsync } from "../../hooks/useAsync";
 import { activityApi } from "../../services/api";
@@ -164,6 +164,7 @@ export function ProjectActivityPanel({ projectId }: { projectId: number }) {
     const [page, setPage] = useState(1);
     const [values, setValues] = useState<HistoryFilterValues>(NO_FILTERS);
     const filtersRef = useRef<HTMLDivElement>(null);
+    const rangeErrorId = useId();
     const { filters, rangeError } = toApiFilters(values);
     const activity = useAsync(
         () => activityApi.listByProject(projectId, page, PAGE_SIZE, filters),
@@ -247,10 +248,12 @@ export function ProjectActivityPanel({ projectId }: { projectId: number }) {
                         min={FIRST_DAY}
                         max={values.toDay || LAST_DAY}
                         aria-invalid={rangeError || undefined}
+                        aria-describedby={rangeError ? rangeErrorId : undefined}
                         onChange={(event) => change({ fromDay: event.target.value })}
                     />
                     <Input
                         label="Hasta"
+                        noteId={rangeErrorId}
                         type="date"
                         value={values.toDay}
                         min={values.fromDay || FIRST_DAY}

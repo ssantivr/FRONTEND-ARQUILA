@@ -18,6 +18,8 @@ interface LabelledProps {
     error?: string | null;
     optional?: boolean;
     aside?: ReactNode;
+    /** A known id for the hint or error, so another control can point at it. */
+    noteId?: string;
 }
 
 interface ControlProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -58,13 +60,20 @@ export function InputControl({ icon, unit, end, className, ...rest }: ControlPro
 type InputProps = LabelledProps & Omit<ControlProps, "id" | "end">;
 
 /** A text field with its label, hint and error already wired to the control. */
-export function Input({ label, hint, error, optional, aside, unit, ...rest }: InputProps) {
+export function Input({ label, hint, error, optional, aside, noteId, unit, ...rest }: InputProps) {
     // The unit is drawn, so it is also said: «Retiro, en m».
     const hintWithUnit =
         unit === undefined ? hint : [hint, `En ${unit}.`].filter(Boolean).join(" ");
 
     return (
-        <Field label={label} hint={hintWithUnit} error={error} optional={optional} aside={aside}>
+        <Field
+            label={label}
+            hint={hintWithUnit}
+            error={error}
+            optional={optional}
+            aside={aside}
+            noteId={noteId}
+        >
             <InputControl {...rest} unit={unit} />
         </Field>
     );

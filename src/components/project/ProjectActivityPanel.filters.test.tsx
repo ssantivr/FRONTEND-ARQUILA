@@ -166,6 +166,10 @@ describe("history filters", () => {
         ).toBeInTheDocument();
         expect(screen.getByLabelText("Desde")).toHaveAttribute("aria-invalid", "true");
         expect(screen.getByLabelText("Hasta")).toHaveAttribute("aria-invalid", "true");
+        // «Desde» is half of the error, so it is described by the same message.
+        expect(screen.getByLabelText("Desde")).toHaveAccessibleDescription(
+            "«Hasta» es anterior a «Desde». Corrige el rango para filtrar.",
+        );
         expect(activityApi.listByProject).toHaveBeenLastCalledWith(7, 1, 20, {});
     });
 });
