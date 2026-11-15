@@ -1,5 +1,4 @@
 import type {
-    ActivityPage,
     AssistantStatus,
     ComponentCreate,
     ComponentKind,
@@ -190,12 +189,7 @@ export const versionsApi = {
     restore: (id: number) => request<Project>(`/versions/${id}/restore`, { method: "POST" }),
 };
 
-export const activityApi = {
-    listByProject: (projectId: number, page = 1, pageSize = 50) =>
-        request<ActivityPage>(`/projects/${projectId}/activity`, {
-            query: { page, page_size: pageSize },
-        }),
-};
+export { activityApi } from "./activityApi";
 
 /**
  * What the paged list does on the server, done on every project of an API that has no paged

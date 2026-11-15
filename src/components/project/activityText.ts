@@ -1,4 +1,5 @@
 import type { Activity } from "../../types/api";
+import type { SourceModule } from "../../types/activity";
 import type { IconName } from "../Icon";
 import { formatDay, formatNumber } from "../../utils/format";
 import { SURFACE_MATERIALS, type SurfaceMaterialId } from "../../utils/surfaceMaterials";
@@ -162,13 +163,14 @@ const ORIGINS: Record<string, string> = {
     system: "Por el sistema",
 };
 
-/** The modules a change can come from (`SourceModule`), as the navigation names them. */
-const MODULES: Record<string, string> = {
+/** The modules a change can come from, as the navigation names them; typed by `SourceModule`, so
+ *  a module added to the contract fails to compile until it has its label. */
+export const MODULE_LABELS: Record<SourceModule, string> = {
     home: "Inicio",
     projects: "Proyectos",
-    settings: "Ajustes",
+    settings: "Configuración",
     summary: "Resumen",
-    viewer: "Visor 3D",
+    viewer: "Modelo 3D",
     terrain: "Terreno",
     plans: "Planos",
     elevations: "Elevaciones",
@@ -181,8 +183,11 @@ const MODULES: Record<string, string> = {
     tasks: "Tareas",
     render: "Renderizado",
     history: "Historial",
-    assistant: "Asistente",
+    assistant: "Asistente IA",
 };
+
+// The API sends any string (or null), so the lookup below is by string.
+const MODULES: Record<string, string> = MODULE_LABELS;
 
 /** «Por la IA · desde Planos»: who made the change, when not the user, and where. */
 export function describeSource(item: Activity): string {

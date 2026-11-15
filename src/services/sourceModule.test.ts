@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
-import { sourceModuleOf } from "./sourceModule";
+import { SOURCE_MODULES, sourceModuleOf } from "./sourceModule";
 
 describe("sourceModuleOf", () => {
     it("names the module of a project section", () => {
@@ -18,5 +21,17 @@ describe("sourceModuleOf", () => {
 
     it("gives null outside of any module", () => {
         expect(sourceModuleOf("/no-existe")).toBeNull();
+    });
+});
+
+describe("SOURCE_MODULES", () => {
+    it("matches the contract in docs/DECISIONS.md (H4), shared with the backend", () => {
+        const text = readFileSync(join(process.cwd(), "docs/DECISIONS.md"), "utf8");
+        const section = text.split("### H4 · Source modules")[1].split("\n### ")[0];
+        const line = section.split(/\r?\n/).find((row) => row.startsWith("Modules:")) ?? "";
+        const contract = [...line.matchAll(/`([a-z]+)`/g)].map((match) => match[1]);
+
+        expect(contract).toHaveLength(18);
+        expect([...SOURCE_MODULES].sort()).toEqual([...contract].sort());
     });
 });

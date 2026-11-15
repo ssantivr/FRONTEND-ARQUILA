@@ -20,6 +20,28 @@
     background: var(--color-surface-raised);
 }
 
+/* The filters of the history: two pairs (origin and module, then the two dates) that wrap as a
+   whole, so a range is never split; a line closes them off from the list. */
+.filters {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(calc(2 * var(--filter-min) + var(--space-3)), 100%), 1fr)
+    );
+    align-items: start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.filterPair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--filter-min), 100%), 1fr));
+    align-items: start;
+    gap: var(--space-3);
+}
+
 .wide {
     grid-column: 1 / -1;
 }

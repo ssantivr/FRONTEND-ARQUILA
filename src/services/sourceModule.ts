@@ -1,28 +1,9 @@
 import type { View } from "../components/Sidebar";
 import type { SectionId } from "../pages/sections";
 import { parsePath } from "../routes";
+import type { SourceModule } from "../types/activity";
 
-/** The module names the API stores in the change history (R18). They match
- *  `SOURCE_MODULES` in BACKEND-ARQUILA/app/services/activity_log.py. */
-export type SourceModule =
-    | "home"
-    | "projects"
-    | "settings"
-    | "summary"
-    | "viewer"
-    | "terrain"
-    | "plans"
-    | "elevations"
-    | "lighting"
-    | "analysis"
-    | "files"
-    | "versions"
-    | "materials"
-    | "compare"
-    | "tasks"
-    | "render"
-    | "history"
-    | "assistant";
+export { SOURCE_MODULES, type SourceModule } from "../types/activity";
 
 export const MODULE_HEADER = "X-Arquila-Module";
 

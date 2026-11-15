@@ -61,7 +61,8 @@ export function Field({
                 id,
                 "aria-describedby":
                     note === undefined ? children.props["aria-describedby"] : noteId,
-                "aria-invalid": failed || undefined,
+                // A control can be invalid because of another field's error (half of a range).
+                "aria-invalid": failed || children.props["aria-invalid"] || undefined,
             })}
             {note !== undefined && (
                 <p id={noteId} className={styles.note} role={failed ? "alert" : undefined}>

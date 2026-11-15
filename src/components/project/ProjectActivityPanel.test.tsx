@@ -86,7 +86,7 @@ describe("ProjectActivityPanel", () => {
             "Por el sistema",
         );
         expect(describeSource(activity({ origin: "user", source_module: "viewer" }))).toBe(
-            "Desde Visor 3D",
+            "Desde Modelo 3D",
         );
         expect(describeSource(activity({}))).toBe("");
     });
@@ -248,7 +248,9 @@ describe("ProjectActivityPanel", () => {
         expect(await screen.findByText("Se archivó el proyecto")).toBeInTheDocument();
         await userEvent.click(screen.getByRole("button", { name: "Siguiente" }));
 
-        await waitFor(() => expect(activityApi.listByProject).toHaveBeenLastCalledWith(7, 2, 20));
+        await waitFor(() =>
+            expect(activityApi.listByProject).toHaveBeenLastCalledWith(7, 2, 20, {}),
+        );
     });
 
     it("says the history is not available on an older API", async () => {
