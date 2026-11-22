@@ -206,11 +206,12 @@ label {
 input,
 select,
 button {
-    font: inherit;
+    min-height: 40px;
+    padding: 8px 12px;
     color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 10px;
+    font: inherit;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
 }
 
 input,
@@ -221,18 +222,31 @@ select {
 
 button {
     color: var(--accent-contrast);
-    background: var(--accent);
-    border-color: var(--accent);
+    font-weight: 600;
+    background: var(--accent-fill);
+    border-color: var(--accent-fill);
     cursor: pointer;
     transition:
-        border-color 0.15s,
-        background-color 0.15s,
-        color 0.15s,
-        transform 0.15s;
+        border-color 150ms var(--ease),
+        background-color 150ms var(--ease),
+        color 150ms var(--ease),
+        box-shadow 150ms var(--ease),
+        transform 150ms var(--ease);
 }
 
-button:hover:not(:disabled) {
-    filter: brightness(1.12);
+button:not([class]):hover:not(:disabled) {
+    background: var(--accent-fill-hover);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+/* A box to tick is not a field to type in. */
+input:is([type="checkbox"], [type="radio"]) {
+    min-height: 0;
+    padding: 0;
+    accent-color: var(--accent-fill);
 }
 
 button:disabled {
@@ -243,6 +257,11 @@ button:disabled {
 :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+}
+
+/* Rows that scroll would clip a ring drawn outside them. */
+:is(.tab, .sidebar-item):focus-visible {
+    outline-offset: -2px;
 }
 
 main:focus {
@@ -256,8 +275,8 @@ main:focus {
     z-index: 100;
     padding: 8px 12px;
     color: var(--accent-contrast);
-    background: var(--accent);
-    border-radius: 6px;
+    background: var(--accent-fill);
+    border-radius: var(--radius);
     transform: translateY(-200%);
 }
 
@@ -286,13 +305,22 @@ main:focus {
 .button-secondary {
     color: var(--text);
     background: transparent;
-    border-color: var(--border);
+    border-color: var(--border-control);
+}
+
+.button-secondary:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
 }
 
 .button-danger {
     background: transparent;
     border-color: var(--error);
     color: var(--error);
+}
+
+.button-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--error) 8%, transparent);
 }
 
 .form-row {
@@ -355,10 +383,12 @@ main:focus {
 }
 
 .badge {
-    padding: 2px 8px;
+    padding: 2px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
     border: 1px solid currentColor;
     border-radius: 999px;
-    font-size: 0.75rem;
 }
 
 .badge-draft {
@@ -380,7 +410,7 @@ table {
 
 th,
 td {
-    padding: 8px;
+    padding: 12px;
     text-align: left;
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
@@ -399,6 +429,7 @@ tbody tr:hover td {
 }
 
 .numeric {
+    font-family: var(--font-mono);
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
@@ -494,12 +525,12 @@ a {
 }
 
 textarea {
-    font: inherit;
+    padding: 8px 12px;
     color: var(--text);
+    font: inherit;
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 10px;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
     resize: vertical;
 }
 
@@ -544,18 +575,26 @@ textarea {
 .tabs {
     display: flex;
     gap: 4px;
+    min-width: 0;
     overflow-x: auto;
     border-bottom: 1px solid var(--border);
+    scrollbar-width: thin;
 }
 
 .tab {
     flex: 0 0 auto;
-    padding: 10px 14px;
+    min-height: 44px;
+    padding: 12px 16px;
     color: var(--text-secondary);
     background: transparent;
     border: 0;
     border-bottom: 2px solid transparent;
     border-radius: 0;
+}
+
+/* The row scrolls, so a tab pushed down a pixel would show a scrollbar. */
+.tab:active:not(:disabled) {
+    transform: none;
 }
 
 .tab:hover {
@@ -564,6 +603,7 @@ textarea {
 
 .tab[aria-current="page"] {
     color: var(--accent);
+    font-weight: 650;
     border-bottom-color: var(--accent);
 }
 
@@ -1279,6 +1319,7 @@ textarea {
 
 .diagram-controls input[type="range"] {
     padding: 0;
+    accent-color: var(--accent-fill);
 }
 
 .checkbox {
@@ -1289,7 +1330,9 @@ textarea {
 }
 
 .checkbox input {
+    min-height: 0;
     padding: 0;
+    accent-color: var(--accent-fill);
 }
 
 @media (max-width: 720px) {
@@ -1526,11 +1569,6 @@ code {
     background: linear-gradient(135deg, var(--accent), var(--accent-alt));
 }
 
-:root[data-theme="dark"] button:hover:not(:disabled) {
-    border-color: var(--accent-alt);
-    box-shadow: 0 0 12px rgba(255, 0, 127, 0.3);
-}
-
 :root[data-theme="dark"] .card:hover,
 :root[data-theme="dark"] .segmented button[aria-pressed="true"] {
     border-color: var(--accent);
@@ -1540,10 +1578,6 @@ code {
 :root[data-theme="dark"] :is(input, select, textarea):focus-visible {
     border-color: var(--accent);
     box-shadow: var(--glow);
-}
-
-:root[data-theme="dark"] .badge {
-    box-shadow: 0 0 10px color-mix(in srgb, currentColor 35%, transparent);
 }
 
 :root[data-theme="dark"] .structure-stage {
