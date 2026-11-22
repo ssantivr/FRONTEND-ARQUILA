@@ -6,6 +6,9 @@ import type { ComponentKind, StructuralComponent } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
+import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
+import { useModal } from "./modal/modalContext";
+import { EditDialog } from "./modal/EditDialog";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
 
@@ -31,6 +34,7 @@ const KIND_LABELS = Object.fromEntries(KINDS.map((kind) => [kind.id, kind.label]
 >;
 
 export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelProps) {
+    const modal = useModal();
     const components = useAsync(() => componentsApi.listByProject(projectId), [projectId]);
     const plans = useAsync(() => plansApi.listByProject(projectId), [projectId]);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -113,22 +117,24 @@ export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelPr
         );
     }
 
-    function handleDelete(component: StructuralComponent) {
-        const label = `${KIND_LABELS[component.kind].toLowerCase()} "${component.name}"`;
+    async function handleDelete(component: StructuralComponent) {
+        const confirmed = await confirmDelete(modal, {
+            what: `el componente (${KIND_LABELS[component.kind].toLowerCase()})`,
+            name: component.name,
+            undoable: true,
+            action: () => componentsApi.remove(component.id),
+        });
 
-        if (!window.confirm(`¿Eliminar ${label}? No se puede deshacer.`)) {
+        if (!confirmed) {
             return;
         }
 
-        run(
-            () => componentsApi.remove(component.id),
-            () => {
-                if (editingId === component.id) {
-                    resetForm();
-                }
-                reload();
-            },
-        );
+        run(alreadyDone, () => {
+            if (editingId === component.id) {
+                resetForm();
+            }
+            reload();
+        });
     }
 
     return (
@@ -191,109 +197,117 @@ export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelPr
                 </table>
             )}
             {planItems.length > 0 && (
-                <form className="form-row" ref={form} onSubmit={handleSubmit}>
-                    <label>
-                        Plano
-                        <select
-                            value={chosenPlan}
-                            onChange={(event) => setPlanId(event.target.value)}
-                        >
-                            {planItems.map((plan) => (
-                                <option key={plan.id} value={plan.id}>
-                                    {plan.title}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label>
-                        Tipo
-                        <select
-                            value={kind}
-                            onChange={(event) => changeKind(event.target.value as ComponentKind)}
-                        >
-                            {KINDS.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                    {item.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label>
-                        Nombre
-                        <input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            maxLength={160}
-                            placeholder="C1"
-                            required
+                <EditDialog
+                    editing={editingId !== null}
+                    title="Actualizar el componente"
+                    onCancel={resetForm}
+                >
+                    <form className="form-row" ref={form} onSubmit={handleSubmit}>
+                        <label>
+                            Plano
+                            <select
+                                value={chosenPlan}
+                                onChange={(event) => setPlanId(event.target.value)}
+                            >
+                                {planItems.map((plan) => (
+                                    <option key={plan.id} value={plan.id}>
+                                        {plan.title}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label>
+                            Tipo
+                            <select
+                                value={kind}
+                                onChange={(event) =>
+                                    changeKind(event.target.value as ComponentKind)
+                                }
+                            >
+                                {KINDS.map((item) => (
+                                    <option key={item.id} value={item.id}>
+                                        {item.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label>
+                            Nombre
+                            <input
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                maxLength={160}
+                                placeholder="C1"
+                                required
+                            />
+                        </label>
+                        <label>
+                            X (m)
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={x}
+                                onChange={(event) => setX(event.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Y (m)
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={y}
+                                onChange={(event) => setY(event.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Ancho (m)
+                            <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={measures.width}
+                                onChange={(event) =>
+                                    setMeasures({ ...measures, width: event.target.value })
+                                }
+                                required
+                            />
+                        </label>
+                        <label>
+                            Largo (m)
+                            <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={measures.depth}
+                                onChange={(event) =>
+                                    setMeasures({ ...measures, depth: event.target.value })
+                                }
+                                required
+                            />
+                        </label>
+                        <label>
+                            Alto (m)
+                            <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={measures.height}
+                                onChange={(event) =>
+                                    setMeasures({ ...measures, height: event.target.value })
+                                }
+                                required
+                            />
+                        </label>
+                        <FormActions
+                            editing={editingId !== null}
+                            addLabel="Agregar componente"
+                            disabled={name.trim() === ""}
+                            onCancel={resetForm}
                         />
-                    </label>
-                    <label>
-                        X (m)
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={x}
-                            onChange={(event) => setX(event.target.value)}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Y (m)
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={y}
-                            onChange={(event) => setY(event.target.value)}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Ancho (m)
-                        <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={measures.width}
-                            onChange={(event) =>
-                                setMeasures({ ...measures, width: event.target.value })
-                            }
-                            required
-                        />
-                    </label>
-                    <label>
-                        Largo (m)
-                        <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={measures.depth}
-                            onChange={(event) =>
-                                setMeasures({ ...measures, depth: event.target.value })
-                            }
-                            required
-                        />
-                    </label>
-                    <label>
-                        Alto (m)
-                        <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={measures.height}
-                            onChange={(event) =>
-                                setMeasures({ ...measures, height: event.target.value })
-                            }
-                            required
-                        />
-                    </label>
-                    <FormActions
-                        editing={editingId !== null}
-                        addLabel="Agregar componente"
-                        disabled={name.trim() === ""}
-                        onCancel={resetForm}
-                    />
-                </form>
+                    </form>
+                </EditDialog>
             )}
         </Panel>
     );
