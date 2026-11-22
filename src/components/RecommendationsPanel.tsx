@@ -6,7 +6,10 @@ import { appState } from "../state/appState";
 import type { RecommendationPriority, RecommendationSource } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
+import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
+import { useModal } from "./modal/modalContext";
 import { Panel } from "./Panel";
+import { TextField } from "./TextField";
 
 const SOURCE_LABELS: Record<RecommendationSource, string> = {
     system: "Automática",
@@ -28,6 +31,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function RecommendationsPanel({ projectId, run }: SectionProps) {
+    const modal = useModal();
     const recommendations = useAsync(
         () => recommendationsApi.listByProject(projectId),
         [projectId],
@@ -117,12 +121,18 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                             type="button"
                             className="button-danger"
                             aria-label={`Eliminar recomendación: ${recommendation.content}`}
-                            onClick={() =>
-                                run(
-                                    () => recommendationsApi.remove(recommendation.id),
-                                    recommendations.reload,
-                                )
-                            }
+                            onClick={async () => {
+                                const confirmed = await confirmDelete(modal, {
+                                    what: "la recomendación",
+                                    name: recommendation.content,
+                                    undoable: false,
+                                    action: () => recommendationsApi.remove(recommendation.id),
+                                });
+
+                                if (confirmed) {
+                                    run(alreadyDone, recommendations.reload);
+                                }
+                            }}
                         >
                             Eliminar
                         </button>
@@ -130,24 +140,20 @@ export function RecommendationsPanel({ projectId, run }: SectionProps) {
                 ))}
             </ul>
             <form className="form-row" onSubmit={handleCreate}>
-                <label>
-                    Categoría
-                    <input
-                        value={category}
-                        onChange={(event) => setCategory(event.target.value)}
-                        maxLength={80}
-                        required
-                    />
-                </label>
-                <label className="field-wide">
-                    Recomendación
-                    <input
-                        value={content}
-                        onChange={(event) => setContent(event.target.value)}
-                        maxLength={2000}
-                        required
-                    />
-                </label>
+                <TextField
+                    label="Categoría"
+                    value={category}
+                    onChange={setCategory}
+                    max={80}
+                    required
+                />
+                <TextField
+                    className="field-wide"
+                    label="Recomendación"
+                    value={content}
+                    onChange={setContent}
+                    required
+                />
                 <label>
                     Prioridad
                     <select
