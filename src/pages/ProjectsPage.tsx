@@ -2,7 +2,10 @@ import { useState, type FormEvent } from "react";
 
 import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
+import { LocationField } from "../components/location/LocationField";
+import type { Place } from "../components/location/place";
 import { Panel } from "../components/Panel";
+import { TextField } from "../components/TextField";
 import { errorMessage, useAsync } from "../hooks/useAsync";
 import { projectsApi, templatesApi } from "../services/api";
 import type { ProjectStatus } from "../types/api";
@@ -17,7 +20,7 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState<ProjectStatus | "">("");
     const [name, setName] = useState("");
-    const [location, setLocation] = useState("");
+    const [place, setPlace] = useState<Place>({ label: "", position: null });
     const [description, setDescription] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -55,11 +58,16 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
         try {
             await projectsApi.create({
                 name: name.trim(),
-                location: optionalText(location),
+                location: optionalText(place.label),
+                ...(place.position && {
+                    latitude: place.position.latitude,
+                    longitude: place.position.longitude,
+                    location_zoom: place.position.zoom,
+                }),
                 description: optionalText(description),
             });
             setName("");
-            setLocation("");
+            setPlace({ label: "", position: null });
             setDescription("");
             projects.reload();
         } catch (reason) {
@@ -75,30 +83,14 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
         <>
             <Panel title="Nuevo proyecto">
                 <form className="form-row" onSubmit={handleCreate}>
-                    <label>
-                        Nombre
-                        <input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            maxLength={160}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Ubicación
-                        <input
-                            value={location}
-                            onChange={(event) => setLocation(event.target.value)}
-                            maxLength={255}
-                        />
-                    </label>
-                    <label className="field-wide">
-                        Descripción
-                        <input
-                            value={description}
-                            onChange={(event) => setDescription(event.target.value)}
-                        />
-                    </label>
+                    <TextField label="Nombre" value={name} onChange={setName} max={160} required />
+                    <LocationField value={place} onChange={setPlace} />
+                    <TextField
+                        className="field-wide"
+                        label="Descripción"
+                        value={description}
+                        onChange={setDescription}
+                    />
                     <button type="submit" disabled={saving || name.trim() === ""}>
                         Crear
                     </button>
@@ -162,6 +154,7 @@ export function ProjectsPage({ onOpenProject, onOpenModel }: ProjectsPageProps) 
                             aria-label="Buscar por nombre"
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
+                            maxLength={200}
                         />
                         <select
                             aria-label="Filtrar por estado"

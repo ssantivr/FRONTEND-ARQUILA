@@ -185,6 +185,9 @@ export interface Project {
     name: string;
     description: string | null;
     location: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    location_zoom: number | null;
     status: ProjectStatus;
     created_at: string;
     updated_at: string;
@@ -204,6 +207,9 @@ export interface ProjectCreate {
     name: string;
     description?: string | null;
     location?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    location_zoom?: number | null;
     status?: ProjectStatus;
 }
 
