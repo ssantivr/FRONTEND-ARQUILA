@@ -1,49 +1,72 @@
 :root {
-    --bg: #f3f4f6;
+    --space: #080b16;
+    --space-raised: #111729;
+    --space-text: #f5f7ff;
+    --space-muted: #98a3ba;
+    --space-line: rgba(160, 175, 220, 0.16);
+    --violet: #7552ff;
+    --violet-deep: #6440ee;
+    --violet-soft: #a895ff;
+    --cyan: #00c8ff;
+
+    --bg: #f5f7ff;
     --bg-secondary: #ffffff;
     --panel: #ffffff;
-    --panel-raised: #f7f8fa;
-    --border: #d8dce2;
-    --text: #1c2430;
-    --text-secondary: #5b6675;
-    --accent: #1f4e79;
+    --panel-raised: #f0f3fc;
+    --border: #d5dbec;
+    --border-control: #7d88a3;
+    --text: #10162a;
+    --text-secondary: #4a5470;
+    --accent: #5532d8;
+    --accent-alt: #006d94;
+    --accent-fill: var(--violet);
+    --accent-fill-hover: var(--violet-deep);
     --accent-contrast: #ffffff;
-    --accent-soft: rgba(31, 78, 121, 0.09);
-    --success: #1e7b4d;
-    --warning: #8a5d00;
-    --error: #b3261e;
-    --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
-    --viewport: #e8ecf1;
+    --accent-soft: rgba(117, 82, 255, 0.07);
+    --grid-line: rgba(60, 80, 160, 0.055);
+    --glow: 0 8px 24px rgba(117, 82, 255, 0.16);
+    --success: #136338;
+    --warning: #7a4d00;
+    --error: #a82020;
+    --shadow: 0 1px 2px rgba(16, 22, 42, 0.04), 0 8px 24px rgba(16, 22, 42, 0.05);
+    --viewport: #e8ecf8;
+
+    --radius-sm: 4px;
+    --radius: 8px;
+    --radius-lg: 14px;
+    --header-height: 64px;
+    --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+    --font-sans:
+        "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-display:
+        "Inter", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
 
     color-scheme: light;
-    font-family:
-        system-ui,
-        -apple-system,
-        "Segoe UI",
-        sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
+    scroll-padding-top: calc(var(--header-height) + 16px);
 }
 
 :root[data-theme="dark"] {
-    --bg: #090a0f;
-    --bg-secondary: #0e1017;
-    --panel: #10131b;
-    --panel-raised: #161a24;
-    --border: #262c3a;
-    --text: #e8eaed;
-    --text-secondary: #9aa3b5;
-    --accent: #00f0ff;
-    --accent-contrast: #04141a;
-    --accent-soft: rgba(0, 240, 255, 0.1);
-    --accent-alt: #ff007f;
-    --glass: rgba(16, 19, 27, 0.55);
-    --glass-border: rgba(0, 240, 255, 0.18);
-    --glow: 0 0 14px rgba(0, 240, 255, 0.3);
-    --success: #3df5a7;
-    --warning: #ffc857;
-    --error: #ff5c7a;
-    --shadow: 0 8px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    --viewport: #090a0f;
+    --bg: #080b16;
+    --bg-secondary: #0d1222;
+    --panel: #111729;
+    --panel-raised: #192239;
+    --border: #283452;
+    --border-control: #65718f;
+    --text: #f5f7ff;
+    --text-secondary: #a3aec5;
+    --accent: #a895ff;
+    --accent-alt: #00c8ff;
+    --accent-soft: rgba(117, 82, 255, 0.12);
+    --grid-line: rgba(120, 150, 230, 0.04);
+    --glow: 0 8px 28px rgba(0, 200, 255, 0.1);
+    --success: #4ade80;
+    --warning: #f5b642;
+    --error: #ff8090;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.22);
+    --viewport: #080b16;
 
     color-scheme: dark;
 }
@@ -55,13 +78,20 @@
 h1,
 h2,
 .brand {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--font-display);
+    text-wrap: balance;
 }
 
 body {
     margin: 0;
-    background: var(--bg);
+    min-height: 100vh;
     color: var(--text);
+    background-color: var(--bg);
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    line-height: 1.5;
 }
 
 .header {
@@ -137,7 +167,10 @@ body {
 
 h2 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    font-weight: 650;
+    letter-spacing: -0.012em;
+    line-height: 1.3;
 }
 
 label {
@@ -1398,13 +1431,6 @@ code {
     color: var(--accent);
     background: var(--accent-soft);
     border-color: var(--accent);
-}
-
-:root[data-theme="dark"] body {
-    background:
-        radial-gradient(900px 520px at 12% -10%, rgba(0, 240, 255, 0.08), transparent 60%),
-        radial-gradient(800px 520px at 100% 0%, rgba(255, 0, 127, 0.07), transparent 60%), var(--bg);
-    background-attachment: fixed;
 }
 
 :root[data-theme="dark"] :is(.header, .panel, .card, .metric, .modal) {
