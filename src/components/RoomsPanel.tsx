@@ -6,6 +6,9 @@ import type { Room } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatNumber } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
+import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
+import { useModal } from "./modal/modalContext";
+import { EditDialog } from "./modal/EditDialog";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
 
@@ -16,6 +19,7 @@ interface RoomsPanelProps extends SectionProps {
 const DEFAULT_HEIGHT = "3";
 
 export function RoomsPanel({ projectId, run, onChanged }: RoomsPanelProps) {
+    const modal = useModal();
     const rooms = useAsync(() => roomsApi.listByProject(projectId), [projectId]);
     const plans = useAsync(() => plansApi.listByProject(projectId), [projectId]);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -89,20 +93,24 @@ export function RoomsPanel({ projectId, run, onChanged }: RoomsPanelProps) {
         );
     }
 
-    function handleDelete(room: Room) {
-        if (!window.confirm(`¿Eliminar el cuarto "${room.name}"? No se puede deshacer.`)) {
+    async function handleDelete(room: Room) {
+        const confirmed = await confirmDelete(modal, {
+            what: "el cuarto",
+            name: room.name,
+            undoable: true,
+            action: () => roomsApi.remove(room.id),
+        });
+
+        if (!confirmed) {
             return;
         }
 
-        run(
-            () => roomsApi.remove(room.id),
-            () => {
-                if (editingId === room.id) {
-                    resetForm();
-                }
-                reload();
-            },
-        );
+        run(alreadyDone, () => {
+            if (editingId === room.id) {
+                resetForm();
+            }
+            reload();
+        });
     }
 
     return (
@@ -164,90 +172,96 @@ export function RoomsPanel({ projectId, run, onChanged }: RoomsPanelProps) {
                 </table>
             )}
             {planItems.length > 0 && (
-                <form className="form-row" ref={form} onSubmit={handleSubmit}>
-                    <label>
-                        Plano
-                        <select
-                            value={chosenPlan}
-                            onChange={(event) => setPlanId(event.target.value)}
-                        >
-                            {planItems.map((plan) => (
-                                <option key={plan.id} value={plan.id}>
-                                    {plan.title}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label>
-                        Nombre
-                        <input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            maxLength={160}
-                            placeholder="Cocina"
-                            required
+                <EditDialog
+                    editing={editingId !== null}
+                    title="Actualizar el cuarto"
+                    onCancel={resetForm}
+                >
+                    <form className="form-row" ref={form} onSubmit={handleSubmit}>
+                        <label>
+                            Plano
+                            <select
+                                value={chosenPlan}
+                                onChange={(event) => setPlanId(event.target.value)}
+                            >
+                                {planItems.map((plan) => (
+                                    <option key={plan.id} value={plan.id}>
+                                        {plan.title}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label>
+                            Nombre
+                            <input
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                maxLength={160}
+                                placeholder="Cocina"
+                                required
+                            />
+                        </label>
+                        <label>
+                            X (m)
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={x}
+                                onChange={(event) => setX(event.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Y (m)
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={y}
+                                onChange={(event) => setY(event.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Ancho (m)
+                            <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={width}
+                                onChange={(event) => setWidth(event.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Largo (m)
+                            <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={depth}
+                                onChange={(event) => setDepth(event.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Alto (m)
+                            <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={height}
+                                onChange={(event) => setHeight(event.target.value)}
+                                required
+                            />
+                        </label>
+                        <FormActions
+                            editing={editingId !== null}
+                            addLabel="Agregar cuarto"
+                            disabled={name.trim() === ""}
+                            onCancel={resetForm}
                         />
-                    </label>
-                    <label>
-                        X (m)
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={x}
-                            onChange={(event) => setX(event.target.value)}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Y (m)
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={y}
-                            onChange={(event) => setY(event.target.value)}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Ancho (m)
-                        <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={width}
-                            onChange={(event) => setWidth(event.target.value)}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Largo (m)
-                        <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={depth}
-                            onChange={(event) => setDepth(event.target.value)}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Alto (m)
-                        <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={height}
-                            onChange={(event) => setHeight(event.target.value)}
-                            required
-                        />
-                    </label>
-                    <FormActions
-                        editing={editingId !== null}
-                        addLabel="Agregar cuarto"
-                        disabled={name.trim() === ""}
-                        onCancel={resetForm}
-                    />
-                </form>
+                    </form>
+                </EditDialog>
             )}
         </Panel>
     );
