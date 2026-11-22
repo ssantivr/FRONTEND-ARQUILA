@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
 
 import { Panel } from "../components/Panel";
+import { PasswordInput } from "../components/PasswordInput";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
 import type { User } from "../types/api";
+import { MAX_EMAIL_LENGTH } from "../utils/limits";
 
 interface LoginPageProps {
     notice?: string;
@@ -83,26 +85,21 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                             type="email"
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
-                            maxLength={255}
+                            maxLength={MAX_EMAIL_LENGTH}
                             autoComplete="email"
                             required
                         />
                     </label>
                     {mode !== "forgot" && (
-                        <label>
-                            Contraseña
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(event) => setPassword(event.target.value)}
-                                minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
-                                maxLength={128}
-                                autoComplete={
-                                    mode === "register" ? "new-password" : "current-password"
-                                }
-                                required
-                            />
-                        </label>
+                        <PasswordInput
+                            key={mode}
+                            label="Contraseña"
+                            value={password}
+                            onChange={setPassword}
+                            concealed={submitting}
+                            minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
+                            autoComplete={mode === "register" ? "new-password" : "current-password"}
+                        />
                     )}
                     {mode === "register" && (
                         <p className="message">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
