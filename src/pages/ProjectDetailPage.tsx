@@ -4,10 +4,14 @@ import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
 import { StatusBadge } from "../components/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
+import { ExtractionPanel } from "../components/extraction/ExtractionPanel";
 import { FilesPanel } from "../components/FilesPanel";
 import { FloorPlansPanel } from "../components/FloorPlansPanel";
 import { GeneratedElevationsPanel } from "../components/GeneratedElevationsPanel";
-import { MaterialsPanel } from "../components/MaterialsPanel";
+import { positionOf } from "../components/location/place";
+import { confirmDelete } from "../components/modal/confirmDelete";
+import { useModal } from "../components/modal/modalContext";
+import { SaveStateContext } from "../components/modal/saveState";
 import { Panel } from "../components/Panel";
 import { PlansPanel } from "../components/PlansPanel";
 import { ProjectEditForm } from "../components/ProjectEditForm";
@@ -15,7 +19,7 @@ import { RecommendationsPanel } from "../components/RecommendationsPanel";
 import { SitePlanPanel } from "../components/SitePlanPanel";
 import { TerrainsPanel } from "../components/TerrainsPanel";
 import { errorMessage, useAsync } from "../hooks/useAsync";
-import { filesApi, projectsApi, undoApi } from "../services/api";
+import { filesApi, plansApi, projectsApi, roomsApi, terrainsApi, undoApi } from "../services/api";
 import type { DeletedItemKind, ProjectStatus } from "../types/api";
 
 const StructurePanel = lazy(() =>
@@ -33,6 +37,7 @@ export function ProjectDetailPage({
     initialSection = "terrain",
     onBack,
 }: ProjectDetailPageProps) {
+    const modal = useModal();
     const project = useAsync(() => projectsApi.get(projectId), [projectId]);
     const undoable = useAsync(() => undoApi.list(projectId), [projectId]);
     const files = useAsync(() => filesApi.listByProject(projectId), [projectId]);
@@ -40,6 +45,7 @@ export function ProjectDetailPage({
     const [actionPending, setActionPending] = useState(false);
     const running = useRef(false);
     const [panelsVersion, setPanelsVersion] = useState(0);
+    const [terrainsVersion, setTerrainsVersion] = useState(0);
     const [plansVersion, setPlansVersion] = useState(0);
     const [section, setSection] = useState<SectionId>(initialSection);
     const [editingProject, setEditingProject] = useState(false);
@@ -80,6 +86,28 @@ export function ProjectDetailPage({
         });
     }
 
+    function handleExtractionChanged() {
+        project.reload();
+        files.reload();
+        setTerrainsVersion((version) => version + 1);
+        setPlansVersion((version) => version + 1);
+    }
+
+    async function handleDeleteProject() {
+        const deleted = await confirmDelete(modal, {
+            what: "el proyecto",
+            name: project.data?.name ?? "",
+            undoable: false,
+            impact: await deletionImpact(projectId, projectFiles.length),
+            requireText: project.data?.name,
+            action: () => projectsApi.remove(projectId),
+        });
+
+        if (deleted) {
+            onBack();
+        }
+    }
+
     const lastDeleted = undoable.data?.[0];
 
     if (project.data === null) {
@@ -99,7 +127,7 @@ export function ProjectDetailPage({
     const current = project.data;
 
     return (
-        <>
+        <SaveStateContext.Provider value={{ pending: actionPending, error: actionError }}>
             <Panel title={current.name} actions={<BackButton onBack={onBack} />}>
                 <div className="project-summary">
                     <StatusBadge status={current.status} />
@@ -139,38 +167,24 @@ export function ProjectDetailPage({
                     <button
                         type="button"
                         className="button-secondary"
-                        onClick={() => setEditingProject((editing) => !editing)}
+                        onClick={() => setEditingProject(true)}
                     >
                         Editar proyecto
                     </button>
-                    <button
-                        type="button"
-                        className="button-danger"
-                        onClick={() => {
-                            if (window.confirm(`¿Eliminar el proyecto "${current.name}"?`)) {
-                                run(() => projectsApi.remove(projectId), onBack);
-                            }
-                        }}
-                    >
+                    <button type="button" className="button-danger" onClick={handleDeleteProject}>
                         Eliminar proyecto
                     </button>
                 </div>
-                {current.description && !editingProject && (
-                    <p className="message">{current.description}</p>
-                )}
+                {current.description && <p className="message">{current.description}</p>}
                 {editingProject && (
                     <ProjectEditForm
                         project={current}
                         onCancel={() => setEditingProject(false)}
-                        onSave={(data) =>
-                            run(
-                                () => projectsApi.update(projectId, data),
-                                () => {
-                                    setEditingProject(false);
-                                    project.reload();
-                                },
-                            )
-                        }
+                        onSave={async (data) => {
+                            await projectsApi.update(projectId, data);
+                            setEditingProject(false);
+                            project.reload();
+                        }}
                     />
                 )}
                 {actionPending && (
@@ -199,8 +213,23 @@ export function ProjectDetailPage({
                 ))}
             </nav>
 
+            {section === "terrain" && (
+                <ExtractionPanel
+                    key={projectId}
+                    projectId={projectId}
+                    onChanged={handleExtractionChanged}
+                />
+            )}
+
             <Fragment key={panelsVersion}>
-                {section === "terrain" && <TerrainsPanel projectId={projectId} run={run} />}
+                {section === "terrain" && (
+                    <TerrainsPanel
+                        projectId={projectId}
+                        run={run}
+                        near={positionOf(current)}
+                        version={terrainsVersion}
+                    />
+                )}
                 {section === "plans" && (
                     <>
                         <PlansPanel projectId={projectId} run={runOnPlans} files={projectFiles} />
@@ -226,7 +255,6 @@ export function ProjectDetailPage({
                         />
                     </>
                 )}
-                {section === "materials" && <MaterialsPanel projectId={projectId} run={run} />}
                 {section === "analysis" && <RecommendationsPanel projectId={projectId} run={run} />}
             </Fragment>
 
@@ -240,19 +268,18 @@ export function ProjectDetailPage({
                 />
             )}
             {section === "assistant" && <AssistantPanel projectId={projectId} />}
-        </>
+        </SaveStateContext.Provider>
     );
 }
 
 export type SectionId =
-    "terrain" | "plans" | "model" | "elevations" | "materials" | "analysis" | "files" | "assistant";
+    "terrain" | "plans" | "model" | "elevations" | "analysis" | "files" | "assistant";
 
 const SECTIONS: { id: SectionId; label: string }[] = [
     { id: "terrain", label: "Terreno" },
     { id: "plans", label: "Planos" },
     { id: "model", label: "Modelo 3D" },
     { id: "elevations", label: "Elevaciones" },
-    { id: "materials", label: "Materiales" },
     { id: "analysis", label: "Análisis" },
     { id: "files", label: "Archivos" },
     { id: "assistant", label: "Asistente IA" },
@@ -266,6 +293,27 @@ const KIND_LABELS: Record<DeletedItemKind, string> = {
     room: "cuarto",
     component: "componente",
 };
+
+async function deletionImpact(projectId: number, files: number): Promise<string[]> {
+    try {
+        const [terrains, plans, rooms] = await Promise.all([
+            terrainsApi.listByProject(projectId),
+            plansApi.listByProject(projectId),
+            roomsApi.listByProject(projectId),
+        ]);
+
+        return [
+            `Terrenos: ${terrains.length}`,
+            `Planos: ${plans.length}`,
+            `Cuartos: ${rooms.length}`,
+            `Archivos: ${files}`,
+            "También sus materiales, elevaciones y conversaciones.",
+        ];
+    } catch {
+        // The delete can go on without the counts.
+        return ["Se elimina todo lo que contiene el proyecto."];
+    }
+}
 
 function BackButton({ onBack }: { onBack: () => void }) {
     return (
