@@ -3,9 +3,9 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { Panel } from "./components/Panel";
 import { Sidebar, type View } from "./components/Sidebar";
 import { errorMessage } from "./hooks/useAsync";
+import { DashboardPage } from "./pages/DashboardPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
-import { MaterialsPage } from "./pages/MaterialsPage";
 import { ProjectDetailPage, type SectionId } from "./pages/ProjectDetailPage";
 import { ProjectToolPage } from "./pages/ProjectToolPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
@@ -142,8 +142,8 @@ export function App() {
                 );
             case "terrains":
                 return <TerrainsPage onOpenProject={(id) => openProject(id, "terrain")} />;
-            case "materials":
-                return <MaterialsPage onOpenProject={(id) => openProject(id, "materials")} />;
+            case "dashboard":
+                return <DashboardPage onOpenProject={(id) => openProject(id, "terrain")} />;
             case "viewer":
                 return (
                     <ProjectToolPage

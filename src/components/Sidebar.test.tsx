@@ -17,9 +17,9 @@ describe("Sidebar", () => {
     });
 
     it("marks only the current module", () => {
-        render(<Sidebar current="materials" onNavigate={() => undefined} />);
+        render(<Sidebar current="terrains" onNavigate={() => undefined} />);
 
-        expect(screen.getByRole("button", { name: "Materiales" })).toHaveAttribute(
+        expect(screen.getByRole("button", { name: "Terrenos" })).toHaveAttribute(
             "aria-current",
             "page",
         );
@@ -43,6 +43,9 @@ describe("Sidebar", () => {
 
         await user.tab();
         expect(screen.getByRole("button", { name: "Inicio" })).toHaveFocus();
+
+        await user.tab();
+        expect(screen.getByRole("button", { name: "Dashboard" })).toHaveFocus();
 
         await user.tab();
         expect(screen.getByRole("button", { name: "Proyectos" })).toHaveFocus();

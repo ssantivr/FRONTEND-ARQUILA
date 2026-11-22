@@ -2,7 +2,7 @@ export type IconName =
     | "home"
     | "projects"
     | "terrains"
-    | "materials"
+    | "dashboard"
     | "viewer"
     | "interior"
     | "assistant"
@@ -12,7 +12,7 @@ const PATHS: Record<IconName, string> = {
     home: "M3 11l9-8 9 8M5 10v10h14V10",
     projects: "M3 6h6l2 2h10v11H3z",
     terrains: "M3 19l6-10 4 6 2-3 6 7z",
-    materials: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5",
+    dashboard: "M4 4h7v8H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 14h7v6H4z",
     viewer: "M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5",
     interior: "M4 20V9l8-6 8 6v11M4 20h16M9 20v-5h6v5M9 11h6",
     assistant: "M4 5h16v11H9l-5 4z",
