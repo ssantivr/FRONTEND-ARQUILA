@@ -4,7 +4,7 @@ export type View =
     | "home"
     | "projects"
     | "terrains"
-    | "materials"
+    | "dashboard"
     | "viewer"
     | "interior"
     | "assistant"
@@ -22,7 +22,13 @@ export const MODULES: Module[] = [
         id: "home",
         label: "Inicio",
         icon: "home",
-        description: "Resumen de tus proyectos, terrenos y costos.",
+        description: "Resumen de tus proyectos y terrenos.",
+    },
+    {
+        id: "dashboard",
+        label: "Dashboard",
+        icon: "dashboard",
+        description: "Mira todos tus proyectos y crea nuevos con ayuda de la IA.",
     },
     {
         id: "projects",
@@ -35,12 +41,6 @@ export const MODULES: Module[] = [
         label: "Terrenos",
         icon: "terrains",
         description: "Todos tus terrenos con su área, medidas, pendiente y suelo.",
-    },
-    {
-        id: "materials",
-        label: "Materiales",
-        icon: "materials",
-        description: "Materiales de todos los proyectos y su costo por categoría.",
     },
     {
         id: "viewer",

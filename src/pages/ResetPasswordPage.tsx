@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
 
 import { Panel } from "../components/Panel";
+import { PasswordInput } from "../components/PasswordInput";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
-import { MIN_PASSWORD_LENGTH } from "./LoginPage";
+import { MIN_PASSWORD_LENGTH, PasswordRules, passwordIsStrong } from "../components/PasswordRules";
 
 interface ResetPasswordPageProps {
     token: string;
@@ -18,6 +19,11 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
+
+        if (!passwordIsStrong(password)) {
+            setError("La contraseña todavía no cumple los requisitos.");
+            return;
+        }
 
         if (password !== repeated) {
             setError("Las dos contraseñas no coinciden.");
@@ -41,30 +47,23 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
         <div className="login">
             <Panel title="Elegir contraseña nueva">
                 <form className="form-column" onSubmit={handleSubmit}>
-                    <label>
-                        Contraseña nueva
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                            minLength={MIN_PASSWORD_LENGTH}
-                            maxLength={128}
-                            autoComplete="new-password"
-                            required
-                        />
-                    </label>
-                    <label>
-                        Repetir contraseña
-                        <input
-                            type="password"
-                            value={repeated}
-                            onChange={(event) => setRepeated(event.target.value)}
-                            maxLength={128}
-                            autoComplete="new-password"
-                            required
-                        />
-                    </label>
-                    <p className="message">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
+                    <PasswordInput
+                        label="Contraseña nueva"
+                        describedBy="new-password-rules"
+                        value={password}
+                        onChange={setPassword}
+                        concealed={submitting}
+                        minLength={MIN_PASSWORD_LENGTH}
+                        autoComplete="new-password"
+                    />
+                    <PasswordInput
+                        label="Repetir contraseña"
+                        value={repeated}
+                        onChange={setRepeated}
+                        concealed={submitting}
+                        autoComplete="new-password"
+                    />
+                    <PasswordRules id="new-password-rules" password={password} />
                     {error && (
                         <p className="message message-error" role="alert">
                             {error}

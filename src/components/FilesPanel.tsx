@@ -5,6 +5,8 @@ import type { ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { formatFileSize } from "../utils/format";
 import { FileViewer } from "./FileViewer";
+import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
+import { useModal } from "./modal/modalContext";
 import { Panel } from "./Panel";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -21,6 +23,7 @@ interface FilesPanelProps extends SectionProps {
 }
 
 export function FilesPanel({ projectId, run, files, busy, onChanged }: FilesPanelProps) {
+    const modal = useModal();
     const input = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
@@ -37,6 +40,19 @@ export function FilesPanel({ projectId, run, files, busy, onChanged }: FilesPane
 
         if (input.current) {
             input.current.value = "";
+        }
+    }
+
+    async function handleDelete(file: ProjectFile) {
+        const confirmed = await confirmDelete(modal, {
+            what: "el archivo",
+            name: file.filename,
+            undoable: false,
+            action: () => filesApi.remove(file.id),
+        });
+
+        if (confirmed) {
+            run(alreadyDone, onChanged);
         }
     }
 
@@ -79,15 +95,7 @@ export function FilesPanel({ projectId, run, files, busy, onChanged }: FilesPane
                                             type="button"
                                             className="button-danger"
                                             aria-label={`Eliminar archivo ${file.filename}`}
-                                            onClick={() => {
-                                                if (
-                                                    window.confirm(
-                                                        `¿Eliminar "${file.filename}"? No se puede deshacer.`,
-                                                    )
-                                                ) {
-                                                    run(() => filesApi.remove(file.id), onChanged);
-                                                }
-                                            }}
+                                            onClick={() => handleDelete(file)}
                                         >
                                             Eliminar
                                         </button>

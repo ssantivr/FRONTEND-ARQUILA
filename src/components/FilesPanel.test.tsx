@@ -1,8 +1,9 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { filesApi } from "../services/api";
+import { renderWithModals } from "../test/render";
 import type { ProjectFile } from "../types/api";
 import { FilesPanel } from "./FilesPanel";
 
@@ -42,7 +43,9 @@ async function run(action: () => Promise<unknown>, onDone: () => void) {
 function renderPanel(list: ProjectFile[], busy = false) {
     const onChanged = vi.fn();
 
-    render(<FilesPanel projectId={7} run={run} files={list} busy={busy} onChanged={onChanged} />);
+    renderWithModals(
+        <FilesPanel projectId={7} run={run} files={list} busy={busy} onChanged={onChanged} />,
+    );
 
     return onChanged;
 }
@@ -98,17 +101,17 @@ describe("FilesPanel", () => {
 
     it("deletes a file only after the user confirms", async () => {
         const user = userEvent.setup();
-        const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
         const onChanged = renderPanel([PLAN]);
         const button = screen.getByRole("button", { name: "Eliminar archivo planta-baja.png" });
 
         await user.click(button);
+        await user.click(await screen.findByRole("button", { name: "Cancelar" }));
         expect(files.remove).not.toHaveBeenCalled();
 
-        confirm.mockReturnValue(true);
         await user.click(button);
+        await user.click(await screen.findByRole("button", { name: "Eliminar" }));
 
         expect(files.remove).toHaveBeenCalledWith(3);
-        expect(onChanged).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
     });
 });

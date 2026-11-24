@@ -1959,3 +1959,477 @@ code {
 .panel > p + .metrics {
     margin-top: 16px;
 }
+
+/* Forms: a field with its label outside, for a counter or a button beside the input. */
+.field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.form-row > .field {
+    flex: 1 1 180px;
+}
+
+.form-row > .field-wide {
+    flex: 3 1 280px;
+}
+
+.field > label,
+.field-label {
+    flex: none;
+    min-height: 1.2rem;
+    padding-right: 60px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* On the line of the label, so that the inputs of a row stay aligned. */
+.counter {
+    position: absolute;
+    top: 0;
+    right: 0;
+    line-height: 1.5rem;
+    pointer-events: none;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+.counter-full {
+    color: var(--warning);
+    font-weight: 700;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.password-field {
+    position: relative;
+    display: flex;
+}
+
+.password-field input {
+    width: 100%;
+    min-height: 44px;
+    padding-right: 52px;
+}
+
+.password-field .password-toggle {
+    position: absolute;
+    inset: 0 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--text);
+    background: transparent;
+    border-color: transparent;
+}
+
+.password-field .password-toggle:hover:not(:disabled) {
+    color: var(--accent);
+}
+
+.password-field .password-toggle:active:not(:disabled) {
+    transform: none;
+}
+
+.password-field .password-toggle:focus-visible {
+    outline-offset: -2px;
+}
+
+.password-toggle svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Dialogs: the one modal system. */
+.modal-small,
+.modal-large {
+    width: min(480px, calc(100vw - 32px));
+    /* Not auto: a modal dialog is pinned to the top and the bottom, and auto would stretch it. */
+    height: fit-content;
+    max-height: calc(100vh - 32px);
+    border-radius: var(--radius-lg);
+}
+
+.modal-large {
+    width: min(760px, calc(100vw - 32px));
+}
+
+.modal:is(.modal-small, .modal-large) .modal-body {
+    display: block;
+    padding: 0;
+}
+
+.modal-small .modal-header h2,
+.modal-large .modal-header h2 {
+    white-space: normal;
+}
+
+.modal[open]:not(.modal-viewer) {
+    animation: dialog-in 200ms var(--ease);
+}
+
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+.dialog-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 24px;
+}
+
+.dialog-text {
+    margin: 0;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.dialog-impact {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 12px 12px 12px 28px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow-wrap: anywhere;
+}
+
+.dialog-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Location */
+.location-button {
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.map-canvas {
+    z-index: 0;
+    height: min(40vh, 360px);
+    min-height: 200px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.map-pin::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--accent-fill);
+    border: 3px solid var(--accent-contrast);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 1px 4px rgba(8, 11, 22, 0.5);
+}
+
+.coordinate-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+    gap: 12px;
+}
+
+/* Reading a document with AI */
+.document-drop {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 24px;
+    color: var(--text);
+    background: var(--accent-soft);
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius);
+}
+
+.document-drop input {
+    max-width: 100%;
+}
+
+.extraction-list {
+    display: grid;
+    gap: 8px;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.extraction-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 12px;
+    overflow-wrap: anywhere;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.review-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.review-source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+
+.coordinates {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+.hero .hero-action {
+    margin-top: 20px;
+}
+
+.leaflet-container.map-canvas {
+    background: var(--panel-raised);
+    font-family: inherit;
+}
+
+.hero .hero-action:hover:not(:disabled) {
+    background: var(--accent-fill-hover);
+}
+
+.document-drop input::file-selector-button {
+    color: var(--accent-contrast);
+    font: inherit;
+    background: var(--accent-fill);
+    border: 0;
+    border-radius: var(--radius-sm);
+}
+
+.extraction-list li {
+    justify-content: flex-start;
+}
+
+.extraction-list li > button {
+    margin-left: auto;
+}
+
+.leaflet-container.map-canvas .leaflet-control-attribution {
+    color: var(--text);
+    background: var(--panel);
+}
+
+.leaflet-container.map-canvas .leaflet-control-attribution a {
+    color: var(--accent);
+}
+
+.password-rules {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    list-style: none;
+}
+
+.password-rules .rule-met {
+    color: var(--success);
+}
+
+.test-accounts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    border: 1px dashed var(--border-control);
+    border-radius: var(--radius);
+}
+
+.test-accounts .field-label {
+    flex-basis: 100%;
+}
+
+.recent-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.recent-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.dashboard-filters {
+    align-items: flex-end;
+}
+
+/* AI project builder (R13) */
+.build-describe {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    margin-bottom: 16px;
+}
+
+.build-describe .field {
+    width: 100%;
+}
+
+.build-describe button,
+.build-drop-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.build-drop {
+    gap: 4px;
+}
+
+.build-drop-title {
+    font-weight: 600;
+}
+
+.build-drop-hint {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.build-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.build-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: build-spin 800ms linear infinite;
+}
+
+@keyframes build-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.build-status {
+    margin: 0;
+}
+
+.build-level {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.build-heading {
+    margin: 4px 0 0;
+    font-size: 0.95rem;
+}
+
+.build-items {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+
+.build-item {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+    align-items: start;
+    gap: 8px 12px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.build-level > .build-item {
+    padding: 0;
+    border: 0;
+}
+
+.build-remove {
+    grid-column: -2 / -1;
+    justify-self: end;
+    align-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+}
+
+.build-field {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    font-size: 0.85rem;
+}
+
+.build-field input,
+.build-field select {
+    width: 100%;
+    min-width: 0;
+}
+
+.build-field [aria-invalid="true"] {
+    border-color: var(--error);
+}
+
+.build-missing {
+    margin: 4px 0 0;
+    color: var(--error);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.build-review .dialog-buttons {
+    position: sticky;
+    bottom: 0;
+    margin: 0 -24px -24px;
+    padding: 16px 24px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+}

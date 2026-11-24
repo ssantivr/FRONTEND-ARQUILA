@@ -109,13 +109,13 @@ describe("LoginPage", () => {
 
         await userEvent.type(screen.getByLabelText("Nombre"), "Ana");
         await userEvent.type(screen.getByLabelText("Correo"), "ana@example.com");
-        await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse");
+        await userEvent.type(screen.getByLabelText("Contraseña"), "correct-horse-7");
         await userEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
         expect(api.register).toHaveBeenCalledWith({
             name: "Ana",
             email: "ana@example.com",
-            password: "correct-horse",
+            password: "correct-horse-7",
         });
     });
 

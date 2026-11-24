@@ -7,6 +7,10 @@ import type { SectionProps } from "../types/ui";
 import { optionalText } from "../utils/format";
 import { AsyncStatus } from "./AsyncStatus";
 import { FileAttachment } from "./FileAttachment";
+import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
+import { useModal } from "./modal/modalContext";
+import { EditDialog } from "./modal/EditDialog";
+import { TextField } from "./TextField";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
 
@@ -15,6 +19,7 @@ interface PlansPanelProps extends SectionProps {
 }
 
 export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
+    const modal = useModal();
     const plans = useAsync(() => plansApi.listByProject(projectId), [projectId]);
     const [editingId, setEditingId] = useState<number | null>(null);
     const form = useRef<HTMLFormElement>(null);
@@ -58,16 +63,25 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
         );
     }
 
-    function handleDelete(plan: Plan) {
-        run(
-            () => plansApi.remove(plan.id),
-            () => {
-                if (editingId === plan.id) {
-                    resetForm();
-                }
-                plans.reload();
-            },
-        );
+    async function handleDelete(plan: Plan) {
+        const confirmed = await confirmDelete(modal, {
+            what: "el plano",
+            name: plan.title,
+            undoable: true,
+            impact: ["También se eliminan sus cuartos y componentes."],
+            action: () => plansApi.remove(plan.id),
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
+        run(alreadyDone, () => {
+            if (editingId === plan.id) {
+                resetForm();
+            }
+            plans.reload();
+        });
     }
 
     const items = plans.data ?? [];
@@ -129,41 +143,41 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                     </tbody>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
-                <label>
-                    Título
-                    <input
+            <EditDialog
+                editing={editingId !== null}
+                title="Actualizar el plano"
+                onCancel={resetForm}
+            >
+                <form className="form-row" ref={form} onSubmit={handleSubmit}>
+                    <TextField
+                        label="Título"
                         value={title}
-                        onChange={(event) => setTitle(event.target.value)}
-                        maxLength={160}
+                        onChange={setTitle}
+                        max={160}
                         required
                     />
-                </label>
-                <label>
-                    Nivel
-                    <input
+                    <TextField
+                        label="Nivel"
                         value={level}
-                        onChange={(event) => setLevel(event.target.value)}
-                        maxLength={60}
+                        onChange={setLevel}
+                        max={60}
                         placeholder="Planta baja"
                     />
-                </label>
-                <label>
-                    Escala
-                    <input
+                    <TextField
+                        label="Escala"
                         value={scale}
-                        onChange={(event) => setScale(event.target.value)}
-                        maxLength={20}
+                        onChange={setScale}
+                        max={20}
                         placeholder="1:100"
                     />
-                </label>
-                <FormActions
-                    editing={editingId !== null}
-                    addLabel="Agregar plano"
-                    disabled={title.trim() === ""}
-                    onCancel={resetForm}
-                />
-            </form>
+                    <FormActions
+                        editing={editingId !== null}
+                        addLabel="Agregar plano"
+                        disabled={title.trim() === ""}
+                        onCancel={resetForm}
+                    />
+                </form>
+            </EditDialog>
         </Panel>
     );
 }

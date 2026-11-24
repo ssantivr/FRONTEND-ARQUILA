@@ -28,6 +28,33 @@ const MESSAGES: Record<string, string> = {
         "Demasiados intentos fallidos. Espera un minuto e inténtalo de nuevo.",
     "Only PDF, PNG, JPEG and WebP files are supported":
         "Solo se admiten archivos PDF, PNG, JPEG y WebP.",
+    "Document reading is not configured":
+        "La lectura con IA todavía no está configurada en este servidor.",
+    "Consent is needed to send the document to an external service":
+        "Hace falta tu permiso para enviar el documento a un servicio externo.",
+    "The document reader does not support this type of file":
+        "El lector con IA no admite este tipo de archivo.",
+    "The file content is not a supported document": "El contenido del archivo no es válido.",
+    "The document exceeds the 4.3 MB limit for reading":
+        "El documento supera el límite de 4,3 MB para leerlo con IA.",
+    "A document is already being read": "Ya se está leyendo un documento. Espera a que termine.",
+    "The document reader is busy": "La IA está ocupada. Inténtalo en un momento.",
+    "The daily limit of the document reader was reached":
+        "La IA llegó a su límite de hoy. Inténtalo mañana.",
+    "The pages of the document cannot be counted":
+        "No se pudieron contar las páginas de este PDF. Prueba con una imagen PNG.",
+    "The size of the image cannot be read": "No se pudo leer el tamaño de la imagen.",
+    "The image is too large to be read": "La imagen es demasiado grande para leerla.",
+    "The text exceeds 200 characters": "El texto supera los 200 caracteres.",
+    "The document has more than 10 pages": "El documento tiene más de 10 páginas.",
+    "The daily limit of documents was reached":
+        "Llegaste al límite diario de documentos. Inténtalo mañana.",
+    "The document reader did not answer": "La IA no respondió. Inténtalo más tarde.",
+    "Extraction not found": "Esa lectura ya no existe.",
+    "This proposal is not waiting for review": "Esa propuesta ya fue revisada.",
+    "There is nothing to undo": "No hay nada que deshacer.",
+    "It changed after the document was applied":
+        "No se puede deshacer porque esos datos cambiaron después.",
     "Failed to fetch": "No se pudo conectar con el servidor.",
     "Unexpected error": "Error inesperado.",
     "The reset link is invalid or has expired":

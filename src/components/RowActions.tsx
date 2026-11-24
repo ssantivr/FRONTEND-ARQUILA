@@ -1,3 +1,5 @@
+import { useEditState } from "./modal/editState";
+
 interface RowActionsProps {
     label: string;
     onEdit: () => void;
@@ -35,13 +37,19 @@ interface FormActionsProps {
 }
 
 export function FormActions({ editing, addLabel, disabled, onCancel }: FormActionsProps) {
+    const edit = useEditState();
+
     return (
         <>
             <button type="submit" disabled={disabled}>
                 {editing ? "Guardar cambios" : addLabel}
             </button>
             {editing && (
-                <button type="button" className="button-secondary" onClick={onCancel}>
+                <button
+                    type="button"
+                    className="button-secondary"
+                    onClick={edit?.close ?? onCancel}
+                >
                     Cancelar
                 </button>
             )}
