@@ -34,3 +34,9 @@ The database migrations 016 and 017, then the backend, then this interface.
   replaces decision X1 for this application. The API and the stored data stay.
 - R12: the Dashboard tab shows the projects by status and creates them.
 - R13: creating starts with a document read by AI. By hand stays as the fallback (C7).
+- R13 builder (2026-11-23): from a description or a PDF/PNG the AI proposes levels, rooms and
+  structural components (`components/builder`). Nothing is created until the user completes and
+  confirms; positions are always typed by the user and any value without a quote stays empty.
+  Confirming creates everything in one transaction, and "Deshacer" removes it while nobody has
+  changed it. The document still fills project, terrain and plan through the reading of R08.
+  The description is read once and never stored; like every typed text it has 200 characters.
