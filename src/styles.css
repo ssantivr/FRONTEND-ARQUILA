@@ -2302,3 +2302,134 @@ code {
 .dashboard-filters {
     align-items: flex-end;
 }
+
+/* AI project builder (R13) */
+.build-describe {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    margin-bottom: 16px;
+}
+
+.build-describe .field {
+    width: 100%;
+}
+
+.build-describe button,
+.build-drop-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.build-drop {
+    gap: 4px;
+}
+
+.build-drop-title {
+    font-weight: 600;
+}
+
+.build-drop-hint {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.build-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.build-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: build-spin 800ms linear infinite;
+}
+
+@keyframes build-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.build-status {
+    margin: 0;
+}
+
+.build-level {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.build-heading {
+    margin: 4px 0 0;
+    font-size: 0.95rem;
+}
+
+.build-items {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+
+.build-item {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+    align-items: start;
+    gap: 8px 12px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.build-level > .build-item {
+    padding: 0;
+    border: 0;
+}
+
+.build-remove {
+    grid-column: -2 / -1;
+    justify-self: end;
+    align-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+}
+
+.build-field {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    font-size: 0.85rem;
+}
+
+.build-field input,
+.build-field select {
+    width: 100%;
+    min-width: 0;
+}
+
+.build-field [aria-invalid="true"] {
+    border-color: var(--error);
+}
+
+.build-missing {
+    margin: 4px 0 0;
+    color: var(--error);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.build-review .dialog-buttons {
+    position: sticky;
+    bottom: 0;
+    margin: 0 -24px -24px;
+    padding: 16px 24px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+}

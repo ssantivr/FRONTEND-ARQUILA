@@ -2,6 +2,7 @@ import { Fragment, Suspense, lazy, useRef, useState } from "react";
 
 import { AssistantPanel } from "../components/AssistantPanel";
 import { AsyncStatus } from "../components/AsyncStatus";
+import { BuildPanel } from "../components/builder/BuildPanel";
 import { StatusBadge } from "../components/Badge";
 import { ElevationsPanel } from "../components/ElevationsPanel";
 import { ExtractionPanel } from "../components/extraction/ExtractionPanel";
@@ -91,6 +92,12 @@ export function ProjectDetailPage({
         files.reload();
         setTerrainsVersion((version) => version + 1);
         setPlansVersion((version) => version + 1);
+    }
+
+    function handleBuildChanged() {
+        handleExtractionChanged();
+        // Rooms and structure live in several panels: all of them load again.
+        setPanelsVersion((version) => version + 1);
     }
 
     async function handleDeleteProject() {
@@ -219,6 +226,10 @@ export function ProjectDetailPage({
                     projectId={projectId}
                     onChanged={handleExtractionChanged}
                 />
+            )}
+
+            {section === "plans" && (
+                <BuildPanel key={projectId} projectId={projectId} onChanged={handleBuildChanged} />
             )}
 
             <Fragment key={panelsVersion}>
