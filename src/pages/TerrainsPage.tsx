@@ -33,7 +33,14 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
     const steepest = slopes.length === 0 ? null : Math.max(...slopes);
 
     return (
-        <>
+        <div className="terrains-page">
+            <header className="page-heading">
+                <div>
+                    <span className="eyebrow">ANÁLISIS DEL SITIO</span>
+                    <h1>Terrenos</h1>
+                    <p>Consulta las características geográficas de todo tu portafolio.</p>
+                </div>
+            </header>
             <Panel title="Terrenos">
                 <p className="message">
                     Los terrenos de todos tus proyectos. Para agregar o editar uno, ábrelo desde su
@@ -103,6 +110,6 @@ export function TerrainsPage({ onOpenProject }: TerrainsPageProps) {
                     </table>
                 )}
             </Panel>
-        </>
+        </div>
     );
 }

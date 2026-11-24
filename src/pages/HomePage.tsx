@@ -7,7 +7,7 @@ import { MODULES, type View } from "../components/Sidebar";
 import { useAsync } from "../hooks/useAsync";
 import { projectsApi, summaryApi } from "../services/api";
 import type { User } from "../types/api";
-import { formatMoney, formatNumber } from "../utils/format";
+import { formatNumber } from "../utils/format";
 
 const RECENT_PROJECTS = 4;
 
@@ -26,13 +26,21 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
         .slice(0, RECENT_PROJECTS);
 
     return (
-        <>
+        <div className="home-page">
             <section className="hero">
+                <span className="eyebrow">TU ESPACIO DE TRABAJO</span>
                 <h1>Hola, {user.name}</h1>
                 <p>
                     ARQUILA reúne en un solo lugar los proyectos de arquitectura con sus terrenos,
-                    planos, materiales, modelo 3D y un asistente que conoce cada proyecto.
+                    planos, modelo 3D y un asistente que conoce cada proyecto.
                 </p>
+                <button
+                    type="button"
+                    className="hero-action"
+                    onClick={() => onNavigate("dashboard")}
+                >
+                    Crear un proyecto con IA
+                </button>
             </section>
 
             <Panel title="Resumen">
@@ -54,11 +62,6 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                             label="Terrenos"
                             value={formatNumber(summary.data.terrains)}
                             detail={`${formatNumber(summary.data.total_area_m2)} m² en total`}
-                        />
-                        <MetricCard
-                            label="Costo de materiales"
-                            value={formatMoney(summary.data.materials_total_cost)}
-                            detail="Suma de todos los proyectos"
                         />
                     </div>
                 )}
@@ -121,6 +124,6 @@ export function HomePage({ user, onOpenProject, onNavigate }: HomePageProps) {
                     ))}
                 </ul>
             </Panel>
-        </>
+        </div>
     );
 }

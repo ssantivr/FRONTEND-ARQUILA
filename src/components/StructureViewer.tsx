@@ -647,6 +647,9 @@ export function StructureViewer({
                 >
                     −
                 </button>
+                <button type="button" className="hud-item" onClick={() => viewer.current?.fit()}>
+                    Ajustar
+                </button>
                 <span className="hud-readout">Zoom {zoom} %</span>
             </div>
             {isolatedRoom === null ? (

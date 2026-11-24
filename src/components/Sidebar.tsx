@@ -4,7 +4,7 @@ export type View =
     | "home"
     | "projects"
     | "terrains"
-    | "materials"
+    | "dashboard"
     | "viewer"
     | "interior"
     | "assistant"
@@ -22,7 +22,13 @@ export const MODULES: Module[] = [
         id: "home",
         label: "Inicio",
         icon: "home",
-        description: "Resumen de tus proyectos, terrenos y costos.",
+        description: "Resumen de tus proyectos y terrenos.",
+    },
+    {
+        id: "dashboard",
+        label: "Dashboard",
+        icon: "dashboard",
+        description: "Mira todos tus proyectos y crea nuevos con ayuda de la IA.",
     },
     {
         id: "projects",
@@ -35,12 +41,6 @@ export const MODULES: Module[] = [
         label: "Terrenos",
         icon: "terrains",
         description: "Todos tus terrenos con su área, medidas, pendiente y suelo.",
-    },
-    {
-        id: "materials",
-        label: "Materiales",
-        icon: "materials",
-        description: "Materiales de todos los proyectos y su costo por categoría.",
     },
     {
         id: "viewer",
@@ -69,6 +69,27 @@ export const MODULES: Module[] = [
     },
 ];
 
+const NAV_GROUPS: { label: string; items: Module[] }[] = [
+    {
+        label: "ESCRITORIO",
+        items: MODULES.filter((item) => item.id === "home" || item.id === "dashboard"),
+    },
+    {
+        label: "PROYECTOS",
+        items: MODULES.filter((item) => item.id === "projects" || item.id === "terrains"),
+    },
+    {
+        label: "VISUALIZACIÓN",
+        items: MODULES.filter(
+            (item) => item.id === "viewer" || item.id === "interior" || item.id === "assistant",
+        ),
+    },
+    {
+        label: "CUENTA",
+        items: MODULES.filter((item) => item.id === "settings"),
+    },
+];
+
 interface SidebarProps {
     current: View;
     onNavigate: (view: View) => void;
@@ -77,18 +98,32 @@ interface SidebarProps {
 export function Sidebar({ current, onNavigate }: SidebarProps) {
     return (
         <nav className="sidebar" aria-label="Navegación principal">
-            {MODULES.map((item) => (
-                <button
-                    key={item.id}
-                    type="button"
-                    className="sidebar-item"
-                    aria-current={item.id === current ? "page" : undefined}
-                    onClick={() => onNavigate(item.id)}
-                >
-                    <Icon name={item.icon} />
-                    {item.label}
-                </button>
+            {NAV_GROUPS.map((group) => (
+                <div className="sidebar-group" key={group.label}>
+                    <span className="sidebar-heading">{group.label}</span>
+                    <div className="sidebar-group-items">
+                        {group.items.map((item) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                className="sidebar-item"
+                                aria-current={item.id === current ? "page" : undefined}
+                                onClick={() => onNavigate(item.id)}
+                            >
+                                <Icon name={item.icon} />
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             ))}
+            <div className="sidebar-footer">
+                <span>ARQUILA STUDIO</span>
+                <strong>De la idea al espacio construido.</strong>
+                <span className="sidebar-footer-mark" aria-hidden="true">
+                    A<span>·</span>
+                </span>
+            </div>
         </nav>
     );
 }

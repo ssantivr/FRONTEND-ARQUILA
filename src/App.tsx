@@ -3,9 +3,9 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { Panel } from "./components/Panel";
 import { Sidebar, type View } from "./components/Sidebar";
 import { errorMessage } from "./hooks/useAsync";
+import { DashboardPage } from "./pages/DashboardPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
-import { MaterialsPage } from "./pages/MaterialsPage";
 import { ProjectDetailPage, type SectionId } from "./pages/ProjectDetailPage";
 import { ProjectToolPage } from "./pages/ProjectToolPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
@@ -142,8 +142,14 @@ export function App() {
                 );
             case "terrains":
                 return <TerrainsPage onOpenProject={(id) => openProject(id, "terrain")} />;
-            case "materials":
-                return <MaterialsPage onOpenProject={(id) => openProject(id, "materials")} />;
+            case "dashboard":
+                return (
+                    <DashboardPage
+                        onOpenProject={(id, openModel) =>
+                            openProject(id, openModel ? "model" : "terrain")
+                        }
+                    />
+                );
             case "viewer":
                 return (
                     <ProjectToolPage
@@ -184,7 +190,10 @@ export function App() {
                 Saltar al contenido
             </a>
             <header className="header">
-                <span className="brand">ARQUILA</span>
+                <span className="brand" aria-label="ARQUILA">
+                    <span className="brand-name">ARQUILA</span>
+                    <span className="brand-descriptor">ESTUDIO DIGITAL</span>
+                </span>
                 <div className="user-menu">
                     <button
                         type="button"
@@ -196,7 +205,12 @@ export function App() {
                     </button>
                     {session.state === "authenticated" && (
                         <>
-                            <span>{session.user.name}</span>
+                            <div className="user-identity">
+                                <span className="user-avatar" aria-hidden="true">
+                                    {session.user.name.trim().charAt(0).toLocaleUpperCase("es")}
+                                </span>
+                                <span className="user-name">{session.user.name}</span>
+                            </div>
                             <button
                                 type="button"
                                 className="button-secondary"

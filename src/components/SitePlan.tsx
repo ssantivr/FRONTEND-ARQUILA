@@ -18,6 +18,7 @@ const NORTH_X = 395;
 const NORTH_Y = 245;
 const NORTH_SIZE = 24;
 const DEFAULT_SETBACK = 3;
+const ZOOM_STEP = 25;
 
 const COLORS = {
     background: "#fbfaf7",
@@ -59,6 +60,8 @@ export function printableDocument(svgSource: string, title: string): string {
 function print(svg: SVGSVGElement, name: string) {
     const frame = document.createElement("iframe");
 
+    frame.title = "Vista de impresión";
+    frame.tabIndex = -1;
     frame.style.position = "fixed";
     frame.style.width = "0";
     frame.style.height = "0";
@@ -95,6 +98,9 @@ function initialSetback(terrain: Terrain): number {
 export function SitePlan({ terrain }: { terrain: Terrain }) {
     const [setback, setSetback] = useState(() => initialSetback(terrain));
     const [north, setNorth] = useState(0);
+    const [zoom, setZoom] = useState(100);
+    const [showDimensions, setShowDimensions] = useState(true);
+    const [showBuildable, setShowBuildable] = useState(true);
     const svg = useRef<SVGSVGElement>(null);
     const shape = footprint(terrain);
 
@@ -113,6 +119,10 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
     const box = bounds(shape);
     const width = box.maxX - box.minX;
     const height = box.maxY - box.minY;
+    const zoomFactor = 100 / zoom;
+    const viewWidth = VIEW_WIDTH * zoomFactor;
+    const viewHeight = VIEW_HEIGHT * zoomFactor;
+    const viewBox = `${(VIEW_WIDTH - viewWidth) / 2} ${(VIEW_HEIGHT - viewHeight) / 2} ${viewWidth} ${viewHeight}`;
     const scale = Math.min(DRAW_WIDTH / width, DRAW_HEIGHT / height);
     const left = DRAW_LEFT + (DRAW_WIDTH - width * scale) / 2;
     const top = DRAW_TOP + (DRAW_HEIGHT - height * scale) / 2;
@@ -148,7 +158,7 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                 <svg
                     ref={svg}
                     xmlns="http://www.w3.org/2000/svg"
-                    viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+                    viewBox={viewBox}
                     role="img"
                     aria-label={`Plano de implantación de ${terrain.name}: lote de ${formatNumber(width)} por ${formatNumber(height)} metros. ${summary}`}
                 >
@@ -162,7 +172,7 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                         stroke={COLORS.boundary}
                         strokeWidth={1.5}
                     />
-                    {buildable !== null && (
+                    {showBuildable && buildable !== null && (
                         <rect
                             x={toX(buildable.minX)}
                             y={toY(buildable.maxY)}
@@ -174,24 +184,25 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                             strokeDasharray="5 3"
                         />
                     )}
-                    {edges(shape).map((edge, index) => (
-                        <text
-                            key={index}
-                            x={toX(edge.middle.x) + edge.outward.x * LABEL_OFFSET}
-                            y={toY(edge.middle.y) - edge.outward.y * LABEL_OFFSET}
-                            textAnchor={
-                                edge.outward.x > 0.5
-                                    ? "start"
-                                    : edge.outward.x < -0.5
-                                      ? "end"
-                                      : "middle"
-                            }
-                            dominantBaseline="middle"
-                            {...TEXT}
-                        >
-                            {formatNumber(edge.length)} m
-                        </text>
-                    ))}
+                    {showDimensions &&
+                        edges(shape).map((edge, index) => (
+                            <text
+                                key={index}
+                                x={toX(edge.middle.x) + edge.outward.x * LABEL_OFFSET}
+                                y={toY(edge.middle.y) - edge.outward.y * LABEL_OFFSET}
+                                textAnchor={
+                                    edge.outward.x > 0.5
+                                        ? "start"
+                                        : edge.outward.x < -0.5
+                                          ? "end"
+                                          : "middle"
+                                }
+                                dominantBaseline="middle"
+                                {...TEXT}
+                            >
+                                {formatNumber(edge.length)} m
+                            </text>
+                        ))}
                     <polygon
                         points={`${accessX},${accessY} ${accessX - 6},${accessY + 10} ${accessX + 6},${accessY + 10}`}
                         fill={COLORS.access}
@@ -223,7 +234,7 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                     <text x={LEGEND_X + 26} y={LEGEND_Y + 21} dominantBaseline="middle" {...TEXT}>
                         Área libre (retiros)
                     </text>
-                    {buildable !== null && (
+                    {showBuildable && buildable !== null && (
                         <>
                             <rect
                                 x={LEGEND_X}
@@ -252,6 +263,18 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                     <text x={LEGEND_X + 26} y={LEGEND_Y + 63} dominantBaseline="middle" {...TEXT}>
                         Acceso
                     </text>
+                    <rect
+                        x={LEGEND_X - 16}
+                        y={VIEW_HEIGHT - 43}
+                        width={144}
+                        height={28}
+                        fill={COLORS.background}
+                        stroke={COLORS.muted}
+                        strokeWidth={0.8}
+                    />
+                    <text x={LEGEND_X - 8} y={VIEW_HEIGHT - 25} {...NOTE}>
+                        ARQUILA · IMPLANTACIÓN
+                    </text>
 
                     <line
                         x1={2 * NORTH_X - tipX}
@@ -277,7 +300,51 @@ export function SitePlan({ terrain }: { terrain: Terrain }) {
                         {summary}
                     </text>
                 </svg>
-                <div className="diagram-controls">
+                <div
+                    className="diagram-controls"
+                    role="group"
+                    aria-label="Herramientas de implantación"
+                >
+                    <button
+                        type="button"
+                        className="button-secondary"
+                        aria-label="Alejar plano"
+                        disabled={zoom <= 75}
+                        onClick={() => setZoom((value) => Math.max(75, value - ZOOM_STEP))}
+                    >
+                        −
+                    </button>
+                    <span aria-live="polite">Zoom {zoom} %</span>
+                    <button
+                        type="button"
+                        className="button-secondary"
+                        aria-label="Acercar plano"
+                        disabled={zoom >= 200}
+                        onClick={() => setZoom((value) => Math.min(200, value + ZOOM_STEP))}
+                    >
+                        +
+                    </button>
+                    <button type="button" className="button-secondary" onClick={() => setZoom(100)}>
+                        Ajustar
+                    </button>
+                    <label className="checkbox">
+                        <input
+                            type="checkbox"
+                            checked={showDimensions}
+                            onChange={(event) => setShowDimensions(event.target.checked)}
+                        />
+                        Cotas
+                    </label>
+                    {buildable !== null && (
+                        <label className="checkbox">
+                            <input
+                                type="checkbox"
+                                checked={showBuildable}
+                                onChange={(event) => setShowBuildable(event.target.checked)}
+                            />
+                            Área edificable
+                        </label>
+                    )}
                     <label>
                         Retiro: {formatNumber(setback)} m
                         <input

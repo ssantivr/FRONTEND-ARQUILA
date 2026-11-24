@@ -34,7 +34,14 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
     }
 
     return (
-        <>
+        <div className="settings-page">
+            <header className="page-heading">
+                <div>
+                    <span className="eyebrow">CUENTA Y SISTEMA</span>
+                    <h1>Configuración</h1>
+                    <p>Administra tu perfil y revisa la conexión con los servicios.</p>
+                </div>
+            </header>
             <Panel title="Cuenta">
                 <dl className="definition-list">
                     <dt>Nombre</dt>
@@ -93,6 +100,6 @@ export function SettingsPage({ user, onLogout }: SettingsPageProps) {
                     servidor, no desde aquí.
                 </p>
             </Panel>
-        </>
+        </div>
     );
 }

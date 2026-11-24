@@ -15,7 +15,7 @@ function readStored(): Theme | null {
     }
 }
 
-let theme: Theme = readStored() ?? "dark";
+let theme: Theme = readStored() ?? "light";
 
 function apply(): void {
     document.documentElement.dataset.theme = theme;

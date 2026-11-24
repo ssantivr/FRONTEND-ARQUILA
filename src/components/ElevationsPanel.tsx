@@ -6,6 +6,10 @@ import type { Elevation, Orientation, ProjectFile } from "../types/api";
 import type { SectionProps } from "../types/ui";
 import { AsyncStatus } from "./AsyncStatus";
 import { FileAttachment } from "./FileAttachment";
+import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
+import { useModal } from "./modal/modalContext";
+import { EditDialog } from "./modal/EditDialog";
+import { TextField } from "./TextField";
 import { Panel } from "./Panel";
 import { FormActions, RowActions } from "./RowActions";
 
@@ -23,6 +27,7 @@ interface ElevationsPanelProps extends SectionProps {
 }
 
 export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps) {
+    const modal = useModal();
     const [filter, setFilter] = useState<Orientation | "">("");
     const elevations = useAsync(
         () => elevationsApi.listByProject(projectId, filter || undefined),
@@ -62,16 +67,24 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
         );
     }
 
-    function handleDelete(elevation: Elevation) {
-        run(
-            () => elevationsApi.remove(elevation.id),
-            () => {
-                if (editingId === elevation.id) {
-                    resetForm();
-                }
-                elevations.reload();
-            },
-        );
+    async function handleDelete(elevation: Elevation) {
+        const confirmed = await confirmDelete(modal, {
+            what: "la elevación",
+            name: elevation.title,
+            undoable: true,
+            action: () => elevationsApi.remove(elevation.id),
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
+        run(alreadyDone, () => {
+            if (editingId === elevation.id) {
+                resetForm();
+            }
+            elevations.reload();
+        });
     }
 
     const items = elevations.data ?? [];
@@ -153,36 +166,40 @@ export function ElevationsPanel({ projectId, run, files }: ElevationsPanelProps)
                     </tbody>
                 </table>
             )}
-            <form className="form-row" ref={form} onSubmit={handleSubmit}>
-                <label>
-                    Título
-                    <input
+            <EditDialog
+                editing={editingId !== null}
+                title="Actualizar la elevación"
+                onCancel={resetForm}
+            >
+                <form className="form-row" ref={form} onSubmit={handleSubmit}>
+                    <TextField
+                        label="Título"
                         value={title}
-                        onChange={(event) => setTitle(event.target.value)}
-                        maxLength={160}
+                        onChange={setTitle}
+                        max={160}
                         required
                     />
-                </label>
-                <label>
-                    Orientación
-                    <select
-                        value={orientation}
-                        onChange={(event) => setOrientation(event.target.value as Orientation)}
-                    >
-                        {ORIENTATIONS.map((value) => (
-                            <option key={value} value={value}>
-                                {ORIENTATION_LABELS[value]}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-                <FormActions
-                    editing={editingId !== null}
-                    addLabel="Agregar elevación"
-                    disabled={title.trim() === ""}
-                    onCancel={resetForm}
-                />
-            </form>
+                    <label>
+                        Orientación
+                        <select
+                            value={orientation}
+                            onChange={(event) => setOrientation(event.target.value as Orientation)}
+                        >
+                            {ORIENTATIONS.map((value) => (
+                                <option key={value} value={value}>
+                                    {ORIENTATION_LABELS[value]}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <FormActions
+                        editing={editingId !== null}
+                        addLabel="Agregar elevación"
+                        disabled={title.trim() === ""}
+                        onCancel={resetForm}
+                    />
+                </form>
+            </EditDialog>
         </Panel>
     );
 }

@@ -2,7 +2,7 @@ import react from "@vitejs/plugin-react";
 import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 
-const DEFAULT_PROXY_TARGET = "http://localhost:8000";
+const DEFAULT_PROXY_TARGET = "http://localhost:8010";
 
 export default defineConfig(({ mode }) => ({
     plugins: [react()],

@@ -1,9 +1,14 @@
 import { useState, type FormEvent } from "react";
 
 import { Panel } from "../components/Panel";
+import { AuthShowcase } from "../components/AuthShowcase";
+import { PasswordInput } from "../components/PasswordInput";
+import { MIN_PASSWORD_LENGTH, PasswordRules, passwordIsStrong } from "../components/PasswordRules";
+import { TEST_ACCOUNTS } from "./testAccounts";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
 import type { User } from "../types/api";
+import { MAX_EMAIL_LENGTH } from "../utils/limits";
 
 interface LoginPageProps {
     notice?: string;
@@ -12,12 +17,16 @@ interface LoginPageProps {
 
 type Mode = "login" | "register" | "forgot";
 
-export const MIN_PASSWORD_LENGTH = 8;
-
 const TITLES: Record<Mode, string> = {
     login: "Iniciar sesión",
     register: "Crear cuenta",
     forgot: "Recuperar contraseña",
+};
+
+const DESCRIPTIONS: Record<Mode, string> = {
+    login: "Accede a tus proyectos, terrenos y modelos arquitectónicos.",
+    register: "Crea tu espacio de trabajo para desarrollar proyectos con datos reales.",
+    forgot: "Indica tu correo y te enviaremos las instrucciones para recuperarla.",
 };
 
 export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
@@ -37,6 +46,11 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
+        if (mode === "register" && !passwordIsStrong(password)) {
+            setError("La contraseña todavía no cumple los requisitos.");
+            return;
+        }
+
         setSubmitting(true);
         setError(null);
         setMessage(null);
@@ -63,7 +77,9 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
 
     return (
         <div className="login">
+            <AuthShowcase />
             <Panel title={TITLES[mode]}>
+                <p className="auth-description">{DESCRIPTIONS[mode]}</p>
                 <form className="form-column" onSubmit={handleSubmit}>
                     {mode === "register" && (
                         <label>
@@ -83,29 +99,43 @@ export function LoginPage({ notice, onAuthenticated }: LoginPageProps) {
                             type="email"
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
-                            maxLength={255}
+                            maxLength={MAX_EMAIL_LENGTH}
                             autoComplete="email"
                             required
                         />
                     </label>
                     {mode !== "forgot" && (
-                        <label>
-                            Contraseña
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(event) => setPassword(event.target.value)}
-                                minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
-                                maxLength={128}
-                                autoComplete={
-                                    mode === "register" ? "new-password" : "current-password"
-                                }
-                                required
-                            />
-                        </label>
+                        <PasswordInput
+                            key={mode}
+                            label="Contraseña"
+                            value={password}
+                            onChange={setPassword}
+                            concealed={submitting}
+                            describedBy={mode === "register" ? "password-rules" : undefined}
+                            minLength={mode === "register" ? MIN_PASSWORD_LENGTH : undefined}
+                            autoComplete={mode === "register" ? "new-password" : "current-password"}
+                        />
                     )}
                     {mode === "register" && (
-                        <p className="message">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
+                        <PasswordRules id="password-rules" password={password} />
+                    )}
+                    {mode === "login" && TEST_ACCOUNTS.length > 0 && (
+                        <div className="test-accounts">
+                            <span className="field-label">Cuentas de prueba (solo en local)</span>
+                            {TEST_ACCOUNTS.map((account) => (
+                                <button
+                                    key={account.email}
+                                    type="button"
+                                    className="button-secondary"
+                                    onClick={() => {
+                                        setEmail(account.email);
+                                        setPassword(account.password);
+                                    }}
+                                >
+                                    {account.label}
+                                </button>
+                            ))}
+                        </div>
                     )}
                     {message && (
                         <p className="message" role="status">

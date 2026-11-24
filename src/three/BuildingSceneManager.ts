@@ -203,6 +203,7 @@ export interface StructureViewer {
     setAsset: (url: string | null) => void;
     focus: (key: string | null, azimuth?: number) => void;
     zoomBy: (factor: number) => void;
+    fit: () => void;
     dispose: () => void;
 }
 
@@ -820,6 +821,11 @@ export function createStructureViewer(
 
     function zoomBy(factor: number): void {
         rig.zoomBy(factor);
+    }
+
+    function fit(): void {
+        rig.fit(bounds);
+        reportZoom();
     }
 
     function focus(key: string | null, azimuth?: number): void {
@@ -1497,6 +1503,7 @@ export function createStructureViewer(
         setAsset: changing(setAsset),
         focus: changing(focus),
         zoomBy: changing(zoomBy),
+        fit: changing(fit),
         dispose,
     };
 }

@@ -1,4 +1,6 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
+
+import { Dialog } from "./modal/Dialog";
 
 interface ModalProps {
     title: string;
@@ -8,36 +10,15 @@ interface ModalProps {
 }
 
 export function Modal({ title, actions, onClose, children }: ModalProps) {
-    const dialog = useRef<HTMLDialogElement>(null);
-
-    useEffect(() => {
-        if (dialog.current && !dialog.current.open) {
-            dialog.current.showModal();
-        }
-    }, []);
-
     return (
-        <dialog
-            ref={dialog}
-            className="modal"
-            aria-label={title}
+        <Dialog
+            title={title}
+            size="viewer"
+            closeOnBackdrop
+            headerActions={actions}
             onClose={onClose}
-            onClick={(event) => {
-                if (event.target === dialog.current) {
-                    onClose();
-                }
-            }}
         >
-            <header className="modal-header">
-                <h2>{title}</h2>
-                <div className="modal-actions">
-                    {actions}
-                    <button type="button" className="button-secondary" onClick={onClose}>
-                        Cerrar
-                    </button>
-                </div>
-            </header>
-            <div className="modal-body">{children}</div>
-        </dialog>
+            {children}
+        </Dialog>
     );
 }

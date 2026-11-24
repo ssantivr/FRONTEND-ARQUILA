@@ -1,14 +1,17 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { projectsApi, templatesApi } from "../services/api";
+import { projectsApi, structureApi, templatesApi } from "../services/api";
+import { renderWithModals } from "../test/render";
 import type { Project } from "../types/api";
 import { ProjectsPage } from "./ProjectsPage";
 
+vi.mock("../components/location/MapCanvas", () => ({ default: () => null }));
 vi.mock("../services/api", () => ({
     projectsApi: { list: vi.fn(), create: vi.fn() },
     templatesApi: { list: vi.fn(), createProject: vi.fn() },
+    structureApi: { get: vi.fn().mockResolvedValue({ terrains: [], rooms: [], components: [] }) },
 }));
 
 function project(id: number, name: string): Project {
@@ -18,6 +21,9 @@ function project(id: number, name: string): Project {
         name,
         description: null,
         location: id === 1 ? "Quito" : null,
+        latitude: null,
+        longitude: null,
+        location_zoom: null,
         status: "draft",
         created_at: "2026-10-01T00:00:00",
         updated_at: "2026-10-01T00:00:00",
@@ -31,7 +37,7 @@ function renderPage() {
     const onOpenProject = vi.fn();
     const onOpenModel = vi.fn();
 
-    render(<ProjectsPage onOpenProject={onOpenProject} onOpenModel={onOpenModel} />);
+    renderWithModals(<ProjectsPage onOpenProject={onOpenProject} onOpenModel={onOpenModel} />);
 
     return { onOpenProject, onOpenModel };
 }
@@ -39,6 +45,13 @@ function renderPage() {
 beforeEach(() => {
     vi.resetAllMocks();
     templates.list.mockResolvedValue([]);
+    vi.mocked(structureApi.get).mockResolvedValue({
+        project_id: 0,
+        roof: "gable",
+        terrains: [],
+        rooms: [],
+        components: [],
+    });
 });
 
 describe("ProjectsPage", () => {
@@ -57,7 +70,9 @@ describe("ProjectsPage", () => {
         expect(await screen.findByRole("button", { name: /Casa Andina/ })).toHaveTextContent(
             "Quito",
         );
-        expect(screen.getByRole("button", { name: /Oficina/ })).toHaveTextContent("Sin ubicación");
+        expect(screen.getByRole("button", { name: /Oficina/ })).toHaveTextContent(
+            "Ubicación por definir",
+        );
     });
 
     it("opens a project when its card is activated", async () => {
@@ -106,7 +121,9 @@ describe("ProjectsPage", () => {
         expect(screen.getByRole("button", { name: "Crear" })).toBeDisabled();
 
         await userEvent.type(screen.getByLabelText("Nombre"), " Casa Nueva ");
-        await userEvent.type(screen.getByLabelText("Ubicación"), "Pasto");
+        await userEvent.click(screen.getByRole("button", { name: /Ubicación/ }));
+        await userEvent.type(await screen.findByLabelText("Nombre del lugar"), "Pasto");
+        await userEvent.click(screen.getByRole("button", { name: "Guardar ubicación" }));
         await userEvent.click(screen.getByRole("button", { name: "Crear" }));
 
         expect(projects.create).toHaveBeenCalledWith({

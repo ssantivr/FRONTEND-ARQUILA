@@ -34,13 +34,14 @@ Todas las llamadas HTTP salen de `src/services/http.ts`, que toma la dirección 
 | Variable | Uso | Por defecto |
 |---|---|---|
 | `VITE_API_URL` | Dirección base de la API que usa el navegador. | `/api` |
-| `API_PROXY_TARGET` | Backend al que el servidor de desarrollo reenvía `/api`. | `http://localhost:8000` |
+| `API_PROXY_TARGET` | Backend al que el servidor de desarrollo reenvía `/api`. | `http://localhost:8010` |
 
 Para cambiarlas, copiar `.env.example` a `.env`. El archivo `.env` no se sube al repositorio.
 
-- **Desarrollo.** No hay que definir nada: el navegador llama a `/api` y Vite lo reenvía al backend del puerto 8000. Si el backend está en otra dirección, cambiar `API_PROXY_TARGET`.
-- **Vercel.** La interfaz está publicada en <https://arquila-frontend.vercel.app>. El archivo `vercel.json` reenvía `/api` al backend publicado, así que la interfaz y la API comparten dominio y `VITE_API_URL` se queda en `/api`.
-- **Vercel con el backend en Render.** También hay una copia en <https://arquila-app.vercel.app> cuyo backend corre en Render (`render.yaml` de `BACKEND-ARQUILA`). Para usarla basta con cambiar el `destination` de `vercel.json` por la dirección de Render, por ejemplo `https://arquila-backend-juan.onrender.com/:path*`.
+- **Desarrollo local.** Copia `.env.example` a `.env`, inicia PostgreSQL y el backend en el puerto
+  8010 y ejecuta `npm run dev`. El navegador llama a `/api`; Vite lo reenvía a
+  `http://localhost:8010`. Si la API usa otra dirección, cambia `API_PROXY_TARGET`.
+- **Vercel.** La interfaz está publicada en <https://arquila-app.vercel.app>. El archivo `vercel.json` reenvía `/api` a `https://arquila-backend-juan.onrender.com`, así que la interfaz y la API comparten dominio y `VITE_API_URL` se queda en `/api`.
 - **Otro despliegue.** `VITE_API_URL` se fija al compilar (`npm run build`). Lo más sencillo es servir la API bajo `/api` en el mismo dominio que la interfaz. Si se usa otro dominio, poner su dirección completa en `VITE_API_URL` y añadir el origen de la interfaz a `APP_URL` o `CORS_ORIGINS` en el backend.
 
 La sesión viaja en una cookie `HttpOnly` que pone el backend; la interfaz no guarda tokens y envía todas las peticiones con `credentials: "include"`. Cuando la API responde 401, la interfaz vuelve a la pantalla de inicio de sesión.
@@ -70,7 +71,7 @@ src/
 | `npm run lint` | Reglas de ESLint. |
 | `npm run format` / `npm run format:check` | Formato con Prettier. |
 
-Si se cargaron los datos de ejemplo de `BASE-DE-DATOS-ARQUILA`, se puede entrar con `demo@example.com`, contraseña `arquila-demo` (credencial pública, solo para desarrollo).
+Las cuentas de demostración solo se usan con bases locales; nunca habilites credenciales de prueba en producción.
 
 ## Documentación
 

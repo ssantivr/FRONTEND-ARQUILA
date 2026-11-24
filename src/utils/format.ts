@@ -36,3 +36,13 @@ export function formatFileSize(bytes: number): string {
 
     return `${numberFormat.format(bytes / (1024 * 1024))} MB`;
 }
+
+/** Date and time in the browser's zone. The API stores UTC without an offset. */
+export function formatDateTime(value: string): string {
+    const utc = /[zZ]|[+-]\d\d:?\d\d$/.test(value) ? value : `${value}Z`;
+    const date = new Date(utc);
+
+    return Number.isNaN(date.getTime())
+        ? value
+        : date.toLocaleString("es-EC", { dateStyle: "medium", timeStyle: "short" });
+}
