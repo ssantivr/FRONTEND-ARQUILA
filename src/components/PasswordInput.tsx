@@ -8,6 +8,7 @@ interface PasswordInputProps {
     minLength?: number;
     /** Hides the password again, for instance while the form is being sent. */
     concealed?: boolean;
+    describedBy?: string;
 }
 
 const EYE = "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z";
@@ -19,6 +20,7 @@ export function PasswordInput({
     autoComplete,
     minLength,
     concealed = false,
+    describedBy,
 }: PasswordInputProps) {
     const id = useId();
     const [visible, setVisible] = useState(false);
@@ -38,6 +40,7 @@ export function PasswordInput({
                     minLength={minLength}
                     maxLength={128}
                     autoComplete={autoComplete}
+                    aria-describedby={describedBy}
                     autoCapitalize="none"
                     spellCheck={false}
                     required

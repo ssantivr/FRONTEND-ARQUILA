@@ -4,7 +4,7 @@ import { Panel } from "../components/Panel";
 import { PasswordInput } from "../components/PasswordInput";
 import { errorMessage } from "../hooks/useAsync";
 import { authApi } from "../services/api";
-import { MIN_PASSWORD_LENGTH } from "./LoginPage";
+import { MIN_PASSWORD_LENGTH, PasswordRules, passwordIsStrong } from "../components/PasswordRules";
 
 interface ResetPasswordPageProps {
     token: string;
@@ -19,6 +19,11 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
+
+        if (!passwordIsStrong(password)) {
+            setError("La contraseña todavía no cumple los requisitos.");
+            return;
+        }
 
         if (password !== repeated) {
             setError("Las dos contraseñas no coinciden.");
@@ -44,6 +49,7 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
                 <form className="form-column" onSubmit={handleSubmit}>
                     <PasswordInput
                         label="Contraseña nueva"
+                        describedBy="new-password-rules"
                         value={password}
                         onChange={setPassword}
                         concealed={submitting}
@@ -57,7 +63,7 @@ export function ResetPasswordPage({ token, onDone }: ResetPasswordPageProps) {
                         concealed={submitting}
                         autoComplete="new-password"
                     />
-                    <p className="message">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
+                    <PasswordRules id="new-password-rules" password={password} />
                     {error && (
                         <p className="message message-error" role="alert">
                             {error}
