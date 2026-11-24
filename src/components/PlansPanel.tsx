@@ -156,24 +156,20 @@ export function PlansPanel({ projectId, run, files }: PlansPanelProps) {
                         max={160}
                         required
                     />
-                    <label>
-                        Nivel
-                        <input
-                            value={level}
-                            onChange={(event) => setLevel(event.target.value)}
-                            maxLength={60}
-                            placeholder="Planta baja"
-                        />
-                    </label>
-                    <label>
-                        Escala
-                        <input
-                            value={scale}
-                            onChange={(event) => setScale(event.target.value)}
-                            maxLength={20}
-                            placeholder="1:100"
-                        />
-                    </label>
+                    <TextField
+                        label="Nivel"
+                        value={level}
+                        onChange={setLevel}
+                        max={60}
+                        placeholder="Planta baja"
+                    />
+                    <TextField
+                        label="Escala"
+                        value={scale}
+                        onChange={setScale}
+                        max={20}
+                        placeholder="1:100"
+                    />
                     <FormActions
                         editing={editingId !== null}
                         addLabel="Agregar plano"

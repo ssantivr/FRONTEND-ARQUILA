@@ -10,6 +10,7 @@ import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
 import { useModal } from "./modal/modalContext";
 import { EditDialog } from "./modal/EditDialog";
 import { Panel } from "./Panel";
+import { TextField } from "./TextField";
 import { FormActions, RowActions } from "./RowActions";
 
 interface ComponentsPanelProps extends SectionProps {
@@ -231,16 +232,14 @@ export function ComponentsPanel({ projectId, run, onChanged }: ComponentsPanelPr
                                 ))}
                             </select>
                         </label>
-                        <label>
-                            Nombre
-                            <input
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                                maxLength={160}
-                                placeholder="C1"
-                                required
-                            />
-                        </label>
+                        <TextField
+                            label="Nombre"
+                            value={name}
+                            onChange={setName}
+                            max={160}
+                            placeholder="C1"
+                            required
+                        />
                         <label>
                             X (m)
                             <input

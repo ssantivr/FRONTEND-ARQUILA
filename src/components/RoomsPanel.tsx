@@ -10,6 +10,7 @@ import { alreadyDone, confirmDelete } from "./modal/confirmDelete";
 import { useModal } from "./modal/modalContext";
 import { EditDialog } from "./modal/EditDialog";
 import { Panel } from "./Panel";
+import { TextField } from "./TextField";
 import { FormActions, RowActions } from "./RowActions";
 
 interface RoomsPanelProps extends SectionProps {
@@ -191,16 +192,14 @@ export function RoomsPanel({ projectId, run, onChanged }: RoomsPanelProps) {
                                 ))}
                             </select>
                         </label>
-                        <label>
-                            Nombre
-                            <input
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                                maxLength={160}
-                                placeholder="Cocina"
-                                required
-                            />
-                        </label>
+                        <TextField
+                            label="Nombre"
+                            value={name}
+                            onChange={setName}
+                            max={160}
+                            placeholder="Cocina"
+                            required
+                        />
                         <label>
                             X (m)
                             <input

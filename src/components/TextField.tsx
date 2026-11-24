@@ -10,6 +10,7 @@ interface TextFieldProps {
     required?: boolean;
     multiline?: boolean;
     className?: string;
+    placeholder?: string;
 }
 
 /** A text the user types, with its limit in view (R07). */
@@ -21,6 +22,7 @@ export function TextField({
     required,
     multiline = false,
     className = "",
+    placeholder,
 }: TextFieldProps) {
     const id = useId();
     const left = max - value.length;
@@ -29,6 +31,7 @@ export function TextField({
         id,
         value,
         required,
+        placeholder,
         maxLength: max,
         "aria-invalid": left < 0 || undefined,
         "aria-describedby": `${id}-count`,
