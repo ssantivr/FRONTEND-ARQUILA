@@ -315,6 +315,7 @@ export interface Summary {
     active_projects: number;
     archived_projects: number;
     terrains: number;
+    plans?: number;
     total_area_m2: number;
     materials_total_cost: number;
 }

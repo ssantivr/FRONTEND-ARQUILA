@@ -11,6 +11,7 @@ import { DashboardPage } from "./DashboardPage";
 vi.mock("../components/location/MapCanvas", () => ({ default: () => null }));
 vi.mock("../services/api", () => ({
     projectsApi: { list: vi.fn(), create: vi.fn() },
+    summaryApi: { get: vi.fn().mockResolvedValue({ terrains: 0, plans: 0 }) },
     filesApi: {},
 }));
 vi.mock("../services/extractions", () => ({ extractionsApi: { status: vi.fn() } }));
