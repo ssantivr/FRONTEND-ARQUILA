@@ -2254,3 +2254,51 @@ code {
 .leaflet-container.map-canvas .leaflet-control-attribution a {
     color: var(--accent);
 }
+
+.password-rules {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    list-style: none;
+}
+
+.password-rules .rule-met {
+    color: var(--success);
+}
+
+.test-accounts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    border: 1px dashed var(--border-control);
+    border-radius: var(--radius);
+}
+
+.test-accounts .field-label {
+    flex-basis: 100%;
+}
+
+.recent-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.recent-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.dashboard-filters {
+    align-items: flex-end;
+}
