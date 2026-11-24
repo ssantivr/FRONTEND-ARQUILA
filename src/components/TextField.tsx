@@ -11,6 +11,10 @@ interface TextFieldProps {
     multiline?: boolean;
     className?: string;
     placeholder?: string;
+    /** Marked as wrong, for instance a required value that is still missing. */
+    invalid?: boolean;
+    /** A number, not a free text: decimal keyboard and no character counter. */
+    numeric?: boolean;
 }
 
 /** A text the user types, with its limit in view (R07). */
@@ -23,6 +27,8 @@ export function TextField({
     multiline = false,
     className = "",
     placeholder,
+    invalid = false,
+    numeric = false,
 }: TextFieldProps) {
     const id = useId();
     const left = max - value.length;
@@ -33,8 +39,9 @@ export function TextField({
         required,
         placeholder,
         maxLength: max,
-        "aria-invalid": left < 0 || undefined,
-        "aria-describedby": `${id}-count`,
+        "aria-invalid": left < 0 || invalid || undefined,
+        "aria-describedby": numeric ? undefined : `${id}-count`,
+        inputMode: numeric ? ("decimal" as const) : undefined,
     };
 
     return (
@@ -45,10 +52,12 @@ export function TextField({
             ) : (
                 <input {...common} onChange={(event) => onChange(event.target.value)} />
             )}
-            <span id={`${id}-count`} className={left <= 0 ? "counter counter-full" : "counter"}>
-                {value.length}/{max}
-            </span>
-            {left <= 0 && (
+            {!numeric && (
+                <span id={`${id}-count`} className={left <= 0 ? "counter counter-full" : "counter"}>
+                    {value.length}/{max}
+                </span>
+            )}
+            {!numeric && left <= 0 && (
                 <span className="visually-hidden" role="status">
                     Llegaste al máximo de {max} caracteres.
                 </span>
