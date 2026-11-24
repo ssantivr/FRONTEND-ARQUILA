@@ -2,8 +2,12 @@ import { useState, type FormEvent } from "react";
 
 import { errorMessage, useAsync } from "../../hooks/useAsync";
 import { filesApi, projectsApi } from "../../services/api";
+import { buildsApi } from "../../services/builds";
 import { extractionsApi } from "../../services/extractions";
+import type { Build } from "../../types/build";
 import { optionalText } from "../../utils/format";
+import { BuildReviewModal } from "../builder/BuildReviewModal";
+import { MAX_DESCRIPTION_LENGTH } from "../builder/buildSummary";
 import { LocationField } from "../location/LocationField";
 import type { Place } from "../location/place";
 import { Dialog } from "../modal/Dialog";
@@ -14,13 +18,20 @@ interface CreateProjectDialogProps {
     onClose: () => void;
 }
 
-/** AI first (R13): a project starts from a document, and by hand when there is no reader. */
+/**
+ * AI first (R13): a project starts from a document, a description or both, and by hand when there
+ * is no reader. The document fills project, terrain and plan; the description proposes levels,
+ * rooms and structure, which the user completes and confirms.
+ */
 export function CreateProjectDialog({ onCreated, onClose }: CreateProjectDialogProps) {
     const status = useAsync(() => extractionsApi.status(), []);
     const [manual, setManual] = useState(false);
     const [name, setName] = useState("");
     const [place, setPlace] = useState<Place>({ label: "", position: null });
     const [file, setFile] = useState<File | null>(null);
+    const [description, setDescription] = useState("");
+    const [documentRead, setDocumentRead] = useState(false);
+    const [reviewing, setReviewing] = useState<Build | null>(null);
     const [consent, setConsent] = useState(false);
     const [created, setCreated] = useState<number | null>(null);
     const [step, setStep] = useState<string | null>(null);
@@ -28,14 +39,17 @@ export function CreateProjectDialog({ onCreated, onClose }: CreateProjectDialogP
 
     const reader = status.data?.available ? status.data : null;
     const withAI = reader !== null && !manual;
+    const described = description.trim();
     const ready =
-        name.trim() !== "" && (!withAI || (file !== null && (!reader.external || consent)));
+        name.trim() !== "" &&
+        (!withAI || ((file !== null || described !== "") && (!reader.external || consent)));
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         setError(null);
 
         try {
+            const problems: string[] = [];
             let id = created;
 
             if (id === null) {
@@ -55,16 +69,37 @@ export function CreateProjectDialog({ onCreated, onClose }: CreateProjectDialogP
                 setCreated(id);
             }
 
-            if (withAI && file) {
+            if (withAI && file && !documentRead) {
                 setStep("La IA está armando el proyecto con tu documento…");
 
                 const stored = await filesApi.upload(id, file);
                 const result = await extractionsApi.create(id, stored.id, consent);
 
+                setDocumentRead(true);
+
                 if (result.status === "failed") {
-                    setError("El proyecto se creó, pero la IA no pudo leer datos del documento.");
+                    problems.push("la IA no pudo leer datos del documento");
+                }
+            }
+
+            if (withAI && described !== "") {
+                setStep("La IA está proponiendo niveles, ambientes y estructura…");
+
+                const build = await buildsApi.create(id, { description: described }, consent);
+
+                if (build.status === "review") {
+                    setReviewing(build);
                     return;
                 }
+
+                problems.push("la IA no encontró niveles ni ambientes en la descripción");
+            }
+
+            if (problems.length > 0) {
+                setError(
+                    `El proyecto se creó, pero ${problems.join(" y ")}. Puedes completarlo a mano en el proyecto.`,
+                );
+                return;
             }
 
             onCreated(id);
@@ -108,13 +143,26 @@ export function CreateProjectDialog({ onCreated, onClose }: CreateProjectDialogP
                 <LocationField value={place} onChange={setPlace} />
                 {withAI && (
                     <label className="document-drop">
-                        Documento del que la IA saca descripción, terreno y plano
+                        Documento del que la IA saca descripción, terreno y plano (opcional si
+                        escribes una descripción)
                         <input
                             type="file"
                             accept={reader.mime_types.join(",")}
-                            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                            onChange={(event) => {
+                                setFile(event.target.files?.[0] ?? null);
+                                setDocumentRead(false);
+                            }}
                         />
                     </label>
+                )}
+                {withAI && (
+                    <TextField
+                        label="Descripción para la IA: niveles, ambientes y medidas (opcional si subes un documento)"
+                        value={description}
+                        onChange={setDescription}
+                        max={MAX_DESCRIPTION_LENGTH}
+                        multiline
+                    />
                 )}
                 {withAI && reader.external && (
                     <label className="checkbox">
@@ -123,7 +171,7 @@ export function CreateProjectDialog({ onCreated, onClose }: CreateProjectDialogP
                             checked={consent}
                             onChange={(event) => setConsent(event.target.checked)}
                         />
-                        Acepto enviar el documento a un servicio externo de IA
+                        Acepto enviar el documento y la descripción a un servicio externo de IA
                     </label>
                 )}
                 {step && (
@@ -151,6 +199,13 @@ export function CreateProjectDialog({ onCreated, onClose }: CreateProjectDialogP
                     </button>
                 </div>
             </form>
+            {reviewing && created !== null && (
+                <BuildReviewModal
+                    build={reviewing}
+                    onApplied={() => onCreated(created)}
+                    onClose={() => onCreated(created)}
+                />
+            )}
         </Dialog>
     );
 }
